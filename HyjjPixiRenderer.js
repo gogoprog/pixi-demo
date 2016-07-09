@@ -1,4 +1,3 @@
-var logger;
 import createGraph from "ngraph.graph";
 import createForceLayout from 'ngraph.forcelayout';
 import physicsSimulator from "ngraph.physics.simulator";
@@ -14,7 +13,6 @@ Meteor.startup(function() {
 });
 export default HyjjPixiRenderer = function(graph, settings) {
     // Initialize default settings:
-    logger = hyjj.systemUtil.getLogger("hyjj.pixi.renderer");
     settings = _.extend(settings, {
         // What is the background color of a graph?
         background: 0x000000,
