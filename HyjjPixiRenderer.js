@@ -168,9 +168,22 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * hide the selected node and the line
          **/
         hideSelectedNodeAndLine:function(){
-
+            var nodesArray=getSelectedNodes();
+            _.each(nodesArray, function(nodeId) {
+                var nodeHide = nodesArray[nodeId];
+                nodeHide.visible=false;
+            });
         },
-
+        /**
+         * show all nodes
+         * */
+        showAllNode:function () {
+            _.each(nodeContainer.nodes, function(nodeId) {
+               if(!nodeContainer.nodes.visible){
+                   nodeContainer.nodes.visible=true;
+               }
+            });
+        },
 
         /**
          * Allow switching between picking and panning modes;
@@ -233,7 +246,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 }
             });
             _.each(linkSprites, function(linkSprite, lid) {
-                var actualId = linkSprite.id
+                var actualId = linkSprite.id;
                 if (_.indexOf(linkIdArray, actualId) >= 0) {
                     nodeContainer.selectLink(linkSprite);
                 }
@@ -368,10 +381,13 @@ export default HyjjPixiRenderer = function(graph, settings) {
         boarderGraphics.endFill();
     }
 
+    //这里有一个大坑,因为getNodeAt的算法是遍历过来的,如果前面传参能直接传递点,而不是做标值,性能会有很大的提高
     function drawLines() {
         lineGraphics.clear();
         _.each(linkSprites, function(link) {
-            link.renderLine(lineGraphics);
+            //直接进行判断,希望短路求值能减少一部分的计算量
+            if(!getNodeAt(link.x1,link.y1).visible || !getNodeAt(link.x2,link.y2).visible)
+                link.renderLine(lineGraphics);
         });
     }
 
@@ -379,6 +395,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         var texture = visualConfig.findIcon(p.data.type);
         // console.log(JSON.stringify(p));
         var n = new PIXI.Sprite(texture);
+        n.visible=true; //add for hide the node and line
         n.id = p.id;
         n.parent = nodeContainer;
         n.anchor.x = 0.5;
