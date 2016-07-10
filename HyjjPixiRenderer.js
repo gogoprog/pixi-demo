@@ -165,9 +165,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
             return style;
         },
         /**
-         * hide the selected node and the line
+         * hide the selected node
          **/
-        hideSelectedNodeAndLine:function(){
+        hideSelectedNode:function(){
             var nodesArray=getSelectedNodes();
             _.each(nodesArray, function(nodeId) {
                 var nodeHide = nodesArray[nodeId];
@@ -381,7 +381,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         boarderGraphics.endFill();
     }
 
-    //这里有一个大坑,因为getNodeAt的算法是遍历过来的,如果前面传参能直接传递点,而不是做标值,性能会有很大的提高
+    //这里有一个坑,因为getNodeAt的算法是遍历过来的,如果前面传参能直接传递点,而不是坐标,性能会有很大的提高
     function drawLines() {
         lineGraphics.clear();
         _.each(linkSprites, function(link) {
@@ -481,6 +481,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
         linkSprites[f.id] = l;
         l.arrow.interactive = true;
         l.arrow.buttonMode = true;
+        l.arrow.visible=true;
+        //既然箭头加在了线里面,为何显示的时候会在最上面。
         textContainer.addChild(l.label);
         lineContainer.addChild(l.arrow);
     }
