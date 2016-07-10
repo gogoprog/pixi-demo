@@ -95,6 +95,18 @@ export default HyjjPixiRenderer = function(graph, settings) {
     var layoutIterations = 0,
         counter = new FPSCounter();
 
+    //Object for change the boudary style of selected node
+    //the content of the Object refer to the "visualConfig.js".
+    var boundaryAttr=new Object();
+    boundaryAttr.boudary=new Object();
+    boundaryAttr.fill=new Object();
+    boundaryAttr.boudary.color=0x0077b3;
+    boundaryAttr.boudary.width=1;
+    boundaryAttr.boudary.alpha=0.6;
+    boundaryAttr.fill.color=0xff6666;
+    boundaryAttr.fill.alpha=0.3;
+
+
     listenToGraphEvents();
 
     var pixiGraphics = {
@@ -117,15 +129,21 @@ export default HyjjPixiRenderer = function(graph, settings) {
             layoutIterations += n;
         },
         /**
-         * Allow changing the bouder style of the selected node
+         * Allow changing the boundary style of the selected node
          **/
-        changeSelectedNodeBouderStyle: function(){
+        changeSelectedNodeBoundaryStyle: function(boundAttr){
+
+            boundaryAttr.boudary.color=boundAttr.boudary.color || 0x0077b3;
+            boundaryAttr.boudary.width=boundAttr.boudary.width || 1;
+            boundaryAttr.boudary.alpha=boundAttr.boudary.alpha || 0.6;
+            boundaryAttr.fill.color=boundAttr.fill.color || 0xff6666;
+            boundaryAttr.fill.alpha=boundAttr.fill.alpha || 0.3;
 
         },
         /**
          * Allow changing the style of the selected line
          **/
-        changeSlelectedLineSytle:function(){
+        changeSelectedLineStyle:function(){
 
         },
         /**
@@ -134,6 +152,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         hideSelectedNodeAndLine:function(){
 
         },
+
 
         /**
          * Allow switching between picking and panning modes;
@@ -321,8 +340,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
     function drawBoarders() {
         boarderGraphics.clear();
-        var frameCfg = visualConfig.ui.frame;
-        boarderGraphics.lineStyle(frameCfg.border.width, frameCfg.border.color, frameCfg.border.alpha);
+        var frameCfg = boundaryAttr;
+        
+        boarderGraphics.lineStyle(frameCfg.boundary.width, frameCfg.boundary.color, frameCfg.boundary.alpha);
         boarderGraphics.beginFill(frameCfg.fill.color, frameCfg.fill.alpha);
         _.each(nodeContainer.selectedNodes, function(n) {
             boarderGraphics.drawRoundedRect(n.position.x - 20, n.position.y - 20, 40, 40, 5); //TODO make size configurable
