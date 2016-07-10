@@ -117,6 +117,25 @@ export default HyjjPixiRenderer = function(graph, settings) {
             layoutIterations += n;
         },
         /**
+         * Allow changing the bouder style of the selected node
+         **/
+        changeSelectedNodeBouderStyle: function(){
+
+        },
+        /**
+         * Allow changing the style of the selected line
+         **/
+        changeSlelectedLineSytle:function(){
+
+        },
+        /**
+         * hide the selected node and the line
+         **/
+        hideSelectedNodeAndLine:function(){
+
+        },
+
+        /**
          * Allow switching between picking and panning modes;
          */
         setMode: function(newMode) {
