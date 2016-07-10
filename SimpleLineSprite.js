@@ -1,4 +1,6 @@
 import { visualConfig } from "./visualConfig.js";
+import { HyjjPixiRenderer } from "./HyjjPixiRenderer"
+
 SimpleLineSprite = function(label, thickness, color, x1, y1, x2, y2, controlOffsetIndex, fontConfig) {
     this._thickness = thickness;
     this._color = color;
@@ -50,10 +52,15 @@ SimpleLineSprite.prototype.selectionChanged = function(selected) {
     this.selected = selected;
     if (selected) {
         this.arrow.scale.set(0.8, 0.8);
-        this.label.alpha = visualConfig.ui.line.highlight.alpha;
-        this.thickness = visualConfig.ui.line.highlight.width;
-        this.color = visualConfig.ui.line.highlight.color;
-        this.alpha = visualConfig.ui.line.highlight.alpha;
+        var style=HyjjPixiRenderer.getSelectedLineAttr();
+        this.label.alpha=style.alpha;
+        this.thickness=style.thickness;
+        this.color=style.color;
+        this.alpha=style.alpha;
+        // this.label.alpha = visualConfig.ui.line.highlight.alpha;
+        // this.thickness = visualConfig.ui.line.highlight.width;
+        // this.color = visualConfig.ui.line.highlight.color;
+        // this.alpha = visualConfig.ui.line.highlight.alpha;
     } else {
         this.arrow.scale.set(0.5, 0.5);
         this.label.alpha = visualConfig.ui.line.alpha;

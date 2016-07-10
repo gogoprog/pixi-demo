@@ -106,6 +106,12 @@ export default HyjjPixiRenderer = function(graph, settings) {
     boundaryAttr.fill.color=0xff6666;
     boundaryAttr.fill.alpha=0.3;
 
+    //Object for change the style of selected link
+    //the content of the Object refer to the "visualConfig.js".
+    var selectedLineAttr=new Object();
+    selectedLineAttr.color=0xe60000;
+    selectedLineAttr.width=2;
+    selectedLineAttr.alpha=1;
 
     listenToGraphEvents();
 
@@ -143,8 +149,20 @@ export default HyjjPixiRenderer = function(graph, settings) {
         /**
          * Allow changing the style of the selected line
          **/
-        changeSelectedLineStyle:function(){
+        changeSelectedLineStyle:function(slStyle){
+            selectedLineAttr.width=slStyle.width || 0xe60000;
+            selectedLineAttr.color=slStyle.color || 2;
+            selectedLineAttr.alpha=slStyle.alpha || 1;
+        },
 
+        /**
+         * expose the selectedLineAttr*/
+        getSelectedLineAttr:function(){
+            var style=new Object();
+            style.width=selectedLineAttr.width;
+            style.color=selectedLineAttr.color;
+            style.alpha=selectedLineAttr.alpha;
+            return style;
         },
         /**
          * hide the selected node and the line
@@ -341,7 +359,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
     function drawBoarders() {
         boarderGraphics.clear();
         var frameCfg = boundaryAttr;
-        
+
         boarderGraphics.lineStyle(frameCfg.boundary.width, frameCfg.boundary.color, frameCfg.boundary.alpha);
         boarderGraphics.beginFill(frameCfg.fill.color, frameCfg.fill.alpha);
         _.each(nodeContainer.selectedNodes, function(n) {
