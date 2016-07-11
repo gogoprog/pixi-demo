@@ -96,6 +96,24 @@ export default HyjjPixiRenderer = function(graph, settings) {
     var layoutIterations = 0,
         counter = new FPSCounter();
 
+    //Object for change the boudary style of selected node
+    //the content of the Object refer to the "visualConfig.js".
+    var boundaryAttr=new Object();
+    boundaryAttr.boudary=new Object();
+    boundaryAttr.fill=new Object();
+    boundaryAttr.boudary.color=0x0077b3;
+    boundaryAttr.boudary.width=1;
+    boundaryAttr.boudary.alpha=0.6;
+    boundaryAttr.fill.color=0xff6666;
+    boundaryAttr.fill.alpha=0.3;
+
+    //Object for change the style of selected link
+    //the content of the Object refer to the "visualConfig.js".
+    var selectedLineAttr=new Object();
+    selectedLineAttr.color=0xe60000;
+    selectedLineAttr.width=2;
+    selectedLineAttr.alpha=1;
+
     listenToGraphEvents();
 
     var pixiGraphics = {
@@ -117,6 +135,57 @@ export default HyjjPixiRenderer = function(graph, settings) {
         },
         addLayoutCycles: function(n) {
             layoutIterations += n;
+        },
+
+        /**
+         * Allow changing the boundary style of the selected node
+         **/
+        changeSelectedNodeBoundaryStyle: function(boundAttr){
+
+            boundaryAttr.boudary.color=boundAttr.boudary.color || 0x0077b3;
+            boundaryAttr.boudary.width=boundAttr.boudary.width || 1;
+            boundaryAttr.boudary.alpha=boundAttr.boudary.alpha || 0.6;
+            boundaryAttr.fill.color=boundAttr.fill.color || 0xff6666;
+            boundaryAttr.fill.alpha=boundAttr.fill.alpha || 0.3;
+
+        },
+        /**
+         * Allow changing the style of the selected line
+         **/
+        changeSelectedLineStyle:function(slStyle){
+            selectedLineAttr.width=slStyle.width || 0xe60000;
+            selectedLineAttr.color=slStyle.color || 2;
+            selectedLineAttr.alpha=slStyle.alpha || 1;
+        },
+
+        /**
+         * expose the selectedLineAttr*/
+        getSelectedLineAttr:function(){
+            var style=new Object();
+            style.width=selectedLineAttr.width;
+            style.color=selectedLineAttr.color;
+            style.alpha=selectedLineAttr.alpha;
+            return style;
+        },
+        /**
+         * hide the selected node
+         **/
+        hideSelectedNode:function(){
+            var nodesArray=getSelectedNodes();
+            _.each(nodesArray, function(nodeId) {
+                var nodeHide = nodesArray[nodeId];
+                nodeHide.visible=false;
+            });
+        },
+        /**
+         * show all nodes
+         * */
+        showAllNode:function () {
+            _.each(nodeContainer.nodes, function(nodeId) {
+               if(!nodeContainer.nodes.visible){
+                   nodeContainer.nodes.visible=true;
+               }
+            });
         },
 
         /**
@@ -180,7 +249,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 }
             });
             _.each(linkSprites, function(linkSprite, lid) {
-                var actualId = linkSprite.id
+                var actualId = linkSprite.id;
                 if (_.indexOf(linkIdArray, actualId) >= 0) {
                     nodeContainer.selectLink(linkSprite);
                 }
@@ -307,8 +376,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
     //画边框,查看drawRoudedRect性能
     function drawBoarders() {
         boarderGraphics.clear();
-        var frameCfg = visualConfig.ui.frame;
-        boarderGraphics.lineStyle(frameCfg.border.width, frameCfg.border.color, frameCfg.border.alpha);
+        var frameCfg = boundaryAttr;
+
+        boarderGraphics.lineStyle(frameCfg.boundary.width, frameCfg.boundary.color, frameCfg.boundary.alpha);
         boarderGraphics.beginFill(frameCfg.fill.color, frameCfg.fill.alpha);
         _.each(nodeContainer.selectedNodes, function(n) {
             boarderGraphics.drawRoundedRect(n.position.x - 20, n.position.y - 20, 40, 40, 5); //TODO make size configurable
@@ -316,10 +386,13 @@ export default HyjjPixiRenderer = function(graph, settings) {
         boarderGraphics.endFill();
     }
 
+    //这里有一个坑,因为getNodeAt的算法是遍历过来的,如果前面传参能直接传递点,而不是坐标,性能会有很大的提高
     function drawLines() {
         lineGraphics.clear();
         _.each(linkSprites, function(link) {
-            link.renderLine(lineGraphics);
+            //直接进行判断,希望短路求值能减少一部分的计算量
+            if(!getNodeAt(link.x1,link.y1).visible || !getNodeAt(link.x2,link.y2).visible)
+                link.renderLine(lineGraphics);
         });
     }
 
@@ -327,6 +400,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         var texture = visualConfig.findIcon(p.data.type);
         // console.log(JSON.stringify(p));
         var n = new PIXI.Sprite(texture);
+        n.visible=true; //add for hide the node and line
         n.id = p.id;
         n.parent = nodeContainer;
         n.anchor.x = 0.5;
@@ -412,6 +486,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
         linkSprites[f.id] = l;
         l.arrow.interactive = true;
         l.arrow.buttonMode = true;
+        l.arrow.visible=true;
+        //既然箭头加在了线里面,为何显示的时候会在最上面。
         textContainer.addChild(l.label);
         lineContainer.addChild(l.arrow);
     }
