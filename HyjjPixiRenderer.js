@@ -144,6 +144,15 @@ export default HyjjPixiRenderer = function(graph, settings) {
         },
 
         /**
+         * zoom in and zoom out for the node
+         */
+        nodeZoomByID:function (nodeIDArray,zoomValue) {
+            _.each(nodeIDArray,function(nodeID){
+                nodeSprites[nodeID].scale.set(zoomValue);
+                nodeSprites[nodeID].ts.scale.set(0.5*zoomValue);
+            });
+        },
+        /**
         * change the boundary style of the nodes by ID
         **/
         changeBoundaryStyleByID:function (nodeIDArray, boundAttr) {
@@ -507,6 +516,10 @@ export default HyjjPixiRenderer = function(graph, settings) {
         n.incoming = [];
         n.outgoing = [];
 
+        n.nodeScale=1;
+
+        n.scale.set(n.nodeScale);
+
         n.boundaryAttr={};
         n.boundaryAttr.boudary={};
         n.boundaryAttr.fill={};
@@ -519,9 +532,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
         n.interactive = true;
         n.buttonMode = true;
         var t = new PIXI.Text(p.data.label, visualConfig.ui.label.font);
-        t.position.set(p.data.x, p.data.y + visualConfig.NODE_LABLE_OFFSET_Y);
+        t.position.set(p.data.x, p.data.y + visualConfig.NODE_LABLE_OFFSET_Y*n.nodeScale);
         t.anchor.x = 0.5;
-        t.scale.set(0.5, 0.5);
+        t.scale.set(0.5*n.nodeScale, 0.5*n.nodeScale);
         n.ts = t;
         textContainer.addChild(t);
         nodeContainer.addChild(n);
