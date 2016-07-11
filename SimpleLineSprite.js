@@ -10,6 +10,10 @@ SimpleLineSprite = function(label, thickness, color, x1, y1, x2, y2, controlOffs
     this.y2 = y2;
     this._controlOffsetIndex = controlOffsetIndex || 0;
 
+    this.coustomSettingThickness = visualConfig.ui.line.width;
+    this.coustomSettingColor=visualConfig.ui.line.color;
+    this.coustomSettingAlpha=visualConfig.ui.line.alpha;
+
     this.arrow = new PIXI.Sprite(SimpleLineSprite.prototype.getTexture(thickness, color));
     this.arrow.scale.set(0.5, 0.5);
     this.arrow.anchor.x = 0.5;
@@ -34,6 +38,7 @@ SimpleLineSprite.canvas = null;
 SimpleLineSprite.prototype = {};
 SimpleLineSprite.prototype.constructor = SimpleLineSprite;
 SimpleLineSprite.prototype.MULTI_OFFSET = 30; //10 px between each line.
+
 SimpleLineSprite.prototype.initCanvas = function() {
     SimpleLineSprite.canvas = document.createElement("canvas");
     SimpleLineSprite.canvas.width = SimpleLineSprite.maxWidth;
@@ -41,6 +46,39 @@ SimpleLineSprite.prototype.initCanvas = function() {
     SimpleLineSprite.baseTexture = new PIXI.BaseTexture(SimpleLineSprite.canvas);
 };
 
+/**
+ * set the attribute of the line (color, width, alpha)
+ */
+SimpleLineSprite.prototype.setLineAttr = function (linkAttr) {
+    this.coustomSettingAlpha=linkAttr.alpha;
+    this.coustomSettingColor=linkAttr.color;
+    this.coustomSettingThickness=linkAttr.thickness;
+    this.coustomSettingThickness.label.alpha=linkAttr.alpha;
+
+    this.alpha=this.coustomSettingAlpha;
+    this.color=this.coustomSettingColor;
+    this.thickness=this.coustomSettingThickness;
+    this.label.alpha=this.coustomSettingAlpha;
+
+};
+
+/**
+ * get the attribute of the line (LinkAttr: color, width, alpha)
+ */
+SimpleLineSprite.prototype.getLineAttr = function () {
+    var lineAttr={};
+    lineAttr.width=this.coustomSettingThickness;
+    lineAttr.color=this.coustomSettingColor;
+    lineAttr.alpha=this.coustomSettingAlpha;
+
+    return lineAttr;
+};
+
+/**
+ * @param width
+ * @param height
+ * @returns {Element}
+ */
 SimpleLineSprite.prototype.getCanvas = function(width, height) {
     var canvas = document.createElement("canvas");
     canvas.width = width;
@@ -52,21 +90,16 @@ SimpleLineSprite.prototype.selectionChanged = function(selected) {
     this.selected = selected;
     if (selected) {
         this.arrow.scale.set(0.8, 0.8);
-        var style=HyjjPixiRenderer.getSelectedLineAttr();
-        this.label.alpha=style.alpha;
-        this.thickness=style.thickness;
-        this.color=style.color;
-        this.alpha=style.alpha;
-        // this.label.alpha = visualConfig.ui.line.highlight.alpha;
-        // this.thickness = visualConfig.ui.line.highlight.width;
-        // this.color = visualConfig.ui.line.highlight.color;
-        // this.alpha = visualConfig.ui.line.highlight.alpha;
+        this.label.alpha = visualConfig.ui.line.highlight.alpha;
+        this.thickness = visualConfig.ui.line.highlight.width;
+        this.color = visualConfig.ui.line.highlight.color;
+        this.alpha = visualConfig.ui.line.highlight.alpha;
     } else {
         this.arrow.scale.set(0.5, 0.5);
-        this.label.alpha = visualConfig.ui.line.alpha;
-        this.thickness = visualConfig.ui.line.width;
-        this.color = visualConfig.ui.line.color;
-        this.alpha = visualConfig.ui.line.alpha;
+        this.label.alpha = this.coustomSettingAlpha;
+        this.thickness = this.coustomSettingThickness;
+        this.color = this.coustomSettingColor;
+        this.alpha = this.coustomSettingAlpha;
     }
 };
 
@@ -108,7 +141,7 @@ SimpleLineSprite.prototype.setTo = function(point) {
 };
 
 SimpleLineSprite.prototype.renderLine = function(lineGraphics) {
-    lineGraphics.lineStyle(this._thickness, this.color, this.alpha);
+    lineGraphics.lineStyle(this.coustomSettingThickness, this.coustomSettingColor, this.coustomSettingAlpha);
     lineGraphics.moveTo(this.x1, this.y1);
     if (this._controlOffsetIndex == 0) {
         lineGraphics.lineTo(this.x2, this.y2);
