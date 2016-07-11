@@ -11,6 +11,7 @@ Meteor.startup(function() {
         icon.texture = PIXI.Texture.fromImage(icon.url);
     });
 });
+
 export default HyjjPixiRenderer = function(graph, settings) {
     // Initialize default settings:
     settings = _.extend(settings, {
@@ -83,7 +84,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         nodeContainer.handleMouseUp(e);
         selectionChanged();
     });
-    nodeContainer.nodeMovedTo = function(node, position) {
+    nodeContainer.nodeMovedTo = function(node, position) {//layout 相关,把移动位置同步到layout内部
         var pos = layout.setNodePosition(node.id, position.x, position.y);
     };
 
@@ -98,6 +99,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
     listenToGraphEvents();
 
     var pixiGraphics = {
+
         /**
          * Allows client to start animation loop, without worrying about RAF stuff.
          */
@@ -116,6 +118,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         addLayoutCycles: function(n) {
             layoutIterations += n;
         },
+
         /**
          * Allow switching between picking and panning modes;
          */
@@ -275,6 +278,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         requestAnimationFrame(animationLoop);
         if (layoutIterations > 0) {
             layout.step();
+            //大开销计算
             _.each(nodeSprites, function(nodeSprite, nodeId) {
                 nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
             });
@@ -300,6 +304,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         }
     }
 
+    //画边框,查看drawRoudedRect性能
     function drawBoarders() {
         boarderGraphics.clear();
         var frameCfg = visualConfig.ui.frame;

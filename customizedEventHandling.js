@@ -58,6 +58,7 @@ rootReleaseHandler = function(e) {
 };
 
 rootMoveHandler = function(e) {
+    //throttle 限制回调函数被调用次数的方式
     var oldPosition = this.mouseLocation;
     var newPosition = e.data.global;
     if (this.dragging) {
