@@ -10,6 +10,7 @@ export const SelectionManager = function() {
     };
 
     this.linkSelected = function(link) {
+        //console.log("here");
         this.recentlySelected = link;
     };
 
@@ -32,6 +33,7 @@ export const SelectionManager = function() {
     };
     this.selectLink = function(link) {
         if (link) {
+            console.log(link.id);
             this.selectedLinks[link.id] = link;
             this.links.push(link);
             link.selectionChanged(true);
@@ -64,7 +66,9 @@ export const SelectionManager = function() {
     };
 
     this.handleMouseUp = function(e) {
+        console.log("*************************");
         var mouseEvent = e.data.originalEvent;
+        console.log(this.recentlySelected);
         if (this.recentlySelected) {
             var n = this.recentlySelected; // could be a node or a link
             if (mouseEvent.ctrlKey || mouseEvent.shiftKey) {
@@ -92,11 +96,13 @@ export const SelectionManager = function() {
                 //     delete container[n.id];
                 // }
             } else {
+                //console.log("WTF");
                 this.deselectAll();
                 // let container = n.isLink ? this.selectedLinks : this.selectedNodes;
                 // container[n.id] = n;
                 // n.selectionChanged(true);
                 if (n.isLink) {
+                    //console.log("WWWWWWWCAO!!!!");
                     this.selectLink(n);
                 } else {
                     this.selectNode(n);

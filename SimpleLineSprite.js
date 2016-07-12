@@ -18,7 +18,9 @@ SimpleLineSprite = function(label, thickness, color, x1, y1, x2, y2, controlOffs
     this.arrow.scale.set(0.5, 0.5);
     this.arrow.anchor.x = 0.5;
     this.arrow.lineSprite = this;
+
     this.arrow.on('mouseup', function(e) {
+        //console.log("mouse up!!!!");
         this.parent.linkSelected(this.lineSprite);
     });
 
@@ -53,7 +55,7 @@ SimpleLineSprite.prototype.setLineAttr = function (linkAttr) {
     this.coustomSettingAlpha=linkAttr.alpha;
     this.coustomSettingColor=linkAttr.color;
     this.coustomSettingThickness=linkAttr.thickness;
-    this.coustomSettingThickness.label.alpha=linkAttr.alpha;
+    this.label.alpha=linkAttr.alpha;
 
     this.alpha=this.coustomSettingAlpha;
     this.color=this.coustomSettingColor;
@@ -89,11 +91,17 @@ SimpleLineSprite.prototype.getCanvas = function(width, height) {
 SimpleLineSprite.prototype.selectionChanged = function(selected) {
     this.selected = selected;
     if (selected) {
+        //console.log("+++++++++++++++++++++++");
         this.arrow.scale.set(0.8, 0.8);
         this.label.alpha = visualConfig.ui.line.highlight.alpha;
+        // console.log(visualConfig.ui.line.highlight.width);
+        // console.log(visualConfig.ui.line.highlight.color);
+        // console.log(visualConfig.ui.line.highlight.alpha);
         this.thickness = visualConfig.ui.line.highlight.width;
         this.color = visualConfig.ui.line.highlight.color;
         this.alpha = visualConfig.ui.line.highlight.alpha;
+
+        //console.log("\n ================"+this.color);
     } else {
         this.arrow.scale.set(0.5, 0.5);
         this.label.alpha = this.coustomSettingAlpha;
@@ -141,7 +149,7 @@ SimpleLineSprite.prototype.setTo = function(point) {
 };
 
 SimpleLineSprite.prototype.renderLine = function(lineGraphics) {
-    lineGraphics.lineStyle(this.coustomSettingThickness, this.coustomSettingColor, this.coustomSettingAlpha);
+    lineGraphics.lineStyle(this.thickness, this.color, this.alpha);
     lineGraphics.moveTo(this.x1, this.y1);
     if (this._controlOffsetIndex == 0) {
         lineGraphics.lineTo(this.x2, this.y2);
