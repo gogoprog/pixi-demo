@@ -11,8 +11,8 @@ SimpleLineSprite = function(label, thickness, color, x1, y1, x2, y2, controlOffs
     this._controlOffsetIndex = controlOffsetIndex || 0;
 
     this.coustomSettingThickness = visualConfig.ui.line.width;
-    this.coustomSettingColor=visualConfig.ui.line.color;
-    this.coustomSettingAlpha=visualConfig.ui.line.alpha;
+    this.coustomSettingColor = visualConfig.ui.line.color;
+    this.coustomSettingAlpha = visualConfig.ui.line.alpha;
 
     this.arrow = new PIXI.Sprite(SimpleLineSprite.prototype.getTexture(thickness, color));
     this.arrow.scale.set(0.5, 0.5);
@@ -51,27 +51,27 @@ SimpleLineSprite.prototype.initCanvas = function() {
 /**
  * set the attribute of the line (color, width, alpha)
  */
-SimpleLineSprite.prototype.setLineAttr = function (linkAttr) {
-    this.coustomSettingAlpha=linkAttr.alpha;
-    this.coustomSettingColor=linkAttr.color;
-    this.coustomSettingThickness=linkAttr.thickness;
-    this.label.alpha=linkAttr.alpha;
+SimpleLineSprite.prototype.setLineAttr = function(linkAttr) {
+    this.coustomSettingAlpha = linkAttr.alpha;
+    this.coustomSettingColor = linkAttr.color;
+    this.coustomSettingThickness = linkAttr.thickness;
+    this.label.alpha = linkAttr.alpha;
 
-    this.alpha=this.coustomSettingAlpha;
-    this.color=this.coustomSettingColor;
-    this.thickness=this.coustomSettingThickness;
-    this.label.alpha=this.coustomSettingAlpha;
+    this.alpha = this.coustomSettingAlpha;
+    this.color = this.coustomSettingColor;
+    this.thickness = this.coustomSettingThickness;
+    this.label.alpha = this.coustomSettingAlpha;
 
 };
 
 /**
  * get the attribute of the line (LinkAttr: color, width, alpha)
  */
-SimpleLineSprite.prototype.getLineAttr = function () {
-    var lineAttr={};
-    lineAttr.width=this.coustomSettingThickness;
-    lineAttr.color=this.coustomSettingColor;
-    lineAttr.alpha=this.coustomSettingAlpha;
+SimpleLineSprite.prototype.getLineAttr = function() {
+    var lineAttr = {};
+    lineAttr.width = this.coustomSettingThickness;
+    lineAttr.color = this.coustomSettingColor;
+    lineAttr.alpha = this.coustomSettingAlpha;
 
     return lineAttr;
 };
@@ -118,18 +118,18 @@ SimpleLineSprite.prototype.getTexture = function(thickness, color) {
     var key = thickness + "-" + color;
     if (!SimpleLineSprite.textureCache[key]) {
         console.log("Generating texture: " + key);
-        var canvas = this.getCanvas(arrowWidth, arrowHeight);
+        var canvas = this.getCanvas(arrowWidth+thickness, arrowHeight+thickness);
         var context = canvas.getContext("2d");
         context.fillStyle = PIXI.utils.hex2string(color);
 
         context.beginPath();
         context.moveTo(0, 0);
-        context.lineTo(8, arrowHeight);
-        context.lineTo(16, 0);
+        context.lineTo(arrowWidth / 2 + thickness, arrowHeight + thickness);
+        context.lineTo(arrowWidth + thickness, 0);
         context.fill();
 
         var texture = new PIXI.Texture(new PIXI.BaseTexture(canvas), PIXI.SCALE_MODES.LINEAR);
-        texture.frame = new PIXI.Rectangle(0, 0, arrowWidth, arrowHeight);
+        texture.frame = new PIXI.Rectangle(0, 0, arrowWidth + thickness, arrowHeight + thickness);
         SimpleLineSprite.textureCache[key] = texture;
     }
 
@@ -181,7 +181,7 @@ Object.defineProperties(SimpleLineSprite.prototype, {
         },
         set: function(value) {
             this._thickness = value;
-            // this.texture = this.getTexture(this._thickness, this._color);
+            this.arrow.texture = this.getTexture(this._thickness, this._color);
         }
     },
     color: {

@@ -117,7 +117,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         counter = new FPSCounter();
 
     listenToGraphEvents();
-    
+
     var pixiGraphics = {
 
         /**
@@ -139,7 +139,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             root.position.y += (viewHeight - rootH) / 2;
             this.addLayoutCycles(150);
         },
-        
+
         /*
         * For the forcelayout Algorithm do not have the fixed cycles.
         * To arrange the nodes quickly, we need add the cycles manually.
@@ -163,17 +163,17 @@ export default HyjjPixiRenderer = function(graph, settings) {
         * change the boundary style of the nodes by ID
         **/
         changeBoundaryStyleByID:function (nodeIDArray, boundAttr) {
-            
+
             _.each(nodeIDArray,function (nodeID) {
                 nodeSprites[nodeID].boundaryAttr=boundAttr;
             });
         },
-        
+
         /**
          * change the style of the link by ID
          */
         changeLinkStyleByID:function (linkIDArray,linkAttr) {
-            
+
             _.each(linkIDArray,function (linkID) {
                 console.log(linkID);
                 linkSprites[linkID].setLineAttr(linkAttr);
@@ -252,8 +252,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 var showNode=nodeSprites[node];
                 showNode.visible=true;
                 showNode.ts.visible=true;
-                
-                /**when we hide the nodes, we also hide the texture, arrow and the link. 
+
+                /**when we hide the nodes, we also hide the texture, arrow and the link.
                  * Now we should set them visible
                  */
                 //console.log(showNode.outgoing.targetEntity);
@@ -458,7 +458,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
     function selectionChanged() {
 
         pixiGraphics.fire('selectionChanged');
-        drawBoarders();
+        drawBorders();
     }
 
 
@@ -474,7 +474,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             layoutIterations -= 1;
         }
 
-        drawBoarders();
+        drawBorders();
         drawLines();
         renderer.render(stage);
         counter.nextFrame();
@@ -495,7 +495,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
     }
 
     //TODO 画边框,查看drawRoudedRect性能
-    function drawBoarders() {
+    function drawBorders() {
         boarderGraphics.clear();
 
         _.each(nodeNeedBoundary, function(n1) {

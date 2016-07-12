@@ -114,8 +114,9 @@ rootCaptureHandler = function(e) {
 nodeCaptureListener = function(e) {
     // console.log('Mouse down on ' + JSON.stringify(this.position));
     this.data = e.data;
-    this.scale.set(1.3, 1.3);
+    // this.scale.set(1.3, 1.3);
     this.dragging = true;
+    this.alpha = 0.6;
     if (!this.moveListener) {
         this.moveListener = nodeMoveListener.bind(this);
         this.on('mousemove', this.moveListener);
@@ -134,7 +135,7 @@ nodeReleaseListener = function(e) {
     // this.updateNodePosition(newPosition);
     // console.log("Updated to new position: " + JSON.stringify(newPosition));
     this.data = null;
-    this.scale.set(1, 1);
+    // this.scale.set(1, 1);
     this.parent.nodeMovedTo(this, newPosition);
     this.parent.nodeSelected(this);
     this.moveListener = null;
