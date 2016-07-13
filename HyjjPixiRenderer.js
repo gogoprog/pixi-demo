@@ -505,7 +505,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             //if the node is invisible, we don't need draw is boundary
             //TODO here we should consider the performance.
             if(n1.visible) {
-                boarderGraphics.drawCircle(n1.position.x , n1.position.y , 22); //TODO make size configurable
+                boarderGraphics.drawCircle(n1.position.x , n1.position.y , 22*n1.scale.x); //TODO make size configurable
             }
         });
         _.each(nodeContainer.selectedNodes, function(n2) {
