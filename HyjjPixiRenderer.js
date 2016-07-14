@@ -178,7 +178,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 nodeSprites[nodeID].scale.set(zoomValue);
                 nodeSprites[nodeID].ts.scale.set(0.5*zoomValue);
                 nodeSprites[nodeID].ts.position.set(nodeSprites[nodeID].position.x, nodeSprites[nodeID].position.y + visualConfig.NODE_LABLE_OFFSET_Y*zoomValue);
-
+                
             });
         },
 
