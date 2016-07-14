@@ -174,7 +174,16 @@ export default HyjjPixiRenderer = function(graph, settings) {
         changeLinkStyleByID:function (linkIDArray,linkAttr) {
 
             _.each(linkIDArray,function (linkID) {
-                console.log(linkID);
+                //console.log(linkID);
+                if(!linkAttr.color){
+                    linkAttr.color=linkSprites[linkID].coustomSettingColor;
+                }
+                if(!linkAttr.alpha){
+                    linkAttr.alpha=linkSprites[linkID].coustomSettingAlpha;
+                }
+                if(!linkAttr.thickness){
+                    linkAttr.thickness=linkSprites[linkID].coustomSettingThickness;
+                }
                 linkSprites[linkID].setLineAttr(linkAttr);
             });
         },
@@ -518,15 +527,11 @@ export default HyjjPixiRenderer = function(graph, settings) {
             //if the node is invisible, we don't need draw is boundary
             //TODO here we should consider the performance.
             if(n2.visible) {
-                var length=n2.ts.text.width;
-                console.log(length);
-                if(length > 40) {
-                    console.log("fire in the hole!!!");
-                    boarderGraphics.drawRoundedRect(n2.position.x - length / 2, n2.position.y - 20, length, 40 + 10, 5); //TODO make size configurable
-                }else{
-                    console.log("text width < 40 ");
-                    boarderGraphics.drawRoundedRect(n2.position.x - 20, n2.position.y - 20, 40, 40 + 10, 5); //TODO make size configurable
-                }
+                // var length=n2.ts.text.width;
+                // console.log(length);
+                //console.log("text width < 40 ");
+                boarderGraphics.drawRoundedRect(n2.position.x - 20*n2.scale.x, n2.position.y - 20*n2.scale.y, 40*n2.scale.x, (40 + 10)*n2.scale.y, 5); //TODO make size configurable
+                
             }
         });
         boarderGraphics.endFill();
