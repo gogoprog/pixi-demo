@@ -124,6 +124,24 @@ export default HyjjPixiRenderer = function(graph, settings) {
         run: animationLoop,
 
         /**
+         * Cancel global Interactive
+         */
+        cancelGlobalInteractive: function(){
+            nodeContainer.interactive=false;
+            stage.interactive=false;
+            nodeContainer.interactiveChildren = false;
+        },
+
+        /**
+         * recover global Interactive
+         */
+        recoverGlobalInteractive: function(){
+            nodeContainer.interactive=true;
+            stage.interactive = true;
+            nodeContainer.interactiveChildren = true;
+        },
+
+        /**
          * adjust the initial display location.
          */
         adjustInitialDisplayLocation: function() {

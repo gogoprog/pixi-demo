@@ -118,6 +118,7 @@ SimpleLineSprite.prototype.getTexture = function(thickness, color) {
     var key = thickness + "-" + color;
     if (!SimpleLineSprite.textureCache[key]) {
         console.log("Generating texture: " + key);
+
         var canvas = this.getCanvas(arrowWidth+thickness, arrowHeight+thickness);
         var context = canvas.getContext("2d");
         context.fillStyle = PIXI.utils.hex2string(color);
