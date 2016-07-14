@@ -91,7 +91,7 @@ export const visualConfig = {
             },
             "fill": {
                 "color": 0x0077b3,
-                "alpha": 0.2
+                "alpha": 0.25
             }
         },
         "linkStyle": {
