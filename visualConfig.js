@@ -96,7 +96,8 @@ export const visualConfig = {
         },
         "linkStyle": {
             "widht": 2,
-            "color" : 0x000000
+            "color": 0x000000,
+            "alpha": 1
         }
     }
 };
