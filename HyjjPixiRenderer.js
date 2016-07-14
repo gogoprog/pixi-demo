@@ -178,7 +178,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 nodeSprites[nodeID].scale.set(zoomValue);
                 nodeSprites[nodeID].ts.scale.set(0.5*zoomValue);
                 nodeSprites[nodeID].ts.position.set(nodeSprites[nodeID].position.x, nodeSprites[nodeID].position.y + visualConfig.NODE_LABLE_OFFSET_Y*zoomValue);
-                
+
             });
         },
 
@@ -207,6 +207,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 }
                 if(!linkAttr.thickness){
                     linkAttr.thickness=linkSprites[linkID].coustomSettingThickness;
+                }else {
+                    linkAttr.thickness = Math.round( linkAttr.thickness ); // Make sure its integer;
                 }
                 linkSprites[linkID].setLineAttr(linkAttr);
             });

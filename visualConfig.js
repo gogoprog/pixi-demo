@@ -70,7 +70,7 @@ export const visualConfig = {
         },
         "line": {
             "color": 0x000000,
-            "alpha": 0.7,
+            "alpha": 1,
             "width": 1,
             "highlight": {
                 "color": 0xe60000,

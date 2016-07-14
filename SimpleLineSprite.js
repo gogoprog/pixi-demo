@@ -97,7 +97,7 @@ SimpleLineSprite.prototype.selectionChanged = function(selected) {
         // console.log(visualConfig.ui.line.highlight.width);
         // console.log(visualConfig.ui.line.highlight.color);
         // console.log(visualConfig.ui.line.highlight.alpha);
-        this.thickness = visualConfig.ui.line.highlight.width;
+        // this.thickness = visualConfig.ui.line.highlight.width;
         this.color = visualConfig.ui.line.highlight.color;
         this.alpha = visualConfig.ui.line.highlight.alpha;
 
@@ -105,7 +105,7 @@ SimpleLineSprite.prototype.selectionChanged = function(selected) {
     } else {
         this.arrow.scale.set(0.5, 0.5);
         this.label.alpha = this.coustomSettingAlpha;
-        this.thickness = this.coustomSettingThickness;
+        // this.thickness = this.coustomSettingThickness;
         this.color = this.coustomSettingColor;
         this.alpha = this.coustomSettingAlpha;
     }
@@ -114,7 +114,7 @@ SimpleLineSprite.prototype.selectionChanged = function(selected) {
 //FIXME thinkness is not used here!
 var arrowHeight = 24;
 var arrowWidth = 16;
-var thicknessFactor = 3;
+var thicknessFactor = 4;
 SimpleLineSprite.prototype.getTexture = function(thickness, color) {
     var key = thickness + "-" + color;
     if (!SimpleLineSprite.textureCache[key]) {
