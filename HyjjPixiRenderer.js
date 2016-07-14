@@ -68,22 +68,20 @@ export default HyjjPixiRenderer = function(graph, settings) {
     root.addChild(textContainer);
     root.addChild(nodeContainer);
 
+    stage.contentRoot = root;
 
     stage.hitArea = new PIXI.Rectangle(0, 0, viewWidth, viewHeight);
     stage.width = viewWidth;
     stage.height = viewHeight;
-    //
-    // nodeContainer.hitArea = new PIXI.Rectangle(0, 0, viewWidth, viewHeight);
+
+    //TODO here set the canvas as 20000*20000
+    nodeContainer.hitArea = new PIXI.Rectangle(-10000, -10000, 20000, 20000);
 
     nodeContainer.interactive = true;
 
     renderer.backgroundColor = 0xFFFFFF;
     SelectionManager.call(nodeContainer);
 
-    // stage.on('mouseup',function (e) {
-    //     stage.handleMouseUp(e);
-    //     selectionChanged();
-    // });
     nodeContainer.on('mouseup', function(e) {
         nodeContainer.handleMouseUp(e);
         selectionChanged();
@@ -156,6 +154,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 nodeSprites[nodeID].scale.set(zoomValue);
                 nodeSprites[nodeID].ts.scale.set(0.5*zoomValue);
                 nodeSprites[nodeID].ts.position.set(nodeSprites[nodeID].position.x, nodeSprites[nodeID].position.y + visualConfig.NODE_LABLE_OFFSET_Y*zoomValue);
+
             });
         },
 
@@ -506,18 +505,28 @@ export default HyjjPixiRenderer = function(graph, settings) {
             //if the node is invisible, we don't need draw is boundary
             //TODO here we should consider the performance.
             if(n1.visible) {
-                boarderGraphics.drawRoundedRect(n1.position.x - 20, n1.position.y - 20, 40, 40, 5); //TODO make size configurable
+                boarderGraphics.drawCircle(n1.position.x , n1.position.y , 22*n1.scale.x); //TODO make size configurable
             }
         });
         _.each(nodeContainer.selectedNodes, function(n2) {
 
-            boarderGraphics.lineStyle(n2.boundaryAttr.border.width, n2.boundaryAttr.border.color, n2.boundaryAttr.border.alpha);
-            boarderGraphics.beginFill(n2.boundaryAttr.fill.color, n2.boundaryAttr.fill.alpha);
+            boarderGraphics.lineStyle(visualConfig.ui.frame.border.width, visualConfig.ui.frame.border.color,visualConfig.ui.frame.border.alpha);
+            boarderGraphics.beginFill(visualConfig.ui.frame.fill.color, visualConfig.ui.frame.fill.alpha);
+            // boarderGraphics.lineStyle(n2.boundaryAttr.border.width, n2.boundaryAttr.border.color, n2.boundaryAttr.border.alpha);
+            // boarderGraphics.beginFill(n2.boundaryAttr.fill.color, n2.boundaryAttr.fill.alpha);
 
             //if the node is invisible, we don't need draw is boundary
             //TODO here we should consider the performance.
             if(n2.visible) {
-                boarderGraphics.drawRoundedRect(n2.position.x - 20, n2.position.y - 20, 40, 40, 5); //TODO make size configurable
+                var length=n2.ts.text.width;
+                console.log(length);
+                if(length > 40) {
+                    console.log("fire in the hole!!!");
+                    boarderGraphics.drawRoundedRect(n2.position.x - length / 2, n2.position.y - 20, length, 40 + 10, 5); //TODO make size configurable
+                }else{
+                    console.log("text width < 40 ");
+                    boarderGraphics.drawRoundedRect(n2.position.x - 20, n2.position.y - 20, 40, 40 + 10, 5); //TODO make size configurable
+                }
             }
         });
         boarderGraphics.endFill();
