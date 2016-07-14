@@ -69,7 +69,7 @@ export const visualConfig = {
             }
         },
         "line": {
-            "color": 0x2828a4,
+            "color": 0x000000,
             "alpha": 0.7,
             "width": 1,
             "highlight": {
@@ -80,6 +80,23 @@ export const visualConfig = {
         },
         "label": {
             "font": { "font": '24px Arial', "fill": 'black', "align": 'center' }
+        }
+    },
+    "formatting": {
+        "nodeBorder": {
+            "border": {
+                "color": 0x0077b3,
+                "width": 2,
+                "alpha": 1
+            },
+            "fill": {
+                "color": 0x0077b3,
+                "alpha": 0.2
+            }
+        },
+        "linkStyle": {
+            "widht": 2,
+            "color" : 0x000000
         }
     }
 };
