@@ -129,6 +129,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         cancelGlobalInteractive: function(){
             nodeContainer.interactive=false;
             stage.interactive=false;
+            // stage.interactiveChildren=false;
             nodeContainer.interactiveChildren = false;
         },
 
@@ -136,9 +137,14 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * recover global Interactive
          */
         recoverGlobalInteractive: function(){
-            nodeContainer.interactive=true;
             stage.interactive = true;
-            nodeContainer.interactiveChildren = true;
+            if (this.mode == "picking") {
+                nodeContainer.interactive=true;
+                nodeContainer.interactiveChildren = true;
+            } else {
+                nodeContainer.interactive=false;
+                nodeContainer.interactiveChildren = false;
+            }
         },
 
         /**
@@ -549,7 +555,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 // console.log(length);
                 //console.log("text width < 40 ");
                 boarderGraphics.drawRoundedRect(n2.position.x - 20*n2.scale.x, n2.position.y - 20*n2.scale.y, 40*n2.scale.x, (40 + 10)*n2.scale.y, 5); //TODO make size configurable
-                
+
             }
         });
         boarderGraphics.endFill();

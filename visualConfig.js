@@ -91,12 +91,13 @@ export const visualConfig = {
             },
             "fill": {
                 "color": 0x0077b3,
-                "alpha": 0.2
+                "alpha": 0.25
             }
         },
         "linkStyle": {
             "widht": 2,
-            "color" : 0x000000
+            "color": 0x000000,
+            "alpha": 1
         }
     }
 };

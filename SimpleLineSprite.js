@@ -114,23 +114,25 @@ SimpleLineSprite.prototype.selectionChanged = function(selected) {
 //FIXME thinkness is not used here!
 var arrowHeight = 24;
 var arrowWidth = 16;
+var thicknessFactor = 3;
 SimpleLineSprite.prototype.getTexture = function(thickness, color) {
     var key = thickness + "-" + color;
     if (!SimpleLineSprite.textureCache[key]) {
         console.log("Generating texture: " + key);
-
-        var canvas = this.getCanvas(arrowWidth+thickness, arrowHeight+thickness);
+        var arrowW = arrowWidth + thicknessFactor * thickness,
+            arrowH = arrowHeight + thicknessFactor * thickness;
+        var canvas = this.getCanvas(arrowW, arrowH);
         var context = canvas.getContext("2d");
         context.fillStyle = PIXI.utils.hex2string(color);
 
         context.beginPath();
         context.moveTo(0, 0);
-        context.lineTo(arrowWidth / 2 + thickness, arrowHeight + thickness);
-        context.lineTo(arrowWidth + thickness, 0);
+        context.lineTo(arrowW / 2, arrowH);
+        context.lineTo(arrowW, 0);
         context.fill();
 
         var texture = new PIXI.Texture(new PIXI.BaseTexture(canvas), PIXI.SCALE_MODES.LINEAR);
-        texture.frame = new PIXI.Rectangle(0, 0, arrowWidth + thickness, arrowHeight + thickness);
+        texture.frame = new PIXI.Rectangle(0, 0, arrowW, arrowH);
         SimpleLineSprite.textureCache[key] = texture;
     }
 
