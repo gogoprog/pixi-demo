@@ -261,23 +261,51 @@ export default HyjjPixiRenderer = function(graph, settings) {
         hideNodesByID:function (idArray) {
             _.each(idArray,function(node){
                 var hiddenNode=nodeSprites[node];
+                if(hiddenNode.selected) {
+                    nodeContainer.deselectNode(hiddenNode);
+                }
                 hiddenNode.visible=false;
                 hiddenNode.ts.visible=false;
 
                 //when we hide the nodes we should also hide the texture, arrow and the link.
                 _.each(hiddenNode.outgoing,function (olink) {
-                    olink.visible=false;
-                    olink.arrow.visible=false;
-                    olink.label.visible=false
+                    if(olink.selected){
+                        nodeContainer.deselectLink(olink);
+                    }
+                    olink.hide();
+
                 });
                 _.each(hiddenNode.incoming,function (ilink) {
-                    ilink.visible=false;
-                    ilink.arrow.visible=false;
-                    ilink.label.visible=false
+                    if(ilink.selected){
+                        nodeContainer.deselectLink(ilink);
+                    }
+                    ilink.hide();
                 });
             });
+            selectionChanged();
+            hiddenStatusChanged();
         },
-
+        hideLinksByID: function(idArray) {
+            _.each(idArray,function(linkId){
+                var linkToHide=linkSprites[linkId];
+                if(linkToHide.selected) {
+                    nodeContainer.deselectLink(linkToHide);
+                }
+                linkToHide.hide();
+            });
+            selectionChanged();
+            hiddenStatusChanged();
+        },
+        showAll: function() {
+            _.each(nodeSprites, function(ns){
+                ns.visible = true;
+                ns.ts.visible = true;
+            });
+            _.each(linkSprites, function(ls){
+                ls.show();
+            });
+            hiddenStatusChanged();
+        },
         /**
          * show nodes by ID
          */
@@ -294,17 +322,19 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
                 _.each(showNode.outgoing,function (link) {
                     if(!link.visible && nodeSprites[link.data.targetEntity].visible){
-                        link.visible=true;
-                        link.arrow.visible=true;
-                        link.label.visible=true;
+                        // link.visible=true;
+                        // link.arrow.visible=true;
+                        // link.label.visible=true;
+                        link.show();
                     }
                 });
 
                 _.each(showNode.incoming,function (link) {
                     if(!link.visible && nodeSprites[link.data.sourceEntity].visible){
-                        link.visible=true;
-                        link.arrow.visible=true;
-                        link.label.visible=true;
+                        // link.visible=true;
+                        // link.arrow.visible=true;
+                        // link.label.visible=true;
+                        link.show();
                     }
                 });
             });
@@ -481,6 +511,11 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 }
             });
             selectionChanged();
+        },
+        hideSelectedLinks:function() {
+            _.each(nodeContainer.links, function(link){
+                link.hide();
+            });
         }
     };
     eventify(pixiGraphics);
@@ -493,6 +528,10 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
         pixiGraphics.fire('selectionChanged');
         drawBorders();
+    }
+
+    function hiddenStatusChanged(){
+        pixiGraphics.fire('hiddenStatusChanged');
     }
 
 

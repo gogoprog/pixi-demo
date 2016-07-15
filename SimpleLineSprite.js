@@ -176,6 +176,16 @@ SimpleLineSprite.prototype.updatePosition = function() {
 };
 
 SimpleLineSprite.prototype.isLink = true; // used by the SelectionManager to check if selected target is an link or a node
+SimpleLineSprite.prototype.hide = function() {
+    this.visible=false;
+    this.arrow.visible=false;
+    this.label.visible=false;
+};
+SimpleLineSprite.prototype.show = function() {
+    this.visible=true;
+    this.arrow.visible=true;
+    this.label.visible=true;
+};
 
 Object.defineProperties(SimpleLineSprite.prototype, {
     thickness: {
