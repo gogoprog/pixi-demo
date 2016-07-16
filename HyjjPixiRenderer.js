@@ -712,6 +712,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
         l.data = f.data;
         l.id = f.data.id;
+        l.ngLink = f;
         l.visible=true;
 
         srcNodeSprite.outgoing.push(l);
@@ -765,6 +766,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
     function removeNode(node) {
         var nodeSprite = nodeSprites[node.id];
         if (nodeSprite) {
+            if(nodeSprite.selected){
+                nodeContainer.deselectNode(nodeSprite);
+            }
             if (nodeSprite.ts) {
                 textContainer.removeChild(nodeSprite.ts);
             }
@@ -777,15 +781,18 @@ export default HyjjPixiRenderer = function(graph, settings) {
     }
 
     function removeLink(link) {
-        var l = linkSprites[link.id];
+        var l = linkSprites[link.data.id];
         if (l) {
+            if (l.selected) {
+                nodeContainer.deselectLink(l);
+            }
             if (l.label) {
                 textContainer.removeChild(l.label);
             }
             if (l.arrow) {
                 lineContainer.removeChild(l.arrow);
             }
-            delete linkSprites[link.id];
+            delete linkSprites[l.id];
             // console.log("Removed link: " + link.id);
         } else {
             console.log("Could not find link sprite: " + link.id);
