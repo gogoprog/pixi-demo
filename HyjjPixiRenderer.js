@@ -51,6 +51,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
     var selectRegionGraphics = new PIXI.Graphics();
     var lineGraphics = new PIXI.Graphics();
 
+    //set the subTreeCenter
+    var subTree={};
+
     root.width = viewWidth;
     root.height = viewHeight;
     root.parent = stage;
@@ -373,6 +376,94 @@ export default HyjjPixiRenderer = function(graph, settings) {
         getSelectedLinks: function() {
             // return _.values(nodeContainer.selectedLinks);
             return nodeContainer.links;
+        },
+
+        //mark the subtree!
+        getSubTree: function () {
+            var tid=0;
+            _.each(nodeSprites,function (node) {
+                if(!node.treeID){
+                    tid++;
+                    findSubGraph(node,tid);
+                }
+            });
+        },
+
+        /**
+         * I must address one thing, here.
+         * the node which is in subTree{}, is visible.
+         * in another word, the subTree{} do not contains invisible nodes.
+         */
+        subTreeInit: function () {
+            pixiGraphics.getSubTree();
+            subTree={};
+            //init the subTree Structure
+            _.each(nodeSprites,function (node) {
+                if(node.visible){
+                    if(!subTree[node.treeID]){
+                        subTree[node.treeID]={};
+                        subTree[node.treeID].nodes=new Array();
+                    }
+                    subTree[node.treeID].nodes.push(node);
+
+                    console.log(node.id+"被放进了树"+node.treeID);
+                }
+            });
+
+            /**init the center for each subTree
+             * init the radius for each subTree
+             * init the angle for each subTree, here ,angle is for every node-center line
+             */
+            _.each(subTree,function (st,stID) {
+                var xSum=0;
+                var ySum=0;
+                var maxScale=0;
+
+                _.each(st.nodes,function (node) {
+                    xSum=xSum+node.position.x;
+                    ySum=ySum+node.position.y;
+                    if(node.scale.x>maxScale){
+                        maxScale=node.scale.x;
+                    }
+                });
+
+                st.radius=(visualConfig.NODE_WIDTH * 2 * maxScale * st.nodes.length * 1.5)/(2*Math.PI);
+                st.angle=360/st.nodes.length;
+                st.positionx=xSum/st.nodes.length;
+                st.positiony=ySum/st.nodes.length;
+                console.log(stID+" st.positionx is "+st.positionx);
+                console.log(stID+" st.positiony is "+st.positiony);
+            });
+
+            _.each(subTree,function (st,stID) {
+                console.log(stID);
+                console.log(subTree);
+
+                if(subTree[parseInt(stID)+1]){
+                    subTree[parseInt(stID)+1].positionx=st.positionx+st.radius+subTree[parseInt(stID)+1].radius+visualConfig.NODE_WIDTH;
+                    subTree[parseInt(stID)+1].positiony=st.positiony;
+                }
+            });
+        },
+
+        /**
+         * here we do not need to consider the listeners and so many other things,
+         * draw a circle
+         */
+        drawCircleLayout: function () {
+            pixiGraphics.subTreeInit();
+
+            _.each(subTree,function (st,stID) {
+                console.log("第"+(stID)+"棵子树的坐标值如下:");
+                _.each(st.nodes,function (node,nodeID) {
+                    var p={};
+                    p.x=subTree[node.treeID].positionx-Math.cos(subTree[node.treeID].angle*nodeID*Math.PI / 180)*subTree[node.treeID].radius;
+                    p.y=subTree[node.treeID].positiony+Math.sin(subTree[node.treeID].angle*nodeID*Math.PI / 180)*subTree[node.treeID].radius;
+                    console.log(node.id+"的坐标是"+p.x+","+p.y);
+                    node.updateNodePosition(p);
+                });
+            });
+
         },
 
         /**
@@ -771,4 +862,31 @@ export default HyjjPixiRenderer = function(graph, settings) {
             }
         }
     }
+
+    /**
+     * function: find the subtree recursively
+     * @param node
+     * @param tid
+     */
+    function findSubGraph(node,tid){
+
+        if(!node.treeID){
+            node.treeID=tid;
+
+            _.each(node.incoming,function (link) {
+                if(!nodeSprites[link.data.sourceEntity].treeID){
+                    findSubGraph(nodeSprites[link.data.sourceEntity],tid);
+                }
+            });
+            _.each(node.outgoing,function (link) {
+                if(!nodeSprites[link.data.targetEntity].treeID){
+                    findSubGraph(nodeSprites[link.data.targetEntity],tid);
+                }
+            });
+        }else{
+            return;
+
+        }
+    }
+
 };

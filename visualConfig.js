@@ -3,6 +3,7 @@ export const visualConfig = {
     "LINK_LABLE_OFFSET_Y": 16,
     "MAX_SCALE": 5,
     "MIN_SCALE": 0.2,
+    "NODE_WIDTH":32,
     "forceLayout": {
         "springLength": 250,
         "springCoeff": 0.00008,
