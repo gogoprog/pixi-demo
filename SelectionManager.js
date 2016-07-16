@@ -16,9 +16,11 @@ export const SelectionManager = function() {
 
     this.selectNode = function(node) {
         if (node) {
-            this.selectedNodes[node.id] = node;
-            this.nodes.push(node);
-            node.selectionChanged(true);
+            if(!_.has(this.selectedNodes, node.id)){
+                this.selectedNodes[node.id] = node;
+                this.nodes.push(node);
+                node.selectionChanged(true);
+            }
         }
     };
     this.deselectNode = function(node) {
@@ -33,10 +35,11 @@ export const SelectionManager = function() {
     };
     this.selectLink = function(link) {
         if (link) {
-            console.log(link.id);
-            this.selectedLinks[link.id] = link;
-            this.links.push(link);
-            link.selectionChanged(true);
+            if(!_.has(this.selectedLinks, link.id)){
+                this.selectedLinks[link.id] = link;
+                this.links.push(link);
+                link.selectionChanged(true);
+            }
         }
     };
     this.deselectLink = function(link) {

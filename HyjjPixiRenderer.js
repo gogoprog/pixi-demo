@@ -181,7 +181,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 nodeSprites[nodeID].scale.set(zoomValue);
                 nodeSprites[nodeID].ts.scale.set(0.5*zoomValue);
                 nodeSprites[nodeID].ts.position.set(nodeSprites[nodeID].position.x, nodeSprites[nodeID].position.y + visualConfig.NODE_LABLE_OFFSET_Y*zoomValue);
-                
+
             });
         },
 
@@ -210,6 +210,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 }
                 if(!linkAttr.thickness){
                     linkAttr.thickness=linkSprites[linkID].coustomSettingThickness;
+                }else {
+                    linkAttr.thickness = Math.round( linkAttr.thickness ); // Make sure its integer;
                 }
                 linkSprites[linkID].setLineAttr(linkAttr);
             });
@@ -262,23 +264,51 @@ export default HyjjPixiRenderer = function(graph, settings) {
         hideNodesByID:function (idArray) {
             _.each(idArray,function(node){
                 var hiddenNode=nodeSprites[node];
+                if(hiddenNode.selected) {
+                    nodeContainer.deselectNode(hiddenNode);
+                }
                 hiddenNode.visible=false;
                 hiddenNode.ts.visible=false;
 
                 //when we hide the nodes we should also hide the texture, arrow and the link.
                 _.each(hiddenNode.outgoing,function (olink) {
-                    olink.visible=false;
-                    olink.arrow.visible=false;
-                    olink.label.visible=false
+                    if(olink.selected){
+                        nodeContainer.deselectLink(olink);
+                    }
+                    olink.hide();
+
                 });
                 _.each(hiddenNode.incoming,function (ilink) {
-                    ilink.visible=false;
-                    ilink.arrow.visible=false;
-                    ilink.label.visible=false
+                    if(ilink.selected){
+                        nodeContainer.deselectLink(ilink);
+                    }
+                    ilink.hide();
                 });
             });
+            selectionChanged();
+            hiddenStatusChanged();
         },
-
+        hideLinksByID: function(idArray) {
+            _.each(idArray,function(linkId){
+                var linkToHide=linkSprites[linkId];
+                if(linkToHide.selected) {
+                    nodeContainer.deselectLink(linkToHide);
+                }
+                linkToHide.hide();
+            });
+            selectionChanged();
+            hiddenStatusChanged();
+        },
+        showAll: function() {
+            _.each(nodeSprites, function(ns){
+                ns.visible = true;
+                ns.ts.visible = true;
+            });
+            _.each(linkSprites, function(ls){
+                ls.show();
+            });
+            hiddenStatusChanged();
+        },
         /**
          * show nodes by ID
          */
@@ -295,17 +325,19 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
                 _.each(showNode.outgoing,function (link) {
                     if(!link.visible && nodeSprites[link.data.targetEntity].visible){
-                        link.visible=true;
-                        link.arrow.visible=true;
-                        link.label.visible=true;
+                        // link.visible=true;
+                        // link.arrow.visible=true;
+                        // link.label.visible=true;
+                        link.show();
                     }
                 });
 
                 _.each(showNode.incoming,function (link) {
                     if(!link.visible && nodeSprites[link.data.sourceEntity].visible){
-                        link.visible=true;
-                        link.arrow.visible=true;
-                        link.label.visible=true;
+                        // link.visible=true;
+                        // link.arrow.visible=true;
+                        // link.label.visible=true;
+                        link.show();
                     }
                 });
             });
@@ -570,6 +602,11 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 }
             });
             selectionChanged();
+        },
+        hideSelectedLinks:function() {
+            _.each(nodeContainer.links, function(link){
+                link.hide();
+            });
         }
     };
     eventify(pixiGraphics);
@@ -582,6 +619,10 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
         pixiGraphics.fire('selectionChanged');
         drawBorders();
+    }
+
+    function hiddenStatusChanged(){
+        pixiGraphics.fire('hiddenStatusChanged');
     }
 
 
@@ -629,7 +670,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             //if the node is invisible, we don't need draw is boundary
             //TODO here we should consider the performance.
             if(n1.visible) {
-                boarderGraphics.drawCircle(n1.position.x , n1.position.y , 22*n1.scale.x); //TODO make size configurable
+                boarderGraphics.drawCircle(n1.position.x , n1.position.y , 19*n1.scale.x); //TODO make size configurable
             }
         });
         _.each(nodeContainer.selectedNodes, function(n2) {
@@ -762,6 +803,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
         l.data = f.data;
         l.id = f.data.id;
+        l.ngLink = f;
         l.visible=true;
 
         srcNodeSprite.outgoing.push(l);
@@ -815,6 +857,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
     function removeNode(node) {
         var nodeSprite = nodeSprites[node.id];
         if (nodeSprite) {
+            if(nodeSprite.selected){
+                nodeContainer.deselectNode(nodeSprite);
+            }
             if (nodeSprite.ts) {
                 textContainer.removeChild(nodeSprite.ts);
             }
@@ -827,15 +872,18 @@ export default HyjjPixiRenderer = function(graph, settings) {
     }
 
     function removeLink(link) {
-        var l = linkSprites[link.id];
+        var l = linkSprites[link.data.id];
         if (l) {
+            if (l.selected) {
+                nodeContainer.deselectLink(l);
+            }
             if (l.label) {
                 textContainer.removeChild(l.label);
             }
             if (l.arrow) {
                 lineContainer.removeChild(l.arrow);
             }
-            delete linkSprites[link.id];
+            delete linkSprites[l.id];
             // console.log("Removed link: " + link.id);
         } else {
             console.log("Could not find link sprite: " + link.id);

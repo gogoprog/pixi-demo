@@ -62,16 +62,16 @@ export const visualConfig = {
             "border": {
                 "color": 0x0077b3,
                 "width": 1,
-                "alpha": 0.6
+                "alpha": 0.8
             },
             "fill": {
                 "color": 0xff6666,
-                "alpha": 0.3
+                "alpha": 0.1
             }
         },
         "line": {
             "color": 0x000000,
-            "alpha": 0.7,
+            "alpha": 1,
             "width": 1,
             "highlight": {
                 "color": 0xe60000,
