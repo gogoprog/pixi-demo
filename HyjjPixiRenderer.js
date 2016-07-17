@@ -419,15 +419,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     findSubGraph(node,tid);
                 }
             });
-        },
 
-        /**
-         * I must address one thing, here.
-         * the node which is in subTree{}, is visible.
-         * in another word, the subTree{} do not contains invisible nodes.
-         */
-        subTreeInit: function () {
-            pixiGraphics.getSubTree();
             subTree={};
             //init the subTree Structure
             _.each(nodeSprites,function (node) {
@@ -441,6 +433,15 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     console.log(node.id+"被放进了树"+node.treeID);
                 }
             });
+        },
+
+        /**
+         * I must address one thing, here.
+         * the node which is in subTree{}, is visible.
+         * in another word, the subTree{} do not contains invisible nodes.
+         */
+        subTreeInitForCircleLayout: function () {
+            pixiGraphics.getSubTree();
 
             /**init the center for each subTree
              * init the radius for each subTree
@@ -483,19 +484,104 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * draw a circle
          */
         drawCircleLayout: function () {
-            pixiGraphics.subTreeInit();
+            pixiGraphics.subTreeInitForCircleLayout();
 
             _.each(subTree,function (st,stID) {
-                console.log("第"+(stID)+"棵子树的坐标值如下:");
                 _.each(st.nodes,function (node,nodeID) {
                     var p={};
                     p.x=subTree[node.treeID].positionx-Math.cos(subTree[node.treeID].angle*nodeID*Math.PI / 180)*subTree[node.treeID].radius;
                     p.y=subTree[node.treeID].positiony+Math.sin(subTree[node.treeID].angle*nodeID*Math.PI / 180)*subTree[node.treeID].radius;
-                    console.log(node.id+"的坐标是"+p.x+","+p.y);
                     node.updateNodePosition(p);
                 });
             });
 
+        },
+
+        subTreeInitForTreeLayout: function () {
+            pixiGraphics.getSubTree();
+            //获取当前被选中的节点
+            //here we address the random point of each subtree
+            //test
+            nodeContainer.nodes.push(nodeSprites['e3']);
+            nodeContainer.nodes.push(nodeSprites['e5']);
+            //nodeContainer.nodes.push(nodeSprites['e90']);
+
+
+            _.each(nodeContainer.nodes,function (node) {
+                if(!subTree[node.treeID].selection){
+                    subTree[node.treeID].isSelectedNode=true;
+                    subTree[node.treeID].selectedNode=node;
+                    console.log(node.id);
+                }
+            });
+
+            _.each(subTree,function (st,stID) {
+                if(st.isSelectedNode){
+                    findATree(st.selectedNode,1);
+                }
+            });
+
+            //compute the max width of each subTree
+            _.each(subTree,function (st) {
+                if(st.isSelectedNode){
+                    var stMaxWidth=0;
+                    var eachLevelNodeNumb={};
+                    _.each(st.nodes,function (node) {
+                        if(!eachLevelNodeNumb[node.treeLayoutLevel]){
+                            eachLevelNodeNumb[node.treeLayoutLevel]=1;
+                        }else{
+                            eachLevelNodeNumb[node.treeLayoutLevel]++;
+                        }
+                    });
+                    st.treeLayoutEachLevelNumb={};
+                    _.each(eachLevelNodeNumb,function (numb,level) {
+                        st.treeLayoutEachLevelNumb[level]=numb;
+                        if(numb>stMaxWidth){
+                            stMaxWidth=numb;
+                        }
+                    });
+
+                    st.treeLayoutMaxWidth=stMaxWidth;
+                }
+            });
+
+            //compute the root position for each tree
+            //here positionx is for the x of root
+            //here positiony is for the y of root
+            _.each(subTree,function (st,stID){
+                if(st.isSelectedNode){
+
+                    if(parseInt(stID)==1){
+                        st.positionx=st.selectedNode.position.x;
+                        st.positiony=st.selectedNode.position.y;
+                    }else{
+                        st.positionx=subTree[parseInt(stID)-1].positionx+subTree[parseInt(stID)-1].treeLayoutMaxWidth/2+st.treeLayoutMaxWidth/2+visualConfig.NODE_WIDTH*2;
+                        st.positiony=subTree[parseInt(stID)-1].positiony;
+                    }
+                }
+            });
+
+        },
+
+        drawTreeLayout: function () {
+            if(nodeContainer.nodes == null){
+                return;
+            }
+
+            pixiGraphics.subTreeInitForTreeLayout();
+
+            _.each(subTree,function (st,stID) {
+                if(st.isSelectedNode){
+                    _.each(st.nodes,function (node) {
+                        var p={};
+                        p.x=st.positionx-st.treeLayoutEachLevelNumb[node.treeLayoutLevel]*visualConfig.NODE_WIDTH;
+                        st.treeLayoutEachLevelNumb[node.treeLayoutLevel] = st.treeLayoutEachLevelNumb[node.treeLayoutLevel]-2;
+                        p.y=st.positiony+visualConfig.NODE_WIDTH*2*(node.treeLayoutLevel-1);
+
+                        node.updateNodePosition(p);
+                    });
+                }
+            });
         },
 
         /**
@@ -934,6 +1020,21 @@ export default HyjjPixiRenderer = function(graph, settings) {
         }else{
             return;
 
+        }
+    }
+
+    function findATree(node,level) {
+        if(node.isPutInTree){
+            return;
+        }else{
+            node.isPutInTree=true;
+            node.treeLayoutLevel=level;
+            _.each(node.incoming,function (link) {
+                findATree(nodeSprites[link.data.sourceEntity],level+1);
+            });
+            _.each(node.outgoing,function (link) {
+                findATree(nodeSprites[link.data.targetEntity],level+1);
+            });
         }
     }
 
