@@ -522,7 +522,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     }
                 });
 
-                st.radius=(visualConfig.NODE_WIDTH  *4* maxScale * st.nodes.length * 1.5)/Math.PI;
+                st.radius=(visualConfig.NODE_WIDTH  *2* maxScale * st.nodes.length * 1.5)/(2*Math.PI);
 
                 st.angle=360/st.nodes.length;
                 st.positionx=xSum/st.nodes.length;
@@ -536,7 +536,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 console.log(subTree);
 
                 if(subTree[parseInt(stID)+1]){
-                    subTree[parseInt(stID)+1].positionx=st.positionx+st.radius+subTree[parseInt(stID)+1].radius+visualConfig.NODE_WIDTH*4;
+                    subTree[parseInt(stID)+1].positionx=st.positionx+st.radius+subTree[parseInt(stID)+1].radius+visualConfig.NODE_WIDTH;
                     subTree[parseInt(stID)+1].positiony=st.positiony;
                 }
             });
@@ -618,7 +618,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                         }
                     });
 
-                    st.treeLayoutMaxWidth=stMaxWidth;
+                    st.treeLayoutMaxWidth=stMaxWidth*visualConfig.NODE_WIDTH;
                 }
             });
 
@@ -632,7 +632,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                         st.positionx=st.selectedNode.position.x;
                         st.positiony=st.selectedNode.position.y;
                     }else{
-                        st.positionx=subTree[parseInt(stID)-1].positionx+subTree[parseInt(stID)-1].treeLayoutMaxWidth/2+st.treeLayoutMaxWidth/2+visualConfig.NODE_WIDTH*2;
+                        st.positionx=subTree[parseInt(stID)-1].positionx+subTree[parseInt(stID)-1].treeLayoutMaxWidth+st.treeLayoutMaxWidth+visualConfig.NODE_WIDTH;
                         st.positiony=subTree[parseInt(stID)-1].positiony;
                     }
                 }
