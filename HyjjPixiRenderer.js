@@ -103,6 +103,68 @@ export default HyjjPixiRenderer = function(graph, settings) {
     var nodeSprites = {},
         linkSprites = {};
 
+    var bfsQueue=[];
+
+    // var QNode = function(newObj){
+    //     this.obj = null;
+    //     this.next = null;
+    //     this.Init = function(newObj){
+    //         this.obj = newObj;
+    //     }
+    //     this.Init(newObj);
+    // }
+
+    // var Queue = function(){
+    //     this.front = null;
+    //     this.rear = null;
+    //     this.size = 0;
+    //
+    //     this.MakeEmpty = function(){
+    //         if(this.size == 0)
+    //             return null;
+    //         while(this.front != this.rear){
+    //             var curQNode = this.front;
+    //             curQNode = null;
+    //             this.size -= 1;
+    //             this.front = this.front.next;
+    //         }
+    //         this.size -= 1;
+    //         this.front = null;
+    //         this.rear = null;
+    //     }
+    //
+    //     this.Enqueue = function(newObj){
+    //         this.size += 1;
+    //         var newQNode = new QNode(newObj);
+    //         if(this.rear == null){
+    //             this.front = newQNode;
+    //             this.rear = newQNode;
+    //         }else{
+    //             this.rear.next = newQNode;
+    //             this.rear = this.rear.next;
+    //         }
+    //     }
+    //
+    //     this.Dequeue = function(){
+    //         if(this.size <= 0)
+    //             return null;
+    //         else if(this.size == 1){
+    //             this.size -= 1;
+    //             var deQNode = this.rear;
+    //             this.front = null;
+    //             this.rear = null;
+    //             return deQNode.obj;
+    //         }
+    //         else{
+    //             this.size -= 1;
+    //             var curQNode = this.front;
+    //             this.front = this.front.next;
+    //             return curQNode.obj;
+    //         }
+    //     }
+    // }
+
+
     /**
      * now we vindicate a map for nodes to draw boundary.
      * this map has two part:
@@ -460,7 +522,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     }
                 });
 
-                st.radius=(visualConfig.NODE_WIDTH * 2 * maxScale * st.nodes.length * 1.5)/(2*Math.PI);
+                st.radius=(visualConfig.NODE_WIDTH  *4* maxScale * st.nodes.length * 1.5)/Math.PI;
+
                 st.angle=360/st.nodes.length;
                 st.positionx=xSum/st.nodes.length;
                 st.positiony=ySum/st.nodes.length;
@@ -473,7 +536,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 console.log(subTree);
 
                 if(subTree[parseInt(stID)+1]){
-                    subTree[parseInt(stID)+1].positionx=st.positionx+st.radius+subTree[parseInt(stID)+1].radius+visualConfig.NODE_WIDTH;
+                    subTree[parseInt(stID)+1].positionx=st.positionx+st.radius+subTree[parseInt(stID)+1].radius+visualConfig.NODE_WIDTH*4;
                     subTree[parseInt(stID)+1].positiony=st.positiony;
                 }
             });
@@ -517,8 +580,22 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
             _.each(subTree,function (st,stID) {
                 if(st.isSelectedNode){
-                    findATree(st.selectedNode,1);
+                    st.selectedNode.treeLayoutLevel=1;
+                    st.selectedNode.isPutInTree=true;
+                    bfsQueue.unshift(st.selectedNode);
+                    var templength=bfsQueue.length;
+                    while(templength!=0){
+                        var p=bfsQueue.pop();
+                        console.log(p.id);
+                        if(p!=null){
+                            findATree(p);
+                        }
+                        templength=bfsQueue.length;
+                    }
                 }
+                _.each(st.nodes,function (x) {
+                    console.log("第"+x.treeLayoutLevel+"层 : "+x.id+" "+x.position.x+" , "+x.position.y);
+                });
             });
 
             //compute the max width of each subTree
@@ -1023,19 +1100,27 @@ export default HyjjPixiRenderer = function(graph, settings) {
         }
     }
 
-    function findATree(node,level) {
-        if(node.isPutInTree){
-            return;
-        }else{
-            node.isPutInTree=true;
-            node.treeLayoutLevel=level;
-            _.each(node.incoming,function (link) {
-                findATree(nodeSprites[link.data.sourceEntity],level+1);
-            });
-            _.each(node.outgoing,function (link) {
-                findATree(nodeSprites[link.data.targetEntity],level+1);
-            });
-        }
-    }
+
+    function findATree(node) {
+
+        _.each(node.incoming,function (link) {
+            if(!nodeSprites[link.data.sourceEntity].isPutInTree){
+                nodeSprites[link.data.sourceEntity].treeLayoutLevel=node.treeLayoutLevel+1;
+                nodeSprites[link.data.sourceEntity].isPutInTree=true;
+                bfsQueue.unshift(nodeSprites[link.data.sourceEntity]);
+            }
+        });
+        _.each(node.outgoing,function (link) {
+            if(!nodeSprites[link.data.targetEntity].isPutInTree){
+                nodeSprites[link.data.targetEntity].treeLayoutLevel=node.treeLayoutLevel+1;
+                nodeSprites[link.data.targetEntity].isPutInTree=true;
+                bfsQueue.unshift(nodeSprites[link.data.targetEntity]);
+            }
+        });
+
+     }
+
+
+
 
 };
