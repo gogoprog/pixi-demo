@@ -69,9 +69,7 @@ export const SelectionManager = function() {
     };
 
     this.handleMouseUp = function(e) {
-        console.log("*************************");
         var mouseEvent = e.data.originalEvent;
-        console.log(this.recentlySelected);
         if (this.recentlySelected) {
             var n = this.recentlySelected; // could be a node or a link
             if (mouseEvent.ctrlKey || mouseEvent.shiftKey) {
@@ -90,22 +88,9 @@ export const SelectionManager = function() {
                         this.selectNode(n);
                     }
                 }
-                // if (!_.has(container, n.id)) {
-                //     container[n.id] = n;
-                //     n.selectionChanged(true);
-                // } else {
-                //     //reverse last selected
-                //     n.selectionChanged(false);
-                //     delete container[n.id];
-                // }
             } else {
-                //console.log("WTF");
                 this.deselectAll();
-                // let container = n.isLink ? this.selectedLinks : this.selectedNodes;
-                // container[n.id] = n;
-                // n.selectionChanged(true);
                 if (n.isLink) {
-                    //console.log("WWWWWWWCAO!!!!");
                     this.selectLink(n);
                 } else {
                     this.selectNode(n);
