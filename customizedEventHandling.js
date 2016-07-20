@@ -10,7 +10,7 @@ var getGraphCoordinates = (function() {
         global: { x: 0, y: 0 } // store it inside closure to avoid GC pressure
     };
 
-    return function(x, y) {
+    return function(x, y, stage) {
         ctx.global.x = x;
         ctx.global.y = y;
         return PIXI.interaction.InteractionData.prototype.getLocalPosition.call(ctx, stage);
@@ -29,11 +29,11 @@ export const zoom = function(x, y, isZoomIn, stage) {
     stage.scale.y *= factor;
     // Technically code below is not required, but helps to zoom on mouse
     // cursor, instead center of graphGraphics coordinates
-    var beforeTransform = getGraphCoordinates(x, y);
+    var beforeTransform = getGraphCoordinates(x, y, stage);
     // console.log('After zooming ' + (isZoomIn ? 'in' : 'out') +
     //  ' @ViewPort(' + vpX + ',' + vpY + ') and Graph: ' + JSON.stringify(beforeTransform));
     stage.updateTransform();
-    var afterTransform = getGraphCoordinates(x, y);
+    var afterTransform = getGraphCoordinates(x, y, stage);
     // console.log('After zooming ' + (isZoomIn ? 'in' : 'out') +
     //  ' @ViewPort(' + vpX + ',' + vpY + ') and Graph: ' + JSON.stringify(afterTransform));
 
