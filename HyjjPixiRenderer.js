@@ -527,13 +527,13 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 st.angle=360/st.nodes.length;
                 st.positionx=xSum/st.nodes.length;
                 st.positiony=ySum/st.nodes.length;
-                console.log(stID+" st.positionx is "+st.positionx);
-                console.log(stID+" st.positiony is "+st.positiony);
+                // console.log(stID+" st.positionx is "+st.positionx);
+                // console.log(stID+" st.positiony is "+st.positiony);
             });
 
             _.each(subTree,function (st,stID) {
-                console.log(stID);
-                console.log(subTree);
+                // console.log(stID);
+                // console.log(subTree);
 
                 if(subTree[parseInt(stID)+1]){
                     subTree[parseInt(stID)+1].positionx=st.positionx+st.radius+subTree[parseInt(stID)+1].radius+visualConfig.NODE_WIDTH;
@@ -565,8 +565,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
             //获取当前被选中的节点
             //here we address the random point of each subtree
             //test
-            nodeContainer.nodes.push(nodeSprites['e3']);
-            nodeContainer.nodes.push(nodeSprites['e5']);
+            // nodeContainer.nodes.push(nodeSprites['e3']);
+            // nodeContainer.nodes.push(nodeSprites['e5']);
             //nodeContainer.nodes.push(nodeSprites['e90']);
 
 
@@ -574,7 +574,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 if(!subTree[node.treeID].selection){
                     subTree[node.treeID].isSelectedNode=true;
                     subTree[node.treeID].selectedNode=node;
-                    console.log(node.id);
+                    // console.log(node.id);
                 }
             });
 
@@ -584,18 +584,18 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     st.selectedNode.isPutInTree=true;
                     bfsQueue.unshift(st.selectedNode);
                     var templength=bfsQueue.length;
-                    while(templength!=0){
+                    while(templength!==0){
                         var p=bfsQueue.pop();
-                        console.log(p.id);
-                        if(p!=null){
+                        // console.log(p.id);
+                        if(p!==null){
                             findATree(p);
                         }
                         templength=bfsQueue.length;
                     }
                 }
-                _.each(st.nodes,function (x) {
-                    console.log("第"+x.treeLayoutLevel+"层 : "+x.id+" "+x.position.x+" , "+x.position.y);
-                });
+                // _.each(st.nodes,function (x) {
+                    // console.log("第"+x.treeLayoutLevel+"层 : "+x.id+" "+x.position.x+" , "+x.position.y);
+                // });
             });
 
             //compute the max width of each subTree
