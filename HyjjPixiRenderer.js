@@ -243,7 +243,6 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 nodeSprites[nodeID].scale.set(zoomValue);
                 nodeSprites[nodeID].ts.scale.set(0.5*zoomValue);
                 nodeSprites[nodeID].ts.position.set(nodeSprites[nodeID].position.x, nodeSprites[nodeID].position.y + visualConfig.NODE_LABLE_OFFSET_Y*zoomValue);
-
             });
         },
 
@@ -492,7 +491,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     }
                     subTree[node.treeID].nodes.push(node);
 
-                    console.log(node.id+"被放进了树"+node.treeID);
+                    //console.log(node.id+"被放进了树"+node.treeID);
                 }
             });
         },
@@ -527,13 +526,13 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 st.angle=360/st.nodes.length;
                 st.positionx=xSum/st.nodes.length;
                 st.positiony=ySum/st.nodes.length;
-                console.log(stID+" st.positionx is "+st.positionx);
-                console.log(stID+" st.positiony is "+st.positiony);
+                //console.log(stID+" st.positionx is "+st.positionx);
+                //console.log(stID+" st.positiony is "+st.positiony);
             });
 
             _.each(subTree,function (st,stID) {
-                console.log(stID);
-                console.log(subTree);
+                //console.log(stID);
+                //console.log(subTree);
 
                 if(subTree[parseInt(stID)+1]){
                     subTree[parseInt(stID)+1].positionx=st.positionx+st.radius+subTree[parseInt(stID)+1].radius+visualConfig.NODE_WIDTH;
@@ -565,10 +564,10 @@ export default HyjjPixiRenderer = function(graph, settings) {
             //获取当前被选中的节点
             //here we address the random point of each subtree
             //test
-            nodeContainer.nodes.push(nodeSprites['e3']);
-            nodeContainer.nodes.push(nodeSprites['e5']);
+            //nodeContainer.nodes.push(nodeSprites['e3']);
+            //nodeContainer.nodes.push(nodeSprites['e5']);
+            //nodeContainer.nodes.push(nodeSprites['e13']);
             //nodeContainer.nodes.push(nodeSprites['e90']);
-
 
             _.each(nodeContainer.nodes,function (node) {
                 if(!subTree[node.treeID].selection){
@@ -586,16 +585,12 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     var templength=bfsQueue.length;
                     while(templength!=0){
                         var p=bfsQueue.pop();
-                        console.log(p.id);
                         if(p!=null){
                             findATree(p);
                         }
                         templength=bfsQueue.length;
                     }
                 }
-                _.each(st.nodes,function (x) {
-                    console.log("第"+x.treeLayoutLevel+"层 : "+x.id+" "+x.position.x+" , "+x.position.y);
-                });
             });
 
             //compute the max width of each subTree
