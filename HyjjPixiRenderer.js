@@ -526,23 +526,10 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 st.angle=360/st.nodes.length;
                 st.positionx=xSum/st.nodes.length;
                 st.positiony=ySum/st.nodes.length;
-<<<<<<< HEAD
-                //console.log(stID+" st.positionx is "+st.positionx);
-                //console.log(stID+" st.positiony is "+st.positiony);
+
             });
 
             _.each(subTree,function (st,stID) {
-                //console.log(stID);
-                //console.log(subTree);
-=======
-                // console.log(stID+" st.positionx is "+st.positionx);
-                // console.log(stID+" st.positiony is "+st.positiony);
-            });
-
-            _.each(subTree,function (st,stID) {
-                // console.log(stID);
-                // console.log(subTree);
->>>>>>> 0059e4a29b888b4535a79c29fdf0747fbbf65e3b
 
                 if(subTree[parseInt(stID)+1]){
                     subTree[parseInt(stID)+1].positionx=st.positionx+st.radius+subTree[parseInt(stID)+1].radius+visualConfig.NODE_WIDTH;
@@ -573,15 +560,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             pixiGraphics.getSubTree();
             //获取当前被选中的节点
             //here we address the random point of each subtree
-            //test
-<<<<<<< HEAD
-            //nodeContainer.nodes.push(nodeSprites['e3']);
-            //nodeContainer.nodes.push(nodeSprites['e5']);
-            //nodeContainer.nodes.push(nodeSprites['e13']);
-=======
-            // nodeContainer.nodes.push(nodeSprites['e3']);
-            // nodeContainer.nodes.push(nodeSprites['e5']);
->>>>>>> 0059e4a29b888b4535a79c29fdf0747fbbf65e3b
+
             //nodeContainer.nodes.push(nodeSprites['e90']);
 
             _.each(nodeContainer.nodes,function (node) {
@@ -600,23 +579,14 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     var templength=bfsQueue.length;
                     while(templength!==0){
                         var p=bfsQueue.pop();
-<<<<<<< HEAD
-                        if(p!=null){
-=======
-                        // console.log(p.id);
+
                         if(p!==null){
->>>>>>> 0059e4a29b888b4535a79c29fdf0747fbbf65e3b
                             findATree(p);
                         }
                         templength=bfsQueue.length;
                     }
                 }
-<<<<<<< HEAD
-=======
-                // _.each(st.nodes,function (x) {
-                    // console.log("第"+x.treeLayoutLevel+"层 : "+x.id+" "+x.position.x+" , "+x.position.y);
-                // });
->>>>>>> 0059e4a29b888b4535a79c29fdf0747fbbf65e3b
+
             });
 
             //compute the max width of each subTree
@@ -1140,8 +1110,5 @@ export default HyjjPixiRenderer = function(graph, settings) {
         });
 
      }
-
-
-
 
 };
