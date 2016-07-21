@@ -105,65 +105,6 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
     var bfsQueue=[];
 
-    // var QNode = function(newObj){
-    //     this.obj = null;
-    //     this.next = null;
-    //     this.Init = function(newObj){
-    //         this.obj = newObj;
-    //     }
-    //     this.Init(newObj);
-    // }
-
-    // var Queue = function(){
-    //     this.front = null;
-    //     this.rear = null;
-    //     this.size = 0;
-    //
-    //     this.MakeEmpty = function(){
-    //         if(this.size == 0)
-    //             return null;
-    //         while(this.front != this.rear){
-    //             var curQNode = this.front;
-    //             curQNode = null;
-    //             this.size -= 1;
-    //             this.front = this.front.next;
-    //         }
-    //         this.size -= 1;
-    //         this.front = null;
-    //         this.rear = null;
-    //     }
-    //
-    //     this.Enqueue = function(newObj){
-    //         this.size += 1;
-    //         var newQNode = new QNode(newObj);
-    //         if(this.rear == null){
-    //             this.front = newQNode;
-    //             this.rear = newQNode;
-    //         }else{
-    //             this.rear.next = newQNode;
-    //             this.rear = this.rear.next;
-    //         }
-    //     }
-    //
-    //     this.Dequeue = function(){
-    //         if(this.size <= 0)
-    //             return null;
-    //         else if(this.size == 1){
-    //             this.size -= 1;
-    //             var deQNode = this.rear;
-    //             this.front = null;
-    //             this.rear = null;
-    //             return deQNode.obj;
-    //         }
-    //         else{
-    //             this.size -= 1;
-    //             var curQNode = this.front;
-    //             this.front = this.front.next;
-    //             return curQNode.obj;
-    //         }
-    //     }
-    // }
-
 
     /**
      * now we vindicate a map for nodes to draw boundary.
@@ -439,6 +380,11 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 nodeContainer.interactiveChildren = true;
                 // stage.interactive = false;
                 stage.buttonMode = false;
+                if (!stage.downListener) {
+                    console.log("picking listener begin!!");
+                    stage.downListener = rootCaptureHandler.bind(stage);
+                    stage.on('mousedown', stage.downListener);
+                }
             } else {
                 this.mode = 'panning';
                 stage.interactive = true;
@@ -556,13 +502,23 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
         },
 
+        dataResetForTreeLayout: function () {
+            _.each(nodeSprites,function (n) {
+                n.isPutInTree=false;
+                n.treeLayoutLevel=null;
+            });
+            _.each(subTree,function (st) {
+                st.isSelectedNode=false;
+                st.selectedNode=null;
+            });
+        },
+
+
         subTreeInitForTreeLayout: function () {
             pixiGraphics.getSubTree();
             //获取当前被选中的节点
             //here we address the random point of each subtree
-
-            //nodeContainer.nodes.push(nodeSprites['e90']);
-
+            pixiGraphics.dataResetForTreeLayout();
             _.each(nodeContainer.nodes,function (node) {
                 if(!subTree[node.treeID].selection){
                     subTree[node.treeID].isSelectedNode=true;
@@ -618,7 +574,6 @@ export default HyjjPixiRenderer = function(graph, settings) {
             //here positiony is for the y of root
             _.each(subTree,function (st,stID){
                 if(st.isSelectedNode){
-
                     if(parseInt(stID)==1){
                         st.positionx=st.selectedNode.position.x;
                         st.positiony=st.selectedNode.position.y;
@@ -641,12 +596,13 @@ export default HyjjPixiRenderer = function(graph, settings) {
             _.each(subTree,function (st,stID) {
                 if(st.isSelectedNode){
                     _.each(st.nodes,function (node) {
-                        var p={};
-                        p.x=st.positionx-st.treeLayoutEachLevelNumb[node.treeLayoutLevel]*visualConfig.NODE_WIDTH;
-                        st.treeLayoutEachLevelNumb[node.treeLayoutLevel] = st.treeLayoutEachLevelNumb[node.treeLayoutLevel]-2;
-                        p.y=st.positiony+visualConfig.NODE_WIDTH*2*(node.treeLayoutLevel-1);
-
-                        node.updateNodePosition(p);
+                        if( stID!=1 || node.treeLayoutLevel!=1){
+                            var p={};
+                            p.x=st.positionx-st.treeLayoutEachLevelNumb[node.treeLayoutLevel]*visualConfig.NODE_WIDTH;
+                            st.treeLayoutEachLevelNumb[node.treeLayoutLevel] = st.treeLayoutEachLevelNumb[node.treeLayoutLevel]-2;
+                            p.y=st.positiony+visualConfig.NODE_WIDTH*2*(node.treeLayoutLevel-1);
+                            node.updateNodePosition(p);
+                        }
                     });
                 }
             });

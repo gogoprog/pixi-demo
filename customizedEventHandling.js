@@ -89,6 +89,7 @@ rootCaptureHandler = function(e) {
     if(!this.interactive) {
         return false;
     }
+    console.log("surprise!!!!");
     if(this.mode == "panning") {
         this.mouseLocation = {
             x: e.data.global.x,

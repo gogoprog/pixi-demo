@@ -69,9 +69,7 @@ export const SelectionManager = function() {
     };
 
     this.handleMouseUp = function(e) {
-        console.log("*************************");
         var mouseEvent = e.data.originalEvent;
-        console.log(this.recentlySelected);
         if (this.recentlySelected) {
             var n = this.recentlySelected; // could be a node or a link
             if (mouseEvent.ctrlKey || mouseEvent.shiftKey) {
