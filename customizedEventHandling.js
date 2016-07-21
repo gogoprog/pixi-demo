@@ -48,6 +48,8 @@ setupWheelListener = function(domElement, stage) {
     }, true);
 };
 
+
+
 rootReleaseHandler = function(e) {
     // console.log('Root  released ');
     this.off('mousemove', this.moveListener);
@@ -90,12 +92,8 @@ rootCaptureHandler = function(e) {
     if (!this.interactive) {
         return false;
     }
-<<<<<<< HEAD
-    console.log("surprise!!!!");
-    if(this.mode == "panning") {
-=======
+
     if (this.mode == "panning") {
->>>>>>> 6e613ff6e2d668fcc82b6046192fa193bd7e4087
         this.mouseLocation = {
             x: e.data.global.x,
             y: e.data.global.y

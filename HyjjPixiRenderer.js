@@ -382,11 +382,6 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 nodeContainer.interactiveChildren = true;
                 // stage.interactive = false;
                 stage.buttonMode = false;
-                if (!stage.downListener) {
-                    console.log("picking listener begin!!");
-                    stage.downListener = rootCaptureHandler.bind(stage);
-                    stage.on('mousedown', stage.downListener);
-                }
             } else {
                 this.mode = 'panning';
                 stage.interactive = true;
