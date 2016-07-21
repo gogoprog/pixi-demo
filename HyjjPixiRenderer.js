@@ -123,6 +123,11 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
     listenToGraphEvents();
 
+    if (!stage.downListener) {
+        stage.downListener = rootCaptureHandler.bind(stage);
+        stage.on('mousedown', stage.downListener);
+    }
+    
     var pixiGraphics = {
 
         /**
@@ -389,12 +394,10 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 stage.mode = this.mode;
                 nodeContainer.interactiveChildren = false;
                 nodeContainer.interactive = false;
-                if (!stage.downListener) {
-                    stage.downListener = rootCaptureHandler.bind(stage);
-                    stage.on('mousedown', stage.downListener);
-                }
+
             }
         },
+
         /*
         * get selected nodes,
         * nodes of nodeContainer are selected @SelectionManager.js
@@ -755,25 +758,16 @@ export default HyjjPixiRenderer = function(graph, settings) {
             layoutIterations -= 1;
         }
 
+        if(stage.selectRegion){
+            drawSelectionRegion();
+        }
         drawBorders();
         drawLines();
         renderer.render(stage);
         counter.nextFrame();
     }
 
-    function drawSelectionRegion() {
-        selectRegionGraphics.clear();
-        if (stage.selectRegion) {
-            var frameCfg = visualConfig.ui.frame;
-            selectRegionGraphics.lineStyle(frameCfg.border.width, frameCfg.border.color, frameCfg.border.alpha);
-            selectRegionGraphics.beginFill(frameCfg.fill.color, frameCfg.fill.alpha);
-            var width = Math.abs(stage.selectRegion.x2 - stage.selectRegion.x1),
-                height = Math.abs(stage.selectRegion.y2 - stage.selectRegion.y1);
-            var x = boarderGraphics.position.x - stage.selectRegion.x1;
-            var y = boarderGraphics.position.y - stage.selectRegion.y1;
-            selectRegionGraphics.drawRect(stage.selectRegion.x1, stage.selectRegion.y1, width, height);
-        }
-    }
+
 
     //TODO 画边框,查看drawRoudedRect性能
     function drawBorders() {
@@ -969,6 +963,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
     function listenToGraphEvents() {
         graph.on('changed', onGraphChanged);
+
     }
 
     function removeNode(node) {
@@ -1054,6 +1049,21 @@ export default HyjjPixiRenderer = function(graph, settings) {
         }
     }
 
+
+    function drawSelectionRegion() {
+        selectRegionGraphics.clear();
+        if (stage.selectRegion) {
+            var frameCfg = visualConfig.ui.frame;
+            selectRegionGraphics.lineStyle(frameCfg.border.width, frameCfg.border.color, frameCfg.border.alpha);
+            selectRegionGraphics.beginFill(frameCfg.fill.color, frameCfg.fill.alpha);
+            var width = stage.selectRegion.x2 - stage.selectRegion.x1,
+                height = stage.selectRegion.y2 - stage.selectRegion.y1;
+            var x = stage.selectRegion.x1;
+            var y = stage.selectRegion.y1;
+            // selectRegionGraphics.drawRect(stage.selectRegion.x1, stage.selectRegion.y1, width, height);
+            selectRegionGraphics.drawRect(x, y, width, height);
+        }
+    }
 
     function findATree(node) {
 

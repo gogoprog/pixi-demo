@@ -48,30 +48,12 @@ setupWheelListener = function(domElement, stage) {
     }, true);
 };
 
-areaReleaseHandler=function (e) {
-
-}
-
-areaMoveHandler=function (e) {
-    
-}
-
-areaCaptureHandler=function (e) {
-
-    if (!this.moveListener) {
-        this.moveListener = nodeMoveListener.bind(this);
-        this.on('mousemove', this.moveListener);
-    }
-    if (!this.releaseListener) {
-        this.releaseListener = nodeReleaseListener.bind(this);
-        this.on('mouseup', this.releaseListener);
-    }
-}
-
 rootCaptureHandler = function(e) {
     if (!this.interactive) {
         return false;
     }
+
+    this.data=e.data;
 
     if (this.mode == "panning") {
         this.mouseLocation = {
@@ -102,10 +84,13 @@ rootReleaseHandler = function(e) {
     // console.log('Root  released ');
     this.off('mousemove', this.moveListener);
     this.off('mouseup', this.upListener);
+    this.data=null;
     this.alpha = 1;
     this.dragging = false;
     this.moveListener = null;
     this.upListener = null;
+    this.dragging=false;
+    this.selectingArea=false;
 };
 
 rootMoveHandler = function(e) {
@@ -126,13 +111,28 @@ rootMoveHandler = function(e) {
         this.contentRoot.position.x += dx;
         this.contentRoot.position.y += dy;
     } else if (this.selectingArea) {
+        //this.data.getLocalPosition(this.parent);
+        // var oPosition = new PIXI.Point();
+        // var nPosition = new PIXI.Point();
+        // oPosition=getGraphCoordinates(oldPosition.x,oldPosition.y,this.getChildByName("root"));
+        // nPosition=getGraphCoordinates(newPosition.x,newPosition.y,this.getChildByName("root"));
+        
+        // var dx=newPosition.x-oldPosition.x;
+        // var dy=newPosition.y-oldPosition.y;
+        // var np=new PIXI.Point();
+        // np.copy(this.data.getLocalPosition(this.parent));
+
         this.selectRegion = {
             x1: oldPosition.x,
             y1: oldPosition.y,
             x2: newPosition.x,
             y2: newPosition.y,
+            // x1:np.x-dx,
+            // y1:np.y-dy,
+            // x2:np.x,
+            // y2:np.y,
+
         };
-        // console.log("Selecting area: "+ JSON.stringify(oldPosition) + " to "+JSON.stringify(newPosition));
     }
 };
 
