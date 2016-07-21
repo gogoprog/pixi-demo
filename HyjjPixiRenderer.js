@@ -5,6 +5,7 @@ import eventify from "ngraph.events";
 
 import { visualConfig } from "./visualConfig.js";
 import { SelectionManager } from "./SelectionManager.js";
+import { zoom } from "./customizedEventHandling.js";
 
 Meteor.startup(function() {
     _.each(visualConfig.icons, function(icon) {
@@ -154,7 +155,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         },
 
         /**
-         * adjust the initial display location.
+         * adjust the initial display location to center of the scene
          */
         adjustInitialDisplayLocation: function() {
             var root = this.root;
@@ -163,8 +164,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
             let rootW = rect.x2 - rect.x1,
                 rootH = rect.y2 - rect.y1;
 
-            root.position.x += (viewWidth - rootW) / 2;
-            root.position.y += (viewHeight - rootH) / 2;
+            root.position.x = viewWidth / 2;
+            root.position.y = viewHeight / 2;
+            console.log('Root moved to '+root.position.x+','+root.position.y);
             this.addLayoutCycles(150);
         },
 
@@ -717,6 +719,16 @@ export default HyjjPixiRenderer = function(graph, settings) {
             _.each(nodeContainer.links, function(link){
                 link.hide();
             });
+        },
+        zoomIn: function() {
+            var x = viewWidth / 2;
+            var y = viewHeight / 2;
+            zoom(x, y, true, root);
+        },
+        zoomOut: function() {
+            var x = viewWidth / 2;
+            var y = viewHeight / 2;
+            zoom(x, y, false, root);
         }
     };
     eventify(pixiGraphics);

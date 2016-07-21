@@ -4,47 +4,48 @@
  * scroll to move up/down and shift+scroll to move side ways.
  **/
 import { visualConfig } from "./visualConfig.js";
+
+var getGraphCoordinates = (function() {
+    var ctx = {
+        global: { x: 0, y: 0 } // store it inside closure to avoid GC pressure
+    };
+
+    return function(x, y, stage) {
+        ctx.global.x = x;
+        ctx.global.y = y;
+        return PIXI.interaction.InteractionData.prototype.getLocalPosition.call(ctx, stage);
+    };
+}());
+
+export const zoom = function(x, y, isZoomIn, stage) {
+    var vpX = x,
+        vpY = y;
+    if ((isZoomIn && stage.scale.x > visualConfig.MAX_SCALE) || (!isZoomIn && stage.scale.x < visualConfig.MIN_SCALE)) {
+        return;
+    }
+    direction = isZoomIn ? 1 : -1;
+    var factor = (1 + direction * 0.1);
+    stage.scale.x *= factor;
+    stage.scale.y *= factor;
+    // Technically code below is not required, but helps to zoom on mouse
+    // cursor, instead center of graphGraphics coordinates
+    var beforeTransform = getGraphCoordinates(x, y, stage);
+    // console.log('After zooming ' + (isZoomIn ? 'in' : 'out') +
+    //  ' @ViewPort(' + vpX + ',' + vpY + ') and Graph: ' + JSON.stringify(beforeTransform));
+    stage.updateTransform();
+    var afterTransform = getGraphCoordinates(x, y, stage);
+    // console.log('After zooming ' + (isZoomIn ? 'in' : 'out') +
+    //  ' @ViewPort(' + vpX + ',' + vpY + ') and Graph: ' + JSON.stringify(afterTransform));
+
+    stage.position.x += (afterTransform.x - beforeTransform.x) * stage.scale.x;
+    stage.position.y += (afterTransform.y - beforeTransform.y) * stage.scale.y;
+    stage.updateTransform();
+}
+
 setupWheelListener = function(domElement, stage) {
     addWheelListener(domElement, function(e) {
-        zoom(e.offsetX, e.offsetY, e.deltaY < 0);
+        zoom(e.offsetX, e.offsetY, e.deltaY < 0, stage);
     }, true);
-
-    var getGraphCoordinates = (function() {
-        var ctx = {
-            global: { x: 0, y: 0 } // store it inside closure to avoid GC pressure
-        };
-
-        return function(x, y) {
-            ctx.global.x = x;
-            ctx.global.y = y;
-            return PIXI.interaction.InteractionData.prototype.getLocalPosition.call(ctx, stage);
-        };
-    }());
-
-    function zoom(x, y, isZoomIn) {
-        var vpX = x,
-            vpY = y;
-        if ((isZoomIn && stage.scale.x > visualConfig.MAX_SCALE) || (!isZoomIn && stage.scale.x < visualConfig.MIN_SCALE)) {
-            return;
-        }
-        direction = isZoomIn ? 1 : -1;
-        var factor = (1 + direction * 0.1);
-        stage.scale.x *= factor;
-        stage.scale.y *= factor;
-        // Technically code below is not required, but helps to zoom on mouse
-        // cursor, instead center of graphGraphics coordinates
-        var beforeTransform = getGraphCoordinates(x, y);
-        // console.log('After zooming ' + (isZoomIn ? 'in' : 'out') +
-        //  ' @ViewPort(' + vpX + ',' + vpY + ') and Graph: ' + JSON.stringify(beforeTransform));
-        stage.updateTransform();
-        var afterTransform = getGraphCoordinates(x, y);
-        // console.log('After zooming ' + (isZoomIn ? 'in' : 'out') +
-        //  ' @ViewPort(' + vpX + ',' + vpY + ') and Graph: ' + JSON.stringify(afterTransform));
-
-        stage.position.x += (afterTransform.x - beforeTransform.x) * stage.scale.x;
-        stage.position.y += (afterTransform.y - beforeTransform.y) * stage.scale.y;
-        stage.updateTransform();
-    }
 };
 
 rootReleaseHandler = function(e) {
@@ -86,11 +87,15 @@ rootMoveHandler = function(e) {
 };
 
 rootCaptureHandler = function(e) {
-    if(!this.interactive) {
+    if (!this.interactive) {
         return false;
     }
+<<<<<<< HEAD
     console.log("surprise!!!!");
     if(this.mode == "panning") {
+=======
+    if (this.mode == "panning") {
+>>>>>>> 6e613ff6e2d668fcc82b6046192fa193bd7e4087
         this.mouseLocation = {
             x: e.data.global.x,
             y: e.data.global.y
