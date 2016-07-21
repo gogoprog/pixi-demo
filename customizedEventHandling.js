@@ -48,7 +48,55 @@ setupWheelListener = function(domElement, stage) {
     }, true);
 };
 
+areaReleaseHandler=function (e) {
 
+}
+
+areaMoveHandler=function (e) {
+    
+}
+
+areaCaptureHandler=function (e) {
+
+    if (!this.moveListener) {
+        this.moveListener = nodeMoveListener.bind(this);
+        this.on('mousemove', this.moveListener);
+    }
+    if (!this.releaseListener) {
+        this.releaseListener = nodeReleaseListener.bind(this);
+        this.on('mouseup', this.releaseListener);
+    }
+}
+
+rootCaptureHandler = function(e) {
+    if (!this.interactive) {
+        return false;
+    }
+
+    if (this.mode == "panning") {
+        this.mouseLocation = {
+            x: e.data.global.x,
+            y: e.data.global.y
+        };
+        // console.log('Root captured @' + JSON.stringify(this.mouseLocation));
+
+        this.dragging = true;
+    } else {
+        this.mouseLocation = {
+            x: e.data.global.x,
+            y: e.data.global.y
+        };
+        this.selectingArea = true;
+    }
+    if (!this.moveListener) {
+        this.moveListener = rootMoveHandler.bind(this);
+        this.on('mousemove', this.moveListener);
+    }
+    if (!this.upListener) {
+        this.upListener = rootReleaseHandler.bind(this);
+        this.on('mouseup', this.upListener);
+    }
+};
 
 rootReleaseHandler = function(e) {
     // console.log('Root  released ');
@@ -85,36 +133,6 @@ rootMoveHandler = function(e) {
             y2: newPosition.y,
         };
         // console.log("Selecting area: "+ JSON.stringify(oldPosition) + " to "+JSON.stringify(newPosition));
-    }
-};
-
-rootCaptureHandler = function(e) {
-    if (!this.interactive) {
-        return false;
-    }
-
-    if (this.mode == "panning") {
-        this.mouseLocation = {
-            x: e.data.global.x,
-            y: e.data.global.y
-        };
-        // console.log('Root captured @' + JSON.stringify(this.mouseLocation));
-
-        this.dragging = true;
-    } else {
-        this.mouseLocation = {
-            x: e.data.global.x,
-            y: e.data.global.y
-        };
-        this.selectingArea = true;
-    }
-    if (!this.moveListener) {
-        this.moveListener = rootMoveHandler.bind(this);
-        this.on('mousemove', this.moveListener);
-    }
-    if (!this.upListener) {
-        this.upListener = rootReleaseHandler.bind(this);
-        this.on('mouseup', this.upListener);
     }
 };
 
