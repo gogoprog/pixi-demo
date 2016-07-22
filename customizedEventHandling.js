@@ -48,48 +48,13 @@ setupWheelListener = function(domElement, stage) {
     }, true);
 };
 
-rootReleaseHandler = function(e) {
-    // console.log('Root  released ');
-    this.off('mousemove', this.moveListener);
-    this.off('mouseup', this.upListener);
-    this.alpha = 1;
-    this.dragging = false;
-    this.moveListener = null;
-    this.upListener = null;
-};
-
-rootMoveHandler = function(e) {
-    //throttle 限制回调函数被调用次数的方式
-    var oldPosition = this.mouseLocation;
-    var newPosition = e.data.global;
-    if (this.dragging) {
-        this.alpha = 0.6;
-        var dx = newPosition.x - oldPosition.x;
-        var dy = newPosition.y - oldPosition.y;
-        var r = this.contentRoot.getBounds();
-        // console.log('Root move event (' + dx + ', ' + dy + ')@('+this.contentRoot.position.x+
-        // ','+this.contentRoot.position.y+') of root rect:'+ "Rectange[" + r.x + "," + r.y + ";" + r.width + "," + r.height + "]");
-        this.mouseLocation = {
-            x: e.data.global.x,
-            y: e.data.global.y
-        };
-        this.contentRoot.position.x += dx;
-        this.contentRoot.position.y += dy;
-    } else if (this.selectingArea) {
-        this.selectRegion = {
-            x1: oldPosition.x,
-            y1: oldPosition.y,
-            x2: newPosition.x,
-            y2: newPosition.y,
-        };
-        // console.log("Selecting area: "+ JSON.stringify(oldPosition) + " to "+JSON.stringify(newPosition));
-    }
-};
-
 rootCaptureHandler = function(e) {
     if (!this.interactive) {
         return false;
     }
+
+    this.data=e.data;
+
     if (this.mode == "panning") {
         this.mouseLocation = {
             x: e.data.global.x,
@@ -112,6 +77,62 @@ rootCaptureHandler = function(e) {
     if (!this.upListener) {
         this.upListener = rootReleaseHandler.bind(this);
         this.on('mouseup', this.upListener);
+    }
+};
+
+rootReleaseHandler = function(e) {
+    // console.log('Root  released ');
+    this.off('mousemove', this.moveListener);
+    this.off('mouseup', this.upListener);
+    this.data=null;
+    this.alpha = 1;
+    this.dragging = false;
+    this.moveListener = null;
+    this.upListener = null;
+    this.dragging=false;
+    this.selectingArea=false;
+};
+
+rootMoveHandler = function(e) {
+    //throttle 限制回调函数被调用次数的方式
+    var oldPosition = this.mouseLocation;
+    var newPosition = e.data.global;
+    if (this.dragging) {
+        this.alpha = 0.6;
+        var dx = newPosition.x - oldPosition.x;
+        var dy = newPosition.y - oldPosition.y;
+        var r = this.contentRoot.getBounds();
+        // console.log('Root move event (' + dx + ', ' + dy + ')@('+this.contentRoot.position.x+
+        // ','+this.contentRoot.position.y+') of root rect:'+ "Rectange[" + r.x + "," + r.y + ";" + r.width + "," + r.height + "]");
+        this.mouseLocation = {
+            x: e.data.global.x,
+            y: e.data.global.y
+        };
+        this.contentRoot.position.x += dx;
+        this.contentRoot.position.y += dy;
+    } else if (this.selectingArea) {
+        //this.data.getLocalPosition(this.parent);
+        // var oPosition = new PIXI.Point();
+        // var nPosition = new PIXI.Point();
+        // oPosition=getGraphCoordinates(oldPosition.x,oldPosition.y,this.getChildByName("root"));
+        // nPosition=getGraphCoordinates(newPosition.x,newPosition.y,this.getChildByName("root"));
+        
+        // var dx=newPosition.x-oldPosition.x;
+        // var dy=newPosition.y-oldPosition.y;
+        // var np=new PIXI.Point();
+        // np.copy(this.data.getLocalPosition(this.parent));
+
+        this.selectRegion = {
+            x1: oldPosition.x,
+            y1: oldPosition.y,
+            x2: newPosition.x,
+            y2: newPosition.y,
+            // x1:np.x-dx,
+            // y1:np.y-dy,
+            // x2:np.x,
+            // y2:np.y,
+
+        };
     }
 };
 
