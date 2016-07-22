@@ -1023,6 +1023,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
     function removeNode(node) {
         var nodeSprite = nodeSprites[node.id];
         if (nodeSprite) {
+            if(_.has(nodeNeedBoundary, node.id)){
+                delete nodeNeedBoundary[node.id];
+            }
             if(nodeSprite.selected){
                 nodeContainer.deselectNode(nodeSprite);
             }
