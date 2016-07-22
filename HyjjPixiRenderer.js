@@ -68,7 +68,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
     root.addChild(lineGraphics);
     root.addChild(boarderGraphics);
-    root.addChild(selectRegionGraphics);
+    // root.addChild(selectRegionGraphics);
+    stage.addChild(selectRegionGraphics);
     root.addChild(textContainer);
     root.addChild(nodeContainer);
 
@@ -90,6 +91,14 @@ export default HyjjPixiRenderer = function(graph, settings) {
         nodeContainer.handleMouseUp(e);
         selectionChanged();
     });
+
+    nodeContainer.nodeCaptured = function(node) {
+        stage.hasNodeCaptured = true;
+    };
+
+    nodeContainer.nodeReleased = function(node) {
+        stage.hasNodeCaptured = false;
+    };
 
     //layout 相关,把移动位置同步到layout内部
     nodeContainer.nodeMovedTo = function(node, position) {
@@ -127,7 +136,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         stage.downListener = rootCaptureHandler.bind(stage);
         stage.on('mousedown', stage.downListener);
     }
-    
+
     var pixiGraphics = {
 
         /**

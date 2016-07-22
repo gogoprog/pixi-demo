@@ -49,7 +49,7 @@ setupWheelListener = function(domElement, stage) {
 };
 
 rootCaptureHandler = function(e) {
-    if (!this.interactive) {
+    if (!this.interactive || this.hasNodeCaptured) {
         return false;
     }
 
@@ -60,7 +60,7 @@ rootCaptureHandler = function(e) {
             x: e.data.global.x,
             y: e.data.global.y
         };
-        // console.log('Root captured @' + JSON.stringify(this.mouseLocation));
+        console.log('Root captured @' + JSON.stringify(this.mouseLocation));
 
         this.dragging = true;
     } else {
@@ -69,6 +69,7 @@ rootCaptureHandler = function(e) {
             y: e.data.global.y
         };
         this.selectingArea = true;
+        console.log('Root captured @' + JSON.stringify(this.mouseLocation));
     }
     if (!this.moveListener) {
         this.moveListener = rootMoveHandler.bind(this);
@@ -98,7 +99,7 @@ rootMoveHandler = function(e) {
     var oldPosition = this.mouseLocation;
     var newPosition = e.data.global;
     if (this.dragging) {
-        this.alpha = 0.6;
+        this.alpha = 0.8;
         var dx = newPosition.x - oldPosition.x;
         var dy = newPosition.y - oldPosition.y;
         var r = this.contentRoot.getBounds();
@@ -116,7 +117,7 @@ rootMoveHandler = function(e) {
         // var nPosition = new PIXI.Point();
         // oPosition=getGraphCoordinates(oldPosition.x,oldPosition.y,this.getChildByName("root"));
         // nPosition=getGraphCoordinates(newPosition.x,newPosition.y,this.getChildByName("root"));
-        
+
         // var dx=newPosition.x-oldPosition.x;
         // var dy=newPosition.y-oldPosition.y;
         // var np=new PIXI.Point();
@@ -137,11 +138,12 @@ rootMoveHandler = function(e) {
 };
 
 nodeCaptureListener = function(e) {
-    // console.log('Mouse down on ' + JSON.stringify(this.position));
-    this.data = e.data;
-    // this.scale.set(1.3, 1.3);
+    console.log('Mouse down on node ' + JSON.stringify(this.position));
+    this.interactionData = e.data;
+    this.parent.nodeCaptured(this);
     this.dragging = true;
     this.alpha = 0.6;
+
     if (!this.moveListener) {
         this.moveListener = nodeMoveListener.bind(this);
         this.on('mousemove', this.moveListener);
@@ -156,10 +158,11 @@ nodeReleaseListener = function(e) {
     this.off('mousemove', this.moveListener);
     this.alpha = 1;
     this.dragging = false;
-    newPosition.copy(this.data.getLocalPosition(this.parent));
+    this.parent.nodeReleased(this);
+    newPosition.copy(this.interactionData.getLocalPosition(this.parent));
     // this.updateNodePosition(newPosition);
     // console.log("Updated to new position: " + JSON.stringify(newPosition));
-    this.data = null;
+    this.interactionData = null;
     // this.scale.set(1, 1);
     this.parent.nodeMovedTo(this, newPosition);
     this.parent.nodeSelected(this);
@@ -172,7 +175,7 @@ var newPosition = new PIXI.Point();
 nodeMoveListener = function(e) {
     // console.log('node mouse move fired');
     if (this.dragging) {
-        newPosition.copy(this.data.getLocalPosition(this.parent));
+        newPosition.copy(this.interactionData.getLocalPosition(this.parent));
         this.updateNodePosition(newPosition);
     }
 };

@@ -25,12 +25,12 @@ export const SelectionManager = function() {
     };
     this.deselectNode = function(node) {
         if (node.selected) {
-            delete this.selectedNodes[node.id];
             var index = this.nodes.indexOf(this.selectedNodes[node.id]);
             if (index > -1) {
                 this.nodes.splice(index, 1);
             }
             node.selectionChanged(false);
+            delete this.selectedNodes[node.id];
         }
     };
     this.selectLink = function(link) {
@@ -44,12 +44,12 @@ export const SelectionManager = function() {
     };
     this.deselectLink = function(link) {
         if (link.selected) {
-            delete this.selectedLinks[link.id];
             var index = this.links.indexOf(this.selectedLinks[link.id]);
             if (index > -1) {
                 this.links.splice(index, 1);
             }
             link.selectionChanged(false);
+            delete this.selectedLinks[link.id];
         }
     };
 
