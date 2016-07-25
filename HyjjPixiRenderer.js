@@ -129,7 +129,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
             yt=y1;
             yb=y2;
         }
-        
+
+        nodeContainer.deselectAll();
         _.each(nodeSprites,function (n) {
             //console.log(n.position.x+" "+n.position.y);
             if((n.position.x <= xr) && (n.position.x >= xl) && (n.position.y>=yt) && (n.position.y<=yb)){
