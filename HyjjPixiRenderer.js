@@ -68,8 +68,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
     root.addChild(lineGraphics);
     root.addChild(boarderGraphics);
-    // root.addChild(selectRegionGraphics);
-    stage.addChild(selectRegionGraphics);
+    root.addChild(selectRegionGraphics);
+    //stage.addChild(selectRegionGraphics);
     root.addChild(textContainer);
     root.addChild(nodeContainer);
 
@@ -101,10 +101,44 @@ export default HyjjPixiRenderer = function(graph, settings) {
     };
 
     //layout 相关,把移动位置同步到layout内部
-    nodeContainer.nodeMovedTo = function(node, position) {
-        var pos = layout.setNodePosition(node.id, position.x, position.y);
+    nodeContainer.selectedNodesPosChanged = function() {
+        _.each(nodeContainer.nodes,function (node) {
+            var pos = layout.setNodePosition(node.id, node.position.x, node.position.y);
+        });
+
     };
 
+
+    stage.selectAllNodesInRegion=function (x1,y1,x2,y2) {
+        var xl;
+        var xr;
+        var yt;
+        var yb;
+        if(x1>x2){
+            xl=x2;
+            xr=x1;
+        }else{
+            xr=x2;
+            xl=x1;
+        }
+
+        if(y1>y2){
+            yt=y2;
+            yb=y1;
+        }else{
+            yt=y1;
+            yb=y2;
+        }
+        
+        _.each(nodeSprites,function (n) {
+            //console.log(n.position.x+" "+n.position.y);
+            if((n.position.x <= xr) && (n.position.x >= xl) && (n.position.y>=yt) && (n.position.y<=yb)){
+                console.log("here i come!!");
+                nodeContainer.selectNode(n);
+            }
+        });
+
+    };
     /**
      * Very Very Important Variables
      * nodeSprites is for all of the nodes, their attribute can be found in initNode;
@@ -767,9 +801,11 @@ export default HyjjPixiRenderer = function(graph, settings) {
             layoutIterations -= 1;
         }
 
-        if(stage.selectRegion){
+        selectRegionGraphics.clear();
+        if(stage.selectRegion && stage.selectingArea){
             drawSelectionRegion();
         }
+
         drawBorders();
         drawLines();
         renderer.render(stage);
@@ -1063,7 +1099,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
 
     function drawSelectionRegion() {
-        selectRegionGraphics.clear();
+
         if (stage.selectRegion) {
             var frameCfg = visualConfig.ui.frame;
             selectRegionGraphics.lineStyle(frameCfg.border.width, frameCfg.border.color, frameCfg.border.alpha);
@@ -1076,6 +1112,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             selectRegionGraphics.drawRect(x, y, width, height);
         }
     }
+
 
     function findATree(node) {
 

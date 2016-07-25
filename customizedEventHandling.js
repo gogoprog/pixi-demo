@@ -40,7 +40,7 @@ export const zoom = function(x, y, isZoomIn, stage) {
     stage.position.x += (afterTransform.x - beforeTransform.x) * stage.scale.x;
     stage.position.y += (afterTransform.y - beforeTransform.y) * stage.scale.y;
     stage.updateTransform();
-}
+};
 
 setupWheelListener = function(domElement, stage) {
     addWheelListener(domElement, function(e) {
@@ -90,18 +90,18 @@ rootReleaseHandler = function(e) {
     this.dragging = false;
     this.moveListener = null;
     this.upListener = null;
-    this.dragging=false;
     this.selectingArea=false;
+    this.selectRegion=null;
 };
 
 rootMoveHandler = function(e) {
     //throttle 限制回调函数被调用次数的方式
     var oldPosition = this.mouseLocation;
     var newPosition = e.data.global;
+    var dx = newPosition.x - oldPosition.x;
+    var dy = newPosition.y - oldPosition.y;
     if (this.dragging) {
         this.alpha = 0.8;
-        var dx = newPosition.x - oldPosition.x;
-        var dy = newPosition.y - oldPosition.y;
         var r = this.contentRoot.getBounds();
         // console.log('Root move event (' + dx + ', ' + dy + ')@('+this.contentRoot.position.x+
         // ','+this.contentRoot.position.y+') of root rect:'+ "Rectange[" + r.x + "," + r.y + ";" + r.width + "," + r.height + "]");
@@ -112,30 +112,20 @@ rootMoveHandler = function(e) {
         this.contentRoot.position.x += dx;
         this.contentRoot.position.y += dy;
     } else if (this.selectingArea) {
-        //this.data.getLocalPosition(this.parent);
-        // var oPosition = new PIXI.Point();
-        // var nPosition = new PIXI.Point();
-        // oPosition=getGraphCoordinates(oldPosition.x,oldPosition.y,this.getChildByName("root"));
-        // nPosition=getGraphCoordinates(newPosition.x,newPosition.y,this.getChildByName("root"));
+        if(Math.abs(dx) >5 && Math.abs(dy) > 5){
+            this.selectRegion = {
+                x1: oldPosition.x-this.contentRoot.position.x,
+                y1: oldPosition.y-this.contentRoot.position.y,
+                x2: newPosition.x-this.contentRoot.position.x,
+                y2: newPosition.y-this.contentRoot.position.y
+            };
 
-        // var dx=newPosition.x-oldPosition.x;
-        // var dy=newPosition.y-oldPosition.y;
-        // var np=new PIXI.Point();
-        // np.copy(this.data.getLocalPosition(this.parent));
-
-        this.selectRegion = {
-            x1: oldPosition.x,
-            y1: oldPosition.y,
-            x2: newPosition.x,
-            y2: newPosition.y,
-            // x1:np.x-dx,
-            // y1:np.y-dy,
-            // x2:np.x,
-            // y2:np.y,
-
-        };
+            this.selectAllNodesInRegion(this.selectRegion.x1,this.selectRegion.y1,this.selectRegion.x2,this.selectRegion.y2);
+        }
     }
+
 };
+
 
 nodeCaptureListener = function(e) {
     console.log('Mouse down on node ' + JSON.stringify(this.position));
@@ -159,12 +149,10 @@ nodeReleaseListener = function(e) {
     this.alpha = 1;
     this.dragging = false;
     this.parent.nodeReleased(this);
-    newPosition.copy(this.interactionData.getLocalPosition(this.parent));
-    // this.updateNodePosition(newPosition);
-    // console.log("Updated to new position: " + JSON.stringify(newPosition));
+    //newPosition.copy(this.interactionData.getLocalPosition(this.parent));
+
     this.interactionData = null;
-    // this.scale.set(1, 1);
-    this.parent.nodeMovedTo(this, newPosition);
+    this.parent.selectedNodesPosChanged();
     this.parent.nodeSelected(this);
     this.moveListener = null;
     this.off('mouseup', this.releaseListener);
@@ -176,6 +164,15 @@ nodeMoveListener = function(e) {
     // console.log('node mouse move fired');
     if (this.dragging) {
         newPosition.copy(this.interactionData.getLocalPosition(this.parent));
-        this.updateNodePosition(newPosition);
+        //this.updateNodePosition(newPosition);
+        var dx = newPosition.x-this.position.x;
+        var dy = newPosition.y-this.position.y;
+        _.each(this.parent.nodes,function (n) {
+            var np=new PIXI.Point();
+            np.x=n.position.x+dx;
+            np.y=n.position.y+dy;
+            n.updateNodePosition(np);
+        });
+        this.parent.dragJustNow=true;
     }
 };

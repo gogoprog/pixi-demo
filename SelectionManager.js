@@ -89,7 +89,11 @@ export const SelectionManager = function() {
                     }
                 }
             } else {
-                this.deselectAll();
+                console.log(this.dragJustNow);
+                if(!this.dragJustNow){
+                    this.deselectAll();
+                    this.dragJustNow=false;
+                }
                 if (n.isLink) {
                     this.selectLink(n);
                 } else {
@@ -98,7 +102,9 @@ export const SelectionManager = function() {
             }
             this.recentlySelected = null;
         } else {
-            this.deselectAll();
+            if(!this.parent.parent.selectRegion ){
+                this.deselectAll();
+            }
         }
     };
 };
