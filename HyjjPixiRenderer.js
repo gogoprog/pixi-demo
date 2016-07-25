@@ -68,8 +68,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
     root.addChild(lineGraphics);
     root.addChild(boarderGraphics);
-    root.addChild(selectRegionGraphics);
-    //stage.addChild(selectRegionGraphics);
+    // root.addChild(selectRegionGraphics);
+    stage.addChild(selectRegionGraphics);
     root.addChild(textContainer);
     root.addChild(nodeContainer);
 
@@ -134,7 +134,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         _.each(nodeSprites,function (n) {
             //console.log(n.position.x+" "+n.position.y);
             if((n.position.x <= xr) && (n.position.x >= xl) && (n.position.y>=yt) && (n.position.y<=yb)){
-                console.log("here i come!!");
+                //console.log("here i come!!");
                 nodeContainer.selectNode(n);
             }
         });
@@ -1109,7 +1109,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 height = stage.selectRegion.y2 - stage.selectRegion.y1;
             var x = stage.selectRegion.x1;
             var y = stage.selectRegion.y1;
-            // selectRegionGraphics.drawRect(stage.selectRegion.x1, stage.selectRegion.y1, width, height);
+            // var x = stage.selectRegion.x1-stage.contentRoot.position.x;
+            // var y = stage.selectRegion.y1-stage.contentRoot.position.y;
+            //selectRegionGraphics.drawRect(stage.selectRegion.x1, stage.selectRegion.y1, width, height);
             selectRegionGraphics.drawRect(x, y, width, height);
         }
     }
