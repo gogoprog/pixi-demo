@@ -571,6 +571,12 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 }
             });
 
+            _.each(subTree,function (st) {
+               if(!st.isSelectedNode){
+                   pixiGraphics.findRootOfEachTree(st);
+               }
+            });
+
             _.each(subTree, function(st, stID) {
                 if (st.isSelectedNode) {
                     st.selectedNode.treeLayoutLevel = 1;
@@ -630,10 +636,31 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
         },
 
+        findRootOfEachTree: function (eachSubTree) {
+
+            _.each(eachSubTree.nodes,function (n) {
+                n.degree=0;
+                _.each(n.incoming,function (l) {
+                    n.degree++;
+                });
+                _.each(n.outgoing,function (l) {
+                    n.degree++;
+                });
+            });
+
+            eachSubTree.isSelectedNode=true;
+            eachSubTree.selectedNode=null;
+            _.each(eachSubTree.nodes,function (n) {
+                if(!eachSubTree.selectedNode){
+                    eachSubTree.selectedNode=n;
+                }else{
+                    if(eachSubTree.selectedNode.degree<n.degree){
+                        eachSubTree.selectedNode=n;
+                    }
+                }
+            });
+        },
         drawTreeLayout: function() {
-            if (nodeContainer.nodes == null) {
-                return;
-            }
 
             pixiGraphics.subTreeInitForTreeLayout();
 
@@ -642,7 +669,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     _.each(st.nodes, function(node) {
                         if (stID != 1 || node.treeLayoutLevel != 1) {
                             var p = {};
-                            p.x = st.positionx - st.treeLayoutEachLevelNumb[node.treeLayoutLevel] * visualConfig.NODE_WIDTH;
+                            p.x = st.positionx - (st.treeLayoutEachLevelNumb[node.treeLayoutLevel]-1) * visualConfig.NODE_WIDTH;
                             st.treeLayoutEachLevelNumb[node.treeLayoutLevel] = st.treeLayoutEachLevelNumb[node.treeLayoutLevel] - 2;
                             p.y = st.positiony + visualConfig.NODE_WIDTH * 2 * (node.treeLayoutLevel - 1);
                             node.updateNodePosition(p);
