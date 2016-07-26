@@ -185,7 +185,8 @@ var newPosition = new PIXI.Point();
 nodeMoveListener = function(e) {
     // console.log('node mouse move fired');
     this.parent.dragJustNow=false;
-    if (this.dragging) {
+    if (this.dragging && this.selected) {
+        //newPosition=null;
         newPosition.copy(this.interactionData.getLocalPosition(this.parent));
         //this.updateNodePosition(newPosition);
         var dx = newPosition.x-this.position.x;
@@ -197,5 +198,11 @@ nodeMoveListener = function(e) {
             n.updateNodePosition(np);
         });
         this.parent.dragJustNow=true;
+    }else if(!this.selected){
+        this.parent.deselectAll();
+        this.parent.selectNode(this);
+        //newPosition=null;
+        newPosition.copy(this.interactionData.getLocalPosition(this.parent));
+        this.updateNodePosition(newPosition);
     }
 };
