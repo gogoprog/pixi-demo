@@ -92,6 +92,7 @@ export const SelectionManager = function() {
                 console.log(this.dragJustNow);
                 if(!this.dragJustNow){
                     this.deselectAll();
+                }else{
                     this.dragJustNow=false;
                 }
                 if (n.isLink) {
