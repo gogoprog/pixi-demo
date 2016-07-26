@@ -81,6 +81,10 @@ export const visualConfig = {
         },
         "label": {
             "font": { "font": '24px Arial', "fill": 'black', "align": 'center' }
+        },
+        "timeline" : {
+            "color": 0x000000,
+            "width": 2,
         }
     },
     "formatting": {

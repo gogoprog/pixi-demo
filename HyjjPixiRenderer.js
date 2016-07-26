@@ -53,7 +53,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
     var lineGraphics = new PIXI.Graphics();
 
     //set the subTreeCenter
-    var subTree={};
+    var subTree = {};
 
     root.width = viewWidth;
     root.height = viewHeight;
@@ -102,38 +102,38 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
     //layout 相关,把移动位置同步到layout内部
     nodeContainer.selectedNodesPosChanged = function() {
-        _.each(nodeContainer.nodes,function (node) {
+        _.each(nodeContainer.nodes, function(node) {
             var pos = layout.setNodePosition(node.id, node.position.x, node.position.y);
         });
 
     };
 
 
-    stage.selectAllNodesInRegion=function (x1,y1,x2,y2) {
+    stage.selectAllNodesInRegion = function(x1, y1, x2, y2) {
         var xl;
         var xr;
         var yt;
         var yb;
-        if(x1>x2){
-            xl=x2;
-            xr=x1;
-        }else{
-            xr=x2;
-            xl=x1;
+        if (x1 > x2) {
+            xl = x2;
+            xr = x1;
+        } else {
+            xr = x2;
+            xl = x1;
         }
 
-        if(y1>y2){
-            yt=y2;
-            yb=y1;
-        }else{
-            yt=y1;
-            yb=y2;
+        if (y1 > y2) {
+            yt = y2;
+            yb = y1;
+        } else {
+            yt = y1;
+            yb = y2;
         }
 
         nodeContainer.deselectAll();
-        _.each(nodeSprites,function (n) {
+        _.each(nodeSprites, function(n) {
             //console.log(n.position.x+" "+n.position.y);
-            if((n.position.x <= xr) && (n.position.x >= xl) && (n.position.y>=yt) && (n.position.y<=yb)){
+            if ((n.position.x <= xr) && (n.position.x >= xl) && (n.position.y >= yt) && (n.position.y <= yb)) {
                 console.log("here i come!!");
                 nodeContainer.selectNode(n);
             }
@@ -148,7 +148,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
     var nodeSprites = {},
         linkSprites = {};
 
-    var bfsQueue=[];
+    var bfsQueue = [];
 
 
     /**
@@ -182,9 +182,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
         /**
          * Cancel global Interactive
          */
-        cancelGlobalInteractive: function(){
-            nodeContainer.interactive=false;
-            stage.interactive=false;
+        cancelGlobalInteractive: function() {
+            nodeContainer.interactive = false;
+            stage.interactive = false;
             // stage.interactiveChildren=false;
             nodeContainer.interactiveChildren = false;
         },
@@ -192,13 +192,13 @@ export default HyjjPixiRenderer = function(graph, settings) {
         /**
          * recover global Interactive
          */
-        recoverGlobalInteractive: function(){
+        recoverGlobalInteractive: function() {
             stage.interactive = true;
             if (this.mode == "picking") {
-                nodeContainer.interactive=true;
+                nodeContainer.interactive = true;
                 nodeContainer.interactiveChildren = true;
             } else {
-                nodeContainer.interactive=false;
+                nodeContainer.interactive = false;
                 nodeContainer.interactiveChildren = false;
             }
         },
@@ -215,14 +215,14 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
             root.position.x = viewWidth / 2;
             root.position.y = viewHeight / 2;
-            console.log('Root moved to '+root.position.x+','+root.position.y);
+            console.log('Root moved to ' + root.position.x + ',' + root.position.y);
             this.addLayoutCycles(150);
         },
 
         /*
-        * For the forcelayout Algorithm do not have the fixed cycles.
-        * To arrange the nodes quickly, we need add the cycles manually.
-        **/
+         * For the forcelayout Algorithm do not have the fixed cycles.
+         * To arrange the nodes quickly, we need add the cycles manually.
+         **/
         addLayoutCycles: function(n) {
             layoutIterations += n;
         },
@@ -230,41 +230,41 @@ export default HyjjPixiRenderer = function(graph, settings) {
         /**
          * zoom in and zoom out for the node
          */
-        nodeZoomByID:function (nodeIDArray,zoomValue) {
-            _.each(nodeIDArray,function(nodeID){
+        nodeZoomByID: function(nodeIDArray, zoomValue) {
+            _.each(nodeIDArray, function(nodeID) {
                 nodeSprites[nodeID].scale.set(zoomValue);
-                nodeSprites[nodeID].ts.scale.set(0.5*zoomValue);
-                nodeSprites[nodeID].ts.position.set(nodeSprites[nodeID].position.x, nodeSprites[nodeID].position.y + visualConfig.NODE_LABLE_OFFSET_Y*zoomValue);
+                nodeSprites[nodeID].ts.scale.set(0.5 * zoomValue);
+                nodeSprites[nodeID].ts.position.set(nodeSprites[nodeID].position.x, nodeSprites[nodeID].position.y + visualConfig.NODE_LABLE_OFFSET_Y * zoomValue);
             });
         },
 
         /**
-        * change the boundary style of the nodes by ID
-        **/
-        changeBoundaryStyleByID:function (nodeIDArray, boundAttr) {
+         * change the boundary style of the nodes by ID
+         **/
+        changeBoundaryStyleByID: function(nodeIDArray, boundAttr) {
 
-            _.each(nodeIDArray,function (nodeID) {
-                nodeSprites[nodeID].boundaryAttr=boundAttr;
+            _.each(nodeIDArray, function(nodeID) {
+                nodeSprites[nodeID].boundaryAttr = boundAttr;
             });
         },
 
         /**
          * change the style of the link by ID
          */
-        changeLinkStyleByID:function (linkIDArray,linkAttr) {
+        changeLinkStyleByID: function(linkIDArray, linkAttr) {
 
-            _.each(linkIDArray,function (linkID) {
+            _.each(linkIDArray, function(linkID) {
                 //console.log(linkID);
-                if(!linkAttr.color){
-                    linkAttr.color=linkSprites[linkID].coustomSettingColor;
+                if (!linkAttr.color) {
+                    linkAttr.color = linkSprites[linkID].coustomSettingColor;
                 }
-                if(!linkAttr.alpha){
-                    linkAttr.alpha=linkSprites[linkID].coustomSettingAlpha;
+                if (!linkAttr.alpha) {
+                    linkAttr.alpha = linkSprites[linkID].coustomSettingAlpha;
                 }
-                if(!linkAttr.thickness){
-                    linkAttr.thickness=linkSprites[linkID].coustomSettingThickness;
-                }else {
-                    linkAttr.thickness = Math.round( linkAttr.thickness ); // Make sure its integer;
+                if (!linkAttr.thickness) {
+                    linkAttr.thickness = linkSprites[linkID].coustomSettingThickness;
+                } else {
+                    linkAttr.thickness = Math.round(linkAttr.thickness); // Make sure its integer;
                 }
                 linkSprites[linkID].setLineAttr(linkAttr);
             });
@@ -273,13 +273,13 @@ export default HyjjPixiRenderer = function(graph, settings) {
         /**
          * reset the style of the link by ID
          */
-        resetLinkStyleByID:function(linkIDArray){
-            _.each(linkIDArray,function(linkID){
-                var styleResetLink=linkSprites[linkID];
-                var linkAttr={};
-                linkAttr.alpha=visualConfig.ui.line.alpha;
-                linkAttr.color=visualConfig.ui.line.color;
-                linkAttr.thickness=visualConfig.ui.line.width;
+        resetLinkStyleByID: function(linkIDArray) {
+            _.each(linkIDArray, function(linkID) {
+                var styleResetLink = linkSprites[linkID];
+                var linkAttr = {};
+                linkAttr.alpha = visualConfig.ui.line.alpha;
+                linkAttr.color = visualConfig.ui.line.color;
+                linkAttr.thickness = visualConfig.ui.line.width;
                 styleResetLink.setLineAttr(linkAttr);
             });
         },
@@ -287,52 +287,52 @@ export default HyjjPixiRenderer = function(graph, settings) {
         /**
          * get the number of hidden nodes
          */
-        getHiddenNodesNumber:function(){
-            var number=0;
-            _.each(nodeSprites,function(n){
-               if(n.visible==false){
-                   number++;
-               }
+        getHiddenNodesNumber: function() {
+            var number = 0;
+            _.each(nodeSprites, function(n) {
+                if (n.visible == false) {
+                    number++;
+                }
             });
-            console.log(number+" nodes are hidden!!");
+            console.log(number + " nodes are hidden!!");
             return number;
         },
         /**
          * get the number of hidden lines
          */
-        getHiddenLinesNumber:function(){
-            var number=0;
-            _.each(linkSprites,function(l){
-               if(l.visible==false){
-                   number++;
-               }
+        getHiddenLinesNumber: function() {
+            var number = 0;
+            _.each(linkSprites, function(l) {
+                if (l.visible == false) {
+                    number++;
+                }
             });
-            console.log(number+" lines are hidden!!");
+            console.log(number + " lines are hidden!!");
             return number;
         },
 
         /**
          * hide nodes by ID
          */
-        hideNodesByID:function (idArray) {
-            _.each(idArray,function(node){
-                var hiddenNode=nodeSprites[node];
-                if(hiddenNode.selected) {
+        hideNodesByID: function(idArray) {
+            _.each(idArray, function(node) {
+                var hiddenNode = nodeSprites[node];
+                if (hiddenNode.selected) {
                     nodeContainer.deselectNode(hiddenNode);
                 }
-                hiddenNode.visible=false;
-                hiddenNode.ts.visible=false;
+                hiddenNode.visible = false;
+                hiddenNode.ts.visible = false;
 
                 //when we hide the nodes we should also hide the texture, arrow and the link.
-                _.each(hiddenNode.outgoing,function (olink) {
-                    if(olink.selected){
+                _.each(hiddenNode.outgoing, function(olink) {
+                    if (olink.selected) {
                         nodeContainer.deselectLink(olink);
                     }
                     olink.hide();
 
                 });
-                _.each(hiddenNode.incoming,function (ilink) {
-                    if(ilink.selected){
+                _.each(hiddenNode.incoming, function(ilink) {
+                    if (ilink.selected) {
                         nodeContainer.deselectLink(ilink);
                     }
                     ilink.hide();
@@ -342,9 +342,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
             hiddenStatusChanged();
         },
         hideLinksByID: function(idArray) {
-            _.each(idArray,function(linkId){
-                var linkToHide=linkSprites[linkId];
-                if(linkToHide.selected) {
+            _.each(idArray, function(linkId) {
+                var linkToHide = linkSprites[linkId];
+                if (linkToHide.selected) {
                     nodeContainer.deselectLink(linkToHide);
                 }
                 linkToHide.hide();
@@ -353,11 +353,11 @@ export default HyjjPixiRenderer = function(graph, settings) {
             hiddenStatusChanged();
         },
         showAll: function() {
-            _.each(nodeSprites, function(ns){
+            _.each(nodeSprites, function(ns) {
                 ns.visible = true;
                 ns.ts.visible = true;
             });
-            _.each(linkSprites, function(ls){
+            _.each(linkSprites, function(ls) {
                 ls.show();
             });
             hiddenStatusChanged();
@@ -365,19 +365,19 @@ export default HyjjPixiRenderer = function(graph, settings) {
         /**
          * show nodes by ID
          */
-        showNodesByID:function(idArray){
-            _.each(idArray,function(node){
-                var showNode=nodeSprites[node];
-                showNode.visible=true;
-                showNode.ts.visible=true;
+        showNodesByID: function(idArray) {
+            _.each(idArray, function(node) {
+                var showNode = nodeSprites[node];
+                showNode.visible = true;
+                showNode.ts.visible = true;
 
                 /**when we hide the nodes, we also hide the texture, arrow and the link.
                  * Now we should set them visible
                  */
                 //console.log(showNode.outgoing.targetEntity);
 
-                _.each(showNode.outgoing,function (link) {
-                    if(!link.visible && nodeSprites[link.data.targetEntity].visible){
+                _.each(showNode.outgoing, function(link) {
+                    if (!link.visible && nodeSprites[link.data.targetEntity].visible) {
                         // link.visible=true;
                         // link.arrow.visible=true;
                         // link.label.visible=true;
@@ -385,8 +385,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     }
                 });
 
-                _.each(showNode.incoming,function (link) {
-                    if(!link.visible && nodeSprites[link.data.sourceEntity].visible){
+                _.each(showNode.incoming, function(link) {
+                    if (!link.visible && nodeSprites[link.data.sourceEntity].visible) {
                         // link.visible=true;
                         // link.arrow.visible=true;
                         // link.label.visible=true;
@@ -400,10 +400,10 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * set which node need boundary.
          * when call this function, you should give me a group of ID and the attribute for this group
          */
-        setBoundaryNeededNodes:function (idArray,boundaryAttr) {
-            _.each(idArray,function (node) {
-                nodeNeedBoundary[node]=nodeSprites[node];
-                nodeNeedBoundary[node].boundaryAttr=boundaryAttr;
+        setBoundaryNeededNodes: function(idArray, boundaryAttr) {
+            _.each(idArray, function(node) {
+                nodeNeedBoundary[node] = nodeSprites[node];
+                nodeNeedBoundary[node].boundaryAttr = boundaryAttr;
             });
         },
 
@@ -411,8 +411,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * delete the nodes don't need boundary.
          * when call this function, you should give me a group of ID
          */
-        deleteBoundaryOfNodes:function(idArray){
-            _.each(idArray,function(id){
+        deleteBoundaryOfNodes: function(idArray) {
+            _.each(idArray, function(id) {
                 delete nodeNeedBoundary[id];
             });
         },
@@ -443,9 +443,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
         },
 
         /*
-        * get selected nodes,
-        * nodes of nodeContainer are selected @SelectionManager.js
-        **/
+         * get selected nodes,
+         * nodes of nodeContainer are selected @SelectionManager.js
+         **/
         getSelectedNodes: function() {
             // return _.values(nodeContainer.selectedNodes);
             return nodeContainer.nodes;
@@ -462,22 +462,22 @@ export default HyjjPixiRenderer = function(graph, settings) {
         },
 
         //mark the subtree!
-        getSubTree: function () {
-            var tid=0;
-            _.each(nodeSprites,function (node) {
-                if(!node.treeID){
+        getSubTree: function() {
+            var tid = 0;
+            _.each(nodeSprites, function(node) {
+                if (!node.treeID) {
                     tid++;
-                    findSubGraph(node,tid);
+                    findSubGraph(node, tid);
                 }
             });
 
-            subTree={};
+            subTree = {};
             //init the subTree Structure
-            _.each(nodeSprites,function (node) {
-                if(node.visible){
-                    if(!subTree[node.treeID]){
-                        subTree[node.treeID]={};
-                        subTree[node.treeID].nodes=new Array();
+            _.each(nodeSprites, function(node) {
+                if (node.visible) {
+                    if (!subTree[node.treeID]) {
+                        subTree[node.treeID] = {};
+                        subTree[node.treeID].nodes = new Array();
                     }
                     subTree[node.treeID].nodes.push(node);
 
@@ -491,39 +491,39 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * the node which is in subTree{}, is visible.
          * in another word, the subTree{} do not contains invisible nodes.
          */
-        subTreeInitForCircleLayout: function () {
+        subTreeInitForCircleLayout: function() {
             pixiGraphics.getSubTree();
 
             /**init the center for each subTree
              * init the radius for each subTree
              * init the angle for each subTree, here ,angle is for every node-center line
              */
-            _.each(subTree,function (st,stID) {
-                var xSum=0;
-                var ySum=0;
-                var maxScale=0;
+            _.each(subTree, function(st, stID) {
+                var xSum = 0;
+                var ySum = 0;
+                var maxScale = 0;
 
-                _.each(st.nodes,function (node) {
-                    xSum=xSum+node.position.x;
-                    ySum=ySum+node.position.y;
-                    if(node.scale.x>maxScale){
-                        maxScale=node.scale.x;
+                _.each(st.nodes, function(node) {
+                    xSum = xSum + node.position.x;
+                    ySum = ySum + node.position.y;
+                    if (node.scale.x > maxScale) {
+                        maxScale = node.scale.x;
                     }
                 });
 
-                st.radius=(visualConfig.NODE_WIDTH  *2* maxScale * st.nodes.length * 1.5)/(2*Math.PI);
+                st.radius = (visualConfig.NODE_WIDTH * 2 * maxScale * st.nodes.length * 1.5) / (2 * Math.PI);
 
-                st.angle=360/st.nodes.length;
-                st.positionx=xSum/st.nodes.length;
-                st.positiony=ySum/st.nodes.length;
+                st.angle = 360 / st.nodes.length;
+                st.positionx = xSum / st.nodes.length;
+                st.positiony = ySum / st.nodes.length;
 
             });
 
-            _.each(subTree,function (st,stID) {
+            _.each(subTree, function(st, stID) {
 
-                if(subTree[parseInt(stID)+1]){
-                    subTree[parseInt(stID)+1].positionx=st.positionx+st.radius+subTree[parseInt(stID)+1].radius+visualConfig.NODE_WIDTH;
-                    subTree[parseInt(stID)+1].positiony=st.positiony;
+                if (subTree[parseInt(stID) + 1]) {
+                    subTree[parseInt(stID) + 1].positionx = st.positionx + st.radius + subTree[parseInt(stID) + 1].radius + visualConfig.NODE_WIDTH;
+                    subTree[parseInt(stID) + 1].positiony = st.positiony;
                 }
             });
         },
@@ -532,119 +532,119 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * here we do not need to consider the listeners and so many other things,
          * draw a circle
          */
-        drawCircleLayout: function () {
+        drawCircleLayout: function() {
             pixiGraphics.subTreeInitForCircleLayout();
 
-            _.each(subTree,function (st,stID) {
-                _.each(st.nodes,function (node,nodeID) {
-                    var p={};
-                    p.x=subTree[node.treeID].positionx-Math.cos(subTree[node.treeID].angle*nodeID*Math.PI / 180)*subTree[node.treeID].radius;
-                    p.y=subTree[node.treeID].positiony+Math.sin(subTree[node.treeID].angle*nodeID*Math.PI / 180)*subTree[node.treeID].radius;
+            _.each(subTree, function(st, stID) {
+                _.each(st.nodes, function(node, nodeID) {
+                    var p = {};
+                    p.x = subTree[node.treeID].positionx - Math.cos(subTree[node.treeID].angle * nodeID * Math.PI / 180) * subTree[node.treeID].radius;
+                    p.y = subTree[node.treeID].positiony + Math.sin(subTree[node.treeID].angle * nodeID * Math.PI / 180) * subTree[node.treeID].radius;
                     node.updateNodePosition(p);
                 });
             });
 
         },
 
-        dataResetForTreeLayout: function () {
-            _.each(nodeSprites,function (n) {
-                n.isPutInTree=false;
-                n.treeLayoutLevel=null;
+        dataResetForTreeLayout: function() {
+            _.each(nodeSprites, function(n) {
+                n.isPutInTree = false;
+                n.treeLayoutLevel = null;
             });
-            _.each(subTree,function (st) {
-                st.isSelectedNode=false;
-                st.selectedNode=null;
+            _.each(subTree, function(st) {
+                st.isSelectedNode = false;
+                st.selectedNode = null;
             });
         },
 
 
-        subTreeInitForTreeLayout: function () {
+        subTreeInitForTreeLayout: function() {
             pixiGraphics.getSubTree();
             //获取当前被选中的节点
             //here we address the random point of each subtree
             pixiGraphics.dataResetForTreeLayout();
-            _.each(nodeContainer.nodes,function (node) {
-                if(!subTree[node.treeID].selection){
-                    subTree[node.treeID].isSelectedNode=true;
-                    subTree[node.treeID].selectedNode=node;
+            _.each(nodeContainer.nodes, function(node) {
+                if (!subTree[node.treeID].selection) {
+                    subTree[node.treeID].isSelectedNode = true;
+                    subTree[node.treeID].selectedNode = node;
                     // console.log(node.id);
                 }
             });
 
-            _.each(subTree,function (st,stID) {
-                if(st.isSelectedNode){
-                    st.selectedNode.treeLayoutLevel=1;
-                    st.selectedNode.isPutInTree=true;
+            _.each(subTree, function(st, stID) {
+                if (st.isSelectedNode) {
+                    st.selectedNode.treeLayoutLevel = 1;
+                    st.selectedNode.isPutInTree = true;
                     bfsQueue.unshift(st.selectedNode);
-                    var templength=bfsQueue.length;
-                    while(templength!==0){
-                        var p=bfsQueue.pop();
+                    var templength = bfsQueue.length;
+                    while (templength !== 0) {
+                        var p = bfsQueue.pop();
 
-                        if(p!==null){
+                        if (p !== null) {
                             findATree(p);
                         }
-                        templength=bfsQueue.length;
+                        templength = bfsQueue.length;
                     }
                 }
 
             });
 
             //compute the max width of each subTree
-            _.each(subTree,function (st) {
-                if(st.isSelectedNode){
-                    var stMaxWidth=0;
-                    var eachLevelNodeNumb={};
-                    _.each(st.nodes,function (node) {
-                        if(!eachLevelNodeNumb[node.treeLayoutLevel]){
-                            eachLevelNodeNumb[node.treeLayoutLevel]=1;
-                        }else{
+            _.each(subTree, function(st) {
+                if (st.isSelectedNode) {
+                    var stMaxWidth = 0;
+                    var eachLevelNodeNumb = {};
+                    _.each(st.nodes, function(node) {
+                        if (!eachLevelNodeNumb[node.treeLayoutLevel]) {
+                            eachLevelNodeNumb[node.treeLayoutLevel] = 1;
+                        } else {
                             eachLevelNodeNumb[node.treeLayoutLevel]++;
                         }
                     });
-                    st.treeLayoutEachLevelNumb={};
-                    _.each(eachLevelNodeNumb,function (numb,level) {
-                        st.treeLayoutEachLevelNumb[level]=numb;
-                        if(numb>stMaxWidth){
-                            stMaxWidth=numb;
+                    st.treeLayoutEachLevelNumb = {};
+                    _.each(eachLevelNodeNumb, function(numb, level) {
+                        st.treeLayoutEachLevelNumb[level] = numb;
+                        if (numb > stMaxWidth) {
+                            stMaxWidth = numb;
                         }
                     });
 
-                    st.treeLayoutMaxWidth=stMaxWidth*visualConfig.NODE_WIDTH;
+                    st.treeLayoutMaxWidth = stMaxWidth * visualConfig.NODE_WIDTH;
                 }
             });
 
             //compute the root position for each tree
             //here positionx is for the x of root
             //here positiony is for the y of root
-            _.each(subTree,function (st,stID){
-                if(st.isSelectedNode){
-                    if(parseInt(stID)==1){
-                        st.positionx=st.selectedNode.position.x;
-                        st.positiony=st.selectedNode.position.y;
-                    }else{
-                        st.positionx=subTree[parseInt(stID)-1].positionx+subTree[parseInt(stID)-1].treeLayoutMaxWidth+st.treeLayoutMaxWidth+visualConfig.NODE_WIDTH;
-                        st.positiony=subTree[parseInt(stID)-1].positiony;
+            _.each(subTree, function(st, stID) {
+                if (st.isSelectedNode) {
+                    if (parseInt(stID) == 1) {
+                        st.positionx = st.selectedNode.position.x;
+                        st.positiony = st.selectedNode.position.y;
+                    } else {
+                        st.positionx = subTree[parseInt(stID) - 1].positionx + subTree[parseInt(stID) - 1].treeLayoutMaxWidth + st.treeLayoutMaxWidth + visualConfig.NODE_WIDTH;
+                        st.positiony = subTree[parseInt(stID) - 1].positiony;
                     }
                 }
             });
 
         },
 
-        drawTreeLayout: function () {
-            if(nodeContainer.nodes == null){
+        drawTreeLayout: function() {
+            if (nodeContainer.nodes == null) {
                 return;
             }
 
             pixiGraphics.subTreeInitForTreeLayout();
 
-            _.each(subTree,function (st,stID) {
-                if(st.isSelectedNode){
-                    _.each(st.nodes,function (node) {
-                        if( stID!=1 || node.treeLayoutLevel!=1){
-                            var p={};
-                            p.x=st.positionx-st.treeLayoutEachLevelNumb[node.treeLayoutLevel]*visualConfig.NODE_WIDTH;
-                            st.treeLayoutEachLevelNumb[node.treeLayoutLevel] = st.treeLayoutEachLevelNumb[node.treeLayoutLevel]-2;
-                            p.y=st.positiony+visualConfig.NODE_WIDTH*2*(node.treeLayoutLevel-1);
+            _.each(subTree, function(st, stID) {
+                if (st.isSelectedNode) {
+                    _.each(st.nodes, function(node) {
+                        if (stID != 1 || node.treeLayoutLevel != 1) {
+                            var p = {};
+                            p.x = st.positionx - st.treeLayoutEachLevelNumb[node.treeLayoutLevel] * visualConfig.NODE_WIDTH;
+                            st.treeLayoutEachLevelNumb[node.treeLayoutLevel] = st.treeLayoutEachLevelNumb[node.treeLayoutLevel] - 2;
+                            p.y = st.positiony + visualConfig.NODE_WIDTH * 2 * (node.treeLayoutLevel - 1);
                             node.updateNodePosition(p);
                         }
                     });
@@ -696,19 +696,19 @@ export default HyjjPixiRenderer = function(graph, settings) {
             // });
         },
         selectLinksFromNodes: function(startingNodes, direction, alsoSelectNodes) {
-            _.each(startingNodes, function(n){
-                if(direction === "both" || direction == "in") {
-                    _.each(n.incoming, function(l){
+            _.each(startingNodes, function(n) {
+                if (direction === "both" || direction == "in") {
+                    _.each(n.incoming, function(l) {
                         nodeContainer.selectLink(l);
-                        if(alsoSelectNodes) {
+                        if (alsoSelectNodes) {
                             nodeContainer.selectNode(nodeSprites[l.data.sourceEntity]);
                         }
                     });
                 }
-                if(direction === "both" || direction == "out") {
-                    _.each(n.outgoing, function(l){
+                if (direction === "both" || direction == "out") {
+                    _.each(n.outgoing, function(l) {
                         nodeContainer.selectLink(l);
-                        if(alsoSelectNodes) {
+                        if (alsoSelectNodes) {
                             nodeContainer.selectNode(nodeSprites[l.data.targetEntity]);
                         }
                     });
@@ -717,48 +717,48 @@ export default HyjjPixiRenderer = function(graph, settings) {
             selectionChanged();
         },
         selectNodesOfLinks: function(selectedLinks) {
-            _.each(selectedLinks, function(l){
+            _.each(selectedLinks, function(l) {
                 var d = l.data;
                 var srcNode = nodeSprites[d.sourceEntity];
                 var tgtNode = nodeSprites[d.targetEntity];
-                if(srcNode){
+                if (srcNode) {
                     nodeContainer.selectNode(srcNode);
                 }
-                if(tgtNode){
+                if (tgtNode) {
                     nodeContainer.selectNode(tgtNode);
                 }
             });
             selectionChanged();
         },
         selectAll: function() {
-            _.each(linkSprites, function(l){
+            _.each(linkSprites, function(l) {
                 nodeContainer.selectLink(l);
             });
-            _.each(nodeSprites, function(n){
+            _.each(nodeSprites, function(n) {
                 nodeContainer.selectNode(n);
             });
             selectionChanged();
         },
         selectReverseSelection: function() {
-            _.each(linkSprites, function(l){
-                if(l.selected) {
+            _.each(linkSprites, function(l) {
+                if (l.selected) {
                     nodeContainer.deselectLink(l);
-                }else {
+                } else {
                     nodeContainer.selectLink(l);
                 }
 
             });
-            _.each(nodeSprites, function(n){
-                if(n.selected) {
+            _.each(nodeSprites, function(n) {
+                if (n.selected) {
                     nodeContainer.deselectNode(n)
-                }else {
+                } else {
                     nodeContainer.selectNode(n);
                 }
             });
             selectionChanged();
         },
-        hideSelectedLinks:function() {
-            _.each(nodeContainer.links, function(link){
+        hideSelectedLinks: function() {
+            _.each(nodeContainer.links, function(link) {
                 link.hide();
             });
         },
@@ -771,8 +771,49 @@ export default HyjjPixiRenderer = function(graph, settings) {
             var x = viewWidth / 2;
             var y = viewHeight / 2;
             zoom(x, y, false, root);
-        }
+        },
+        switchToTimelineLayout: function() {
+            // position the nodes, randomly sorted, adding new line
+            var posX = 50,
+                posY = 50; //starting point to layout nodes.
+            var iconSize = visualConfig.NODE_WIDTH,
+                margin = 30;
+            _.each(nodeSprites, function(ns) {
+                ns.updateNodePosition({
+                    x: posX,
+                    y: posY
+                });
+                ns.showTimeline = true;
+                layout.setNodePosition(ns.id, posX, posY);
+                posY += (iconSize + margin);
+            });
+            var sortedLinkSprites = sortLinksByTimeline();
+            var x = posX + 20; // FIXME calculate the right X position!
+            _.each(sortedLinkSprites, function(ls){
+                var srcNodeSprite = nodeSprites[ls.data.sourceEntity];
+                var tgtNodeSprite = nodeSprites[ls.data.targetEntity];
+                var fromX = x, fromY = srcNodeSprite.position.y;
+                var toX = x, toY = tgtNodeSprite.position.y;
+                ls.forceStraightLine = true;
+                ls.setFrom({
+                    x: fromX,
+                    y: fromY
+                });
+                ls.setTo({
+                    x: toX,
+                    y: toY
+                });
+                x += 30;
+            });
+            root.position.x = 100;
+            root.position.y = 100;
+            layout.isTimelineLayout = true;
+        },
     };
+    function sortLinksByTimeline() {
+        // FIXME, doe the real sort.
+        return _.values(linkSprites);
+    }
     eventify(pixiGraphics);
     return pixiGraphics;
 
@@ -785,7 +826,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         drawBorders();
     }
 
-    function hiddenStatusChanged(){
+    function hiddenStatusChanged() {
         pixiGraphics.fire('hiddenStatusChanged');
     }
 
@@ -803,12 +844,15 @@ export default HyjjPixiRenderer = function(graph, settings) {
         }
 
         selectRegionGraphics.clear();
-        if(stage.selectRegion && stage.selectingArea){
+        if (stage.selectRegion && stage.selectingArea) {
             drawSelectionRegion();
         }
 
         drawBorders();
         drawLines();
+        if (layout.isTimelineLayout) {
+            drawNodeTimelines();
+        }
         renderer.render(stage);
         counter.nextFrame();
     }
@@ -826,24 +870,24 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
             //if the node is invisible, we don't need draw is boundary
             //TODO here we should consider the performance.
-            if(n1.visible) {
-                boarderGraphics.drawCircle(n1.position.x , n1.position.y , 19*n1.scale.x); //TODO make size configurable
+            if (n1.visible) {
+                boarderGraphics.drawCircle(n1.position.x, n1.position.y, 19 * n1.scale.x); //TODO make size configurable
             }
         });
         _.each(nodeContainer.selectedNodes, function(n2) {
 
-            boarderGraphics.lineStyle(visualConfig.ui.frame.border.width, visualConfig.ui.frame.border.color,visualConfig.ui.frame.border.alpha);
+            boarderGraphics.lineStyle(visualConfig.ui.frame.border.width, visualConfig.ui.frame.border.color, visualConfig.ui.frame.border.alpha);
             boarderGraphics.beginFill(visualConfig.ui.frame.fill.color, visualConfig.ui.frame.fill.alpha);
             // boarderGraphics.lineStyle(n2.boundaryAttr.border.width, n2.boundaryAttr.border.color, n2.boundaryAttr.border.alpha);
             // boarderGraphics.beginFill(n2.boundaryAttr.fill.color, n2.boundaryAttr.fill.alpha);
 
             //if the node is invisible, we don't need draw is boundary
             //TODO here we should consider the performance.
-            if(n2.visible) {
+            if (n2.visible) {
                 // var length=n2.ts.text.width;
                 // console.log(length);
                 //console.log("text width < 40 ");
-                boarderGraphics.drawRoundedRect(n2.position.x - 20*n2.scale.x, n2.position.y - 20*n2.scale.y, 40*n2.scale.x, (40 + 10)*n2.scale.y, 5); //TODO make size configurable
+                boarderGraphics.drawRoundedRect(n2.position.x - 20 * n2.scale.x, n2.position.y - 20 * n2.scale.y, 40 * n2.scale.x, (40 + 10) * n2.scale.y, 5); //TODO make size configurable
 
             }
         });
@@ -853,8 +897,19 @@ export default HyjjPixiRenderer = function(graph, settings) {
     function drawLines() {
         lineGraphics.clear();
         _.each(linkSprites, function(link) {
-            if(link.visible) {
+            if (link.visible) {
                 link.renderLine(lineGraphics);
+            }
+        });
+    }
+
+    function drawNodeTimelines() {
+        var nodeTimelineStyle = visualConfig.ui.timeline;
+        _.each(nodeSprites, function(ns) {
+            if (ns.visible) {
+                lineGraphics.lineStyle(nodeTimelineStyle.width, nodeTimelineStyle.color, 1);
+                lineGraphics.moveTo(ns.position.x, ns.position.y);
+                lineGraphics.lineTo(ns.position.x + 3000, ns.position.y);
             }
         });
     }
@@ -864,7 +919,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         var texture = visualConfig.findIcon(p.data.type);
         // console.log(JSON.stringify(p));
         var n = new PIXI.Sprite(texture);
-        n.visible=true; //add for hide the node and line
+        n.visible = true; //add for hide the node and line
         n.id = p.id;
         n.parent = nodeContainer;
         n.anchor.x = 0.5;
@@ -874,19 +929,19 @@ export default HyjjPixiRenderer = function(graph, settings) {
         n.incoming = [];
         n.outgoing = [];
 
-        n.nodeScale=1;
+        n.nodeScale = 1;
 
         n.scale.set(n.nodeScale);
 
-        n.boundaryAttr={};
+        n.boundaryAttr = {};
 
-        n.boundaryAttr.border={};
-        n.boundaryAttr.fill={};
-        n.boundaryAttr.border.color=0x0077b3;
-        n.boundaryAttr.border.width=1;
-        n.boundaryAttr.border.alpha=0.6;
-        n.boundaryAttr.fill.color=0xff6666;
-        n.boundaryAttr.fill.alpha=0.3;
+        n.boundaryAttr.border = {};
+        n.boundaryAttr.fill = {};
+        n.boundaryAttr.border.color = 0x0077b3;
+        n.boundaryAttr.border.width = 1;
+        n.boundaryAttr.border.alpha = 0.6;
+        n.boundaryAttr.fill.color = 0xff6666;
+        n.boundaryAttr.fill.alpha = 0.3;
 
         n.interactive = true;
         n.buttonMode = true;
@@ -961,14 +1016,14 @@ export default HyjjPixiRenderer = function(graph, settings) {
         l.data = f.data;
         l.id = f.data.id;
         l.ngLink = f;
-        l.visible=true;
+        l.visible = true;
 
         srcNodeSprite.outgoing.push(l);
         tgtNodeSprite.incoming.push(l);
         linkSprites[l.id] = l;
         l.arrow.interactive = true;
         l.arrow.buttonMode = true;
-        l.arrow.visible=true;
+        l.arrow.visible = true;
         textContainer.addChild(l.label);
         lineContainer.addChild(l.arrow);
     }
@@ -1015,10 +1070,10 @@ export default HyjjPixiRenderer = function(graph, settings) {
     function removeNode(node) {
         var nodeSprite = nodeSprites[node.id];
         if (nodeSprite) {
-            if(_.has(nodeNeedBoundary, node.id)){
+            if (_.has(nodeNeedBoundary, node.id)) {
                 delete nodeNeedBoundary[node.id];
             }
-            if(nodeSprite.selected){
+            if (nodeSprite.selected) {
                 nodeContainer.deselectNode(nodeSprite);
             }
             if (nodeSprite.ts) {
@@ -1077,22 +1132,22 @@ export default HyjjPixiRenderer = function(graph, settings) {
      * @param node
      * @param tid
      */
-    function findSubGraph(node,tid){
+    function findSubGraph(node, tid) {
 
-        if(!node.treeID){
-            node.treeID=tid;
+        if (!node.treeID) {
+            node.treeID = tid;
 
-            _.each(node.incoming,function (link) {
-                if(!nodeSprites[link.data.sourceEntity].treeID){
-                    findSubGraph(nodeSprites[link.data.sourceEntity],tid);
+            _.each(node.incoming, function(link) {
+                if (!nodeSprites[link.data.sourceEntity].treeID) {
+                    findSubGraph(nodeSprites[link.data.sourceEntity], tid);
                 }
             });
-            _.each(node.outgoing,function (link) {
-                if(!nodeSprites[link.data.targetEntity].treeID){
-                    findSubGraph(nodeSprites[link.data.targetEntity],tid);
+            _.each(node.outgoing, function(link) {
+                if (!nodeSprites[link.data.targetEntity].treeID) {
+                    findSubGraph(nodeSprites[link.data.targetEntity], tid);
                 }
             });
-        }else{
+        } else {
             return;
 
         }
@@ -1117,21 +1172,21 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
     function findATree(node) {
 
-        _.each(node.incoming,function (link) {
-            if(!nodeSprites[link.data.sourceEntity].isPutInTree){
-                nodeSprites[link.data.sourceEntity].treeLayoutLevel=node.treeLayoutLevel+1;
-                nodeSprites[link.data.sourceEntity].isPutInTree=true;
+        _.each(node.incoming, function(link) {
+            if (!nodeSprites[link.data.sourceEntity].isPutInTree) {
+                nodeSprites[link.data.sourceEntity].treeLayoutLevel = node.treeLayoutLevel + 1;
+                nodeSprites[link.data.sourceEntity].isPutInTree = true;
                 bfsQueue.unshift(nodeSprites[link.data.sourceEntity]);
             }
         });
-        _.each(node.outgoing,function (link) {
-            if(!nodeSprites[link.data.targetEntity].isPutInTree){
-                nodeSprites[link.data.targetEntity].treeLayoutLevel=node.treeLayoutLevel+1;
-                nodeSprites[link.data.targetEntity].isPutInTree=true;
+        _.each(node.outgoing, function(link) {
+            if (!nodeSprites[link.data.targetEntity].isPutInTree) {
+                nodeSprites[link.data.targetEntity].treeLayoutLevel = node.treeLayoutLevel + 1;
+                nodeSprites[link.data.targetEntity].isPutInTree = true;
                 bfsQueue.unshift(nodeSprites[link.data.targetEntity]);
             }
         });
 
-     }
+    }
 
 };

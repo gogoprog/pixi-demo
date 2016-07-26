@@ -154,7 +154,7 @@ SimpleLineSprite.prototype.setTo = function(point) {
 SimpleLineSprite.prototype.renderLine = function(lineGraphics) {
     lineGraphics.lineStyle(this.thickness, this.color, this.alpha);
     lineGraphics.moveTo(this.x1, this.y1);
-    if (this._controlOffsetIndex == 0) {
+    if (this._controlOffsetIndex == 0 || this.forceStraightLine) {
         lineGraphics.lineTo(this.x2, this.y2);
     } else {
         lineGraphics.quadraticCurveTo(this.cx, this.cy, this.x2, this.y2);
@@ -162,6 +162,13 @@ SimpleLineSprite.prototype.renderLine = function(lineGraphics) {
 };
 
 SimpleLineSprite.prototype.updatePosition = function() {
+    if(this.forceStraightLine){
+        this.arrow.position.x = (this.x2 + this.x1) / 2;
+        this.arrow.position.y = (this.y2 + this.y1) / 2;
+        this.label.position.x = (this.x2 + this.x1) / 2;
+        this.label.position.y = (this.y2 + this.y1) / 2 + 10;
+        return ;
+    }
     var angle = Math.atan2(this.y2 - this.y1, this.x2 - this.x1);
     let dxCtl = this._controlOffsetIndex * SimpleLineSprite.prototype.MULTI_OFFSET * Math.sin(angle),
         dyCtl = this._controlOffsetIndex * SimpleLineSprite.prototype.MULTI_OFFSET * Math.cos(angle);
@@ -172,7 +179,7 @@ SimpleLineSprite.prototype.updatePosition = function() {
     this.arrow.position.y = (this.y2 + this.y1) / 2 - dyCtl / 2;
     this.arrow.rotation = angle - Math.PI / 2;
     this.label.position.x = (this.x2 + this.x1) / 2 + dxCtl / 2;
-    this.label.position.y = (this.y2 + this.y1) / 2 - dyCtl / 2;
+    this.label.position.y = (this.y2 + this.y1) / 2 - dyCtl / 2 + 20;
 };
 
 SimpleLineSprite.prototype.isLink = true; // used by the SelectionManager to check if selected target is an link or a node
