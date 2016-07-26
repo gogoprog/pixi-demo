@@ -642,7 +642,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     _.each(st.nodes,function (node) {
                         if( stID!=1 || node.treeLayoutLevel!=1){
                             var p={};
-                            p.x=st.positionx-st.treeLayoutEachLevelNumb[node.treeLayoutLevel]*visualConfig.NODE_WIDTH;
+                            p.x=st.positionx-(st.treeLayoutEachLevelNumb[node.treeLayoutLevel]-1)*visualConfig.NODE_WIDTH;
                             st.treeLayoutEachLevelNumb[node.treeLayoutLevel] = st.treeLayoutEachLevelNumb[node.treeLayoutLevel]-2;
                             p.y=st.positiony+visualConfig.NODE_WIDTH*2*(node.treeLayoutLevel-1);
                             node.updateNodePosition(p);
