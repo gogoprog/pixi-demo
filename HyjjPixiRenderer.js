@@ -224,6 +224,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * To arrange the nodes quickly, we need add the cycles manually.
          **/
         addLayoutCycles: function(n) {
+            if(layout.isTimelineLayout){
+                disableTimelineLayout();
+            }
             layoutIterations += n;
         },
 
@@ -533,8 +536,11 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * draw a circle
          */
         drawCircleLayout: function() {
-            pixiGraphics.subTreeInitForCircleLayout();
+            if(layout.isTimelineLayout){
+                disableTimelineLayout();
+            }
 
+            pixiGraphics.subTreeInitForCircleLayout();
             _.each(subTree, function(st, stID) {
                 _.each(st.nodes, function(node, nodeID) {
                     var p = {};
@@ -661,6 +667,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
             });
         },
         drawTreeLayout: function() {
+            if(layout.isTimelineLayout){
+                disableTimelineLayout();
+            }
 
             pixiGraphics.subTreeInitForTreeLayout();
 
@@ -673,6 +682,11 @@ export default HyjjPixiRenderer = function(graph, settings) {
                             st.treeLayoutEachLevelNumb[node.treeLayoutLevel] = st.treeLayoutEachLevelNumb[node.treeLayoutLevel] - 2;
                             p.y = st.positiony + visualConfig.NODE_WIDTH * 2 * (node.treeLayoutLevel - 1);
                             node.updateNodePosition(p);
+                        } else {
+                            node.updateNodePosition({
+                                x: node.position.x,
+                                y: node.position.y
+                            });
                         }
                     });
                 }
@@ -801,6 +815,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         },
         switchToTimelineLayout: function() {
             // position the nodes, randomly sorted, adding new line
+            layoutIterations = 0;
             var posX = 50,
                 posY = 50; //starting point to layout nodes.
             var iconSize = visualConfig.NODE_WIDTH,
@@ -810,7 +825,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     x: posX,
                     y: posY
                 });
-                ns.showTimeline = true;
+                ns.timelineMode = true;
                 layout.setNodePosition(ns.id, posX, posY);
                 posY += (iconSize + margin);
             });
@@ -938,6 +953,16 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 lineGraphics.moveTo(ns.position.x, ns.position.y);
                 lineGraphics.lineTo(ns.position.x + 3000, ns.position.y);
             }
+        });
+    }
+
+    function disableTimelineLayout() {
+        layout.isTimelineLayout = false;
+        _.each(nodeSprites, function(ns){
+            ns.timelineMode = false;
+        });
+        _.each(linkSprites, function(ls){
+            ls.forceStraightLine = false;
         });
     }
 

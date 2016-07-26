@@ -60,8 +60,7 @@ rootCaptureHandler = function(e) {
             x: e.data.global.x,
             y: e.data.global.y
         };
-        console.log('Root captured @' + JSON.stringify(this.mouseLocation));
-
+        // console.log('Root captured @' + JSON.stringify(this.mouseLocation));
         this.dragging = true;
     } else {
         this.mouseLocation = {
@@ -69,7 +68,7 @@ rootCaptureHandler = function(e) {
             y: e.data.global.y
         };
         this.selectingArea = true;
-        console.log('Root captured @' + JSON.stringify(this.mouseLocation));
+        // console.log('Root captured @' + JSON.stringify(this.mouseLocation));
     }
     if (!this.moveListener) {
         this.moveListener = rootMoveHandler.bind(this);
@@ -185,6 +184,14 @@ var newPosition = new PIXI.Point();
 nodeMoveListener = function(e) {
     // console.log('node mouse move fired');
     this.parent.dragJustNow=false;
+    if(this.timelineMode) {
+        newPosition.copy(this.interactionData.getLocalPosition(this.parent));
+        var dx =  Math.abs(newPosition.x-this.position.x);
+        if(dx > (visualConfig.NODE_WIDTH/2 + 5)) { // when mouse move horizontally two far away from node, just release it.
+            console.log("Dx " + dx);
+            this.releaseListener(e);
+        }
+    }
     if (this.dragging && this.selected) {
         //newPosition=null;
         newPosition.copy(this.interactionData.getLocalPosition(this.parent));
