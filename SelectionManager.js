@@ -89,9 +89,10 @@ export const SelectionManager = function() {
                     }
                 }
             } else {
-                console.log(this.dragJustNow);
+                //console.log(this.dragJustNow);
                 if(!this.dragJustNow){
                     this.deselectAll();
+                }else{
                     this.dragJustNow=false;
                 }
                 if (n.isLink) {

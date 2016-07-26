@@ -114,13 +114,33 @@ rootMoveHandler = function(e) {
     } else if (this.selectingArea) {
         if(Math.abs(dx) >5 && Math.abs(dy) > 5){
             this.selectRegion = {
-                x1: oldPosition.x-this.contentRoot.position.x,
-                y1: oldPosition.y-this.contentRoot.position.y,
-                x2: newPosition.x-this.contentRoot.position.x,
-                y2: newPosition.y-this.contentRoot.position.y
+                // x1: oldPosition.x-this.contentRoot.position.x,
+                // y1: oldPosition.y-this.contentRoot.position.y,
+                // x2: newPosition.x-this.contentRoot.position.x,
+                // y2: newPosition.y-this.contentRoot.position.y
+                x1: oldPosition.x,
+                y1: oldPosition.y,
+                x2: newPosition.x,
+                y2: newPosition.y,
+                // ix: oldPosition.x-this.contentRoot.position.x,
+                // iy: oldPosition.y-this.contentRoot.position.y
             };
+            var op={};
+            var np={};
+            op.global={};
+            np.global={};
 
-            this.selectAllNodesInRegion(this.selectRegion.x1,this.selectRegion.y1,this.selectRegion.x2,this.selectRegion.y2);
+            op.global.x=oldPosition.x;
+            op.global.y=oldPosition.y;
+            np.global.x=newPosition.x;
+            np.global.y=newPosition.y;
+
+            var top=new PIXI.Point();
+            var tnp=new PIXI.Point();
+            top=PIXI.interaction.InteractionData.prototype.getLocalPosition.call(op, this.contentRoot);
+            tnp=PIXI.interaction.InteractionData.prototype.getLocalPosition.call(np, this.contentRoot);
+            //console.log(top.x+" "+top.y+" "+tnp.x+" "+tnp.y);
+            this.selectAllNodesInRegion(top.x,top.y,tnp.x,tnp.y);
         }
     }
 
@@ -133,6 +153,8 @@ nodeCaptureListener = function(e) {
     this.parent.nodeCaptured(this);
     this.dragging = true;
     this.alpha = 0.6;
+
+    newPosition.copy(this.interactionData.getLocalPosition(this.parent));
 
     if (!this.moveListener) {
         this.moveListener = nodeMoveListener.bind(this);
@@ -162,6 +184,7 @@ nodeReleaseListener = function(e) {
 var newPosition = new PIXI.Point();
 nodeMoveListener = function(e) {
     // console.log('node mouse move fired');
+    this.parent.dragJustNow=false;
     if (this.dragging) {
         newPosition.copy(this.interactionData.getLocalPosition(this.parent));
         //this.updateNodePosition(newPosition);
