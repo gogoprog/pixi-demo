@@ -11,7 +11,9 @@ PIXI.Sprite.prototype.selectionChanged = function(selected) {
 PIXI.Sprite.prototype.updateNodePosition = function(p) {
     if(this.timelineMode){
         this.position.y = p.y;
+        this.position.x = p.x;
         if (this.ts) {
+            this.ts.position.x = p.x;
             this.ts.position.y = p.y + visualConfig.NODE_LABLE_OFFSET_Y * this.scale.y;
         }
         _.each(this.incoming, function(l) {
