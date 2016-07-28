@@ -832,17 +832,20 @@ export default HyjjPixiRenderer = function(graph, settings) {
             var y = viewHeight / 2;
             zoom(x, y, false, root);
         },
-        switchToTimelineLayout: function() {
+        switchToTimelineLayout: function(leftSpacing) {
             layoutIterations = 0;
             var timelineItems = [];
             var now = moment().format('YYYY-MM-DDTHH:mm:ss');
-            graph.forEachLink(function(l) {
+            _.each(linkSprites, function(l) {
+                if(!l.visible){
+                    return;
+                }
                 timelineItems.push({
                     id: l.data.id,
                     content: l.data.label,
                     start: l.data.datetime || now
                 });
-            });
+            })
             if (!timeline) {
                 var container = document.getElementById(settings.timelineContainer);
                 if (!container) {
@@ -890,11 +893,14 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 // layout.setNodePosition(ns.id, posX, posY);
                 posY += (iconSize + marginY);
             });
-            var sortedLinkSprites = sortLinksByDateTime();
+            // var sortedLinkSprites = sortLinksByDateTime();
             var timelineStartMs = timelineWindow.start.valueOf();
             var minX = 10000;
             // var x = posX + 20; // FIXME calculate the right X position!
-            _.each(sortedLinkSprites, function(ls) {
+            _.each(linkSprites, function(ls) {
+                if(!ls.visible){
+                    return;
+                }
                 var linkDatetime = ls.data.datetime;
                 var ms = moment(linkDatetime).valueOf();
                 let viewX = Math.floor((ms - timelineStartMs) / msPerPix);
@@ -902,7 +908,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 if (x < minX) {
                     minX = x;
                 }
-                console.log(linkDatetime + "@ " + x + "(" + viewX + ")");
+                // console.log(linkDatetime + "@ " + x + "(" + viewX + ")");
                 var srcNodeSprite = nodeSprites[ls.data.sourceEntity];
                 var tgtNodeSprite = nodeSprites[ls.data.targetEntity];
                 var fromX = x,
@@ -928,6 +934,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
             });
             // if nodeX is too much left, try to move it to center
             stage.isTimelineLayout = true;
+            root.position.x = leftSpacing || 100;
+            stage.contentRootMoved();
         },
     };
 
