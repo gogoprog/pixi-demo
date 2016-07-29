@@ -937,6 +937,10 @@ export default HyjjPixiRenderer = function(graph, settings) {
             root.position.x = leftSpacing || 100;
             stage.contentRootMoved();
         },
+        destroy: function(){
+            stage.destroy();
+            renderer.destroy();
+        }
     };
 
     function sortLinksByDateTime() {
