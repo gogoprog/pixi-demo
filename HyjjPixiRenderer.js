@@ -939,6 +939,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         },
         destroy: function(){
             stage.destroy();
+            stage.destroyed = true;
             renderer.destroy();
         }
     };
@@ -971,6 +972,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
 
     function animationLoop() {
+        if(stage.destroyed){
+            return;
+        }
         requestAnimationFrame(animationLoop);
         if (layoutIterations > 0) {
             layout.step();
