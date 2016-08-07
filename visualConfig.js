@@ -14,7 +14,11 @@ export const visualConfig = {
     "icons": {
         "account": {
             "type": "account",
-            "url": "../images/32/wechat.png"
+            "url": "../images/32/account.png"
+        },
+        "bankcard": {
+            "type": "bankcard",
+            "url": "../images/32/bankcard.png"
         },
         "man": {
             "type": "people",
@@ -39,6 +43,10 @@ export const visualConfig = {
         "qq": {
             "type": "virtual-id",
             "url": "../images/32/qq.png"
+        },
+        "alipay": {
+            "type": "virtual-id",
+            "url": "../images/32/alipay.png"
         },
         "phone": {
             "type": "phone",
