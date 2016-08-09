@@ -401,6 +401,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * when call this function, you should give me a group of ID and the attribute for this group
          */
         setBoundaryNeededNodes: function(idArray, boundaryAttr) {
+            //this part is for performance test
             _.each(idArray, function(node) {
                 nodeNeedBoundary[node] = nodeSprites[node];
                 nodeNeedBoundary[node].boundaryAttr = boundaryAttr;
@@ -891,10 +892,10 @@ export default HyjjPixiRenderer = function(graph, settings) {
         boarderGraphics.clear();
 
         _.each(nodeNeedBoundary, function(n1) {
-
+        
             boarderGraphics.lineStyle(n1.boundaryAttr.border.width, n1.boundaryAttr.border.color, n1.boundaryAttr.border.alpha);
             boarderGraphics.beginFill(n1.boundaryAttr.fill.color, n1.boundaryAttr.fill.alpha);
-
+        
             //if the node is invisible, we don't need draw is boundary
             //TODO here we should consider the performance.
             if (n1.visible) {

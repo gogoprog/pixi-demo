@@ -23,13 +23,13 @@ LineSprite.prototype.setFrom = function(point) {
     this.x1 = point.x;
     this.y1 = point.y;
     this.updatePosition();
-}
+};
 
 LineSprite.prototype.setTo = function(point) {
     this.x2 = point.x;
     this.y2 = point.y;
     this.updatePosition();
-}
+};
 
 LineSprite.prototype.initCanvas = function () {
     LineSprite.canvas = document.createElement("canvas");
