@@ -165,21 +165,22 @@ SimpleLineSprite.prototype.updatePosition = function() {
     if(this.forceStraightLine){
         this.arrow.position.x = (this.x2 + this.x1) / 2;
         this.arrow.position.y = (this.y2 + this.y1) / 2;
+        this.arrow.rotation = Math.atan2(this.y2 - this.y1, this.x2 - this.x1) - Math.PI / 2;
         this.label.position.x = (this.x2 + this.x1) / 2;
         this.label.position.y = (this.y2 + this.y1) / 2 + 10;
-        return ;
-    }
-    var angle = Math.atan2(this.y2 - this.y1, this.x2 - this.x1);
-    let dxCtl = this._controlOffsetIndex * SimpleLineSprite.prototype.MULTI_OFFSET * Math.sin(angle),
-        dyCtl = this._controlOffsetIndex * SimpleLineSprite.prototype.MULTI_OFFSET * Math.cos(angle);
+    } else {
+        var angle = Math.atan2(this.y2 - this.y1, this.x2 - this.x1);
+        let dxCtl = this._controlOffsetIndex * SimpleLineSprite.prototype.MULTI_OFFSET * Math.sin(angle),
+            dyCtl = this._controlOffsetIndex * SimpleLineSprite.prototype.MULTI_OFFSET * Math.cos(angle);
 
-    this.cx = (this.x2 + this.x1) / 2 + dxCtl;
-    this.cy = (this.y2 + this.y1) / 2 - dyCtl;
-    this.arrow.position.x = (this.x2 + this.x1) / 2 + dxCtl / 2;
-    this.arrow.position.y = (this.y2 + this.y1) / 2 - dyCtl / 2;
-    this.arrow.rotation = angle - Math.PI / 2;
-    this.label.position.x = (this.x2 + this.x1) / 2 + dxCtl / 2;
-    this.label.position.y = (this.y2 + this.y1) / 2 - dyCtl / 2 + 20;
+        this.cx = (this.x2 + this.x1) / 2 + dxCtl;
+        this.cy = (this.y2 + this.y1) / 2 - dyCtl;
+        this.arrow.position.x = (this.x2 + this.x1) / 2 + dxCtl / 2;
+        this.arrow.position.y = (this.y2 + this.y1) / 2 - dyCtl / 2;
+        this.arrow.rotation = angle - Math.PI / 2;
+        this.label.position.x = (this.x2 + this.x1) / 2 + dxCtl / 2;
+        this.label.position.y = (this.y2 + this.y1) / 2 - dyCtl / 2 + 20;
+    }
 };
 
 SimpleLineSprite.prototype.isLink = true; // used by the SelectionManager to check if selected target is an link or a node

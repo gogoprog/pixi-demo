@@ -6,6 +6,7 @@ import eventify from "ngraph.events";
 import { visualConfig } from "./visualConfig.js";
 import { SelectionManager } from "./SelectionManager.js";
 import { zoom } from "./customizedEventHandling.js";
+import { moment } from 'meteor/momentjs:moment';
 
 Meteor.startup(function() {
     _.each(visualConfig.icons, function(icon) {
@@ -39,7 +40,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
     var canvas = settings.container;
     var viewWidth = settings.container.clientWidth,
         viewHeight = settings.container.clientHeight;
-
+    var timeline, timelineWindow, msPerPix; // the timeline object.
     var renderer = new PIXI.WebGLRenderer(viewWidth, viewHeight, { view: settings.container, antialias: true, forceFXAA: false }),
         stage = new PIXI.Container(),
         root = new PIXI.Container(),
@@ -133,7 +134,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         nodeContainer.deselectAll();
         _.each(nodeSprites, function(n) {
             //console.log(n.position.x+" "+n.position.y);
-            if((n.position.x <= xr) && (n.position.x >= xl) && (n.position.y>=yt) && (n.position.y<=yb)){
+            if ((n.position.x <= xr) && (n.position.x >= xl) && (n.position.y >= yt) && (n.position.y <= yb)) {
                 //console.log("here i come!!");
                 nodeContainer.selectNode(n);
             }
@@ -171,6 +172,24 @@ export default HyjjPixiRenderer = function(graph, settings) {
         stage.downListener = rootCaptureHandler.bind(stage);
         stage.on('mousedown', stage.downListener);
     }
+    var alineTimeline = function(){
+        if (this.isTimelineLayout) {
+            // var range = timeline.getWindow();
+            var scaleX = this.contentRoot.scale.x;
+            var leftSpan = this.contentRoot.position.x;
+            var originalInterval = timelineWindow.end - timelineWindow.start;
+            var interval = originalInterval / scaleX;
+            var dTime = Math.floor((msPerPix * leftSpan)/scaleX);
+            var start = timelineWindow.start.valueOf() - dTime;
+            var end = start + interval;
+            timeline.setWindow(
+                start,
+                end,
+                { animation: false}
+            );
+        }
+    }
+    stage.contentRootMoved = _.throttle(alineTimeline.bind(stage), 50);
 
     var pixiGraphics = {
 
@@ -224,6 +243,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * To arrange the nodes quickly, we need add the cycles manually.
          **/
         addLayoutCycles: function(n) {
+            if (stage.isTimelineLayout) {
+                disableTimelineLayout();
+            }
             layoutIterations += n;
         },
 
@@ -534,8 +556,11 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * draw a circle
          */
         drawCircleLayout: function() {
-            pixiGraphics.subTreeInitForCircleLayout();
+            if (stage.isTimelineLayout) {
+                disableTimelineLayout();
+            }
 
+            pixiGraphics.subTreeInitForCircleLayout();
             _.each(subTree, function(st, stID) {
                 _.each(st.nodes, function(node, nodeID) {
                     var p = {};
@@ -572,10 +597,10 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 }
             });
 
-            _.each(subTree,function (st) {
-               if(!st.isSelectedNode){
-                   pixiGraphics.findRootOfEachTree(st);
-               }
+            _.each(subTree, function(st) {
+                if (!st.isSelectedNode) {
+                    pixiGraphics.findRootOfEachTree(st);
+                }
             });
 
             _.each(subTree, function(st, stID) {
@@ -637,31 +662,34 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
         },
 
-        findRootOfEachTree: function (eachSubTree) {
+        findRootOfEachTree: function(eachSubTree) {
 
-            _.each(eachSubTree.nodes,function (n) {
-                n.degree=0;
-                _.each(n.incoming,function (l) {
+            _.each(eachSubTree.nodes, function(n) {
+                n.degree = 0;
+                _.each(n.incoming, function(l) {
                     n.degree++;
                 });
-                _.each(n.outgoing,function (l) {
+                _.each(n.outgoing, function(l) {
                     n.degree++;
                 });
             });
 
-            eachSubTree.isSelectedNode=true;
-            eachSubTree.selectedNode=null;
-            _.each(eachSubTree.nodes,function (n) {
-                if(!eachSubTree.selectedNode){
-                    eachSubTree.selectedNode=n;
-                }else{
-                    if(eachSubTree.selectedNode.degree<n.degree){
-                        eachSubTree.selectedNode=n;
+            eachSubTree.isSelectedNode = true;
+            eachSubTree.selectedNode = null;
+            _.each(eachSubTree.nodes, function(n) {
+                if (!eachSubTree.selectedNode) {
+                    eachSubTree.selectedNode = n;
+                } else {
+                    if (eachSubTree.selectedNode.degree < n.degree) {
+                        eachSubTree.selectedNode = n;
                     }
                 }
             });
         },
         drawTreeLayout: function() {
+            if (stage.isTimelineLayout) {
+                disableTimelineLayout();
+            }
 
             pixiGraphics.subTreeInitForTreeLayout();
 
@@ -670,10 +698,15 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     _.each(st.nodes, function(node) {
                         if (stID != 1 || node.treeLayoutLevel != 1) {
                             var p = {};
-                            p.x = st.positionx - (st.treeLayoutEachLevelNumb[node.treeLayoutLevel]-1) * visualConfig.NODE_WIDTH;
+                            p.x = st.positionx - (st.treeLayoutEachLevelNumb[node.treeLayoutLevel] - 1) * visualConfig.NODE_WIDTH;
                             st.treeLayoutEachLevelNumb[node.treeLayoutLevel] = st.treeLayoutEachLevelNumb[node.treeLayoutLevel] - 2;
                             p.y = st.positiony + visualConfig.NODE_WIDTH * 2 * (node.treeLayoutLevel - 1);
                             node.updateNodePosition(p);
+                        } else {
+                            node.updateNodePosition({
+                                x: node.position.x,
+                                y: node.position.y
+                            });
                         }
                     });
                 }
@@ -800,28 +833,89 @@ export default HyjjPixiRenderer = function(graph, settings) {
             var y = viewHeight / 2;
             zoom(x, y, false, root);
         },
-        switchToTimelineLayout: function() {
-            // position the nodes, randomly sorted, adding new line
-            var posX = 50,
+        switchToTimelineLayout: function(leftSpacing) {
+            layoutIterations = 0;
+            var timelineItems = [];
+            var now = moment().format('YYYY-MM-DDTHH:mm:ss');
+            _.each(linkSprites, function(l) {
+                if(!l.visible){
+                    return;
+                }
+                timelineItems.push({
+                    id: l.data.id,
+                    content: l.data.label,
+                    start: l.data.datetime || now
+                });
+            })
+            if (!timeline) {
+                var container = document.getElementById(settings.timelineContainer);
+                if (!container) {
+                    throw "时间标尺容器未指定";
+                }
+                var items = new vis.DataSet(timelineItems);
+                var options = {
+                    height: "100px",
+                    locales: {
+                        "zh-cn": {
+                            current: 'current',
+                            time: 'time',
+                        }
+                    },
+                    stack: false,
+                    locale: 'zh-cn',
+                    zoomMin: 1000 * 60 * 15,
+                    moveable: false,
+                    zoomable: false
+                };
+                // Create a Timeline
+                timeline = new vis.Timeline(container, items, options);
+                timelineWindow = timeline.getWindow();
+                var interval = timelineWindow.end - timelineWindow.start;
+                timelineWidth = $("#" + settings.timelineContainer).width();
+                msPerPix = Math.floor(interval / timelineWidth);
+            }
+
+
+            root.scale.x = 1;
+            root.scale.y = 1;
+            root.position.x = 0;
+            root.position.y = 100; // 与时间标尺高度保持一致
+            root.scalable = false;
+            var posX = 50, // local position in root;
                 posY = 50; //starting point to layout nodes.
             var iconSize = visualConfig.NODE_WIDTH,
-                margin = 30;
+                marginY = 30;
             _.each(nodeSprites, function(ns) {
                 ns.updateNodePosition({
                     x: posX,
                     y: posY
                 });
-                ns.showTimeline = true;
-                layout.setNodePosition(ns.id, posX, posY);
-                posY += (iconSize + margin);
+                ns.timelineMode = true;
+                // layout.setNodePosition(ns.id, posX, posY);
+                posY += (iconSize + marginY);
             });
-            var sortedLinkSprites = sortLinksByTimeline();
-            var x = posX + 20; // FIXME calculate the right X position!
-            _.each(sortedLinkSprites, function(ls){
+            // var sortedLinkSprites = sortLinksByDateTime();
+            var timelineStartMs = timelineWindow.start.valueOf();
+            var minX = 10000;
+            // var x = posX + 20; // FIXME calculate the right X position!
+            _.each(linkSprites, function(ls) {
+                if(!ls.visible){
+                    return;
+                }
+                var linkDatetime = ls.data.datetime;
+                var ms = moment(linkDatetime).valueOf();
+                let viewX = Math.floor((ms - timelineStartMs) / msPerPix);
+                let x = viewX - root.position.x;
+                if (x < minX) {
+                    minX = x;
+                }
+                // console.log(linkDatetime + "@ " + x + "(" + viewX + ")");
                 var srcNodeSprite = nodeSprites[ls.data.sourceEntity];
                 var tgtNodeSprite = nodeSprites[ls.data.targetEntity];
-                var fromX = x, fromY = srcNodeSprite.position.y;
-                var toX = x, toY = tgtNodeSprite.position.y;
+                var fromX = x,
+                    fromY = srcNodeSprite.position.y;
+                var toX = x,
+                    toY = tgtNodeSprite.position.y;
                 ls.forceStraightLine = true;
                 ls.setFrom({
                     x: fromX,
@@ -831,16 +925,34 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     x: toX,
                     y: toY
                 });
-                x += 30;
             });
-            root.position.x = 100;
-            root.position.y = 100;
-            layout.isTimelineLayout = true;
+            var nodeX = minX - 40;
+            _.each(nodeSprites, function(ns) {
+                ns.updateNodePosition({
+                    x: nodeX,
+                    y: ns.position.y
+                });
+            });
+            // if nodeX is too much left, try to move it to center
+            stage.isTimelineLayout = true;
+            root.position.x = leftSpacing || 100;
+            stage.contentRootMoved();
         },
+        destroy: function(){
+            stage.destroy();
+            stage.destroyed = true;
+            renderer.destroy();
+        }
     };
-    function sortLinksByTimeline() {
-        // FIXME, doe the real sort.
-        return _.values(linkSprites);
+
+    function sortLinksByDateTime() {
+        var links = _.values(linkSprites);
+        var sorted = _.sortBy(links, function(l) {
+            return l.datetime;
+        });
+        console.log("Sorted link sprites: ");
+        console.log(sorted);
+        return sorted;
     }
     eventify(pixiGraphics);
     return pixiGraphics;
@@ -861,6 +973,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
 
     function animationLoop() {
+        if(stage.destroyed){
+            return;
+        }
         requestAnimationFrame(animationLoop);
         if (layoutIterations > 0) {
             layout.step();
@@ -878,7 +993,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
         drawBorders();
         drawLines();
-        if (layout.isTimelineLayout) {
+        if (stage.isTimelineLayout) {
             drawNodeTimelines();
         }
         renderer.render(stage);
@@ -939,6 +1054,18 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 lineGraphics.moveTo(ns.position.x, ns.position.y);
                 lineGraphics.lineTo(ns.position.x + 3000, ns.position.y);
             }
+        });
+    }
+
+    function disableTimelineLayout() {
+        timeline.destroy();
+        timeline = null;
+        stage.isTimelineLayout = false;
+        _.each(nodeSprites, function(ns) {
+            ns.timelineMode = false;
+        });
+        _.each(linkSprites, function(ls) {
+            ls.forceStraightLine = false;
         });
     }
 
@@ -1216,7 +1343,30 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 bfsQueue.unshift(nodeSprites[link.data.targetEntity]);
             }
         });
+    }
 
+    function moveTimeline(percentage) {
+        var range = timeline.getWindow();
+        var interval = range.end - range.start;
+
+        timeline.setWindow({
+            start: range.start.valueOf() - interval * percentage,
+            end: range.end.valueOf() - interval * percentage
+        });
+    }
+
+    /**
+     * Zoom the timeline a given percentage in or out
+     * @param {Number} percentage   For example 0.1 (zoom out) or -0.1 (zoom in)
+     */
+    function zoomTimeline(percentage) {
+        var range = timeline.getWindow();
+        var interval = range.end - range.start;
+
+        timeline.setWindow({
+            start: range.start.valueOf() - interval * percentage,
+            end: range.end.valueOf() + interval * percentage
+        });
     }
 
 };

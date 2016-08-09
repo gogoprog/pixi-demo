@@ -40,6 +40,9 @@ export const zoom = function(x, y, isZoomIn, stage) {
     stage.position.x += (afterTransform.x - beforeTransform.x) * stage.scale.x;
     stage.position.y += (afterTransform.y - beforeTransform.y) * stage.scale.y;
     stage.updateTransform();
+    if(stage.parent.isTimelineLayout){
+        stage.parent.contentRootMoved();
+    }
 };
 
 setupWheelListener = function(domElement, stage) {
@@ -60,8 +63,7 @@ rootCaptureHandler = function(e) {
             x: e.data.global.x,
             y: e.data.global.y
         };
-        console.log('Root captured @' + JSON.stringify(this.mouseLocation));
-
+        // console.log('Root captured @' + JSON.stringify(this.mouseLocation));
         this.dragging = true;
     } else {
         this.mouseLocation = {
@@ -69,7 +71,7 @@ rootCaptureHandler = function(e) {
             y: e.data.global.y
         };
         this.selectingArea = true;
-        console.log('Root captured @' + JSON.stringify(this.mouseLocation));
+        // console.log('Root captured @' + JSON.stringify(this.mouseLocation));
     }
     if (!this.moveListener) {
         this.moveListener = rootMoveHandler.bind(this);
@@ -92,6 +94,9 @@ rootReleaseHandler = function(e) {
     this.upListener = null;
     this.selectingArea=false;
     this.selectRegion=null;
+    if(this.isTimelineLayout) {
+        this.contentRootMoved();
+    }
 };
 
 rootMoveHandler = function(e) {
@@ -111,6 +116,9 @@ rootMoveHandler = function(e) {
         };
         this.contentRoot.position.x += dx;
         this.contentRoot.position.y += dy;
+        if(this.isTimelineLayout) {
+            this.contentRootMoved();
+        }
     } else if (this.selectingArea) {
         if(Math.abs(dx) >5 && Math.abs(dy) > 5){
             this.selectRegion = {
@@ -185,9 +193,17 @@ var newPosition = new PIXI.Point();
 nodeMoveListener = function(e) {
     // console.log('node mouse move fired');
     this.parent.dragJustNow=false;
+    newPosition.copy(this.interactionData.getLocalPosition(this.parent));
+    if(this.timelineMode) {
+        var dx =  Math.abs(newPosition.x-this.position.x);
+        newPosition.x = this.position.x; // disable movement in x;
+        if(dx > (visualConfig.NODE_WIDTH/2 + 5)) { // when mouse move horizontally two far away from node, just release it.
+            console.log("Dx " + dx);
+            this.releaseListener(e);
+        }
+    }
     if (this.dragging && this.selected) {
         //newPosition=null;
-        newPosition.copy(this.interactionData.getLocalPosition(this.parent));
         //this.updateNodePosition(newPosition);
         var dx = newPosition.x-this.position.x;
         var dy = newPosition.y-this.position.y;
@@ -202,7 +218,6 @@ nodeMoveListener = function(e) {
         this.parent.deselectAll();
         this.parent.selectNode(this);
         //newPosition=null;
-        newPosition.copy(this.interactionData.getLocalPosition(this.parent));
         this.updateNodePosition(newPosition);
     }
 };

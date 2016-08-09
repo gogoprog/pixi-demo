@@ -9,16 +9,38 @@ PIXI.Sprite.prototype.selectionChanged = function(selected) {
 };
 
 PIXI.Sprite.prototype.updateNodePosition = function(p) {
-    this.position.x = p.x;
-    this.position.y = p.y;
-    if (this.ts) {
-        this.ts.position.x = p.x;
-        this.ts.position.y = p.y + visualConfig.NODE_LABLE_OFFSET_Y*this.scale.y;
+    if(this.timelineMode){
+        this.position.y = p.y;
+        this.position.x = p.x;
+        if (this.ts) {
+            this.ts.position.x = p.x;
+            this.ts.position.y = p.y + visualConfig.NODE_LABLE_OFFSET_Y * this.scale.y;
+        }
+        _.each(this.incoming, function(l) {
+
+            l.setTo({
+                x: l.x2,
+                y: p.y,
+            });
+        });
+        _.each(this.outgoing, function(l) {
+            l.setFrom({
+                x:l.x1,
+                y: p.y
+            });
+        });
+    }else {
+        this.position.x = p.x;
+        this.position.y = p.y;
+        if (this.ts) {
+            this.ts.position.x = p.x;
+            this.ts.position.y = p.y + visualConfig.NODE_LABLE_OFFSET_Y*this.scale.y;
+        }
+        _.each(this.incoming, function(l) {
+            l.setTo(p);
+        });
+        _.each(this.outgoing, function(l) {
+            l.setFrom(p);
+        });
     }
-    _.each(this.incoming, function(l) {
-        l.setTo(p);
-    });
-    _.each(this.outgoing, function(l) {
-        l.setFrom(p);
-    });
 };
