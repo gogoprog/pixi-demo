@@ -36,6 +36,10 @@ PIXI.Sprite.prototype.updateNodePosition = function(p) {
             this.ts.position.x = p.x;
             this.ts.position.y = p.y + visualConfig.NODE_LABLE_OFFSET_Y*this.scale.y;
         }
+        if(this.circleBorder){
+            this.circleBorder.position.x = p.x;
+            this.circleBorder.position.y = p.y;
+        }
         _.each(this.incoming, function(l) {
             l.setTo(p);
         });

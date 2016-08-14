@@ -1007,15 +1007,16 @@ export default HyjjPixiRenderer = function(graph, settings) {
         boarderGraphics.clear();
 
         _.each(nodeNeedBoundary, function(n1) {
-        
-            boarderGraphics.lineStyle(n1.boundaryAttr.border.width, n1.boundaryAttr.border.color, n1.boundaryAttr.border.alpha);
-            boarderGraphics.beginFill(n1.boundaryAttr.fill.color, n1.boundaryAttr.fill.alpha);
-        
-            //if the node is invisible, we don't need draw is boundary
-            //TODO here we should consider the performance.
-            if (n1.visible) {
-                boarderGraphics.drawCircle(n1.position.x, n1.position.y, 19 * n1.scale.x); //TODO make size configurable
-            }
+            var circle=new CircleBorderSprite(1,'#AB4146',n1.position.x, n2.position.y,visualConfig.NODE_WIDTH/2 *1.41);
+            // here is the origin code!
+            // boarderGraphics.lineStyle(n1.boundaryAttr.border.width, n1.boundaryAttr.border.color, n1.boundaryAttr.border.alpha);
+            // boarderGraphics.beginFill(n1.boundaryAttr.fill.color, n1.boundaryAttr.fill.alpha);
+            //
+            // //if the node is invisible, we don't need draw is boundary
+            // //TODO here we should consider the performance.
+            // if (n1.visible) {
+            //     boarderGraphics.drawCircle(n1.position.x, n1.position.y, 19 * n1.scale.x); //TODO make size configurable
+            // }
         });
         _.each(nodeContainer.selectedNodes, function(n2) {
 
@@ -1074,6 +1075,12 @@ export default HyjjPixiRenderer = function(graph, settings) {
         var texture = visualConfig.findIcon(p.data.type);
         // console.log(JSON.stringify(p));
         var n = new PIXI.Sprite(texture);
+        n.circleBorder = new PIXI.Sprite(PIXI.Texture.fromCanvas("../images/32/circleBorder.png"));
+        n.circleBorder.anchor.x=0.5;
+        n.circleBorder.anchor.y=0.5;
+        n.circleBorder.position.x=p.data.x + 20;
+        n.circleBorder.position.y=p.data.y;
+        
         n.visible = true; //add for hide the node and line
         n.id = p.id;
         n.parent = nodeContainer;
@@ -1107,6 +1114,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         n.ts = t;
         textContainer.addChild(t);
         nodeContainer.addChild(n);
+        nodeContainer.addChild(n.circleBorder);
         nodeSprites[p.id] = n;
         n.on('mousedown', nodeCaptureListener);
     }

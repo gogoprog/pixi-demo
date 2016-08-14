@@ -87,6 +87,11 @@ export const visualConfig = {
                 "alpha": 1,
             }
         },
+        "circleborder": {
+            "color": 0x000000,
+            "alpha": 1,
+            "width": 1
+        },
         "label": {
             "font": { "font": '24px Arial', "fill": 'black', "align": 'center' }
         },

@@ -1,6 +1,7 @@
 import "./pixi.es5.js"
 import "./LineSprite.js"
 import "./SimpleLineSprite.js"
+import "./CircleBorderSprite.js"
 import "./WheelListener.js"
 import "./customizedEventHandling.js"
 import "./pixiSpriteAugment.js"
