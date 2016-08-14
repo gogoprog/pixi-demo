@@ -938,10 +938,28 @@ export default HyjjPixiRenderer = function(graph, settings) {
             root.position.x = leftSpacing || 100;
             stage.contentRootMoved();
         },
-        destroy: function(){
+        destroy: function() {
             stage.destroy();
             stage.destroyed = true;
             renderer.destroy();
+        },
+        removeAllLinks: function() {
+            _.each(nodeSprites, function(n) {
+                n.incoming = [];
+                n.outgoing = [];
+            });
+            _.each(linkSprites, function(n) {
+                if (l.selected) {
+                    nodeContainer.deselectLink(l);
+                }
+                if (l.label) {
+                    textContainer.removeChild(l.label);
+                }
+                if (l.arrow) {
+                    lineContainer.removeChild(l.arrow);
+                }
+                delete linkSprites[l.id];
+            });
         }
     };
 
@@ -1250,6 +1268,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         }
     }
 
+
     function removeLink(link) {
         var l = linkSprites[link.data.id];
         if (l) {
@@ -1261,6 +1280,18 @@ export default HyjjPixiRenderer = function(graph, settings) {
             }
             if (l.arrow) {
                 lineContainer.removeChild(l.arrow);
+            }
+            let srcEntitySprite = nodeSprites[l.data.sourceEntity];
+            let tgtEntitySprite = nodeSprites[l.data.targetEntity];
+            let outLinkIndex = srcEntitySprite.outgoing.indexOf(l);
+            if(outLinkIndex> 0){
+                console.log("Removing link " + l.data.id + "from outgoing links of node: " + srcEntitySprite.id);
+                srcEntitySprite.outgoing.splice(outLinkIndex, 1);
+            }
+            let inLinkIndex = tgtEntitySprite.incoming.indexOf(l);
+            if(inLinkIndex> 0){
+                console.log("Removing link " + l.data.id + "from incoming links of node: " + tgtEntitySprite.id);
+                tgtEntitySprite.incoming.splice(inLinkIndex, 1);
             }
             delete linkSprites[l.id];
             // console.log("Removed link: " + link.id);
