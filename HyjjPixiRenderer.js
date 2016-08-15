@@ -949,7 +949,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 n.incoming = [];
                 n.outgoing = [];
             });
-            _.each(linkSprites, function(n) {
+            _.each(linkSprites, function(l) {
                 if (l.selected) {
                     nodeContainer.deselectLink(l);
                 }
