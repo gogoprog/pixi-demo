@@ -1296,12 +1296,12 @@ export default HyjjPixiRenderer = function(graph, settings) {
             let srcEntitySprite = nodeSprites[l.data.sourceEntity];
             let tgtEntitySprite = nodeSprites[l.data.targetEntity];
             let outLinkIndex = srcEntitySprite.outgoing.indexOf(l);
-            if(outLinkIndex> 0){
+            if(outLinkIndex >= 0){
                 console.log("Removing link " + l.data.id + "from outgoing links of node: " + srcEntitySprite.id);
                 srcEntitySprite.outgoing.splice(outLinkIndex, 1);
             }
             let inLinkIndex = tgtEntitySprite.incoming.indexOf(l);
-            if(inLinkIndex> 0){
+            if(inLinkIndex >= 0){
                 console.log("Removing link " + l.data.id + "from incoming links of node: " + tgtEntitySprite.id);
                 tgtEntitySprite.incoming.splice(inLinkIndex, 1);
             }
