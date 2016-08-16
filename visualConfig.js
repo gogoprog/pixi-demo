@@ -1,6 +1,6 @@
 export const visualConfig = {
-    "NODE_LABLE_OFFSET_Y": 16,
-    "LINK_LABLE_OFFSET_Y": 16,
+    "NODE_LABLE_OFFSET_Y": 20,
+    "LINK_LABLE_OFFSET_Y": 10,
     "MAX_SCALE": 10,
     "MIN_SCALE": 0.2,
     "NODE_WIDTH":32,
@@ -66,10 +66,11 @@ export const visualConfig = {
         }
     },
     "ui": {
+        "background" : 0x101010,
         "frame": {
             "border": {
                 "color": 0x0077b3,
-                "width": 1,
+                "width": 2,
                 "alpha": 0.8
             },
             "fill": {
@@ -78,11 +79,11 @@ export const visualConfig = {
             }
         },
         "line": {
-            "color": 0x000000,
+            "color": 0xFFFFFF,
             "alpha": 1,
-            "width": 1,
+            "width": 2,
             "highlight": {
-                "color": 0xe60000,
+                "color": 0x0086E3,
                 "width": 2,
                 "alpha": 1,
             }
@@ -93,7 +94,8 @@ export const visualConfig = {
             "width": 1
         },
         "label": {
-            "font": { "font": '24px Arial', "fill": 'black', "align": 'center' }
+            "font": { "font": '14px Arial', "fill": '#FFFFFF', "align": 'center' },
+            "fontHighlight": { "font": '16px Arial', "fill": 0x0086E3, "align": 'center' },
         },
         "timeline" : {
             "color": 0x000000,
@@ -103,17 +105,17 @@ export const visualConfig = {
     "formatting": {
         "nodeBorder": {
             "border": {
-                "color": 0x0077b3,
+                "color": 0x22272c,
                 "width": 2,
                 "alpha": 1
             },
             "fill": {
-                "color": 0x0077b3,
+                "color": 0x22272c,
                 "alpha": 0.25
             }
         },
         "linkStyle": {
-            "widht": 2,
+            "width": 2,
             "color": 0x000000,
             "alpha": 1
         }
