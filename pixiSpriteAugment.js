@@ -1,11 +1,11 @@
 import { visualConfig } from "./visualConfig.js";
 PIXI.Sprite.prototype.selectionChanged = function(selected) {
     this.selected = selected;
-    // if (selected) {
-    //     this.scale.set(1.2);
-    // } else {
-    //     this.scale.set(1.0);
-    // }
+    if (selected) {
+        this.ts.style = visualConfig.ui.label.fontHighlight;
+    } else {
+        this.ts.style = visualConfig.ui.label.font;
+    }
 };
 
 PIXI.Sprite.prototype.updateNodePosition = function(p) {
