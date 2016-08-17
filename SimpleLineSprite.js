@@ -92,22 +92,24 @@ SimpleLineSprite.prototype.selectionChanged = function(selected) {
     this.selected = selected;
     if (selected) {
         //console.log("+++++++++++++++++++++++");
-        this.arrow.scale.set(0.8, 0.8);
-        this.label.alpha = visualConfig.ui.line.highlight.alpha;
+        // this.arrow.scale.set(0.8, 0.8);
+        // this.label.alpha = visualConfig.ui.line.highlight.alpha;
         // console.log(visualConfig.ui.line.highlight.width);
         // console.log(visualConfig.ui.line.highlight.color);
         // console.log(visualConfig.ui.line.highlight.alpha);
         // this.thickness = visualConfig.ui.line.highlight.width;
         this.color = visualConfig.ui.line.highlight.color;
         this.alpha = visualConfig.ui.line.highlight.alpha;
+        this.label.style = visualConfig.ui.label.fontHighlight;
 
         //console.log("\n ================"+this.color);
     } else {
-        this.arrow.scale.set(0.5, 0.5);
+        // this.arrow.scale.set(0.5, 0.5);
         this.label.alpha = this.coustomSettingAlpha;
         // this.thickness = this.coustomSettingThickness;
         this.color = this.coustomSettingColor;
         this.alpha = this.coustomSettingAlpha;
+        this.label.style = visualConfig.ui.label.font;
     }
 };
 

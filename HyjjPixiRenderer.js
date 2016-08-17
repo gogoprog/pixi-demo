@@ -41,7 +41,13 @@ export default HyjjPixiRenderer = function(graph, settings) {
     var viewWidth = settings.container.clientWidth,
         viewHeight = settings.container.clientHeight;
     var timeline, timelineWindow, msPerPix; // the timeline object.
-    var renderer = new PIXI.WebGLRenderer(viewWidth, viewHeight, { view: settings.container, antialias: true, forceFXAA: false }),
+    var renderer = new PIXI.WebGLRenderer(viewWidth, viewHeight, {
+            view: settings.container,
+            transparent: true,
+            autoResize: true,
+            antialias: true,
+            forceFXAA: false
+        }),
         stage = new PIXI.Container(),
         root = new PIXI.Container(),
         nodeContainer = new PIXI.Container();
@@ -167,7 +173,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         counter = new FPSCounter();
 
     listenToGraphEvents();
-
+    stage.interactive = true;
     if (!stage.downListener) {
         stage.downListener = rootCaptureHandler.bind(stage);
         stage.on('mousedown', stage.downListener);
@@ -457,7 +463,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 stage.buttonMode = false;
             } else {
                 this.mode = 'panning';
-                stage.interactive = true;
+                // stage.interactive = true;
                 stage.buttonMode = true;
                 stage.mode = this.mode;
                 nodeContainer.interactiveChildren = false;
@@ -1049,7 +1055,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         _.each(nodeContainer.selectedNodes, function(n2) {
 
             boarderGraphics.lineStyle(visualConfig.ui.frame.border.width, visualConfig.ui.frame.border.color, visualConfig.ui.frame.border.alpha);
-            boarderGraphics.beginFill(visualConfig.ui.frame.fill.color, visualConfig.ui.frame.fill.alpha);
+            // boarderGraphics.beginFill(visualConfig.ui.frame.fill.color, visualConfig.ui.frame.fill.alpha);
             // boarderGraphics.lineStyle(n2.boundaryAttr.border.width, n2.boundaryAttr.border.color, n2.boundaryAttr.border.alpha);
             // boarderGraphics.beginFill(n2.boundaryAttr.fill.color, n2.boundaryAttr.fill.alpha);
 
@@ -1059,7 +1065,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 // var length=n2.ts.text.width;
                 // console.log(length);
                 //console.log("text width < 40 ");
-                boarderGraphics.drawRoundedRect(n2.position.x - 20 * n2.scale.x, n2.position.y - 20 * n2.scale.y, 40 * n2.scale.x, (40 + 10) * n2.scale.y, 5); //TODO make size configurable
+                boarderGraphics.drawRect(n2.position.x - 20 * n2.scale.x, n2.position.y - 20 * n2.scale.y, 40 * n2.scale.x, (40 + 10) * n2.scale.y); //TODO make size configurable
+                // boarderGraphics.drawRoundedRect(n2.position.x - 20 * n2.scale.x, n2.position.y - 20 * n2.scale.y, 40 * n2.scale.x, (40 + 10) * n2.scale.y, 5); //TODO make size configurable
 
             }
         });
@@ -1289,12 +1296,12 @@ export default HyjjPixiRenderer = function(graph, settings) {
             let srcEntitySprite = nodeSprites[l.data.sourceEntity];
             let tgtEntitySprite = nodeSprites[l.data.targetEntity];
             let outLinkIndex = srcEntitySprite.outgoing.indexOf(l);
-            if(outLinkIndex> 0){
+            if(outLinkIndex >= 0){
                 console.log("Removing link " + l.data.id + "from outgoing links of node: " + srcEntitySprite.id);
                 srcEntitySprite.outgoing.splice(outLinkIndex, 1);
             }
             let inLinkIndex = tgtEntitySprite.incoming.indexOf(l);
-            if(inLinkIndex> 0){
+            if(inLinkIndex >= 0){
                 console.log("Removing link " + l.data.id + "from incoming links of node: " + tgtEntitySprite.id);
                 tgtEntitySprite.incoming.splice(inLinkIndex, 1);
             }
