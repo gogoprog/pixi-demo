@@ -1028,7 +1028,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             if(n1.circleBorder){
                 nodeContainer.removeChild(n1.circleBorder);
             }
-            n1.circleBorder = new CircleBorderTexture(n1.boundaryAttr.width,n1.boundaryAttr.color,visualConfig.NODE_WIDTH*n1.scale.x/2);
+            n1.circleBorder = new CircleBorderTexture(n1.boundaryAttr.width*n1.scale.x,n1.boundaryAttr.color,visualConfig.NODE_WIDTH*1.42*n1.scale.x/2);
             n1.circleBorder.anchor.x=0.5;
             n1.circleBorder.anchor.y=0.5;
             n1.circleBorder.position.x=n1.position.x;
