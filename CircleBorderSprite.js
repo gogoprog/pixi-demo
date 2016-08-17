@@ -1,7 +1,8 @@
 CircleBorderTexture = function(borderAttr, radius) {
-    PIXI.Sprite.call(this, this.getTexture(borderAttr.border.width,borderAttr.border.color,borderAttr.fill.color,borderAttr.fill.alpha, radius));
+    PIXI.Sprite.call(this, this.getTexture(borderAttr.border.width,borderAttr.border.color,borderAttr.border.alpha,borderAttr.fill.color,borderAttr.fill.alpha, radius));
     this._thickness = borderAttr.border.width;
     this._color = borderAttr.border.color;
+    this._borderAlpha=borderAttr.border.alpha;
     this._fillColor = borderAttr.fill.color;
     this._fillAlpha = borderAttr.fill.alpha;
     this._radius = radius;
@@ -22,22 +23,23 @@ CircleBorderTexture.prototype.getCanvas = function(width) {
     return canvas;
 };
 
-CircleBorderTexture.prototype.getTexture = function (thickness, color,fillColor,fillAlpha, radius) {
-    var key = thickness + "-" + color+"-"+fillColor+"-"+fillAlpha+"-"+radius;
+CircleBorderTexture.prototype.getTexture = function (thickness, color,borderAlpha,fillColor,fillAlpha, radius) {
+    var key = thickness + "-" + color+"-"+borderAlpha+"-"+fillColor+"-"+fillAlpha+"-"+radius;
     if (!CircleBorderTexture.textureCache[key]) {
         console.log("Generating texture: " + key);
         var canvas = this.getCanvas((radius+thickness)*2);
         var context = canvas.getContext("2d");
-        context.fillStyle = PIXI.utils.hex2string(color);
+        context.fillStyle = PIXI.utils.hex2string(fillColor);
         
         context.beginPath();
-        context.globalAlpha=fillAlpha;
+
         context.arc(radius+thickness, radius+thickness, radius, 0, 2 * Math.PI, false);
         context.strokeStyle = PIXI.utils.hex2string(color);
         context.lineWidth=thickness;
-
-        context.fill();
+        context.globalAlpha=borderAlpha;
         context.stroke();
+        context.globalAlpha=fillAlpha;
+        context.fill();
         
         var texture = new PIXI.Texture(new PIXI.BaseTexture(canvas), PIXI.SCALE_MODES.LINEAR);
         texture.frame = new PIXI.Rectangle(0, 0, radius*2+thickness*2, radius*2+thickness*2);
@@ -50,6 +52,7 @@ CircleBorderTexture.prototype.getTexture = function (thickness, color,fillColor,
 CircleBorderTexture.prototype.setNewStyle = function (borderAttr, radius) {
     this.thickness=borderAttr.border.width;
     this.color=borderAttr.border.color;
+    this.borderAlpha=borderAttr.border.alpha;
     this.fillColor=borderAttr.fill.color;
     this.fillAlpha=borderAttr.fill.alpha;
     this.radius=radius;
@@ -64,7 +67,7 @@ Object.defineProperties(CircleBorderTexture.prototype, {
         set: function (value)
         {
             this._thickness = value;
-            this.texture = this.getTexture(this._thickness, this._color,this._fillColor,this._fillAlpha,this._radius);
+            this.texture = this.getTexture(this._thickness, this._color,this._borderAlpha,this._fillColor,this._fillAlpha,this._radius);
         }
     },
     color: {
@@ -75,7 +78,7 @@ Object.defineProperties(CircleBorderTexture.prototype, {
         set: function (value)
         {
             this._color = value;
-            this.texture = this.getTexture(this._thickness, this._color,this._fillColor,this._fillAlpha,this._radius);
+            this.texture = this.getTexture(this._thickness, this._color,this._borderAlpha,this._fillColor,this._fillAlpha,this._radius);
         }
     },
     radius: {
@@ -84,7 +87,7 @@ Object.defineProperties(CircleBorderTexture.prototype, {
         },
         set: function (value) {
             this._radius =value;
-            this.texture = this.getTexture(this._thickness, this._color,this._fillColor,this._fillAlpha,this._radius);
+            this.texture = this.getTexture(this._thickness, this._color,this._borderAlpha,this._fillColor,this._fillAlpha,this._radius);
         }
     },
     fillColor: {
@@ -93,7 +96,7 @@ Object.defineProperties(CircleBorderTexture.prototype, {
         },
         set: function (value) {
             this._fillColor = value;
-            this.texture = this.getTexture(this._thickness, this._color,this._fillColor,this._fillAlpha,this._radius);
+            this.texture = this.getTexture(this._thickness, this._color,this._borderAlpha,this._fillColor,this._fillAlpha,this._radius);
         }
     },
     fillAlpha:{
@@ -102,7 +105,16 @@ Object.defineProperties(CircleBorderTexture.prototype, {
         },
         set: function (value) {
             this._fillAlpha=value;
-            this.texture = this.getTexture(this._thickness, this._color,this._fillColor,this._fillAlpha,this._radius);
+            this.texture = this.getTexture(this._thickness, this._color,this._borderAlpha,this._fillColor,this._fillAlpha,this._radius);
+        }
+    },
+    borderAlpha:{
+        get: function () {
+            return this._borderAlpha;
+        },
+        set: function (value) {
+            this._borderAlpha=value;
+            this.texture = this.getTexture(this._thickness, this._color,this._borderAlpha,this._fillColor,this._fillAlpha,this._radius);
         }
     }
 });
