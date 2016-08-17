@@ -156,7 +156,7 @@ rootMoveHandler = function(e) {
 
 
 nodeCaptureListener = function(e) {
-    console.log('Mouse down on node ' + JSON.stringify(this.position));
+    // console.log('Mouse down on node ' + JSON.stringify(this.position));
     this.interactionData = e.data;
     this.parent.nodeCaptured(this);
     this.dragging = true;
@@ -198,7 +198,7 @@ nodeMoveListener = function(e) {
         var dx =  Math.abs(newPosition.x-this.position.x);
         newPosition.x = this.position.x; // disable movement in x;
         if(dx > (visualConfig.NODE_WIDTH/2 + 5)) { // when mouse move horizontally two far away from node, just release it.
-            console.log("Dx " + dx);
+            // console.log("Dx " + dx);
             this.releaseListener(e);
         }
     }
@@ -207,11 +207,13 @@ nodeMoveListener = function(e) {
         //this.updateNodePosition(newPosition);
         var dx = newPosition.x-this.position.x;
         var dy = newPosition.y-this.position.y;
+        let container = this.parent;
         _.each(this.parent.nodes,function (n) {
             var np=new PIXI.Point();
             np.x=n.position.x+dx;
             np.y=n.position.y+dy;
             n.updateNodePosition(np);
+            container.nodeMoved(n);
         });
         this.parent.dragJustNow=true;
     }else if(!this.selected){
@@ -219,5 +221,6 @@ nodeMoveListener = function(e) {
         this.parent.selectNode(this);
         //newPosition=null;
         this.updateNodePosition(newPosition);
+        this.parent.nodeMoved(this);
     }
 };

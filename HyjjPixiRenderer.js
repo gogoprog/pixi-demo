@@ -37,6 +37,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
     if (!layout) {
         layout = createForceLayout(graph, physicsSimulator(settings.physics));
     }
+    var layoutType = "Network";
     var canvas = settings.container;
     var viewWidth = settings.container.clientWidth,
         viewHeight = settings.container.clientHeight;
@@ -75,7 +76,6 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
     root.addChild(lineGraphics);
     root.addChild(boarderGraphics);
-    // root.addChild(selectRegionGraphics);
     stage.addChild(selectRegionGraphics);
     root.addChild(textContainer);
     root.addChild(nodeContainer);
@@ -101,10 +101,25 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
     nodeContainer.nodeCaptured = function(node) {
         stage.hasNodeCaptured = true;
+        if(layoutType == "Network") {
+            layout.pinNode(node, true);
+        }
+
+    };
+
+    nodeContainer.nodeMoved = function(node) {
+        if(layoutType == "Network") {
+            layout.setNodePosition(node.id, node.position.x, node.position.y);
+            layoutIterations += 60;
+        }
     };
 
     nodeContainer.nodeReleased = function(node) {
         stage.hasNodeCaptured = false;
+        if(layoutType == "Network") {
+            layout.pinNode(node, false);
+            layoutIterations = 600;
+        }
     };
 
     //layout 相关,把移动位置同步到layout内部
@@ -252,6 +267,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }
+            layoutType = "Network";
             layoutIterations += n;
         },
 
@@ -322,7 +338,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     number++;
                 }
             });
-            console.log(number + " nodes are hidden!!");
+            // console.log(number + " nodes are hidden!!");
             return number;
         },
         /**
@@ -335,7 +351,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     number++;
                 }
             });
-            console.log(number + " lines are hidden!!");
+            // console.log(number + " lines are hidden!!");
             return number;
         },
 
@@ -590,6 +606,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }
+            layoutIterations = 0;
+            layoutType = "Circular";
 
             pixiGraphics.subTreeInitForCircleLayout();
             _.each(subTree, function(st, stID) {
@@ -598,6 +616,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     p.x = subTree[node.treeID].positionx - Math.cos(subTree[node.treeID].angle * nodeID * Math.PI / 180) * subTree[node.treeID].radius;
                     p.y = subTree[node.treeID].positiony + Math.sin(subTree[node.treeID].angle * nodeID * Math.PI / 180) * subTree[node.treeID].radius;
                     node.updateNodePosition(p);
+                    layout.setNodePosition(node.id, node.position.x, node.position.y);
                 });
             });
 
@@ -721,9 +740,10 @@ export default HyjjPixiRenderer = function(graph, settings) {
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }
+            layoutIterations = 0;
+            layoutType = "Layered";
 
             pixiGraphics.subTreeInitForTreeLayout();
-
             _.each(subTree, function(st, stID) {
                 if (st.isSelectedNode) {
                     _.each(st.nodes, function(node) {
@@ -739,6 +759,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                                 y: node.position.y
                             });
                         }
+                        layout.setNodePosition(node.id, node.position.x, node.position.y);
                     });
                 }
             });
@@ -875,6 +896,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         },
         switchToTimelineLayout: function(leftSpacing) {
             layoutIterations = 0;
+            layoutType = "TimelineScale";
             var timelineItems = [];
             var now = moment().format('YYYY-MM-DDTHH:mm:ss');
             _.each(linkSprites, function(l) {
@@ -1003,15 +1025,6 @@ export default HyjjPixiRenderer = function(graph, settings) {
         }
     };
 
-    function sortLinksByDateTime() {
-        var links = _.values(linkSprites);
-        var sorted = _.sortBy(links, function(l) {
-            return l.datetime;
-        });
-        console.log("Sorted link sprites: ");
-        console.log(sorted);
-        return sorted;
-    }
     eventify(pixiGraphics);
     return pixiGraphics;
 
