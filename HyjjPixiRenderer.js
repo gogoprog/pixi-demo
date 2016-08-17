@@ -442,7 +442,10 @@ export default HyjjPixiRenderer = function(graph, settings) {
          */
         deleteBoundaryOfNodes: function(idArray) {
             _.each(idArray, function(id) {
-                textContainer.removeChild(nodeNeedBoundary[id].circleBorder);
+                if(nodeNeedBoundary[id].circleBorder.visible){
+                    textContainer.removeChild(nodeNeedBoundary[id].circleBorder);
+                    nodeNeedBoundary[id].circleBorder.visible=false;
+                }
                 delete nodeNeedBoundary[id];
             });
         },
@@ -718,6 +721,15 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     });
                 }
             });
+        },
+        backToInitCanvas: function () {
+            　//this.get
+        },
+        setNodesToFullScreen: function () {
+
+        },
+        setSelectedNodesToFullScreen: function () {
+
         },
 
         /**
@@ -1032,8 +1044,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
         _.each(nodeNeedBoundary, function(n1) {
 
+            //n1.circleBorder.visible=true;
+            n1.circleBorder.setNewStyle(n1.boundaryAttr,visualConfig.NODE_WIDTH*1.42*n1.scale.x/2);
             n1.circleBorder.visible=true;
-            n1.circleBorder.setNewStyle(n1.boundaryAttr.width,n1.boundaryAttr.color,visualConfig.NODE_WIDTH*1.42*n1.scale.x/2);
             textContainer.addChild(n1.circleBorder);
             //var circle=new CircleBorderSprite(1,'#AB4146',n1.position.x, n2.position.y,visualConfig.NODE_WIDTH/2 *1.41);
             // here is the origin code!
@@ -1059,7 +1072,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 // var length=n2.ts.text.width;
                 // console.log(length);
                 //console.log("text width < 40 ");
-                boarderGraphics.drawRect(n2.position.x - 20 * n2.scale.x, n2.position.y - 20 * n2.scale.y, 40 * n2.scale.x, (40 + 10) * n2.scale.y); //TODO make size configurable
+                boarderGraphics.drawRect(n2.position.x - 20 * n2.scale.x, n2.position.y - 20 * n2.scale.y, 40 * n2.scale.x, (58) * n2.scale.y); //TODO make size configurable
                 // boarderGraphics.drawRoundedRect(n2.position.x - 20 * n2.scale.x, n2.position.y - 20 * n2.scale.y, 40 * n2.scale.x, (40 + 10) * n2.scale.y, 5); //TODO make size configurable
 
             }
@@ -1105,11 +1118,12 @@ export default HyjjPixiRenderer = function(graph, settings) {
         // console.log(JSON.stringify(p));
         var n = new PIXI.Sprite(texture);
 
-        n.circleBorder = new CircleBorderTexture(2,"#F8F8F8",visualConfig.NODE_WIDTH*1.42/2);
+        n.circleBorder = new CircleBorderTexture(visualConfig.ui.circleborder,visualConfig.NODE_WIDTH*1.42/2);
         n.circleBorder.anchor.x=0.5;
         n.circleBorder.anchor.y=0.5;
         n.circleBorder.position.x=n.position.x;
         n.circleBorder.position.y=n.position.y;
+        n.circleBorder.visible=false;
 
         //textContainer.addChild(n.circleBorder);
         n.visible = true; //add for hide the node and line
