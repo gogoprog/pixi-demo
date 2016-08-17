@@ -43,6 +43,11 @@ CircleBorderTexture.prototype.getTexture = function (thickness, color, radius) {
     return CircleBorderTexture.textureCache[key];
 };
 
+CircleBorderTexture.prototype.setNewStyle = function (thickness, color, radius) {
+    this.thickness=thickness;
+    this.color=color;
+    this.radius=radius;
+}
 
 Object.defineProperties(CircleBorderTexture.prototype, {
     thickness: {

@@ -442,7 +442,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
          */
         deleteBoundaryOfNodes: function(idArray) {
             _.each(idArray, function(id) {
-                nodeContainer.removeChild(nodeNeedBoundary[id].circleBorder);
+                textContainer.removeChild(nodeNeedBoundary[id].circleBorder);
                 delete nodeNeedBoundary[id];
             });
         },
@@ -1031,16 +1031,10 @@ export default HyjjPixiRenderer = function(graph, settings) {
         boarderGraphics.clear();
 
         _.each(nodeNeedBoundary, function(n1) {
-            if(n1.circleBorder){
-                nodeContainer.removeChild(n1.circleBorder);
-            }
-            n1.circleBorder = new CircleBorderTexture(n1.boundaryAttr.width,n1.boundaryAttr.color,visualConfig.NODE_WIDTH*n1.scale.x/2);
-            n1.circleBorder.anchor.x=0.5;
-            n1.circleBorder.anchor.y=0.5;
-            n1.circleBorder.position.x=n1.position.x;
-            n1.circleBorder.position.y=n1.position.y;
-            nodeContainer.addChild(n1.circleBorder);
 
+            n1.circleBorder.visible=true;
+            n1.circleBorder.setNewStyle(n1.boundaryAttr.width,n1.boundaryAttr.color,visualConfig.NODE_WIDTH*1.42*n1.scale.x/2);
+            textContainer.addChild(n1.circleBorder);
             //var circle=new CircleBorderSprite(1,'#AB4146',n1.position.x, n2.position.y,visualConfig.NODE_WIDTH/2 *1.41);
             // here is the origin code!
             // boarderGraphics.lineStyle(n1.boundaryAttr.border.width, n1.boundaryAttr.border.color, n1.boundaryAttr.border.alpha);
@@ -1111,6 +1105,13 @@ export default HyjjPixiRenderer = function(graph, settings) {
         // console.log(JSON.stringify(p));
         var n = new PIXI.Sprite(texture);
 
+        n.circleBorder = new CircleBorderTexture(2,"#F8F8F8",visualConfig.NODE_WIDTH*1.42/2);
+        n.circleBorder.anchor.x=0.5;
+        n.circleBorder.anchor.y=0.5;
+        n.circleBorder.position.x=n.position.x;
+        n.circleBorder.position.y=n.position.y;
+
+        //textContainer.addChild(n.circleBorder);
         n.visible = true; //add for hide the node and line
         n.id = p.id;
         n.parent = nodeContainer;
