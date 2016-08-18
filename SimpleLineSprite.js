@@ -213,7 +213,6 @@ Object.defineProperties(SimpleLineSprite.prototype, {
         },
         set: function(value) {
             this._color = value;
-            // this.arrow.texture = visualConfig.icons.hotel.texture;
             this.arrow.texture = this.getTexture(this._thickness, this._color);
         }
     },
