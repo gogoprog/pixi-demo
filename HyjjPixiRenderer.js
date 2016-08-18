@@ -37,6 +37,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
     if (!layout) {
         layout = createForceLayout(graph, physicsSimulator(settings.physics));
     }
+    var layoutType = "Network";
     var canvas = settings.container;
     var viewWidth = settings.container.clientWidth,
         viewHeight = settings.container.clientHeight;
@@ -75,7 +76,6 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
     root.addChild(lineGraphics);
     root.addChild(boarderGraphics);
-    // root.addChild(selectRegionGraphics);
     stage.addChild(selectRegionGraphics);
     root.addChild(textContainer);
     root.addChild(nodeContainer);
@@ -101,10 +101,25 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
     nodeContainer.nodeCaptured = function(node) {
         stage.hasNodeCaptured = true;
+        if(layoutType == "Network") {
+            layout.pinNode(node, true);
+        }
+
+    };
+
+    nodeContainer.nodeMoved = function(node) {
+        if(layoutType == "Network") {
+            layout.setNodePosition(node.id, node.position.x, node.position.y);
+            layoutIterations += 60;
+        }
     };
 
     nodeContainer.nodeReleased = function(node) {
         stage.hasNodeCaptured = false;
+        if(layoutType == "Network") {
+            layout.pinNode(node, false);
+            layoutIterations = 600;
+        }
     };
 
     //layout 相关,把移动位置同步到layout内部
@@ -252,6 +267,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }
+            layoutType = "Network";
             layoutIterations += n;
         },
 
@@ -322,7 +338,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     number++;
                 }
             });
-            console.log(number + " nodes are hidden!!");
+            // console.log(number + " nodes are hidden!!");
             return number;
         },
         /**
@@ -335,7 +351,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     number++;
                 }
             });
-            console.log(number + " lines are hidden!!");
+            // console.log(number + " lines are hidden!!");
             return number;
         },
 
@@ -350,6 +366,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 }
                 hiddenNode.visible = false;
                 hiddenNode.ts.visible = false;
+                if(hiddenNode.circleBorder) {
+                    hiddenNode.circleBorder.visible = false;
+                }
 
                 //when we hide the nodes we should also hide the texture, arrow and the link.
                 _.each(hiddenNode.outgoing, function(olink) {
@@ -384,6 +403,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
             _.each(nodeSprites, function(ns) {
                 ns.visible = true;
                 ns.ts.visible = true;
+                if(ns.circleBorder) {
+                    ns.circleBorder.visible = true;
+                }
             });
             _.each(linkSprites, function(ls) {
                 ls.show();
@@ -398,6 +420,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 var showNode = nodeSprites[node];
                 showNode.visible = true;
                 showNode.ts.visible = true;
+                if(showNode.circleBorder) {
+                    showNode.circleBorder.visible = true;
+                }
 
                 /**when we hide the nodes, we also hide the texture, arrow and the link.
                  * Now we should set them visible
@@ -406,18 +431,12 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
                 _.each(showNode.outgoing, function(link) {
                     if (!link.visible && nodeSprites[link.data.targetEntity].visible) {
-                        // link.visible=true;
-                        // link.arrow.visible=true;
-                        // link.label.visible=true;
                         link.show();
                     }
                 });
 
                 _.each(showNode.incoming, function(link) {
                     if (!link.visible && nodeSprites[link.data.sourceEntity].visible) {
-                        // link.visible=true;
-                        // link.arrow.visible=true;
-                        // link.label.visible=true;
                         link.show();
                     }
                 });
@@ -428,11 +447,24 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * set which node need boundary.
          * when call this function, you should give me a group of ID and the attribute for this group
          */
-        setBoundaryNeededNodes: function(idArray, boundaryAttr) {
+        setBoundaryNeededNodes: function (idArray, boundaryAttr) {
             //this part is for performance test
-            _.each(idArray, function(node) {
-                nodeNeedBoundary[node] = nodeSprites[node];
-                nodeNeedBoundary[node].boundaryAttr = boundaryAttr;
+            _.each(idArray, function (node) {
+                // nodeNeedBoundary[node] = nodeSprites[node];
+                // nodeNeedBoundary[node].boundaryAttr = boundaryAttr;
+                let nodeSprite = nodeSprites[node];
+                nodeSprite.boundaryAttr = boundaryAttr;
+                if (!nodeSprite.circleBorder) {
+                    nodeSprite.circleBorder = new CircleBorderTexture(nodeSprite.boundaryAttr, visualConfig.NODE_WIDTH * 1.4 / 2);
+                    nodeSprite.circleBorder.anchor.x = 0.5;
+                    nodeSprite.circleBorder.anchor.y = 0.5;
+                    nodeSprite.circleBorder.position.x = nodeSprite.position.x;
+                    nodeSprite.circleBorder.position.y = nodeSprite.position.y;
+                    nodeSprite.circleBorder.visible = true;
+                    textContainer.addChild(nodeSprite.circleBorder);
+                } else {
+                    nodeSprite.circleBorder.setNewStyle(nodeSprite.boundaryAttr, visualConfig.NODE_WIDTH * 1.4 * nodeSprite.scale.x / 2);
+                }
             });
         },
 
@@ -442,11 +474,16 @@ export default HyjjPixiRenderer = function(graph, settings) {
          */
         deleteBoundaryOfNodes: function(idArray) {
             _.each(idArray, function(id) {
-                if(nodeNeedBoundary[id].circleBorder.visible){
-                    textContainer.removeChild(nodeNeedBoundary[id].circleBorder);
-                    nodeNeedBoundary[id].circleBorder.visible=false;
+                let nodeSprite = nodeSprites[id];
+                if(nodeSprite.circleBorder){
+                    textContainer.removeChild(nodeSprite.circleBorder);
+                    nodeSprite.circleBorder = null;
                 }
-                delete nodeNeedBoundary[id];
+                // if(nodeNeedBoundary[id].circleBorder.visible){
+                //     textContainer.removeChild(nodeNeedBoundary[id].circleBorder);
+                //     nodeNeedBoundary[id].circleBorder.visible=false;
+                // }
+                // delete nodeNeedBoundary[id];
             });
         },
 
@@ -569,6 +606,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }
+            layoutIterations = 0;
+            layoutType = "Circular";
 
             pixiGraphics.subTreeInitForCircleLayout();
             _.each(subTree, function(st, stID) {
@@ -577,6 +616,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     p.x = subTree[node.treeID].positionx - Math.cos(subTree[node.treeID].angle * nodeID * Math.PI / 180) * subTree[node.treeID].radius;
                     p.y = subTree[node.treeID].positiony + Math.sin(subTree[node.treeID].angle * nodeID * Math.PI / 180) * subTree[node.treeID].radius;
                     node.updateNodePosition(p);
+                    layout.setNodePosition(node.id, node.position.x, node.position.y);
                 });
             });
 
@@ -700,9 +740,10 @@ export default HyjjPixiRenderer = function(graph, settings) {
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }
+            layoutIterations = 0;
+            layoutType = "Layered";
 
             pixiGraphics.subTreeInitForTreeLayout();
-
             _.each(subTree, function(st, stID) {
                 if (st.isSelectedNode) {
                     _.each(st.nodes, function(node) {
@@ -718,6 +759,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                                 y: node.position.y
                             });
                         }
+                        layout.setNodePosition(node.id, node.position.x, node.position.y);
                     });
                 }
             });
@@ -870,6 +912,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         },
         switchToTimelineLayout: function(leftSpacing) {
             layoutIterations = 0;
+            layoutType = "TimelineScale";
             var timelineItems = [];
             var now = moment().format('YYYY-MM-DDTHH:mm:ss');
             _.each(linkSprites, function(l) {
@@ -998,15 +1041,6 @@ export default HyjjPixiRenderer = function(graph, settings) {
         }
     };
 
-    function sortLinksByDateTime() {
-        var links = _.values(linkSprites);
-        var sorted = _.sortBy(links, function(l) {
-            return l.datetime;
-        });
-        console.log("Sorted link sprites: ");
-        console.log(sorted);
-        return sorted;
-    }
     eventify(pixiGraphics);
     return pixiGraphics;
 
@@ -1058,23 +1092,6 @@ export default HyjjPixiRenderer = function(graph, settings) {
     function drawBorders() {
         boarderGraphics.clear();
 
-        _.each(nodeNeedBoundary, function(n1) {
-
-            //n1.circleBorder.visible=true;
-            n1.circleBorder.setNewStyle(n1.boundaryAttr,visualConfig.NODE_WIDTH*1.42*n1.scale.x/2);
-            n1.circleBorder.visible=true;
-            textContainer.addChild(n1.circleBorder);
-            //var circle=new CircleBorderSprite(1,'#AB4146',n1.position.x, n2.position.y,visualConfig.NODE_WIDTH/2 *1.41);
-            // here is the origin code!
-            // boarderGraphics.lineStyle(n1.boundaryAttr.border.width, n1.boundaryAttr.border.color, n1.boundaryAttr.border.alpha);
-            // boarderGraphics.beginFill(n1.boundaryAttr.fill.color, n1.boundaryAttr.fill.alpha);
-            //
-            // //if the node is invisible, we don't need draw is boundary
-            // //TODO here we should consider the performance.
-            // if (n1.visible) {
-            //     boarderGraphics.drawCircle(n1.position.x, n1.position.y, 19 * n1.scale.x); //TODO make size configurable
-            // }
-        });
         _.each(nodeContainer.selectedNodes, function(n2) {
 
             boarderGraphics.lineStyle(visualConfig.ui.frame.border.width, visualConfig.ui.frame.border.color, visualConfig.ui.frame.border.alpha);
@@ -1088,8 +1105,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 // var length=n2.ts.text.width;
                 // console.log(length);
                 //console.log("text width < 40 ");
-                boarderGraphics.drawRect(n2.position.x - 20 * n2.scale.x, n2.position.y - 20 * n2.scale.y, 40 * n2.scale.x, (58) * n2.scale.y); //TODO make size configurable
-                // boarderGraphics.drawRoundedRect(n2.position.x - 20 * n2.scale.x, n2.position.y - 20 * n2.scale.y, 40 * n2.scale.x, (40 + 10) * n2.scale.y, 5); //TODO make size configurable
+                boarderGraphics.drawRect(n2.position.x - 24 * n2.scale.x, n2.position.y - 24 * n2.scale.y, 48 * n2.scale.x, (60) * n2.scale.y); //TODO make size configurable
 
             }
         });
@@ -1133,13 +1149,6 @@ export default HyjjPixiRenderer = function(graph, settings) {
         var texture = visualConfig.findIcon(p.data.type);
         // console.log(JSON.stringify(p));
         var n = new PIXI.Sprite(texture);
-
-        n.circleBorder = new CircleBorderTexture(visualConfig.ui.circleborder,visualConfig.NODE_WIDTH*1.42/2);
-        n.circleBorder.anchor.x=0.5;
-        n.circleBorder.anchor.y=0.5;
-        n.circleBorder.position.x=n.position.x;
-        n.circleBorder.position.y=n.position.y;
-        n.circleBorder.visible=false;
 
         //textContainer.addChild(n.circleBorder);
         n.visible = true; //add for hide the node and line

@@ -100,12 +100,12 @@ export const visualConfig = {
             }
         },
         "label": {
-            "font": { "font": '14px Arial', "fill": '#FFFFFF', "align": 'center' },
-            "fontHighlight": { "font": '16px Arial', "fill": 0x0086E3, "align": 'center' },
+            "font": { "font": '16px Arial', "fill": '#FFFFFF', "align": 'center' },
+            "fontHighlight": { "font": '18px Arial', "fill": 0x0086E3, "align": 'center' },
         },
         "timeline" : {
-            "color": 0x000000,
-            "width": 2,
+            "color": 0xFFFFFF,
+            "width": 3,
         }
     },
     "formatting": {
