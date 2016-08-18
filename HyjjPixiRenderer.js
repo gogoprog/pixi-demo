@@ -274,13 +274,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         /**
          * zoom in and zoom out for the node
          */
-        nodeZoomByID: function(nodeIDArray, zoomValue) {
-            _.each(nodeIDArray, function(nodeID) {
-                nodeSprites[nodeID].scale.set(zoomValue);
-                nodeSprites[nodeID].ts.scale.set(0.5 * zoomValue);
-                nodeSprites[nodeID].ts.position.set(nodeSprites[nodeID].position.x, nodeSprites[nodeID].position.y + visualConfig.NODE_LABLE_OFFSET_Y * zoomValue);
-            });
-        },
+        nodeZoomByID: zoomNodesById,
 
         /**
          * change the boundary style of the nodes by ID
@@ -456,6 +450,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 nodeSprite.boundaryAttr = boundaryAttr;
                 if (!nodeSprite.circleBorder) {
                     nodeSprite.circleBorder = new CircleBorderTexture(nodeSprite.boundaryAttr, visualConfig.NODE_WIDTH * 1.4 / 2);
+                    nodeSprite.circleBorder.scale.x = nodeSprite.scale.x;
+                    nodeSprite.circleBorder.scale.y = nodeSprite.scale.y;
                     nodeSprite.circleBorder.anchor.x = 0.5;
                     nodeSprite.circleBorder.anchor.y = 0.5;
                     nodeSprite.circleBorder.position.x = nodeSprite.position.x;
@@ -463,7 +459,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     nodeSprite.circleBorder.visible = true;
                     textContainer.addChild(nodeSprite.circleBorder);
                 } else {
-                    nodeSprite.circleBorder.setNewStyle(nodeSprite.boundaryAttr, visualConfig.NODE_WIDTH * 1.4 * nodeSprite.scale.x / 2);
+                    nodeSprite.circleBorder.setNewStyle(nodeSprite.boundaryAttr, visualConfig.NODE_WIDTH * 1.4 / 2);
                 }
             });
         },
@@ -475,15 +471,13 @@ export default HyjjPixiRenderer = function(graph, settings) {
         deleteBoundaryOfNodes: function(idArray) {
             _.each(idArray, function(id) {
                 let nodeSprite = nodeSprites[id];
-                if(nodeSprite.circleBorder){
-                    textContainer.removeChild(nodeSprite.circleBorder);
-                    nodeSprite.circleBorder = null;
+                if(nodeSprite) {
+                    if(nodeSprite.circleBorder){
+                        textContainer.removeChild(nodeSprite.circleBorder);
+                        nodeSprite.circleBorder = null;
+                        nodeSprite.boundaryAttr = null;
+                    }
                 }
-                // if(nodeNeedBoundary[id].circleBorder.visible){
-                //     textContainer.removeChild(nodeNeedBoundary[id].circleBorder);
-                //     nodeNeedBoundary[id].circleBorder.visible=false;
-                // }
-                // delete nodeNeedBoundary[id];
             });
         },
 
@@ -1200,6 +1194,31 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 }
                 delete linkSprites[l.id];
             });
+        },
+        resetStyle: function(entities, links) {
+            if(!entities && !links) {
+                entities = nodeSprites;
+                links = linkSprites;
+            }
+            _.each(entities, function(entity){
+                let nodeSprite = nodeSprites[entity] || nodeSprites[entity.id];
+                if(nodeSprite) {
+                    zoomNodesById([nodeSprite.id], 1)
+                    if(nodeSprite.circleBorder){
+                        textContainer.removeChild(nodeSprite.circleBorder);
+                        nodeSprite.circleBorder = null;
+                        nodeSprite.boundaryAttr = null;
+                    }
+                }
+            });
+
+            _.each(links, function(link){
+                let linkSprite = linkSprites[link] || linkSprites[link.id];
+                if(linkSprite) {
+                    linkSprite.thickness = visualConfig.ui.line.width;
+                    linkSprite.color = visualConfig.ui.line.color;
+                }
+            });
         }
     };
 
@@ -1209,6 +1228,20 @@ export default HyjjPixiRenderer = function(graph, settings) {
     ///////////////////////////////////////////////////////////////////////////////
     // Public API is over
     ///////////////////////////////////////////////////////////////////////////////
+    function zoomNodesById(nodeIDArray, zoomValue) {
+        _.each(nodeIDArray, function(nodeID) {
+            let nodeSprite = nodeSprites[nodeID];
+            if(nodeSprite) {
+                nodeSprite.scale.set(zoomValue);
+                nodeSprite.ts.scale.set(0.5 * zoomValue);
+                nodeSprite.ts.position.set(nodeSprites[nodeID].position.x, nodeSprites[nodeID].position.y + visualConfig.NODE_LABLE_OFFSET_Y * zoomValue);
+                if(nodeSprite.circleBorder) {
+                    nodeSprite.circleBorder.scale.set(zoomValue);
+                }
+            }
+        });
+    }
+
     function selectionChanged() {
 
         pixiGraphics.fire('selectionChanged');
