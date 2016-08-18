@@ -723,7 +723,23 @@ export default HyjjPixiRenderer = function(graph, settings) {
             });
         },
         backToInitCanvas: function () {
-            　//this.get
+            var root = this.root;
+            var rect = this.layout.getGraphRect();
+
+            console.log(rect.x1+" "+rect.y1);
+            console.log(root.position.x+" "+root.position.y);
+            console.log(viewWidth/2+" "+viewHeight/2);
+            // _.each(nodeSprites,function (n) {
+            //
+            //     n.position.x=n.position.x-root.position.x+viewWidth/2;
+            //     n.position.y=n.position.y-root.position.y+viewHeight/2;
+            //     n.updateNodePosition(n.position);
+            // });
+            root.scale.x=1;
+            root.scale.y=1;
+            root.position.x = viewWidth / 2;
+            root.position.y = viewHeight / 2;
+
         },
         setNodesToFullScreen: function () {
 
