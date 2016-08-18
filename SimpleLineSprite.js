@@ -26,7 +26,6 @@ SimpleLineSprite = function(label, thickness, color, x1, y1, x2, y2, controlOffs
 
     this.label = new PIXI.Text(label, fontConfig);
     this.label.scale.set(0.5, 0.5);
-    this.label.alpha = 0.7;
     this.label.anchor.x = 0.5;
     this.updatePosition();
 };

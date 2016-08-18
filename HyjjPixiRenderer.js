@@ -117,8 +117,14 @@ export default HyjjPixiRenderer = function(graph, settings) {
     nodeContainer.nodeReleased = function(node) {
         stage.hasNodeCaptured = false;
         if(layoutType == "Network") {
-            layout.pinNode(node, false);
-            layoutIterations = 600;
+            if(node.pinned) {
+                node.pinned = false;
+                layout.pinNode(node, false);
+            } else {
+                node.pinned = true;
+            }
+
+            layoutIterations = 120;
         }
     };
 
@@ -503,6 +509,13 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 nodeContainer.interactiveChildren = false;
                 nodeContainer.interactive = false;
 
+            }
+        },
+        toggleMode: function() {
+            if (this.mode == 'panning') {
+                this.setMode('picking');
+            } else {
+                this.setMode('panning');
             }
         },
 
