@@ -766,28 +766,190 @@ export default HyjjPixiRenderer = function(graph, settings) {
         },
         backToInitCanvas: function () {
             var root = this.root;
-            var rect = this.layout.getGraphRect();
-
-            console.log(rect.x1+" "+rect.y1);
-            console.log(root.position.x+" "+root.position.y);
-            console.log(viewWidth/2+" "+viewHeight/2);
-            // _.each(nodeSprites,function (n) {
-            //
-            //     n.position.x=n.position.x-root.position.x+viewWidth/2;
-            //     n.position.y=n.position.y-root.position.y+viewHeight/2;
-            //     n.updateNodePosition(n.position);
-            // });
             root.scale.x=1;
             root.scale.y=1;
             root.position.x = viewWidth / 2;
             root.position.y = viewHeight / 2;
-
+            var sumx=0;
+            var sumy=0;
+            var count=0;
+            _.each(nodeSprites,function (n) {
+                sumx+=n.position.x;
+                sumy+=n.position.y;
+                count++;
+            });
+            if(count!=0){
+                sumx=sumx/count;
+                sumy=sumy/count;
+            }
+            _.each(nodeSprites,function (n) {
+                n.position.x=n.position.x-sumx+0
+                n.position.y=n.position.y-sumy+0;
+                n.updateNodePosition(n.position);
+            });
         },
         setNodesToFullScreen: function () {
-
+            var root = this.root;
+            var rect = this.layout.getGraphRect();
+            let rootWidth=rect.x2-rect.x1,
+                rootHeight=rect.y2-rect.y1;
+            var xScale = viewWidth/rootWidth * 0.8;
+            var yScale = viewHeight/rootHeight * 0.8;
+            if(xScale>yScale && yScale < visualConfig.MAX_SCALE){
+                root.scale.x=yScale;
+                root.scale.y=yScale;
+            }else if(yScale>=xScale && xScale<visualConfig.MAX_SCALE){
+                root.scale.x=xScale;
+                root.scale.y=xScale;
+            }else{
+                root.scale.x=visualConfig.MAX_SCALE;
+                root.scale.y=visualConfig.MAX_SCALE;
+            }
+            root.position.x = viewWidth / 2;
+            root.position.y = viewHeight / 2;
+            var sumx=0;
+            var sumy=0;
+            var count=0;
+            _.each(nodeSprites,function (n) {
+                sumx+=n.position.x;
+                sumy+=n.position.y;
+                count++;
+            });
+            if(count!=0){
+                sumx=sumx/count;
+                sumy=sumy/count;
+            }
+            _.each(nodeSprites,function (n) {
+                n.position.x=n.position.x-sumx+0
+                n.position.y=n.position.y-sumy+0;
+                n.updateNodePosition(n.position);
+            });
         },
         setSelectedNodesToFullScreen: function () {
+            var root = this.root;
+            var x1=-1000000,y1,x2,y2;
+            var sumx=0;
+            var sumy=0;
+            var count=0;
+            _.each(nodeContainer.selectedNodes,function (n) {
+                sumx+=n.position.x;
+                sumy+=n.position.y;
+                count++;
+                if(x1==-1000000){
+                    x1=n.position.x;
+                    y1=n.position.y;
+                    x2=n.position.x;
+                    y2=n.position.y;
+                }else{
+                    if(n.position.x < x1){
+                        x1=n.position.x;
+                    }
+                    if(n.position.x > x2){
+                        x2=n.position.x;
+                    }
+                    if(n.position.y > y1){
+                        y1=n.position.y;
+                    }
+                    if(n.position.y < y2){
+                        y2=n.position.y;
+                    }
+                }
+            });
 
+            if(count!=0){
+                sumx=sumx/count;
+                sumy=sumy/count;
+            }else{
+                console.log("no nodes selected!");
+                return;
+            }
+            let rootWidth=Math.abs(x2-x1),
+                rootHeight=Math.abs(y1-y2);
+            var xScale;
+            var yScale;
+            xScale=visualConfig.MAX_SCALE;
+            yScale=visualConfig.MAX_SCALE;
+            if(rootHeight!=0){
+                var border;
+                if(viewHeight/rootHeight >10){
+                    border=500;
+                }else{
+                    border=(viewHeight/rootHeight)*50;
+                }
+                yScale=(viewHeight-border)/rootHeight;
+            }
+            if(rootWidth!=0){
+                var border;
+                if(viewWidth/rootWidth >10){
+                    border=350;
+                }else{
+                    border=(viewWidth/rootWidth)*35;
+                }
+                xScale=(viewWidth-350)/rootWidth;
+            }
+            if(xScale > yScale && yScale <visualConfig.MAX_SCALE){
+                root.scale.x=yScale;
+                root.scale.y=yScale;
+            }else if(yScale >= xScale && xScale < visualConfig.MAX_SCALE){
+                root.scale.x=xScale;
+                root.scale.y=xScale;
+            }else{
+                root.scale.x=visualConfig.MAX_SCALE;
+                root.scale.y=visualConfig.MAX_SCALE;
+            }
+            // if(rootWidth == 0 && rootHeight ==0){
+            //     xScale=visualConfig.MAX_SCALE;
+            //     yScale=visualConfig.MAX_SCALE;
+            // }else if(rootWidth == 0 || rootHeight!=0){
+            //     xScale=visualConfig.MAX_SCALE;
+            //     yScale=(viewHeight-50*viewHeight/rootHeight)/rootHeight;
+            // }else if(rootHeight == 0 || rootWidth!=0){
+            //     xScale = (viewWidth-32*viewWidth/rootWidth)/rootWidth;
+            //     yScale = visualConfig.MAX_SCALE;
+            // }else {
+            //     xScale = (viewWidth-32*viewWidth/rootWidth)/rootWidth;
+            //     yScale = (viewHeight-50*viewHeight/rootHeight)/rootHeight;
+            // }
+            // if(xScale>yScale && yScale<visualConfig.MAX_SCALE){
+            //     console.log("yScale ==> "+yScale+" xScale==> "+xScale);
+            //     if(yScale >= 0){
+            //         root.scale.x=yScale;
+            //         root.scale.y=yScale;
+            //     }else if(xScale < visualConfig.MAX_SCALE){
+            //         root.scale.x=xScale;
+            //         root.scale.y=xScale;
+            //     }else{
+            //         root.scale.x=visualConfig.MAX_SCALE;
+            //         root.scale.y=visualConfig.MAX_SCALE;
+            //     }
+            //
+            // }else if(yScale>=xScale && xScale<visualConfig.MAX_SCALE){
+            //     console.log("xScale ==>" +xScale);
+            //
+            //     if(yScale >= 0){
+            //         root.scale.x=xScale;
+            //         root.scale.y=xScale;
+            //     }else if(yScale < visualConfig.MAX_SCALE){
+            //         root.scale.x=yScale;
+            //         root.scale.y=yScale;
+            //     }else{
+            //         root.scale.x=visualConfig.MAX_SCALE;
+            //         root.scale.y=visualConfig.MAX_SCALE;
+            //     }
+            // }else{
+            //     console.log("MAX_SCALE")
+            //     root.scale.x=visualConfig.MAX_SCALE;
+            //     root.scale.y=visualConfig.MAX_SCALE;
+            // }
+
+            root.position.x = viewWidth / 2 ;
+            root.position.y = viewHeight / 2 ;
+
+            _.each(nodeSprites,function (n) {
+                n.position.x=n.position.x-sumx;
+                n.position.y=n.position.y-sumy;
+                n.updateNodePosition(n.position);
+            });
         },
 
         /**
@@ -1105,7 +1267,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 // var length=n2.ts.text.width;
                 // console.log(length);
                 //console.log("text width < 40 ");
-                boarderGraphics.drawRect(n2.position.x - 24 * n2.scale.x, n2.position.y - 24 * n2.scale.y, 48 * n2.scale.x, (60) * n2.scale.y); //TODO make size configurable
+                boarderGraphics.drawRect(n2.position.x - 24 * n2.scale.x, n2.position.y - 24 * n2.scale.y, 48 * n2.scale.x, (60) * n2.scale.y);
 
             }
         });
