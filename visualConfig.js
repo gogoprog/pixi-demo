@@ -100,8 +100,8 @@ export const visualConfig = {
             }
         },
         "label": {
-            "font": { "font": '18px Arial', "fill": '#FFFFFF', "align": 'center' },
-            "fontHighlight": { "font": '20px Arial', "fill": 0x0086E3, "align": 'center' },
+            "font": { "font": '20px Microsoft YaHei,Tahoma', "fill": '#FFFFFF', "align": 'center' },
+            "fontHighlight": { "font": '24px Microsoft YaHei,Tahoma', "fill": 0x0086E3, "align": 'center' },
         },
         "timeline" : {
             "color": 0xFFFFFF,

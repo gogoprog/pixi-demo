@@ -793,6 +793,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 n.position.x=n.position.x-sumx+0
                 n.position.y=n.position.y-sumy+0;
                 n.updateNodePosition(n.position);
+                layout.setNodePosition(n.id, n.position.x, n.position.y);
             });
         },
         setNodesToFullScreen: function () {
@@ -830,6 +831,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 n.position.x=n.position.x-sumx+0
                 n.position.y=n.position.y-sumy+0;
                 n.updateNodePosition(n.position);
+                layout.setNodePosition(n.id, n.position.x, n.position.y);
             });
         },
         setSelectedNodesToFullScreen: function () {
@@ -904,50 +906,6 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 root.scale.x=visualConfig.MAX_SCALE;
                 root.scale.y=visualConfig.MAX_SCALE;
             }
-            // if(rootWidth == 0 && rootHeight ==0){
-            //     xScale=visualConfig.MAX_SCALE;
-            //     yScale=visualConfig.MAX_SCALE;
-            // }else if(rootWidth == 0 || rootHeight!=0){
-            //     xScale=visualConfig.MAX_SCALE;
-            //     yScale=(viewHeight-50*viewHeight/rootHeight)/rootHeight;
-            // }else if(rootHeight == 0 || rootWidth!=0){
-            //     xScale = (viewWidth-32*viewWidth/rootWidth)/rootWidth;
-            //     yScale = visualConfig.MAX_SCALE;
-            // }else {
-            //     xScale = (viewWidth-32*viewWidth/rootWidth)/rootWidth;
-            //     yScale = (viewHeight-50*viewHeight/rootHeight)/rootHeight;
-            // }
-            // if(xScale>yScale && yScale<visualConfig.MAX_SCALE){
-            //     console.log("yScale ==> "+yScale+" xScale==> "+xScale);
-            //     if(yScale >= 0){
-            //         root.scale.x=yScale;
-            //         root.scale.y=yScale;
-            //     }else if(xScale < visualConfig.MAX_SCALE){
-            //         root.scale.x=xScale;
-            //         root.scale.y=xScale;
-            //     }else{
-            //         root.scale.x=visualConfig.MAX_SCALE;
-            //         root.scale.y=visualConfig.MAX_SCALE;
-            //     }
-            //
-            // }else if(yScale>=xScale && xScale<visualConfig.MAX_SCALE){
-            //     console.log("xScale ==>" +xScale);
-            //
-            //     if(yScale >= 0){
-            //         root.scale.x=xScale;
-            //         root.scale.y=xScale;
-            //     }else if(yScale < visualConfig.MAX_SCALE){
-            //         root.scale.x=yScale;
-            //         root.scale.y=yScale;
-            //     }else{
-            //         root.scale.x=visualConfig.MAX_SCALE;
-            //         root.scale.y=visualConfig.MAX_SCALE;
-            //     }
-            // }else{
-            //     console.log("MAX_SCALE")
-            //     root.scale.x=visualConfig.MAX_SCALE;
-            //     root.scale.y=visualConfig.MAX_SCALE;
-            // }
 
             root.position.x = viewWidth / 2 ;
             root.position.y = viewHeight / 2 ;
@@ -956,6 +914,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 n.position.x=n.position.x-sumx;
                 n.position.y=n.position.y-sumy;
                 n.updateNodePosition(n.position);
+                layout.setNodePosition(n.id, n.position.x, n.position.y);
             });
         },
 
