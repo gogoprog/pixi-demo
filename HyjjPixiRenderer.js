@@ -88,9 +88,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
     //TODO here set the canvas as 20000*20000
     nodeContainer.hitArea = new PIXI.Rectangle(-10000, -10000, 20000, 20000);
-
+    
     nodeContainer.interactive = true;
-
+    
     renderer.backgroundColor = 0xFFFFFF;
     SelectionManager.call(nodeContainer);
 
@@ -99,12 +99,14 @@ export default HyjjPixiRenderer = function(graph, settings) {
         selectionChanged();
     });
 
+    // textContainer.on('mouseup',function (e) {
+    //     console.log("text container mouse up!");
+    // });
     nodeContainer.nodeCaptured = function(node) {
         stage.hasNodeCaptured = true;
         if(layoutType == "Network") {
             layout.pinNode(node, true);
         }
-
     };
 
     nodeContainer.nodeMoved = function(node) {
@@ -227,6 +229,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             stage.interactive = false;
             // stage.interactiveChildren=false;
             nodeContainer.interactiveChildren = false;
+          
         },
 
         /**
@@ -237,9 +240,11 @@ export default HyjjPixiRenderer = function(graph, settings) {
             if (this.mode == "picking") {
                 nodeContainer.interactive = true;
                 nodeContainer.interactiveChildren = true;
+               
             } else {
                 nodeContainer.interactive = false;
                 nodeContainer.interactiveChildren = false;
+               
             }
         },
 
@@ -495,6 +500,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 nodeContainer.interactiveChildren = true;
                 // stage.interactive = false;
                 stage.buttonMode = false;
+               
             } else {
                 this.mode = 'panning';
                 // stage.interactive = true;
@@ -502,7 +508,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 stage.mode = this.mode;
                 nodeContainer.interactiveChildren = false;
                 nodeContainer.interactive = false;
-
+                
             }
         },
 
@@ -891,50 +897,6 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 root.scale.x=visualConfig.MAX_SCALE;
                 root.scale.y=visualConfig.MAX_SCALE;
             }
-            // if(rootWidth == 0 && rootHeight ==0){
-            //     xScale=visualConfig.MAX_SCALE;
-            //     yScale=visualConfig.MAX_SCALE;
-            // }else if(rootWidth == 0 || rootHeight!=0){
-            //     xScale=visualConfig.MAX_SCALE;
-            //     yScale=(viewHeight-50*viewHeight/rootHeight)/rootHeight;
-            // }else if(rootHeight == 0 || rootWidth!=0){
-            //     xScale = (viewWidth-32*viewWidth/rootWidth)/rootWidth;
-            //     yScale = visualConfig.MAX_SCALE;
-            // }else {
-            //     xScale = (viewWidth-32*viewWidth/rootWidth)/rootWidth;
-            //     yScale = (viewHeight-50*viewHeight/rootHeight)/rootHeight;
-            // }
-            // if(xScale>yScale && yScale<visualConfig.MAX_SCALE){
-            //     console.log("yScale ==> "+yScale+" xScale==> "+xScale);
-            //     if(yScale >= 0){
-            //         root.scale.x=yScale;
-            //         root.scale.y=yScale;
-            //     }else if(xScale < visualConfig.MAX_SCALE){
-            //         root.scale.x=xScale;
-            //         root.scale.y=xScale;
-            //     }else{
-            //         root.scale.x=visualConfig.MAX_SCALE;
-            //         root.scale.y=visualConfig.MAX_SCALE;
-            //     }
-            //
-            // }else if(yScale>=xScale && xScale<visualConfig.MAX_SCALE){
-            //     console.log("xScale ==>" +xScale);
-            //
-            //     if(yScale >= 0){
-            //         root.scale.x=xScale;
-            //         root.scale.y=xScale;
-            //     }else if(yScale < visualConfig.MAX_SCALE){
-            //         root.scale.x=yScale;
-            //         root.scale.y=yScale;
-            //     }else{
-            //         root.scale.x=visualConfig.MAX_SCALE;
-            //         root.scale.y=visualConfig.MAX_SCALE;
-            //     }
-            // }else{
-            //     console.log("MAX_SCALE")
-            //     root.scale.x=visualConfig.MAX_SCALE;
-            //     root.scale.y=visualConfig.MAX_SCALE;
-            // }
 
             root.position.x = viewWidth / 2 ;
             root.position.y = viewHeight / 2 ;
@@ -1422,8 +1384,10 @@ export default HyjjPixiRenderer = function(graph, settings) {
             }
         });
         let positionOffset = 0;
+        //f.data.isMultiple,f.data.isDirected,
+
         var l = new SimpleLineSprite(
-            f.data.label, visualConfig.ui.line.width, visualConfig.ui.line.color,
+            f.data.label, visualConfig.ui.line.width, visualConfig.ui.line.color,f.data.isMultiple,f.data.isDirected,
             srcNodeSprite.position.x, srcNodeSprite.position.y,
             tgtNodeSprite.position.x, tgtNodeSprite.position.y,
             positionOffset, visualConfig.ui.label.font);
@@ -1449,11 +1413,15 @@ export default HyjjPixiRenderer = function(graph, settings) {
         srcNodeSprite.outgoing.push(l);
         tgtNodeSprite.incoming.push(l);
         linkSprites[l.id] = l;
-        l.arrow.interactive = true;
-        l.arrow.buttonMode = true;
-        l.arrow.visible = true;
-        textContainer.addChild(l.label);
-        lineContainer.addChild(l.arrow);
+        l.label.interactive = true;
+        //l.label.fill= '#00FF00'
+        lineContainer.addChild(l.label);
+        if(f.data.isDirected){
+            l.arrow.interactive = true;
+            l.arrow.buttonMode = true;
+            l.arrow.visible = true;
+            lineContainer.addChild(l.arrow);
+        }
     }
 
     function defaultNodeRenderer(node) {
