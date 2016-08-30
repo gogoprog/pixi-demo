@@ -1165,7 +1165,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     nodeContainer.deselectLink(l);
                 }
                 if (l.label) {
-                    textContainer.removeChild(l.label);
+                    lineContainer.removeChild(l.label);
                 }
                 if (l.arrow) {
                     lineContainer.removeChild(l.arrow);
@@ -1507,7 +1507,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 nodeContainer.deselectLink(l);
             }
             if (l.label) {
-                textContainer.removeChild(l.label);
+                lineContainer.removeChild(l.label);
             }
             if (l.arrow) {
                 lineContainer.removeChild(l.arrow);
