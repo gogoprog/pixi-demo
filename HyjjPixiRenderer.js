@@ -163,6 +163,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
         nodeContainer.deselectAll();
         _.each(nodeSprites, function(n) {
             //console.log(n.position.x+" "+n.position.y);
+            if(!n.visible) {
+                return;
+            }
             if ((n.position.x <= xr) && (n.position.x >= xl) && (n.position.y >= yt) && (n.position.y <= yb)) {
                 //console.log("here i come!!");
                 nodeContainer.selectNode(n);
@@ -467,7 +470,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     nodeSprite.circleBorder.anchor.y = 0.5;
                     nodeSprite.circleBorder.position.x = nodeSprite.position.x;
                     nodeSprite.circleBorder.position.y = nodeSprite.position.y;
-                    nodeSprite.circleBorder.visible = true;
+                    nodeSprite.circleBorder.visible = nodeSprite.visible;
                     textContainer.addChild(nodeSprite.circleBorder);
                 } else {
                     nodeSprite.circleBorder.setNewStyle(nodeSprite.boundaryAttr, visualConfig.NODE_WIDTH * 1.4 / 2);
