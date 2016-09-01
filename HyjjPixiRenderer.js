@@ -88,9 +88,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
     //TODO here set the canvas as 20000*20000
     nodeContainer.hitArea = new PIXI.Rectangle(-10000, -10000, 20000, 20000);
-    
+
     nodeContainer.interactive = true;
-    
+
     renderer.backgroundColor = 0xFFFFFF;
     SelectionManager.call(nodeContainer);
 
@@ -238,7 +238,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             stage.interactive = false;
             // stage.interactiveChildren=false;
             nodeContainer.interactiveChildren = false;
-          
+
         },
 
         /**
@@ -249,11 +249,11 @@ export default HyjjPixiRenderer = function(graph, settings) {
             if (this.mode == "picking") {
                 nodeContainer.interactive = true;
                 nodeContainer.interactiveChildren = true;
-               
+
             } else {
                 nodeContainer.interactive = false;
                 nodeContainer.interactiveChildren = false;
-               
+
             }
         },
 
@@ -509,7 +509,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 nodeContainer.interactiveChildren = true;
                 // stage.interactive = false;
                 stage.buttonMode = false;
-               
+
             } else {
                 this.mode = 'panning';
                 // stage.interactive = true;
@@ -517,7 +517,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 stage.mode = this.mode;
                 nodeContainer.interactiveChildren = false;
                 nodeContainer.interactive = false;
-                
+
             }
         },
         toggleMode: function() {
@@ -1334,6 +1334,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
         //textContainer.addChild(n.circleBorder);
         n.visible = true; //add for hide the node and line
+        if(p.data.properties && p.data.properties._$hidden){
+            n.visible = false;
+        }
         n.id = p.id;
         n.parent = nodeContainer;
         n.anchor.x = 0.5;
@@ -1363,6 +1366,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         t.position.set(p.data.x, p.data.y + visualConfig.NODE_LABLE_OFFSET_Y);
         t.anchor.x = 0.5;
         t.scale.set(0.5, 0.5);
+        t.visible = n.visible;
         n.ts = t;
         textContainer.addChild(t);
         nodeContainer.addChild(n);
@@ -1434,17 +1438,21 @@ export default HyjjPixiRenderer = function(graph, settings) {
         l.id = f.data.id;
         l.ngLink = f;
         l.visible = true;
+        if(f.data.properties && f.data.properties._$hidden){
+            l.visible = false;
+        }
 
         srcNodeSprite.outgoing.push(l);
         tgtNodeSprite.incoming.push(l);
         linkSprites[l.id] = l;
         l.label.interactive = true;
+        l.label.visible = l.visible;
         //l.label.fill= '#00FF00'
         lineContainer.addChild(l.label);
         if(f.data.isDirected){
             l.arrow.interactive = true;
             l.arrow.buttonMode = true;
-            l.arrow.visible = true;
+            l.arrow.visible = l.visible;
             lineContainer.addChild(l.arrow);
         }
     }
