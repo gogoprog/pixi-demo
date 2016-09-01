@@ -194,7 +194,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
     graph.forEachNode(initNode);
     graph.forEachLink(initLink);
-    setupWheelListener(canvas, root);
+    // setupWheelListener(canvas, root); // wheel listener 现在在外部模板内设置，通过zoom接口来调用renderer的缩放方法。
     var layoutIterations = 0,
         counter = new FPSCounter();
 
@@ -1047,6 +1047,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
             var y = viewHeight / 2;
             zoom(x, y, false, root);
         },
+        zoom: function(x, y, zoomingIn) {
+            zoom(x, y, zoomingIn, root);
+        },
         switchToTimelineLayout: function(leftSpacing) {
             layoutIterations = 0;
             layoutType = "TimelineScale";
@@ -1154,9 +1157,12 @@ export default HyjjPixiRenderer = function(graph, settings) {
             stage.contentRootMoved();
         },
         destroy: function() {
+            graph.off('changed', onGraphChanged);
             stage.destroy();
             stage.destroyed = true;
             renderer.destroy();
+            nodeSprites = [];
+            linkSprites = [];
         },
         removeAllLinks: function() {
             _.each(nodeSprites, function(n) {
