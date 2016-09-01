@@ -1502,6 +1502,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
             if (_.has(nodeNeedBoundary, node.id)) {
                 delete nodeNeedBoundary[node.id];
             }
+            if(nodeSprite.circleBorder) {
+                textContainer.removeChild(nodeSprite.circleBorder);
+            }
             if (nodeSprite.selected) {
                 nodeContainer.deselectNode(nodeSprite);
             }
