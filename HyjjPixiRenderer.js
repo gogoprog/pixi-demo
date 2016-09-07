@@ -938,18 +938,38 @@ export default HyjjPixiRenderer = function(graph, settings) {
         lineContainer: lineContainer,
         mode: 'picking',
         counter: counter,
+        unselectPath:function(nodeIdArray,linkIdArray){
+            if(nodeIdArray){
+                _.each(nodeIdArray,function(nodeId){
+                    var nodeSprite=nodeSprites[nodeId];
+                    if(nodeSprite.selected){
+                        nodeContainer.deselectNode(nodeSprite);
+                    }
+                })
+            }
+           if(linkIdArray){
+               _.each(linkSprites, function(linkSprite, lid) {
+                   var actualId = linkSprite.id;
+                   if (_.indexOf(linkIdArray, actualId) >= 0) {
+                       nodeContainer.deselectLink(linkSprite);
+                   }
+               });
+           }
+        },
         selectPath: function(nodeIdArray, linkIdArray) {
-            _.each(nodeIdArray, function(nodeId) {
-                var nodeSprite = nodeSprites[nodeId];
-                if (nodeSprite) {
-                    nodeContainer.selectNode(nodeSprite);
-                    // _.each(nodeSprite.outgoing, function(linkSprite) {
-                    //     if (linkIdArray.indexOf(linkSprite.id) >= 0) {
-                    //         nodeContainer.selectLink(linkSprite);
-                    //     }
-                    // });
-                }
-            });
+            if(nodeIdArray){
+                _.each(nodeIdArray, function(nodeId) {
+                    var nodeSprite = nodeSprites[nodeId];
+                    if (nodeSprite) {
+                        nodeContainer.selectNode(nodeSprite);
+                        // _.each(nodeSprite.outgoing, function(linkSprite) {
+                        //     if (linkIdArray.indexOf(linkSprite.id) >= 0) {
+                        //         nodeContainer.selectLink(linkSprite);
+                        //     }
+                        // });
+                    }
+                });
+            }
             _.each(linkSprites, function(linkSprite, lid) {
                 var actualId = linkSprite.id;
                 if (_.indexOf(linkIdArray, actualId) >= 0) {
