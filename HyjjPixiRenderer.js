@@ -635,7 +635,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     layout.setNodePosition(node.id, node.position.x, node.position.y);
                 });
             });
-
+            this.setNodesToFullScreen();
+            console.log("set nodes to full screen!!");
         },
 
         dataResetForTreeLayout: function() {
@@ -767,7 +768,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                             var p = {};
                             p.x = st.positionx - (st.treeLayoutEachLevelNumb[node.treeLayoutLevel] - 1) * visualConfig.NODE_WIDTH;
                             st.treeLayoutEachLevelNumb[node.treeLayoutLevel] = st.treeLayoutEachLevelNumb[node.treeLayoutLevel] - 2;
-                            p.y = st.positiony + visualConfig.NODE_WIDTH * 2 * (node.treeLayoutLevel - 1);
+                            p.y = st.positiony + visualConfig.NODE_WIDTH * 4 * (node.treeLayoutLevel - 1);
                             node.updateNodePosition(p);
                         } else {
                             node.updateNodePosition({
@@ -779,6 +780,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     });
                 }
             });
+            this.setNodesToFullScreen();
         },
         backToInitCanvas: function () {
             var root = this.root;
@@ -806,24 +808,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
             });
         },
         setNodesToFullScreen: function () {
+
             var root = this.root;
-            var rect = this.layout.getGraphRect();
-            let rootWidth=rect.x2-rect.x1,
-                rootHeight=rect.y2-rect.y1;
-            var xScale = viewWidth/rootWidth * 0.8;
-            var yScale = viewHeight/rootHeight * 0.8;
-            if(xScale>yScale && yScale < visualConfig.MAX_SCALE){
-                root.scale.x=yScale;
-                root.scale.y=yScale;
-            }else if(yScale>=xScale && xScale<visualConfig.MAX_SCALE){
-                root.scale.x=xScale;
-                root.scale.y=xScale;
-            }else{
-                root.scale.x=visualConfig.MAX_SCALE;
-                root.scale.y=visualConfig.MAX_SCALE;
-            }
-            root.position.x = viewWidth / 2;
-            root.position.y = viewHeight / 2;
+            var x1=-1000000,y1,x2,y2;
             var sumx=0;
             var sumy=0;
             var count=0;
@@ -831,17 +818,79 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 sumx+=n.position.x;
                 sumy+=n.position.y;
                 count++;
+                if(x1==-1000000){
+                    x1=n.position.x;
+                    y1=n.position.y;
+                    x2=n.position.x;
+                    y2=n.position.y;
+                }else{
+                    if(n.position.x < x1){
+                        x1=n.position.x;
+                    }
+                    if(n.position.x > x2){
+                        x2=n.position.x;
+                    }
+                    if(n.position.y > y1){
+                        y1=n.position.y;
+                    }
+                    if(n.position.y < y2){
+                        y2=n.position.y;
+                    }
+                }
             });
+
             if(count!=0){
                 sumx=sumx/count;
                 sumy=sumy/count;
+            }else{
+                console.log("no nodes selected!");
+                return;
             }
+            let rootWidth=Math.abs(x2-x1),
+                rootHeight=Math.abs(y1-y2);
+            var xScale;
+            var yScale;
+            xScale=visualConfig.MAX_SCALE;
+            yScale=visualConfig.MAX_SCALE;
+            if(rootHeight!=0){
+                var border;
+                if(viewHeight/rootHeight >10){
+                    border=500;
+                }else{
+                    border=(viewHeight/rootHeight)*50;
+                }
+                yScale=(viewHeight-border)/rootHeight;
+            }
+            if(rootWidth!=0){
+                var border;
+                if(viewWidth/rootWidth >10){
+                    border=350;
+                }else{
+                    border=(viewWidth/rootWidth)*35;
+                }
+                xScale=(viewWidth-350)/rootWidth;
+            }
+            if(xScale > yScale && yScale <visualConfig.MAX_SCALE){
+                root.scale.x=yScale;
+                root.scale.y=yScale;
+            }else if(yScale >= xScale && xScale < visualConfig.MAX_SCALE){
+                root.scale.x=xScale;
+                root.scale.y=xScale;
+            }else{
+                root.scale.x=visualConfig.MAX_SCALE;
+                root.scale.y=visualConfig.MAX_SCALE;
+            }
+
+            root.position.x = viewWidth / 2 ;
+            root.position.y = viewHeight / 2 ;
+
             _.each(nodeSprites,function (n) {
-                n.position.x=n.position.x-sumx+0
-                n.position.y=n.position.y-sumy+0;
+                n.position.x=n.position.x-sumx;
+                n.position.y=n.position.y-sumy;
                 n.updateNodePosition(n.position);
                 layout.setNodePosition(n.id, n.position.x, n.position.y);
             });
+
         },
         setSelectedNodesToFullScreen: function () {
             var root = this.root;
