@@ -1335,6 +1335,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 return false;
             }
             // this.setNodesToFullScreen();
+            isDirty = true;
         }
     };
 
@@ -1379,7 +1380,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
         requestAnimationFrame(animationLoop);
         
-        if(isDirty || nodeContainer.isDirty){
+        if(isDirty || nodeContainer.isDirty || stage.isDirty){
             if (layoutIterations > 0) {
                 layout.step();
                 //大开销计算
@@ -1404,6 +1405,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         }
         isDirty=false;
         nodeContainer.isDirty=false;
+        stage.isDirty = false;
     }
 
 
