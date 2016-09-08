@@ -15,6 +15,9 @@ Meteor.startup(function() {
 });
 
 export default HyjjPixiRenderer = function(graph, settings) {
+
+    var isDirty=true;
+
     // Initialize default settings:
     settings = _.extend(settings, {
         // What is the background color of a graph?
@@ -95,21 +98,21 @@ export default HyjjPixiRenderer = function(graph, settings) {
     SelectionManager.call(nodeContainer);
 
     nodeContainer.on('mouseup', function(e) {
+        isDirty=true;
         nodeContainer.handleMouseUp(e);
         selectionChanged();
     });
 
-    // textContainer.on('mouseup',function (e) {
-    //     console.log("text container mouse up!");
-    // });
     nodeContainer.nodeCaptured = function(node) {
         stage.hasNodeCaptured = true;
+        isDirty=true;
         if(layoutType == "Network") {
             layout.pinNode(node, true);
         }
     };
 
     nodeContainer.nodeMoved = function(node) {
+        isDirty=true;
         if(layoutType == "Network") {
             layout.setNodePosition(node.id, node.position.x, node.position.y);
             layoutIterations += 60;
@@ -117,6 +120,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
     };
 
     nodeContainer.nodeReleased = function(node) {
+        isDirty=true;
         stage.hasNodeCaptured = false;
         if(layoutType == "Network") {
             if(node.pinned) {
@@ -132,6 +136,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
     //layout 相关,把移动位置同步到layout内部
     nodeContainer.selectedNodesPosChanged = function() {
+        isDirty=true;
         _.each(nodeContainer.nodes, function(node) {
             var pos = layout.setNodePosition(node.id, node.position.x, node.position.y);
         });
@@ -140,6 +145,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
 
     stage.selectAllNodesInRegion = function(x1, y1, x2, y2) {
+        isDirty=true;
         var xl;
         var xr;
         var yt;
@@ -261,6 +267,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * adjust the initial display location to center of the scene
          */
         adjustInitialDisplayLocation: function() {
+            isDirty=true;
             var root = this.root;
             this.layout.step();
             var rect = this.layout.getGraphRect();
@@ -278,6 +285,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * To arrange the nodes quickly, we need add the cycles manually.
          **/
         addLayoutCycles: function(n) {
+            isDirty=true;
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }
@@ -294,7 +302,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * change the boundary style of the nodes by ID
          **/
         changeBoundaryStyleByID: function(nodeIDArray, boundAttr) {
-
+            isDirty=true;
             _.each(nodeIDArray, function(nodeID) {
                 nodeSprites[nodeID].boundaryAttr = boundAttr;
             });
@@ -304,7 +312,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * change the style of the link by ID
          */
         changeLinkStyleByID: function(linkIDArray, linkAttr) {
-
+            isDirty=true;
             _.each(linkIDArray, function(linkID) {
                 //console.log(linkID);
                 if (!linkAttr.color) {
@@ -326,6 +334,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * reset the style of the link by ID
          */
         resetLinkStyleByID: function(linkIDArray) {
+            isDirty=true;
             _.each(linkIDArray, function(linkID) {
                 var styleResetLink = linkSprites[linkID];
                 var linkAttr = {};
@@ -367,6 +376,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * hide nodes by ID
          */
         hideNodesByID: function(idArray) {
+            isDirty=true;
             _.each(idArray, function(node) {
                 var hiddenNode = nodeSprites[node];
                 if (hiddenNode.selected) {
@@ -397,6 +407,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             hiddenStatusChanged();
         },
         hideLinksByID: function(idArray) {
+            isDirty=true;
             _.each(idArray, function(linkId) {
                 var linkToHide = linkSprites[linkId];
                 if (linkToHide.selected) {
@@ -408,6 +419,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             hiddenStatusChanged();
         },
         showAll: function() {
+            isDirty=true;
             _.each(nodeSprites, function(ns) {
                 ns.visible = true;
                 ns.ts.visible = true;
@@ -424,6 +436,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * show nodes by ID
          */
         showNodesByID: function(idArray) {
+            isDirty=true;
             _.each(idArray, function(node) {
                 var showNode = nodeSprites[node];
                 showNode.visible = true;
@@ -456,6 +469,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * when call this function, you should give me a group of ID and the attribute for this group
          */
         setBoundaryNeededNodes: function (idArray, boundaryAttr) {
+            isDirty=true;
             //this part is for performance test
             _.each(idArray, function (node) {
                 // nodeNeedBoundary[node] = nodeSprites[node];
@@ -483,6 +497,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * when call this function, you should give me a group of ID
          */
         deleteBoundaryOfNodes: function(idArray) {
+            isDirty=true;
             _.each(idArray, function(id) {
                 let nodeSprite = nodeSprites[id];
                 if(nodeSprite) {
@@ -619,6 +634,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * draw a circle
          */
         drawCircleLayout: function() {
+            isDirty=true;
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }
@@ -754,6 +770,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             });
         },
         drawTreeLayout: function() {
+            isDirty=true;
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }
@@ -783,6 +800,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             this.setNodesToFullScreen();
         },
         backToInitCanvas: function () {
+            isDirty=true;
             var root = this.root;
             root.scale.x=1;
             root.scale.y=1;
@@ -808,7 +826,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             });
         },
         setNodesToFullScreen: function () {
-
+            isDirty=true;
             var root = this.root;
             var x1=-1000000,y1,x2,y2;
             var sumx=0;
@@ -893,6 +911,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
         },
         setSelectedNodesToFullScreen: function () {
+            isDirty=true;
             var root = this.root;
             var x1=-1000000,y1,x2,y2;
             var sumx=0;
@@ -988,6 +1007,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
         mode: 'picking',
         counter: counter,
         unselectPath:function(nodeIdArray,linkIdArray){
+            isDirty=true;
             if(nodeIdArray){
                 _.each(nodeIdArray,function(nodeId){
                     var nodeSprite=nodeSprites[nodeId];
@@ -1006,6 +1026,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
            }
         },
         selectPath: function(nodeIdArray, linkIdArray) {
+            isDirty=true;
             if(nodeIdArray){
                 _.each(nodeIdArray, function(nodeId) {
                     var nodeSprite = nodeSprites[nodeId];
@@ -1028,10 +1049,12 @@ export default HyjjPixiRenderer = function(graph, settings) {
             selectionChanged();
         },
         clearSelection: function() {
+            isDirty=true;
             nodeContainer.deselectAll();
             selectionChanged();
         },
         selectLinks: function(linkIdArray) {
+            isDirty=true;
             // _.each(linkSprites, function(linkSprite,lid){
             //     var actualId = linkSprite.data.data.id
             //     if( _.indexOf(linkIdArray, actualId) >=0){
@@ -1040,6 +1063,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             // });
         },
         selectLinksFromNodes: function(startingNodes, direction, alsoSelectNodes) {
+            isDirty=true;
             _.each(startingNodes, function(n) {
                 if (direction === "both" || direction == "in") {
                     _.each(n.incoming, function(l) {
@@ -1061,6 +1085,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             selectionChanged();
         },
         selectNodesOfLinks: function(selectedLinks) {
+            isDirty=true;
             _.each(selectedLinks, function(l) {
                 var d = l.data;
                 var srcNode = nodeSprites[d.sourceEntity];
@@ -1075,6 +1100,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             selectionChanged();
         },
         selectAll: function() {
+            isDirty=true;
             _.each(linkSprites, function(l) {
                 nodeContainer.selectLink(l);
             });
@@ -1084,6 +1110,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             selectionChanged();
         },
         selectReverseSelection: function() {
+            isDirty=true;
             _.each(linkSprites, function(l) {
                 if (l.selected) {
                     nodeContainer.deselectLink(l);
@@ -1102,24 +1129,29 @@ export default HyjjPixiRenderer = function(graph, settings) {
             selectionChanged();
         },
         hideSelectedLinks: function() {
+            isDirty=true;
             _.each(nodeContainer.links, function(link) {
                 link.hide();
             });
         },
         zoomIn: function() {
+            isDirty=true;
             var x = viewWidth / 2;
             var y = viewHeight / 2;
             zoom(x, y, true, root);
         },
         zoomOut: function() {
+            isDirty=true;
             var x = viewWidth / 2;
             var y = viewHeight / 2;
             zoom(x, y, false, root);
         },
         zoom: function(x, y, zoomingIn) {
+            isDirty=true;
             zoom(x, y, zoomingIn, root);
         },
         switchToTimelineLayout: function(leftSpacing) {
+            isDirty=true;
             layoutIterations = 0;
             layoutType = "TimelineScale";
             var timelineItems = [];
@@ -1226,6 +1258,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             stage.contentRootMoved();
         },
         destroy: function() {
+            isDirty=true;
             graph.off('changed', onGraphChanged);
             stage.destroy();
             stage.destroyed = true;
@@ -1234,6 +1267,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             linkSprites = [];
         },
         removeAllLinks: function() {
+            isDirty=true;
             _.each(nodeSprites, function(n) {
                 n.incoming = [];
                 n.outgoing = [];
@@ -1252,6 +1286,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
             });
         },
         resetStyle: function(entities, links) {
+            isDirty=true;
             if(!entities && !links) {
                 entities = nodeSprites;
                 links = linkSprites;
@@ -1285,6 +1320,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
     // Public API is over
     ///////////////////////////////////////////////////////////////////////////////
     function zoomNodesById(nodeIDArray, zoomValue) {
+        isDirty=true;
         _.each(nodeIDArray, function(nodeID) {
             let nodeSprite = nodeSprites[nodeID];
             if(nodeSprite) {
@@ -1299,42 +1335,50 @@ export default HyjjPixiRenderer = function(graph, settings) {
     }
 
     function selectionChanged() {
-
+        isDirty=true;
         pixiGraphics.fire('selectionChanged');
         drawBorders();
     }
 
     function hiddenStatusChanged() {
+        isDirty=true;
         pixiGraphics.fire('hiddenStatusChanged');
     }
 
 
     function animationLoop() {
+
         if(stage.destroyed){
             return;
         }
+
         requestAnimationFrame(animationLoop);
-        if (layoutIterations > 0) {
-            layout.step();
-            //大开销计算
-            _.each(nodeSprites, function(nodeSprite, nodeId) {
-                nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
-            });
-            layoutIterations -= 1;
-        }
+        
+        if(isDirty || nodeContainer.isDirty){
+            if (layoutIterations > 0) {
+                layout.step();
+                //大开销计算
+                _.each(nodeSprites, function(nodeSprite, nodeId) {
+                    nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+                });
+                layoutIterations -= 1;
+            }
 
-        selectRegionGraphics.clear();
-        if (stage.selectRegion && stage.selectingArea) {
-            drawSelectionRegion();
-        }
+            selectRegionGraphics.clear();
+            if (stage.selectRegion && stage.selectingArea) {
+                drawSelectionRegion();
+            }
 
-        drawBorders();
-        drawLines();
-        if (stage.isTimelineLayout) {
-            drawNodeTimelines();
+            drawBorders();
+            drawLines();
+            if (stage.isTimelineLayout) {
+                drawNodeTimelines();
+            }
+            renderer.render(stage);
+            counter.nextFrame();
         }
-        renderer.render(stage);
-        counter.nextFrame();
+        isDirty=false;
+        nodeContainer.isDirty=false;
     }
 
 
@@ -1566,6 +1610,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
     }
 
     function removeNode(node) {
+        isDirty=true;
         var nodeSprite = nodeSprites[node.id];
         if (nodeSprite) {
             if (_.has(nodeNeedBoundary, node.id)) {
@@ -1590,6 +1635,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
 
     function removeLink(link) {
+        isDirty=true;
         var l = linkSprites[link.data.id];
         if (l) {
             if (l.selected) {
@@ -1621,6 +1667,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
     }
 
     function onGraphChanged(changes) {
+        isDirty=true;
         for (var i = 0; i < changes.length; ++i) {
             var change = changes[i];
             if (change.changeType === 'add') {
@@ -1669,7 +1716,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
 
 
     function drawSelectionRegion() {
-
+        
         if (stage.selectRegion) {
             var frameCfg = visualConfig.ui.frame;
             selectRegionGraphics.lineStyle(frameCfg.border.width, frameCfg.border.color, frameCfg.border.alpha);

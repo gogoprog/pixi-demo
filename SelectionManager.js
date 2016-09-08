@@ -4,17 +4,21 @@ export const SelectionManager = function() {
     this.selectedNodes = {};
     this.selectedLinks = {};
     this.recentlySelected = null;
+    this.isDirty = true;
 
     this.nodeSelected = function(node) {
+        this.isDirty=true;
         this.recentlySelected = node;
     };
 
     this.linkSelected = function(link) {
         //console.log("here");
+        this.isDirty=true;
         this.recentlySelected = link;
     };
 
     this.selectNode = function(node) {
+        this.isDirty=true;
         if (node) {
             if(!_.has(this.selectedNodes, node.id)){
                 this.selectedNodes[node.id] = node;
@@ -24,6 +28,7 @@ export const SelectionManager = function() {
         }
     };
     this.deselectNode = function(node) {
+        this.isDirty=true;
         if (node.selected) {
             var index = this.nodes.indexOf(this.selectedNodes[node.id]);
             if (index > -1) {
@@ -34,6 +39,7 @@ export const SelectionManager = function() {
         }
     };
     this.selectLink = function(link) {
+        this.isDirty=true;
         if (link) {
             if(!_.has(this.selectedLinks, link.id)){
                 this.selectedLinks[link.id] = link;
@@ -43,6 +49,7 @@ export const SelectionManager = function() {
         }
     };
     this.deselectLink = function(link) {
+        this.isDirty=true;
         if (link.selected) {
             var index = this.links.indexOf(this.selectedLinks[link.id]);
             if (index > -1) {
@@ -54,6 +61,7 @@ export const SelectionManager = function() {
     };
 
     this.deselectAll = function() {
+        this.isDirty=true;
         _.each(this.selectedNodes, function(node, id) {
             node.selectionChanged(false);
             // console.log("Deselect node " + id);
@@ -69,6 +77,7 @@ export const SelectionManager = function() {
     };
 
     this.handleMouseUp = function(e) {
+        this.isDirty=true;
         var mouseEvent = e.data.originalEvent;
         if (this.recentlySelected) {
             var n = this.recentlySelected; // could be a node or a link
