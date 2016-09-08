@@ -115,7 +115,6 @@ export default HyjjPixiRenderer = function(graph, settings) {
         isDirty=true;
         if(layoutType == "Network") {
             layout.setNodePosition(node.id, node.position.x, node.position.y);
-            layoutIterations += 60;
         }
     };
 
@@ -123,15 +122,18 @@ export default HyjjPixiRenderer = function(graph, settings) {
         isDirty=true;
         stage.hasNodeCaptured = false;
         if(layoutType == "Network") {
-            if(node.pinned) {
-                node.pinned = false;
-                layout.pinNode(node, false);
-            } else {
-                node.pinned = true;
-            }
-
-            layoutIterations = 120;
+            layout.pinNode(node, false);
         }
+        // if(layoutType == "Network") {
+        //     if(node.pinned) {
+        //         node.pinned = false;
+        //         layout.pinNode(node, false);
+        //     } else {
+        //         node.pinned = true;
+        //     }
+        //
+        //     layoutIterations = 120;
+        // }
     };
 
     //layout 相关,把移动位置同步到layout内部
@@ -226,7 +228,7 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 { animation: false}
             );
         }
-    }
+    };
     stage.contentRootMoved = _.throttle(alineTimeline.bind(stage), 50);
 
     var pixiGraphics = {
@@ -267,17 +269,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * adjust the initial display location to center of the scene
          */
         adjustInitialDisplayLocation: function() {
-            isDirty=true;
-            var root = this.root;
-            this.layout.step();
-            var rect = this.layout.getGraphRect();
-            let rootW = rect.x2 - rect.x1,
-                rootH = rect.y2 - rect.y1;
-
-            root.position.x = viewWidth / 2;
-            root.position.y = viewHeight / 2;
-            console.log('Root moved to ' + root.position.x + ',' + root.position.y);
-            this.addLayoutCycles(150);
+            this.performLayout();
+            this.setNodesToFullScreen();
         },
 
         /*
@@ -652,7 +645,6 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 });
             });
             this.setNodesToFullScreen();
-            console.log("set nodes to full screen!!");
         },
 
         dataResetForTreeLayout: function() {
@@ -1000,6 +992,9 @@ export default HyjjPixiRenderer = function(graph, settings) {
          * algorithm, do it via `settings` argument of ngraph.pixi.
          */
         layout: layout,
+        getLayoutType: function() {
+            return layoutType;
+        },
         nodeContainer: nodeContainer,
         root: root,
         stage: stage,
@@ -1310,6 +1305,36 @@ export default HyjjPixiRenderer = function(graph, settings) {
                     linkSprite.color = visualConfig.ui.line.color;
                 }
             });
+        },
+        switchLayoutType: function(layoutTypeStr) {
+            layoutType = layoutTypeStr || 'Network';
+            if(layoutType != 'Network' && layoutType != 'Circular' && layoutType != 'Layered' && layoutType != 'TimelineScale' ) {
+                layoutType = 'Network';
+            }
+        },
+        performLayout: function() {
+            if(layoutType == 'Network') {
+                if (stage.isTimelineLayout) {
+                    disableTimelineLayout();
+                }
+                layoutIterations = 1500;
+                while (layoutIterations > 0) {
+                    layout.step();
+                    layoutIterations -= 1;
+                }
+                _.each(nodeSprites, function(nodeSprite, nodeId) {
+                    nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+                });
+            } else if( layoutType == 'Circular') {
+                this.drawCircleLayout();
+            } else if( layoutType == 'Layered') {
+                this.drawTreeLayout();
+            } else if( layoutType == 'TimelineScale') {
+                this.switchToTimelineLayout();
+            } else {
+                return false;
+            }
+            // this.setNodesToFullScreen();
         }
     };
 
