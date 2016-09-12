@@ -18,15 +18,13 @@ var getGraphCoordinates = (function() {
 }());
 
 export const zoom = function(x, y, isZoomIn, stage) {
-    var vpX = x,
-        vpY = y;
     if ((isZoomIn && stage.scale.x > visualConfig.MAX_SCALE) || (!isZoomIn && stage.scale.x < visualConfig.MIN_SCALE)) {
         return;
     }
-    direction = isZoomIn ? 1 : -1;
-    var factor = (direction * 0.1);
-    stage.scale.x += factor;
-    stage.scale.y += factor;
+    let direction = isZoomIn ? 1 : -1;
+    var factor = (1 + direction * 0.1);
+    stage.scale.x *= factor;
+    stage.scale.y *= factor;
     // Technically code below is not required, but helps to zoom on mouse
     // cursor, instead center of graphGraphics coordinates
     var beforeTransform = getGraphCoordinates(x, y, stage);
