@@ -45,7 +45,8 @@ export default HyjjPixiRenderer = function (graph, settings) {
     var viewWidth = settings.container.clientWidth,
         viewHeight = settings.container.clientHeight;
     var timeline, timelineWindow, msPerPix, originSpotTime, timelineWidth; // the timeline object.
-    var renderer = new PIXI.WebGLRenderer(viewWidth, viewHeight, {
+
+    var renderer = new PIXI.autoDetectRenderer(viewWidth, viewHeight, {
             view: settings.container,
             transparent: true,
             autoResize: true,
