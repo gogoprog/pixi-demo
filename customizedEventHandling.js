@@ -84,7 +84,6 @@ rootCaptureHandler = function(e) {
 };
 
 rootReleaseHandler = function(e) {
-    // console.log('Root  released ');
     this.off('mousemove', this.moveListener);
     this.off('mouseup', this.upListener);
     this.data=null;
@@ -119,6 +118,7 @@ rootMoveHandler = function(e) {
         if(this.isTimelineLayout) {
             this.contentRootMoved();
         }
+        this.isDirty = true;
     } else if (this.selectingArea) {
         if(Math.abs(dx) >5 && Math.abs(dy) > 5){
             this.selectRegion = {
