@@ -18,12 +18,10 @@ var getGraphCoordinates = (function() {
 }());
 
 export const zoom = function(x, y, isZoomIn, stage) {
-    var vpX = x,
-        vpY = y;
     if ((isZoomIn && stage.scale.x > visualConfig.MAX_SCALE) || (!isZoomIn && stage.scale.x < visualConfig.MIN_SCALE)) {
         return;
     }
-    direction = isZoomIn ? 1 : -1;
+    let direction = isZoomIn ? 1 : -1;
     var factor = (1 + direction * 0.1);
     stage.scale.x *= factor;
     stage.scale.y *= factor;
@@ -41,7 +39,7 @@ export const zoom = function(x, y, isZoomIn, stage) {
     stage.position.y += (afterTransform.y - beforeTransform.y) * stage.scale.y;
     stage.updateTransform();
     if(stage.parent.isTimelineLayout){
-        stage.parent.contentRootMoved();
+        stage.parent.contentRootMoved(factor);
     }
 };
 
@@ -87,7 +85,6 @@ rootReleaseHandler = function(e) {
     this.off('mousemove', this.moveListener);
     this.off('mouseup', this.upListener);
     this.data=null;
-    this.alpha = 1;
     this.dragging = false;
     this.moveListener = null;
     this.upListener = null;
@@ -96,6 +93,7 @@ rootReleaseHandler = function(e) {
     if(this.isTimelineLayout) {
         this.contentRootMoved();
     }
+    this.isDirty = true;
 };
 
 rootMoveHandler = function(e) {
@@ -105,7 +103,6 @@ rootMoveHandler = function(e) {
     var dx = newPosition.x - oldPosition.x;
     var dy = newPosition.y - oldPosition.y;
     if (this.dragging) {
-        this.alpha = 0.8;
         var r = this.contentRoot.getBounds();
         // console.log('Root move event (' + dx + ', ' + dy + ')@('+this.contentRoot.position.x+
         // ','+this.contentRoot.position.y+') of root rect:'+ "Rectange[" + r.x + "," + r.y + ";" + r.width + "," + r.height + "]");

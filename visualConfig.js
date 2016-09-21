@@ -12,6 +12,9 @@ export const visualConfig = {
         "gravity": -1.2,
         "theta": 0.9
     },
+    "timelineLayout": {
+        "margin-left": 150,
+    },
     "icons": {
         "account": {
             "type": "account",
