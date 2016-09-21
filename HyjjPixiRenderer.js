@@ -177,7 +177,6 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 nodeContainer.selectNode(n);
             }
         });
-
     };
     /**
      * Very Very Important Variables
@@ -868,8 +867,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 rootHeight=Math.abs(y1-y2);
             var xScale;
             var yScale;
-            xScale=visualConfig.MAX_SCALE;
-            yScale=visualConfig.MAX_SCALE;
+            xScale=visualConfig.MAX_ADJUST;
+            yScale=visualConfig.MAX_ADJUST;
             if(rootHeight!=0){
                 var border;
                 if(viewHeight/rootHeight >10){
@@ -888,15 +887,15 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 }
                 xScale=(viewWidth-350)/rootWidth;
             }
-            if(xScale > yScale && yScale <visualConfig.MAX_SCALE){
+            if(xScale > yScale && yScale <visualConfig.MAX_ADJUST){
                 root.scale.x=yScale;
                 root.scale.y=yScale;
-            }else if(yScale >= xScale && xScale < visualConfig.MAX_SCALE){
+            }else if(yScale >= xScale && xScale < visualConfig.MAX_ADJUST){
                 root.scale.x=xScale;
                 root.scale.y=xScale;
             }else{
-                root.scale.x=visualConfig.MAX_SCALE;
-                root.scale.y=visualConfig.MAX_SCALE;
+                root.scale.x=visualConfig.MAX_ADJUST;
+                root.scale.y=visualConfig.MAX_ADJUST;
             }
 
             root.position.x = viewWidth / 2 ;
@@ -953,8 +952,8 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 rootHeight=Math.abs(y1-y2);
             var xScale;
             var yScale;
-            xScale=visualConfig.MAX_SCALE;
-            yScale=visualConfig.MAX_SCALE;
+            xScale=visualConfig.MAX_ADJUST;
+            yScale=visualConfig.MAX_ADJUST;
             if(rootHeight!=0){
                 var border;
                 if(viewHeight/rootHeight >10){
@@ -973,15 +972,15 @@ export default HyjjPixiRenderer = function(graph, settings) {
                 }
                 xScale=(viewWidth-350)/rootWidth;
             }
-            if(xScale > yScale && yScale <visualConfig.MAX_SCALE){
+            if(xScale > yScale && yScale <visualConfig.MAX_ADJUST){
                 root.scale.x=yScale;
                 root.scale.y=yScale;
-            }else if(yScale >= xScale && xScale < visualConfig.MAX_SCALE){
+            }else if(yScale >= xScale && xScale < visualConfig.MAX_ADJUST){
                 root.scale.x=xScale;
                 root.scale.y=xScale;
             }else{
-                root.scale.x=visualConfig.MAX_SCALE;
-                root.scale.y=visualConfig.MAX_SCALE;
+                root.scale.x=visualConfig.MAX_ADJUST;
+                root.scale.y=visualConfig.MAX_ADJUST;
             }
 
             root.position.x = viewWidth / 2 ;
