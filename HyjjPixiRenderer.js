@@ -853,7 +853,7 @@ export default HyjjPixiRenderer = function (graph, settings) {
         setNodesToFullScreen: function () {
             isDirty = true;
             var root = this.root;
-            var x1 = -1000000, y1, x2, y2;
+            var x1 = -10000000, y1, x2, y2;
             var sumx = 0;
             var sumy = 0;
             var count = 0;
@@ -861,7 +861,7 @@ export default HyjjPixiRenderer = function (graph, settings) {
                 sumx += n.position.x;
                 sumy += n.position.y;
                 count++;
-                if (x1 == -1000000) {
+                if (x1 == -10000000) {
                     x1 = n.position.x;
                     y1 = n.position.y;
                     x2 = n.position.x;
@@ -907,24 +907,23 @@ export default HyjjPixiRenderer = function (graph, settings) {
                 yScale = (viewHeight - border) / rootHeight;
             }
             if (rootWidth != 0) {
-                var border;
+                var border0;
                 if (viewWidth / rootWidth > 10) {
-                    border = 350;
+                    border0 = 350;
                 } else {
-                    border = (viewWidth / rootWidth) * 35;
+                    border0 = (viewWidth / rootWidth) * 35;
                 }
-                xScale = (viewWidth - 350) / rootWidth;
+                xScale = (viewWidth - border0) / rootWidth;
             }
             if(xScale > yScale && yScale <visualConfig.MAX_ADJUST){
-                root.scale.x=yScale;
-                root.scale.y=yScale;
+                root.scale.x=yScale*0.8;
+                root.scale.y=yScale*0.8;
             }else if(yScale >= xScale && xScale < visualConfig.MAX_ADJUST){
-                root.scale.x=xScale;
-                root.scale.y=xScale;
+                root.scale.x=xScale*0.8;
+                root.scale.y=xScale*0.8;
             }else{
-                root.scale.x=visualConfig.MAX_ADJUST;
-                root.scale.y=visualConfig.MAX_ADJUST;
-
+                root.scale.x=visualConfig.MAX_ADJUST*0.8;
+                root.scale.y=visualConfig.MAX_ADJUST*0.8;
             }
 
             root.position.x = viewWidth / 2;
@@ -994,24 +993,24 @@ export default HyjjPixiRenderer = function (graph, settings) {
                 yScale = (viewHeight - border) / rootHeight;
             }
             if (rootWidth != 0) {
-                var border;
+                var border0;
                 if (viewWidth / rootWidth > 10) {
-                    border = 350;
+                    border0 = 350;
                 } else {
-                    border = (viewWidth / rootWidth) * 35;
+                    border0 = (viewWidth / rootWidth) * 35;
                 }
-                xScale = (viewWidth - 350) / rootWidth;
+                xScale = (viewWidth - border0) / rootWidth;
             }
 
             if(xScale > yScale && yScale <visualConfig.MAX_ADJUST){
-                root.scale.x=yScale;
-                root.scale.y=yScale;
+                root.scale.x=yScale*0.8;
+                root.scale.y=yScale*0.8;
             }else if(yScale >= xScale && xScale < visualConfig.MAX_ADJUST){
-                root.scale.x=xScale;
-                root.scale.y=xScale;
+                root.scale.x=xScale*0.8;
+                root.scale.y=xScale*0.8;
             }else{
-                root.scale.x=visualConfig.MAX_ADJUST;
-                root.scale.y=visualConfig.MAX_ADJUST;
+                root.scale.x=visualConfig.MAX_ADJUST*0.8;
+                root.scale.y=visualConfig.MAX_ADJUST*0.8;
 
             }
 
