@@ -1336,29 +1336,39 @@ export default HyjjPixiRenderer = function (graph, settings) {
                 layoutType = 'Network';
             }
         },
+        graphUpdateNodePosition: function (positionArray) {
+            var index=0;
+              _.each(nodeSprites,function (n) {
+                  if(positionArray[index]){
+                      n.updateNodePosition(positionArray[index]);
+                      index++;
+                  }
+              })
+        },
         performLayout: function () {
-            if (layoutType == 'Network') {
-                if (stage.isTimelineLayout) {
-                    disableTimelineLayout();
+
+                if (layoutType == 'Network') {
+                    if (stage.isTimelineLayout) {
+                        disableTimelineLayout();
+                    }
+                    layoutIterations = 1500;
+                    while (layoutIterations > 0) {
+                        layout.step();
+                        layoutIterations -= 1;
+                    }
+                    _.each(nodeSprites, function (nodeSprite, nodeId) {
+                        nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+                    });
+                } else if (layoutType == 'Circular') {
+                    this.drawCircleLayout();
+                } else if (layoutType == 'Layered') {
+                    this.drawTreeLayout();
+                } else if (layoutType == 'TimelineScale') {
+                    this.switchToTimelineLayout();
+                } else {
+                    return false;
                 }
-                layoutIterations = 1500;
-                while (layoutIterations > 0) {
-                    layout.step();
-                    layoutIterations -= 1;
-                }
-                _.each(nodeSprites, function (nodeSprite, nodeId) {
-                    nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
-                });
-            } else if (layoutType == 'Circular') {
-                this.drawCircleLayout();
-            } else if (layoutType == 'Layered') {
-                this.drawTreeLayout();
-            } else if (layoutType == 'TimelineScale') {
-                this.switchToTimelineLayout();
-            } else {
-                return false;
-            }
-            // this.setNodesToFullScreen();
+                this.setNodesToFullScreen();
             isDirty = true;
         }
     };
@@ -1511,8 +1521,8 @@ export default HyjjPixiRenderer = function (graph, settings) {
         n.parent = nodeContainer;
         n.anchor.x = 0.5;
         n.anchor.y = 0.5;
-        n.position.x = p.data.x;
-        n.position.y = p.data.y;
+        n.position.x = p.data.properties.x || 0;
+        n.position.y = p.data.properties.y || 0;
         n.incoming = [];
         n.outgoing = [];
 
