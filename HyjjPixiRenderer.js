@@ -137,7 +137,7 @@ export default HyjjPixiRenderer = function (graph, settings) {
     };
 
 
-    stage.selectAllNodesInRegion = function (x1, y1, x2, y2) {
+    stage.selectAllNodesInRegion = function (x1, y1, x2, y2,flag) {
         isDirty = true;
         var xl;
         var xr;
@@ -158,8 +158,9 @@ export default HyjjPixiRenderer = function (graph, settings) {
             yt = y1;
             yb = y2;
         }
-
-        nodeContainer.deselectAll();
+        if(flag){
+            nodeContainer.deselectAll();
+        }
         _.each(nodeSprites, function (n) {
             //console.log(n.position.x+" "+n.position.y);
             if (!n.visible) {

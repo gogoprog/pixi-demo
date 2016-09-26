@@ -145,7 +145,13 @@ rootMoveHandler = function(e) {
             top=PIXI.interaction.InteractionData.prototype.getLocalPosition.call(op, this.contentRoot);
             tnp=PIXI.interaction.InteractionData.prototype.getLocalPosition.call(np, this.contentRoot);
             //console.log(top.x+" "+top.y+" "+tnp.x+" "+tnp.y);
-            this.selectAllNodesInRegion(top.x,top.y,tnp.x,tnp.y);
+            var me=e.data.originalEvent;
+            //console.log("e",e);
+            var flag=true;
+            if(me.ctrlKey || me.shiftKey){
+                flag=false;
+            }
+            this.selectAllNodesInRegion(top.x,top.y,tnp.x,tnp.y,flag);
         }
     }
 
@@ -214,7 +220,10 @@ nodeMoveListener = function(e) {
         });
         this.parent.dragJustNow=true;
     }else if(!this.selected){
-        this.parent.deselectAll();
+        var mouseEvent = e.data.originalEvent;
+        if(!mouseEvent.ctrlKey && !mouseEvent.shiftKey){
+            this.parent.deselectAll();
+        }
         this.parent.selectNode(this);
         //newPosition=null;
         this.updateNodePosition(newPosition);
