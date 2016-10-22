@@ -193,37 +193,60 @@ SimpleLineSprite.prototype.setTo = function(point) {
 
 SimpleLineSprite.prototype.renderLine = function(lineGraphics) {
     lineGraphics.lineStyle(this.thickness, this.color, this.alpha);
-    lineGraphics.moveTo(this.x1, this.y1);
-    if (this._controlOffsetIndex == 0 || this.forceStraightLine) {
-        lineGraphics.lineTo(this.x2, this.y2);
-    } else {
-        lineGraphics.quadraticCurveTo(this.cx, this.cy, this.x2, this.y2);
+    
+    if(this.x1!=this.x2 || this.y1!=this.y2){
+        lineGraphics.moveTo(this.x1, this.y1);
+        if (this._controlOffsetIndex == 0 || this.forceStraightLine) {
+            lineGraphics.lineTo(this.x2, this.y2);
+        } else {
+            lineGraphics.quadraticCurveTo(this.cx, this.cy, this.x2, this.y2);
+        }
+    }else{
+         var tempx=this.dx || 0;
+         var tempy=this.dy || 0;
+         lineGraphics.drawEllipse(this.x1, this.y1+visualConfig.ELLIPSE_HIEGHT+tempy, visualConfig.ELLIPSE_WIDTH+tempx, visualConfig.ELLIPSE_HIEGHT+tempy);
     }
+
 };
 
 SimpleLineSprite.prototype.updatePosition = function() {
-    if(this.forceStraightLine){
-        if(this.hasArrow){
-            this.arrow.position.x = (this.x2 + this.x1) / 2;
-            this.arrow.position.y = (this.y2 + this.y1) / 2;
-            this.arrow.rotation = Math.atan2(this.y2 - this.y1, this.x2 - this.x1) - Math.PI / 2;
-        }
-        this.label.position.x = (this.x2 + this.x1) / 2;
-        this.label.position.y = (this.y2 + this.y1) / 2 + 10;
-    } else {
-        var angle = Math.atan2(this.y2 - this.y1, this.x2 - this.x1);
-        let dxCtl = this._controlOffsetIndex * SimpleLineSprite.prototype.MULTI_OFFSET * Math.sin(angle),
-            dyCtl = this._controlOffsetIndex * SimpleLineSprite.prototype.MULTI_OFFSET * Math.cos(angle);
+    if(this.x1 != this.x2 || this.y1 != this.y2){
 
-        this.cx = (this.x2 + this.x1) / 2 + dxCtl;
-        this.cy = (this.y2 + this.y1) / 2 - dyCtl;
-        if(this.hasArrow) {
-            this.arrow.position.x = (this.x2 + this.x1) / 2 + dxCtl / 2;
-            this.arrow.position.y = (this.y2 + this.y1) / 2 - dyCtl / 2;
-            this.arrow.rotation = angle - Math.PI / 2;
+        if(this.forceStraightLine){
+            if(this.hasArrow){
+                this.arrow.position.x = (this.x2 + this.x1) / 2;
+                this.arrow.position.y = (this.y2 + this.y1) / 2;
+                this.arrow.rotation = Math.atan2(this.y2 - this.y1, this.x2 - this.x1) - Math.PI / 2;
+            }
+            this.label.position.x = (this.x2 + this.x1) / 2;
+            this.label.position.y = (this.y2 + this.y1) / 2 + 10;
+        } else {
+            var angle = Math.atan2(this.y2 - this.y1, this.x2 - this.x1);
+            let dxCtl = this._controlOffsetIndex * SimpleLineSprite.prototype.MULTI_OFFSET * Math.sin(angle),
+                dyCtl = this._controlOffsetIndex * SimpleLineSprite.prototype.MULTI_OFFSET * Math.cos(angle);
+
+            this.cx = (this.x2 + this.x1) / 2 + dxCtl;
+            this.cy = (this.y2 + this.y1) / 2 - dyCtl;
+            if(this.hasArrow) {
+                this.arrow.position.x = (this.x2 + this.x1) / 2 + dxCtl / 2;
+                this.arrow.position.y = (this.y2 + this.y1) / 2 - dyCtl / 2;
+                this.arrow.rotation = angle - Math.PI / 2;
+            }
+            this.label.position.x = (this.x2 + this.x1) / 2 + dxCtl / 2;
+            this.label.position.y = (this.y2 + this.y1) / 2 - dyCtl / 2 + 20;
         }
-        this.label.position.x = (this.x2 + this.x1) / 2 + dxCtl / 2;
-        this.label.position.y = (this.y2 + this.y1) / 2 - dyCtl / 2 + 20;
+    }else{
+        let dyCtl = this._controlOffsetIndex * visualConfig.ELLIPSE_Y_OFFSET,
+            dxCtl = this._controlOffsetIndex * visualConfig.ELLIPSE_X_OFFSET;
+            this.dy = dyCtl;
+            this.dx = dxCtl;
+            if(this.hasArrow) {
+                this.arrow.position.x = this.x1-5;
+                this.arrow.position.y = this.y1+visualConfig.ELLIPSE_HIEGHT*2+dyCtl*2;
+                this.arrow.rotation = Math.PI*1.5;
+            }
+            this.label.position.x = this.x1;
+            this.label.position.y = this.y1+visualConfig.ELLIPSE_HIEGHT*2+dyCtl*2+6;
     }
 };
 

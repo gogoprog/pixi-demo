@@ -5,6 +5,11 @@ export const visualConfig = {
     "MAX_ADJUST": 3,
     "MIN_SCALE": 0.05,
     "NODE_WIDTH":32,
+    "ELLIPSE_WIDTH":0.4*32,
+    "ELLIPSE_HIEGHT":0.5*32,
+    "ELLIPSE_Y_OFFSET":0.4*32,
+    "ELLIPSE_X_OFFSET":0.15*32,
+
     "forceLayout": {
         "springLength": 250,
         "springCoeff": 0.00008,
