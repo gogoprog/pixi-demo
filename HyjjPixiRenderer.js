@@ -107,23 +107,31 @@ export default HyjjPixiRenderer = function (graph, settings) {
     nodeContainer.nodeCaptured = function (node) {
         stage.hasNodeCaptured = true;
         isDirty = true;
-        if (layoutType == "Network") {
+        if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
             layout.pinNode(node, true);
         }
     };
 
     nodeContainer.nodeMoved = function (node) {
         isDirty = true;
-        if (layoutType == "Network") {
+        if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
             layout.setNodePosition(node.id, node.position.x, node.position.y);
+            layoutIterations += 60;
         }
+
     };
 
     nodeContainer.nodeReleased = function (node) {
         isDirty = true;
         stage.hasNodeCaptured = false;
-        if (layoutType == "Network") {
-            layout.pinNode(node, false);
+        if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
+            if (node.pinned) {
+                node.pinned = false;
+                layout.pinNode(node, false);
+            } else {
+                node.pinned = true;
+            }
+            layoutIterations += 120;
         }
     };
 
@@ -1347,11 +1355,12 @@ export default HyjjPixiRenderer = function (graph, settings) {
         },
         performLayout: function () {
 
-                if (layoutType == 'Network') {
-                    if (stage.isTimelineLayout) {
-                        disableTimelineLayout();
-                    }
-                    layoutIterations = 1500;
+            if (layoutType == 'Network') {
+                if (stage.isTimelineLayout) {
+                    disableTimelineLayout();
+                }
+                layoutIterations = 1500;
+                if(!visualConfig.LAYOUT_ANIMATION) {
                     while (layoutIterations > 0) {
                         layout.step();
                         layoutIterations -= 1;
@@ -1359,16 +1368,17 @@ export default HyjjPixiRenderer = function (graph, settings) {
                     _.each(nodeSprites, function (nodeSprite, nodeId) {
                         nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
                     });
-                } else if (layoutType == 'Circular') {
-                    this.drawCircleLayout();
-                } else if (layoutType == 'Layered') {
-                    this.drawTreeLayout();
-                } else if (layoutType == 'TimelineScale') {
-                    this.switchToTimelineLayout();
-                } else {
-                    return false;
                 }
-                this.setNodesToFullScreen();
+            } else if (layoutType == 'Circular') {
+                this.drawCircleLayout();
+            } else if (layoutType == 'Layered') {
+                this.drawTreeLayout();
+            } else if (layoutType == 'TimelineScale') {
+                this.switchToTimelineLayout();
+            } else {
+                return false;
+            }
+            this.setNodesToFullScreen();
             isDirty = true;
         }
     };
@@ -1417,11 +1427,12 @@ export default HyjjPixiRenderer = function (graph, settings) {
         if (isDirty || nodeContainer.isDirty || stage.isDirty) {
             if (layoutIterations > 0) {
                 layout.step();
+                layout.step();
                 //大开销计算
                 _.each(nodeSprites, function (nodeSprite, nodeId) {
                     nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
                 });
-                layoutIterations -= 1;
+                layoutIterations -= 2;
             }
 
             selectRegionGraphics.clear();
@@ -1437,7 +1448,9 @@ export default HyjjPixiRenderer = function (graph, settings) {
             renderer.render(stage);
             counter.nextFrame();
         }
-        isDirty = false;
+        if(layoutIterations == 0){
+            isDirty = false;
+        }
         nodeContainer.isDirty = false;
         stage.isDirty = false;
     }

@@ -9,7 +9,7 @@ export const visualConfig = {
     "ELLIPSE_HIEGHT":0.5*32,
     "ELLIPSE_Y_OFFSET":0.4*32,
     "ELLIPSE_X_OFFSET":0.15*32,
-
+    "LAYOUT_ANIMATION":false,
     "forceLayout": {
         "springLength": 250,
         "springCoeff": 0.00008,
