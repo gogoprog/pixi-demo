@@ -131,7 +131,7 @@ export default HyjjPixiRenderer = function (graph, settings) {
             } else {
                 node.pinned = true;
             }
-            layoutIterations += 120;
+            layoutIterations = 300;
         }
     };
 
