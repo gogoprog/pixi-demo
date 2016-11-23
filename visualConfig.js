@@ -72,6 +72,10 @@ export const visualConfig = {
         "reddot": {
             "type": "any",
             "url": "../images/32/red-dot.png"
+        },
+        "packages": {
+            "type": "packages",
+            "url": "../images/32/package.png"
         }
     },
     "ui": {
