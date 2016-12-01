@@ -1555,7 +1555,7 @@ export default HyjjPixiRenderer = function (graph, settings) {
 
         n.interactive = true;
         n.buttonMode = true;
-        var t = new PIXI.Text(p.data.label, visualConfig.ui.label.font);
+        var t = new PIXI.Text((p.data.label ? p.data.label : ""), visualConfig.ui.label.font);
         t.position.set(p.data.x, p.data.y + visualConfig.NODE_LABLE_OFFSET_Y);
         t.anchor.x = 0.5;
         t.scale.set(0.5, 0.5);
@@ -1609,7 +1609,7 @@ export default HyjjPixiRenderer = function (graph, settings) {
         //f.data.isMultiple,f.data.isDirected,
 
         var l = new SimpleLineSprite(
-            f.data.label, visualConfig.ui.line.width, visualConfig.ui.line.color, f.data.isMultiple, f.data.isDirected,
+            (f.data.label ? f.data.label : ""), visualConfig.ui.line.width, visualConfig.ui.line.color, f.data.isMultiple, f.data.isDirected,
             srcNodeSprite.position.x, srcNodeSprite.position.y,
             tgtNodeSprite.position.x, tgtNodeSprite.position.y,
             positionOffset, visualConfig.ui.label.font);
