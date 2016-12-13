@@ -1154,7 +1154,7 @@ export default HyjjPixiRenderer = function (graph, settings) {
         selectReverseSelection: function () {
             isDirty = true;
             _.each(linkSprites, function (l) {
-                if (l.selected) {
+                if (l.selected || l.visible == false) {
                     nodeContainer.deselectLink(l);
                 } else {
                     nodeContainer.selectLink(l);
@@ -1162,7 +1162,7 @@ export default HyjjPixiRenderer = function (graph, settings) {
 
             });
             _.each(nodeSprites, function (n) {
-                if (n.selected) {
+                if (n.selected || n.visible == false) {
                     nodeContainer.deselectNode(n)
                 } else {
                     nodeContainer.selectNode(n);
