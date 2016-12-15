@@ -227,7 +227,7 @@ export default HyjjPixiRenderer = function (graph, settings) {
                 {animation: false}
             );
         }
-        console.log(stage.contentRoot.position);
+        // console.log(stage.contentRoot.position);
         let pRoot = stage.contentRoot.position;
         // reposition the nodes;
         if (pRoot.x > 160) {
@@ -1109,17 +1109,21 @@ export default HyjjPixiRenderer = function (graph, settings) {
             _.each(startingNodes, function (n) {
                 if (direction === "both" || direction == "in") {
                     _.each(n.incoming, function (l) {
-                        nodeContainer.selectLink(l);
-                        if (alsoSelectNodes) {
-                            nodeContainer.selectNode(nodeSprites[l.data.sourceEntity]);
+                        if(l.visible) {
+                            nodeContainer.selectLink(l);
+                            if (alsoSelectNodes && nodeSprites[l.data.sourceEntity].visible) {
+                                nodeContainer.selectNode(nodeSprites[l.data.sourceEntity]);
+                            }
                         }
                     });
                 }
                 if (direction === "both" || direction == "out") {
                     _.each(n.outgoing, function (l) {
-                        nodeContainer.selectLink(l);
-                        if (alsoSelectNodes) {
-                            nodeContainer.selectNode(nodeSprites[l.data.targetEntity]);
+                        if(l.visible) {
+                            nodeContainer.selectLink(l);
+                            if (alsoSelectNodes && nodeSprites[l.data.targetEntity].visible) {
+                                nodeContainer.selectNode(nodeSprites[l.data.targetEntity]);
+                            }
                         }
                     });
                 }
@@ -1144,10 +1148,14 @@ export default HyjjPixiRenderer = function (graph, settings) {
         selectAll: function () {
             isDirty = true;
             _.each(linkSprites, function (l) {
-                nodeContainer.selectLink(l);
+                if(l.visible) {
+                    nodeContainer.selectLink(l);
+                }
             });
             _.each(nodeSprites, function (n) {
-                nodeContainer.selectNode(n);
+                if(n.visible) {
+                    nodeContainer.selectNode(n);
+                }
             });
             selectionChanged();
         },
