@@ -43,13 +43,13 @@ export const zoom = function(x, y, isZoomIn, stage) {
     }
 };
 
-setupWheelListener = function(domElement, stage) {
+var setupWheelListener = function(domElement, stage) {
     addWheelListener(domElement, function(e) {
         zoom(e.offsetX, e.offsetY, e.deltaY < 0, stage);
     }, true);
 };
 
-rootCaptureHandler = function(e) {
+export const rootCaptureHandler = function(e) {
     if (!this.interactive || this.hasNodeCaptured) {
         return false;
     }
@@ -81,7 +81,7 @@ rootCaptureHandler = function(e) {
     }
 };
 
-rootReleaseHandler = function(e) {
+var rootReleaseHandler = function(e) {
     this.off('mousemove', this.moveListener);
     this.off('mouseup', this.upListener);
     this.data=null;
@@ -96,7 +96,7 @@ rootReleaseHandler = function(e) {
     this.isDirty = true;
 };
 
-rootMoveHandler = function(e) {
+var rootMoveHandler = function(e) {
     //throttle 限制回调函数被调用次数的方式
     var oldPosition = this.mouseLocation;
     var newPosition = e.data.global;
@@ -158,7 +158,7 @@ rootMoveHandler = function(e) {
 };
 
 
-nodeCaptureListener = function(e) {
+export const nodeCaptureListener = function(e) {
     // console.log('Mouse down on node ' + JSON.stringify(this.position));
     this.interactionData = e.data;
     this.parent.nodeCaptured(this);
@@ -177,7 +177,7 @@ nodeCaptureListener = function(e) {
     }
 };
 
-nodeReleaseListener = function(e) {
+var nodeReleaseListener = function(e) {
     this.off('mousemove', this.moveListener);
     this.alpha = 1;
     this.dragging = false;
@@ -193,7 +193,7 @@ nodeReleaseListener = function(e) {
 };
 
 var newPosition = new PIXI.Point();
-nodeMoveListener = function(e) {
+var nodeMoveListener = function(e) {
     // console.log('node mouse move fired');
     this.parent.dragJustNow=false;
     newPosition.copy(this.interactionData.getLocalPosition(this.parent));
@@ -230,3 +230,8 @@ nodeMoveListener = function(e) {
         this.parent.nodeMoved(this);
     }
 };
+
+// export {
+//   zoom
+// //   rootCaptureHandler
+// }

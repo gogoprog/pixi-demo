@@ -23,59 +23,59 @@ export const visualConfig = {
     "icons": {
         "account": {
             "type": "account",
-            "url": "../images/32/account.png"
+            "url": "../../src/assets/images/32/account.png"
         },
         "bankcard": {
             "type": "bankcard",
-            "url": "../images/32/bankcard.png"
+            "url": "../../src/assets/images/32/bankcard.png"
         },
         "man": {
             "type": "people",
-            "url": "../images/32/man.png"
+            "url": "../../src/assets/images/32/man.png"
         },
         "woman": {
             "type": "people",
-            "url": "../images/32/woman.png"
+            "url": "../../src/assets/images/32/woman.png"
         },
         "people": {
             "type": "people",
-            "url": "../images/32/people.png"
+            "url": "../../src/assets/images/32/people.png"
         },
         "wangwang": {
             "type": "virtual-id",
-            "url": "../images/32/wangwang.png"
+            "url": "../../src/assets/images/32/wangwang.png"
         },
         "wechat": {
             "type": "virtual-id",
-            "url": "../images/32/wechat.png"
+            "url": "../../src/assets/images/32/wechat.png"
         },
         "qq": {
             "type": "virtual-id",
-            "url": "../images/32/qq.png"
+            "url": "../../src/assets/images/32/qq.png"
         },
         "alipay": {
             "type": "virtual-id",
-            "url": "../images/32/alipay.png"
+            "url": "../../src/assets/images/32/alipay.png"
         },
         "phone": {
             "type": "phone",
-            "url": "../images/32/phone.png"
+            "url": "../../src/assets/images/32/phone.png"
         },
         "hotel": {
             "type": "location",
-            "url": "../images/32/hotel.png"
+            "url": "../../src/assets/images/32/hotel.png"
         },
         "flight": {
             "type": "vehicle",
-            "url": "../images/32/flight.png"
+            "url": "../../src/assets/images/32/flight.png"
         },
         "reddot": {
             "type": "any",
-            "url": "../images/32/red-dot.png"
+            "url": "../../src/assets/images/32/red-dot.png"
         },
         "packages": {
             "type": "packages",
-            "url": "../images/32/package.png"
+            "url": "../../src/assets/images/32/package.png"
         }
     },
     "ui": {
@@ -143,15 +143,21 @@ export const visualConfig = {
 
 visualConfig.findIcon = function(entityType) {
     var semanticType = entityType;
-    if (semanticType == "people") {
-        return this.icons.people.texture;
-    } else if (semanticType == "vehicle") {
-        return this.icons.flight.texture;
-    } else if (semanticType == "account") {
-        return this.icons.account.texture;
-    } else if (semanticType == "location") {
-        return this.icons.hotel.texture;
+    // if (semanticType == "people") {
+    //     return this.icons.people.texture;
+    // } else if (semanticType == "vehicle") {
+    //     return this.icons.flight.texture;
+    // } else if (semanticType == "account") {
+    //     return this.icons.account.texture;
+    // } else if (semanticType == "location") {
+    //     return this.icons.hotel.texture;
+    // } else {
+    //     return this.icons.reddot.texture;
+    // }
+    if (this.icons[semanticType]) {
+        return this.icons[semanticType].texture;
     } else {
         return this.icons.reddot.texture;
     }
+    
 };

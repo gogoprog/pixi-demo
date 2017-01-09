@@ -1,7 +1,7 @@
 import { visualConfig } from "./visualConfig.js";
-import { HyjjPixiRenderer } from "./HyjjPixiRenderer"
-
-SimpleLineSprite = function(label, thickness, color,arrowStyle,hasArrow, x1, y1, x2, y2, controlOffsetIndex, fontConfig) {
+import { PixiRenderer } from "./PixiRenderer"
+let SimpleLineSprite;
+export default  SimpleLineSprite = function (label, thickness, color,arrowStyle,hasArrow, x1, y1, x2, y2, controlOffsetIndex, fontConfig) {
     this.hasArrow=hasArrow;
     this._thickness = thickness;
     this._color = color;
@@ -41,7 +41,6 @@ SimpleLineSprite = function(label, thickness, color,arrowStyle,hasArrow, x1, y1,
     });
     this.updatePosition();
 };
-
 SimpleLineSprite.maxWidth = 100;
 SimpleLineSprite.maxColors = 1000;
 SimpleLineSprite.colors = 0;
