@@ -12,6 +12,9 @@ import { zoom, rootCaptureHandler, nodeCaptureListener } from "./customizedEvent
 import lodash from 'lodash';
 import SimpleLineSprite from "./SimpleLineSprite.js";
 import "./pixiSpriteAugment.js";
+import moment from "moment";
+import vis from "vis";
+// import vis from "./vis.min.js";
 
 
 export default  function (settings) {
@@ -1224,7 +1227,7 @@ export default  function (settings) {
             }
         },
 
-        setTimelineLayout: function (leftSpacing) {
+        drawTimelineLayout: function (leftSpacing) {
             isDirty = true;
             layoutIterations = 0;
             layoutType = "TimelineScale";
@@ -1260,8 +1263,8 @@ export default  function (settings) {
                     zoomMin: 1000 * 60 * 15,
                     moveable: false,
                     zoomable: false,
-                    showCurrentTime: false,
-                    throttleRedraw: 100
+                    showCurrentTime: false
+                    // throttleRedraw: 100
                 };
                 // Create a Timeline
                 timeline = new vis.Timeline(container, items, options);
@@ -1401,11 +1404,11 @@ export default  function (settings) {
             } else if (layoutType == 'Layered') {
                 this.drawTreeLayout();
             } else if (layoutType == 'TimelineScale') {
-                this.switchToTimelineLayout();
+                this.drawTimelineLayout();
             } else {
                 return false;
             }
-            this.setNodesToFullScreen();
+            // this.setNodesToFullScreen();
             isDirty = true;
         },
         
@@ -1488,6 +1491,26 @@ export default  function (settings) {
             });
 
             graph.endUpdate();
+        },
+
+        getNodeType: function(nodeUuid) {
+            let type;
+            _.each(graphType.entityTypes, function(f) {
+                if (f.uuid == nodeUuid) {
+                    type = f.semanticType;
+                }
+            });
+             return type;
+        },
+
+        getLinkType: function(linkUuid) {
+            let type;
+            _.each(graphType.linkTypes, function(f) {
+                if (f.uuid == linkUuid) {
+                    type = f.semanticType;
+                }
+            });
+            return type;
         },
 
         //事件
@@ -1646,12 +1669,7 @@ export default  function (settings) {
 
 
     function initNode(p) {
-        let semanticType;
-        _.each(graphType.entityTypes, function(f) {
-            if (f.uuid == p.data.type) {
-                semanticType = f.semanticType;
-            }
-        });
+        let semanticType = pixiGraphics.getNodeType(p.data.type);
 
         var texture = visualConfig.findIcon(semanticType);
         // var texture = visualConfig.findIcon(p.data.type);
