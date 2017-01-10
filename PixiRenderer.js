@@ -5,13 +5,14 @@ import {visualConfig} from "./visualConfig.js";
 import Graph from "./Graph.js";
 import { SelectionManager } from "./SelectionManager.js";
 import "./pixi.es5.js";
-import "./FPSCounter.js";
-import "./WheelListener.js"
+import { FPSCounter } from  "./FPSCounter.js";
+import { addWheelListener } from "./WheelListener.js";
 import { zoom, rootCaptureHandler, nodeCaptureListener } from "./customizedEventHandling.js";
 // import rootCaptureHandler from "./customizedEventHandling.js";
 import lodash from 'lodash';
 import SimpleLineSprite from "./SimpleLineSprite.js";
 import "./pixiSpriteAugment.js";
+
 
 export default  function (settings) {
 
