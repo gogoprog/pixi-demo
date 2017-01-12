@@ -1,4 +1,4 @@
-FPSCounter = function() {
+const FPSCounter = function() {
     this.frameCount = 0;
     this.lastUpdate = null;
     this.value = "";
@@ -20,3 +20,7 @@ FPSCounter.prototype.nextFrame = function () {
         this.lastUpdate = now;
     }
 };
+
+export {
+    FPSCounter
+}

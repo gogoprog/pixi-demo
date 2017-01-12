@@ -17,7 +17,7 @@ support = "onwheel" in document.createElement("div") ? "wheel" : // Modern brows
     document.onmousewheel !== undefined ? "mousewheel" : // Webkit and IE support at least "mousewheel"
     "DOMMouseScroll"; // let's assume that remaining browsers are older Firefox
 
-addWheelListener = function(elem, callback, useCapture) {
+const addWheelListener = function(elem, callback, useCapture) {
     _addWheelListener(elem, support, callback, useCapture);
 
     // handle MozMousePixelScroll in older Firefox
@@ -26,7 +26,7 @@ addWheelListener = function(elem, callback, useCapture) {
     }
 };
 
-_addWheelListener = function(elem, eventName, callback, useCapture) {
+var _addWheelListener = function(elem, eventName, callback, useCapture) {
         elem[_addEventListener](prefix + eventName, support == "wheel" ? callback : function(originalEvent) {
             !originalEvent && (originalEvent = window.event);
 
@@ -63,3 +63,6 @@ _addWheelListener = function(elem, eventName, callback, useCapture) {
     /**
     End addWheelListener
     **/
+export {
+    addWheelListener
+}
