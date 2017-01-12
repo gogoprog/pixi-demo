@@ -1466,8 +1466,20 @@ export default  function (settings) {
         setGraphType: function (gType) {
             graphType = gType;
         },
+        getGraphType: function () {
+            return graphType;
+        },
         setGraphData: function (gData) {
             graphData = gData;
+        },
+        getGraphData: function () {
+            return graphData;
+        },
+        getGraphEntities: function () {
+            return entities;
+        },
+        getGraphLinks: function () {
+            return links;
         },
         fillGraphData: function (gData) {
             if (!graphType) {
@@ -1492,7 +1504,7 @@ export default  function (settings) {
             graph.endUpdate();
         },
 
-        getNodeType: function(nodeUuid) {
+        getEntitySemanticType: function(nodeUuid) {
             let type;
             _.each(graphType.entityTypes, function(f) {
                 if (f.uuid == nodeUuid) {
@@ -1502,11 +1514,27 @@ export default  function (settings) {
              return type;
         },
 
-        getLinkType: function(linkUuid) {
+        getLinkSemanticType: function(linkUuid) {
             let type;
             _.each(graphType.linkTypes, function(f) {
                 if (f.uuid == linkUuid) {
                     type = f.semanticType;
+                }
+            });
+            return type;
+        },
+
+        getEntityType: function(nodeUuid) {
+            _.each(graphType.entityTypes, function(f) {
+                return f.uuid == nodeUuid;
+            });
+        },
+
+        getLinkType: function(linkUuid) {
+            var type;
+            _.each(graphType.linkTypes, function(f) {
+                if (f.uuid == linkUuid) {
+                    type = f;
                 }
             });
             return type;
@@ -1668,7 +1696,7 @@ export default  function (settings) {
 
 
     function initNode(p) {
-        let semanticType = pixiGraphics.getNodeType(p.data.type);
+        let semanticType = pixiGraphics.getEntitySemanticType(p.data.type);
 
         var texture = visualConfig.findIcon(semanticType);
         // var texture = visualConfig.findIcon(p.data.type);

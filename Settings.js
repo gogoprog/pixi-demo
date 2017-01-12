@@ -40,7 +40,7 @@ const Settings = function(divId, classId, timelineId, layout) {
     let ngraph = Graph();
     settings.graph = ngraph;
     settings.layout = createForceLayout(ngraph, layout);
-    settings.mode = "panning";
+    settings.mode = "picking";
     settings.background = 0x000000;
     settings.physics = {
         springLength: 30,
