@@ -1458,6 +1458,10 @@ export default  function (settings) {
             graph.endUpdate();
         },
 
+        disposeLayout: function() {
+            layout.dispose();
+        },
+
         setNodePosition: function (nodeId, x, y, z) {
             layout.setNodePosition(nodeId, x, y, z);
         },
