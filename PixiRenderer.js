@@ -1319,8 +1319,13 @@ export default  function (settings) {
             nodeSprites = [];
             linkSprites = [];
         },
+        removeSubGraph: function(subGraph){
+            //FIXME
+            // subgraph ={ entities: [], links:[]}
 
-        removeSubGraph: function () {
+        },
+
+        removeAllLinks: function () {
             isDirty = true;
             _.each(nodeSprites, function (n) {
                 n.incoming = [];
