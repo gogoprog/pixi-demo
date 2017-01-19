@@ -23,8 +23,10 @@ export default  function (settings) {
 
     var graphType;
     var graphData;
-    var entities = {};
-    var links = {};
+    var graphEntities = {};
+    var graphLinks = {};
+    var graphLinkTypes = {}; // TODO make a count of each type, instead of just flagging
+    var graphEntityTypes = {};
     var graph = settings.graph;
     if (!graph) {
         graph = Graph();    
@@ -1481,11 +1483,18 @@ export default  function (settings) {
             return graphData;
         },
         getGraphEntities: function () {
-            return entities;
+            return graphEntities;
         },
         getGraphLinks: function () {
-            return links;
+            return graphLinks;
         },
+        getGraphLinkTypes: function () {
+            return graphLinkTypes;
+        },
+        getGraphEntityTypes: function () {
+            return graphEntityTypes;
+        },
+
         fillGraphData: function (gData) {
             if (!graphType) {
                 console.log("please call setGraphType");
@@ -1494,15 +1503,17 @@ export default  function (settings) {
             graph.beginUpdate();
 
             _.each(gData.entities, function(p) {
-                if (!_.has(entities, p.id)) {
+                if (!_.has(graphEntities, p.id)) {
                     graph.addNode(p.id, p);
-                    entities[p.id] = p;
+                    graphEntities[p.id] = p;
+                    graphEntityTypes[p.type] = 1;
                 }
             });
             _.each(gData.links, function(f) {
-                if (!_.has(links, f.id)) {
+                if (!_.has(graphLinks, f.id)) {
                     graph.addLink(f.sourceEntity, f.targetEntity, f);
-                    links[f.id] = f;
+                    graphLinks[f.id] = f;
+                    graphLinkTypes[f.type] = 1;
                 }
             });
 
@@ -1530,9 +1541,13 @@ export default  function (settings) {
         },
 
         getEntityType: function(nodeUuid) {
+            var type;
             _.each(graphType.entityTypes, function(f) {
-                return f.uuid == nodeUuid;
+                if (f.uuid == nodeUuid) {
+                    type = f;
+                }
             });
+            return type;
         },
 
         getLinkType: function(linkUuid) {
