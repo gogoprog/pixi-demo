@@ -23,7 +23,7 @@ const Settings = function(divId, classId, timelineId, layout) {
 
 	var canvasDoc =  document.createElement("canvas");
 	canvasDoc.setAttribute("id", "visPixijs");
-    
+    canvasDoc.setAttribute("style", "border-width: 0;");
     
 	divDoc.appendChild(canvasDoc);
 

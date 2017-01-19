@@ -1321,8 +1321,13 @@ export default  function (settings) {
             nodeSprites = [];
             linkSprites = [];
         },
+        removeSubGraph: function(subGraph){
+            //FIXME
+            // subgraph ={ entities: [], links:[]}
 
-        removeSubGraph: function () {
+        },
+
+        removeAllLinks: function () {
             isDirty = true;
             _.each(nodeSprites, function (n) {
                 n.incoming = [];
@@ -1578,6 +1583,9 @@ export default  function (settings) {
        
     };
 
+    addWheelListener(canvas, _.throttle(function(e) {
+        pixiGraphics.zoom(e.offsetX, e.offsetY, e.deltaY < 0);
+    }, 50), true);
     eventify(pixiGraphics);
     return pixiGraphics;
 
