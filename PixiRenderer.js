@@ -29,7 +29,7 @@ export default  function (settings) {
     var graphEntityTypes = {};
     var graph = settings.graph;
     if (!graph) {
-        graph = Graph();    
+        graph = Graph();
     }
 
     var mode = settings.mode;
@@ -1326,7 +1326,6 @@ export default  function (settings) {
             // subgraph ={ entities: [], links:[]}
 
         },
-
         removeAllLinks: function () {
             isDirty = true;
             _.each(nodeSprites, function (n) {
@@ -1418,7 +1417,7 @@ export default  function (settings) {
             // this.setNodesToFullScreen();
             isDirty = true;
         },
-        
+
         getGraph: function() {
             return graph;
         },
@@ -1573,19 +1572,41 @@ export default  function (settings) {
         // },
 
         onGraphChanged: function(func) {
-             graph.on('changed', func); 
+             graph.on('changed', func);
         },
 
         addCanvasEventListener: function(eventName, func, state) {
             canvas.addEventListener(eventName, func, state);
-        } 
+        }
 
-       
+
     };
 
     addWheelListener(canvas, _.throttle(function(e) {
         pixiGraphics.zoom(e.offsetX, e.offsetY, e.deltaY < 0);
     }, 50), true);
+
+    var lastDownTarget;
+    //FIXME, remove listener when renderer is destroyed.
+    document.addEventListener('mousedown', function (event) {
+        lastDownTarget = event.target;
+    }, false);
+
+    document.addEventListener('keydown', function (event) {
+        if (lastDownTarget == canvas) {
+            if (event.code === "Space") {
+                pixiGraphics.toggleMode();
+                event.stopPropagation();
+                event.preventDefault();
+            } else if (event.code === 'Delete') {
+                console.log("Need to delete selected item"); // FIXME
+            } else if (event.code === 'KeyA' && event.ctrlKey) {
+                pixiGraphics.selectAll();
+                event.stopPropagation();
+                event.preventDefault();
+            }
+        }
+    }, false);
     eventify(pixiGraphics);
     return pixiGraphics;
 
