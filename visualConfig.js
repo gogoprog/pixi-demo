@@ -1,3 +1,20 @@
+import accountUrl from "../../images/32/account.png"
+import bankcardUrl from "../../images/32/bankcard.png"
+import flightUrl from "../../images/32/flight.png"
+import hotelUrl from "../../images/32/hotel.png"
+import peopleUrl from "../../images/32/people.png"
+import womanUrl from "../../images/32/woman.png"
+import manUrl from "../../images/32/man.png"
+import phoneUrl from "../../images/32/phone.png"
+import alipayUrl from "../../images/32/alipay.png"
+import qqUrl from "../../images/32/qq.png"
+import wangwangUrl from "../../images/32/wangwang.png"
+import wechatUrl from "../../images/32/wechat.png"
+// import vehicleUrl from "../../assets/images/32/flight.png"
+// import ipUrl from "../../assets/images/32/red-dot.png"
+import packagesUrl from "../../images/32/package.png"
+import redDotUrl from "../../images/32/red-dot.png"
+
 export const visualConfig = {
     "NODE_LABLE_OFFSET_Y": 26,
     "LINK_LABLE_OFFSET_Y": 10,
@@ -23,59 +40,59 @@ export const visualConfig = {
     "icons": {
         "account": {
             "type": "account",
-            "url": "../../src/assets/images/32/account.png"
+            "url": accountUrl
         },
         "bankcard": {
             "type": "bankcard",
-            "url": "../../src/assets/images/32/bankcard.png"
+            "url": bankcardUrl
         },
         "man": {
             "type": "people",
-            "url": "../../src/assets/images/32/man.png"
+            "url": manUrl
         },
         "woman": {
             "type": "people",
-            "url": "../../src/assets/images/32/woman.png"
+            "url":womanUrl
         },
         "people": {
             "type": "people",
-            "url": "../../src/assets/images/32/people.png"
+            "url": peopleUrl
         },
         "wangwang": {
             "type": "virtual-id",
-            "url": "../../src/assets/images/32/wangwang.png"
+            "url": wangwangUrl
         },
         "wechat": {
             "type": "virtual-id",
-            "url": "../../src/assets/images/32/wechat.png"
+            "url": wechatUrl
         },
         "qq": {
             "type": "virtual-id",
-            "url": "../../src/assets/images/32/qq.png"
+            "url": qqUrl
         },
         "alipay": {
             "type": "virtual-id",
-            "url": "../../src/assets/images/32/alipay.png"
+            "url": alipayUrl
         },
         "phone": {
             "type": "phone",
-            "url": "../../src/assets/images/32/phone.png"
+            "url": phoneUrl
         },
         "hotel": {
             "type": "location",
-            "url": "../../src/assets/images/32/hotel.png"
+            "url": hotelUrl
         },
         "flight": {
             "type": "vehicle",
-            "url": "../../src/assets/images/32/flight.png"
+            "url": flightUrl
         },
         "reddot": {
             "type": "any",
-            "url": "../../src/assets/images/32/red-dot.png"
+            "url": redDotUrl
         },
         "packages": {
             "type": "packages",
-            "url": "../../src/assets/images/32/package.png"
+            "url": packagesUrl
         }
     },
     "ui": {

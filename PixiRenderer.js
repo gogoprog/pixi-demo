@@ -1934,6 +1934,7 @@ export default  function (settings) {
             }
             nodeContainer.removeChild(nodeSprite);
             delete nodeSprites[node.id];
+            delete graphEntities[node.data.id];
             // console.log("Removed node: " + node.id);
         } else {
             console.log("Could not find node sprite: " + node.id);
@@ -1967,6 +1968,7 @@ export default  function (settings) {
                 tgtEntitySprite.incoming.splice(inLinkIndex, 1);
             }
             delete linkSprites[l.id];
+            delete graphLinks[l.data.id];
             // console.log("Removed link: " + link.id);
         } else {
             console.log("Could not find link sprite: " + link.id);
