@@ -582,6 +582,10 @@ export default  function (settings) {
             }
         },
 
+        panningMode: function () {
+            this.setMode('panning');
+        },
+
         /*
          * get selected nodes,
          * nodes of nodeContainer are selected @SelectionManager.js
