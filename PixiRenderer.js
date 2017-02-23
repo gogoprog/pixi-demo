@@ -1496,6 +1496,9 @@ export default  function (settings) {
         getGraphLinks: function () {
             return graphLinks;
         },
+        setGraphLinks: function (gLinks) {
+            graphLinks = gLinks;
+        },
         getGraphLinkTypes: function () {
             return graphLinkTypes;
         },
@@ -1765,8 +1768,8 @@ export default  function (settings) {
         n.parent = nodeContainer;
         n.anchor.x = 0.5;
         n.anchor.y = 0.5;
-        n.position.x = p.data.properties.x || 0;
-        n.position.y = p.data.properties.y || 0;
+        n.position.x = p.data.properties.x || Math.random();
+        n.position.y = p.data.properties.y || Math.random();
         n.incoming = [];
         n.outgoing = [];
 
