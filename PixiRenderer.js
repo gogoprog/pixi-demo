@@ -1493,6 +1493,9 @@ export default  function (settings) {
         getGraphEntities: function () {
             return graphEntities;
         },
+        setGraphEntities: function (gEntities) {
+            graphEntities = gEntities;
+        },
         getGraphLinks: function () {
             return graphLinks;
         },
