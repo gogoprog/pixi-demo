@@ -3,7 +3,7 @@
  * later we could add modifier key to change the behavior like zoom when ctrl is pressed
  * scroll to move up/down and shift+scroll to move side ways.
  **/
-import { visualConfig } from "./visualConfig.js";
+// import { visualConfig } from "./visualConfig.js";
 
 var getGraphCoordinates = (function() {
     var ctx = {
@@ -17,7 +17,7 @@ var getGraphCoordinates = (function() {
     };
 }());
 
-export const zoom = function(x, y, isZoomIn, stage) {
+export const zoom = function(x, y, isZoomIn, stage, visualConfig) {
     if ((isZoomIn && stage.scale.x > visualConfig.MAX_SCALE) || (!isZoomIn && stage.scale.x < visualConfig.MIN_SCALE)) {
         return;
     }
@@ -200,7 +200,7 @@ var nodeMoveListener = function(e) {
     if(this.timelineMode) {
         var dx =  Math.abs(newPosition.x-this.position.x);
         newPosition.x = this.position.x; // disable movement in x;
-        if(dx > (visualConfig.NODE_WIDTH/2 + 5)) { // when mouse move horizontally two far away from node, just release it.
+        if(dx > (this.visualConfig.NODE_WIDTH/2 + 5)) { // when mouse move horizontally two far away from node, just release it.
             // console.log("Dx " + dx);
             this.releaseListener(e);
         }

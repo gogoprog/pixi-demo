@@ -1,7 +1,7 @@
-import { visualConfig } from "./visualConfig.js";
+// import { visualConfig } from "./visualConfig.js";
 import { PixiRenderer } from "./PixiRenderer"
 let SimpleLineSprite;
-export default  SimpleLineSprite = function (label, thickness, color,arrowStyle,hasArrow, x1, y1, x2, y2, controlOffsetIndex, fontConfig) {
+export default  SimpleLineSprite = function (label, thickness, color,arrowStyle,hasArrow, x1, y1, x2, y2, controlOffsetIndex, fontConfig, visualConfig) {
     this.hasArrow=hasArrow;
     this._thickness = thickness;
     this._color = color;
@@ -9,7 +9,7 @@ export default  SimpleLineSprite = function (label, thickness, color,arrowStyle,
     this.y1 = y1;
     this.x2 = x2;
     this.y2 = y2;
-
+    this.visualConfig = visualConfig;
     this._controlOffsetIndex = controlOffsetIndex || 0;
 
     this.coustomSettingThickness = visualConfig.ui.line.width;
@@ -108,9 +108,9 @@ SimpleLineSprite.prototype.selectionChanged = function(selected) {
         // console.log(visualConfig.ui.line.highlight.color);
         // console.log(visualConfig.ui.line.highlight.alpha);
         // this.thickness = visualConfig.ui.line.highlight.width;
-        this.color = visualConfig.ui.line.highlight.color;
-        this.alpha = visualConfig.ui.line.highlight.alpha;
-        this.label.style = visualConfig.ui.label.fontHighlight;
+        this.color = this.visualConfig.ui.line.highlight.color;
+        this.alpha = this.visualConfig.ui.line.highlight.alpha;
+        this.label.style = this.visualConfig.ui.label.fontHighlight;
 
         //console.log("\n ================"+this.color);
     } else {
@@ -119,7 +119,7 @@ SimpleLineSprite.prototype.selectionChanged = function(selected) {
         // this.thickness = this.coustomSettingThickness;
         this.color = this.coustomSettingColor;
         this.alpha = this.coustomSettingAlpha;
-        this.label.style = visualConfig.ui.label.font;
+        this.label.style = this.visualConfig.ui.label.font;
     }
 };
 
@@ -203,7 +203,7 @@ SimpleLineSprite.prototype.renderLine = function(lineGraphics) {
     }else{
          var tempx=this.dx || 0;
          var tempy=this.dy || 0;
-         lineGraphics.drawEllipse(this.x1, this.y1+visualConfig.ELLIPSE_HIEGHT+tempy, visualConfig.ELLIPSE_WIDTH+tempx, visualConfig.ELLIPSE_HIEGHT+tempy);
+         lineGraphics.drawEllipse(this.x1, this.y1+ this.visualConfig.ELLIPSE_HIEGHT+tempy, this.visualConfig.ELLIPSE_WIDTH+tempx, this.visualConfig.ELLIPSE_HIEGHT+tempy);
     }
 
 };
@@ -235,17 +235,17 @@ SimpleLineSprite.prototype.updatePosition = function() {
             this.label.position.y = (this.y2 + this.y1) / 2 - dyCtl / 2 + 20;
         }
     }else{
-        let dyCtl = this._controlOffsetIndex * visualConfig.ELLIPSE_Y_OFFSET,
-            dxCtl = this._controlOffsetIndex * visualConfig.ELLIPSE_X_OFFSET;
+        let dyCtl = this._controlOffsetIndex * this.visualConfig.ELLIPSE_Y_OFFSET,
+            dxCtl = this._controlOffsetIndex * this.visualConfig.ELLIPSE_X_OFFSET;
             this.dy = dyCtl;
             this.dx = dxCtl;
             if(this.hasArrow) {
                 this.arrow.position.x = this.x1-5;
-                this.arrow.position.y = this.y1+visualConfig.ELLIPSE_HIEGHT*2+dyCtl*2;
+                this.arrow.position.y = this.y1+ this.visualConfig.ELLIPSE_HIEGHT*2+dyCtl*2;
                 this.arrow.rotation = Math.PI*1.5;
             }
             this.label.position.x = this.x1;
-            this.label.position.y = this.y1+visualConfig.ELLIPSE_HIEGHT*2+dyCtl*2+6;
+            this.label.position.y = this.y1+ this.visualConfig.ELLIPSE_HIEGHT*2+dyCtl*2+6;
     }
 };
 

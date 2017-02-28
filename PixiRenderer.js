@@ -1,7 +1,7 @@
 import createForceLayout from 'ngraph.forcelayout';
 import physicsSimulator from "ngraph.physics.simulator";
 import eventify from "ngraph.events";
-import {visualConfig} from "./visualConfig.js";
+// import {visualConfig} from "./visualConfig.js";
 import Graph from "./Graph.js";
 import { SelectionManager } from "./SelectionManager.js";
 import "./pixi.es5.js";
@@ -42,6 +42,11 @@ export default  function (settings) {
     var layout = settings.layout;
     if (!layout) {
         layout = createForceLayout(graph, physicsSimulator(settings.physics));
+    }
+
+    var visConfig = settings.visualConfig;
+    if (visConfig) {
+        var visualConfig = visConfig;
     }
 
     var layoutType = "Network";
@@ -1210,14 +1215,14 @@ export default  function (settings) {
             isDirty = true;
             var x = viewWidth / 2;
             var y = viewHeight / 2;
-            zoom(x, y, true, root);
+            zoom(x, y, true, root, visualConfig); 
         },
 
         zoomOut: function () {
             isDirty = true;
             var x = viewWidth / 2;
             var y = viewHeight / 2;
-            zoom(x, y, false, root);
+            zoom(x, y, false, root, visualConfig);
         },
 
         zoom: function (x, y, zoomingIn) {
@@ -1229,7 +1234,7 @@ export default  function (settings) {
                     zoomTimeline(0.1);
                 }
             } else {
-                zoom(x, y, zoomingIn, root);
+                zoom(x, y, zoomingIn, root, visualConfig);
             }
         },
 
@@ -1790,6 +1795,7 @@ export default  function (settings) {
         n.boundaryAttr.fill.color = 0xff6666;
         n.boundaryAttr.fill.alpha = 0.3;
 
+        n.visualConfig = visualConfig;
         n.interactive = true;
         n.buttonMode = true;
         var t = new PIXI.Text((p.data.label ? p.data.label : ""), visualConfig.ui.label.font);
@@ -1849,7 +1855,7 @@ export default  function (settings) {
             (f.data.label ? f.data.label : ""), visualConfig.ui.line.width, visualConfig.ui.line.color, f.data.isMultiple, f.data.isDirected,
             srcNodeSprite.position.x, srcNodeSprite.position.y,
             tgtNodeSprite.position.x, tgtNodeSprite.position.y,
-            positionOffset, visualConfig.ui.label.font);
+            positionOffset, visualConfig.ui.label.font, visualConfig);
 
         if (sameTgtLink.length > 0 && reverseLink.length === 0) {
             sameTgtLink.push(l);

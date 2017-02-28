@@ -1,10 +1,10 @@
-import { visualConfig } from "./visualConfig.js";
+// import { visualConfig } from "./visualConfig.js";
 PIXI.Sprite.prototype.selectionChanged = function(selected) {
     this.selected = selected;
     if (selected) {
-        this.ts.style = visualConfig.ui.label.fontHighlight;
+        this.ts.style = this.visualConfig.ui.label.fontHighlight;
     } else {
-        this.ts.style = visualConfig.ui.label.font;
+        this.ts.style = this.visualConfig.ui.label.font;
     }
 };
 
@@ -14,7 +14,7 @@ PIXI.Sprite.prototype.updateNodePosition = function(p) {
         this.position.x = p.x;
         if (this.ts) {
             this.ts.position.x = p.x;
-            this.ts.position.y = p.y + visualConfig.NODE_LABLE_OFFSET_Y * this.scale.y;
+            this.ts.position.y = p.y + this.visualConfig.NODE_LABLE_OFFSET_Y * this.scale.y;
         }
         _.each(this.incoming, function(l) {
 
@@ -34,7 +34,7 @@ PIXI.Sprite.prototype.updateNodePosition = function(p) {
         this.position.y = p.y;
         if (this.ts) {
             this.ts.position.x = p.x;
-            this.ts.position.y = p.y + visualConfig.NODE_LABLE_OFFSET_Y*this.scale.y;
+            this.ts.position.y = p.y + this.visualConfig.NODE_LABLE_OFFSET_Y*this.scale.y;
         }
         if(this.circleBorder){
             this.circleBorder.position.x = p.x;

@@ -2,54 +2,56 @@ import Graph from "./Graph.js";
 import createForceLayout from 'ngraph.forcelayout';
 import { visualConfig } from "./visualConfig.js";
 
-const Settings = function(divId, classId, timelineId, layout) {
-    var settings={};
+class Settings {
+    constructor(divId, classId, timelineId, visConfig) {
+        var divDoc = document.getElementById(divId);
+        console.log(divId + " " + divDoc);
 
-    _.each(visualConfig.icons, function (icon) {
-        icon.texture = PIXI.Texture.fromImage(icon.url);
-    });
+        var canvasDoc =  document.createElement("canvas");
+        canvasDoc.setAttribute("id", "visPixijs");
+        canvasDoc.setAttribute("style", "border-width: 0;");
+        
+        divDoc.appendChild(canvasDoc);
 
-    // var canvas = document.getElementById("visPixijs"),
-    //     w2 = $('.full-screen-container').width(),
-    //     h2 = $('.full-screen-container').height();
-    // canvas.width = w2;
-    // canvas.height = h2;
-    // settings.container = canvas;
-    // console.log("w2 " + w2);
-    // console.log("h2 " + h2);
+        var w = $(classId).width();
+        var h = $(classId).height();
+        canvasDoc.width = w;
+        canvasDoc.height = h;
+        this.container = canvasDoc;
 
-    var divDoc = document.getElementById(divId);
-    console.log(divId + " " + divDoc);
+        console.log("w" + w);
+        console.log("h" + h);
 
-	var canvasDoc =  document.createElement("canvas");
-	canvasDoc.setAttribute("id", "visPixijs");
-    canvasDoc.setAttribute("style", "border-width: 0;");
-    
-	divDoc.appendChild(canvasDoc);
+        let ngraph = Graph();
+        this.graph = ngraph;
+        
+        if (visConfig) {
+            _.each(visConfig.icons, function (icon) {
+                icon.texture = PIXI.Texture.fromImage(icon.url);
+            });
+            this.visualConfig = visConfig;
+            this.layout = createForceLayout(ngraph, visConfig.forceLayout);
+            // Settings.visualization = visConfig;
+        } else {
+            _.each(visualConfig.icons, function (icon) {
+                icon.texture = PIXI.Texture.fromImage(icon.url);
+            });
+            this.visualConfig = visualConfig;
+            this.layout = createForceLayout(ngraph, visualConfig.forceLayout);
+        }
 
-    var w = $(classId).width();
-    var h = $(classId).height();
-    canvasDoc.width = w;
-    canvasDoc.height = h;
-    settings.container = canvasDoc;
+        this.timelineContainer = timelineId;
+        this.mode = "picking";
+        this.background = 0x000000;
+        this.physics = {
+            springLength: 30,
+            springCoeff: 0.0008,
+            dragCoeff: 0.01,
+            gravity: -1.2,
+            theta: 1
+        };
 
-    console.log("w" + w);
-    console.log("h" + h);
-   
-    settings.timelineContainer = timelineId;
-    let ngraph = Graph();
-    settings.graph = ngraph;
-    settings.layout = createForceLayout(ngraph, layout);
-    settings.mode = "picking";
-    settings.background = 0x000000;
-    settings.physics = {
-        springLength: 30,
-        springCoeff: 0.0008,
-        dragCoeff: 0.01,
-        gravity: -1.2,
-        theta: 1
-    };
-    return settings 
+    }
+
 }
-
-export default Settings
+export default Settings;
