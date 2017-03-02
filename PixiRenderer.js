@@ -1401,7 +1401,7 @@ export default function(settings) {
             })
         },
         setTwoNodeLayoutInXDireaction: function(nodeIDArray) {
-            if (nodeIDArray.length == 2) {
+            if (nodeIDArray.length == 2 && nodeIDArray[0] != nodeIDArray[1]) {
                 let x = viewWidth / 4;
                 this.setNodePosition(nodeIDArray[0], -x, 0);
                 this.setNodePosition(nodeIDArray[0], x, 0);
