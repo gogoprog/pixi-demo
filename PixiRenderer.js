@@ -43,7 +43,7 @@ export default function(settings) {
     if (!layout) {
         layout = createForceLayout(graph, physicsSimulator(settings.physics));
     }
-
+    var layoutIterationsStore = 1500;
     var visConfig = settings.visualConfig;
     if (visConfig) {
         var visualConfig = visConfig;
@@ -1412,13 +1412,25 @@ export default function(settings) {
                 this.performLayout();
             }
         },
+        pauseAnimation: function() {
+            visualConfig.LAYOUT_ANIMATION = !visualConfig.LAYOUT_ANIMATION;
+            if (!visualConfig.LAYOUT_ANIMATION) {
+                layoutIterationsStore = layoutIterations;
+                layoutIterations = -1;
+            } else {
+                layoutIterations = layoutIterationsStore;
+                this.performLayout();
+            }
+        },
         performLayout: function() {
 
             if (layoutType == 'Network') {
                 if (stage.isTimelineLayout) {
                     disableTimelineLayout();
                 }
-                layoutIterations = 1500;
+                if (layoutIterationsStore == 1500) {
+                    layoutIterations = 1500;
+                }
                 if (!visualConfig.LAYOUT_ANIMATION) {
                     while (layoutIterations > 0) {
                         layout.step();
