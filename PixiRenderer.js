@@ -1624,6 +1624,7 @@ export default function(settings) {
     };
 
     addWheelListener(canvas, _.throttle(function(e) {
+        // pixiGraphics.zoom(e.offsetX, e.offsetY, e.deltaY < 0);
         pixiGraphics.zoom(e.offsetX || (e.originalEvent ? e.originalEvent.offsetX : null), e.offsetY || (e.originalEvent ? e.originalEvent.offsetY : null), e.deltaY < 0);
     }, 50), true);
 
