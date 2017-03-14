@@ -14,19 +14,21 @@ import wechatUrl from "../../images/32/wechat.png"
 // import ipUrl from "../../assets/images/32/red-dot.png"
 import packagesUrl from "../../images/32/package.png"
 import redDotUrl from "../../images/32/red-dot.png"
-
+import {
+    ajax
+} from "../../../lib/ajax.js"
 export const visualConfig = {
     "NODE_LABLE_OFFSET_Y": 26,
     "LINK_LABLE_OFFSET_Y": 10,
     "MAX_SCALE": 10,
     "MAX_ADJUST": 3,
     "MIN_SCALE": 0.05,
-    "NODE_WIDTH":32,
-    "ELLIPSE_WIDTH":0.4*32,
-    "ELLIPSE_HIEGHT":0.5*32,
-    "ELLIPSE_Y_OFFSET":0.4*32,
-    "ELLIPSE_X_OFFSET":0.15*32,
-    "LAYOUT_ANIMATION":true,
+    "NODE_WIDTH": 32,
+    "ELLIPSE_WIDTH": 0.4 * 32,
+    "ELLIPSE_HIEGHT": 0.5 * 32,
+    "ELLIPSE_Y_OFFSET": 0.4 * 32,
+    "ELLIPSE_X_OFFSET": 0.15 * 32,
+    "LAYOUT_ANIMATION": true,
     "forceLayout": {
         "springLength": 250,
         "springCoeff": 0.00008,
@@ -37,66 +39,8 @@ export const visualConfig = {
     "timelineLayout": {
         "margin-left": 150,
     },
-    "icons": {
-        "account": {
-            "type": "account",
-            "url": accountUrl
-        },
-        "bankcard": {
-            "type": "bankcard",
-            "url": bankcardUrl
-        },
-        "man": {
-            "type": "people",
-            "url": manUrl
-        },
-        "woman": {
-            "type": "people",
-            "url":womanUrl
-        },
-        "people": {
-            "type": "people",
-            "url": peopleUrl
-        },
-        "wangwang": {
-            "type": "virtual-id",
-            "url": wangwangUrl
-        },
-        "wechat": {
-            "type": "virtual-id",
-            "url": wechatUrl
-        },
-        "qq": {
-            "type": "virtual-id",
-            "url": qqUrl
-        },
-        "alipay": {
-            "type": "virtual-id",
-            "url": alipayUrl
-        },
-        "phone": {
-            "type": "phone",
-            "url": phoneUrl
-        },
-        "hotel": {
-            "type": "location",
-            "url": hotelUrl
-        },
-        "flight": {
-            "type": "vehicle",
-            "url": flightUrl
-        },
-        "reddot": {
-            "type": "any",
-            "url": redDotUrl
-        },
-        "packages": {
-            "type": "packages",
-            "url": packagesUrl
-        }
-    },
     "ui": {
-        "background" : 0x101010,
+        "background": 0x101010,
         "frame": {
             "border": {
                 "color": 0x0077b3,
@@ -119,12 +63,12 @@ export const visualConfig = {
             }
         },
         "circleborder": {
-            "border":{
+            "border": {
                 "color": 0x000000,
                 "alpha": 1,
                 "width": 1
             },
-            "fill":{
+            "fill": {
                 "color": 0xAB4146,
                 "alpha": 0.1
             }
@@ -133,7 +77,7 @@ export const visualConfig = {
             "font": { "font": '20px Microsoft YaHei,Tahoma', "fill": '#FFFFFF', "align": 'center' },
             "fontHighlight": { "font": '24px Microsoft YaHei,Tahoma', "fill": 0x0086E3, "align": 'center' },
         },
-        "timeline" : {
+        "timeline": {
             "color": 0xFFFFFF,
             "width": 3,
         }
@@ -157,24 +101,12 @@ export const visualConfig = {
         }
     }
 };
-
-visualConfig.findIcon = function(entityType) {
-    var semanticType = entityType;
-    // if (semanticType == "people") {
-    //     return this.icons.people.texture;
-    // } else if (semanticType == "vehicle") {
-    //     return this.icons.flight.texture;
-    // } else if (semanticType == "account") {
-    //     return this.icons.account.texture;
-    // } else if (semanticType == "location") {
-    //     return this.icons.hotel.texture;
-    // } else {
-    //     return this.icons.reddot.texture;
-    // }
-    if (this.icons[semanticType]) {
-        return this.icons[semanticType].texture;
-    } else {
-        return this.icons.reddot.texture;
+visualConfig.findIcon = function(link) {
+    const data = visualConfig.icons;
+    console.log('333')
+    for (var i = 0; i < data.length; i++) {
+        if (data[i].url == link) {
+            return data[i].texture;
+        }
     }
-    
 };
