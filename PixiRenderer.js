@@ -1557,7 +1557,7 @@ export default function(settings) {
             let type;
             _.each(graphType.entityTypes, function(f) {
                 if (f.uuid == nodeUuid) {
-                    type = f.semanticType;
+                    type = f.iconUrl;
                 }
             });
             return type;
@@ -1775,10 +1775,8 @@ export default function(settings) {
 
     function initNode(p) {
         let semanticType = pixiGraphics.getEntitySemanticType(p.data.type);
-
         var texture = visualConfig.findIcon(semanticType);
         // var texture = visualConfig.findIcon(p.data.type);
-        // console.log(JSON.stringify(p));
         var n = new PIXI.Sprite(texture);
 
         //textContainer.addChild(n.circleBorder);

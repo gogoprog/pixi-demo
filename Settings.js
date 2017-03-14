@@ -5,12 +5,10 @@ import { visualConfig } from "./visualConfig.js";
 class Settings {
     constructor(divId, classId, timelineId, visConfig) {
         var divDoc = document.getElementById(divId);
-        console.log(divId + " " + divDoc);
-
-        var canvasDoc =  document.createElement("canvas");
+        var canvasDoc = document.createElement("canvas");
         canvasDoc.setAttribute("id", "visPixijs");
         canvasDoc.setAttribute("style", "border-width: 0;");
-        
+
         divDoc.appendChild(canvasDoc);
 
         var w = $(classId).width();
@@ -18,22 +16,23 @@ class Settings {
         canvasDoc.width = w;
         canvasDoc.height = h;
         this.container = canvasDoc;
-
-        console.log("w" + w);
-        console.log("h" + h);
-
         let ngraph = Graph();
         this.graph = ngraph;
-        
         if (visConfig) {
-            _.each(visConfig.icons, function (icon) {
-                icon.texture = PIXI.Texture.fromImage(icon.url);
-            });
+            if (data) {
+                for (var i = 0; i < data.length; i++) {
+                    if (!data[i].texture) {
+                        data[i].texture = PIXI.Texture.fromImage(data[i].url);
+                        console.log('33333', data[i]);
+                        console.log(visConfig);
+                    }
+                }
+            }
             this.visualConfig = visConfig;
             this.layout = createForceLayout(ngraph, visConfig.forceLayout);
             // Settings.visualization = visConfig;
         } else {
-            _.each(visualConfig.icons, function (icon) {
+            _.each(visualConfig.icons, function(icon) {
                 icon.texture = PIXI.Texture.fromImage(icon.url);
             });
             this.visualConfig = visualConfig;
