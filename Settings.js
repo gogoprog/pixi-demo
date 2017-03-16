@@ -18,16 +18,14 @@ class Settings {
         this.container = canvasDoc;
         let ngraph = Graph();
         this.graph = ngraph;
+
         if (visConfig) {
-            if (data) {
+            let data = visConfig.icons || [];
                 for (var i = 0; i < data.length; i++) {
                     if (!data[i].texture) {
                         data[i].texture = PIXI.Texture.fromImage(data[i].url);
-                        console.log('33333', data[i]);
-                        console.log(visConfig);
                     }
                 }
-            }
             this.visualConfig = visConfig;
             this.layout = createForceLayout(ngraph, visConfig.forceLayout);
             // Settings.visualization = visConfig;

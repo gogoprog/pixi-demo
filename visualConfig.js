@@ -1,22 +1,4 @@
-import accountUrl from "../../images/32/account.png"
-import bankcardUrl from "../../images/32/bankcard.png"
-import flightUrl from "../../images/32/flight.png"
-import hotelUrl from "../../images/32/hotel.png"
-import peopleUrl from "../../images/32/people.png"
-import womanUrl from "../../images/32/woman.png"
-import manUrl from "../../images/32/man.png"
-import phoneUrl from "../../images/32/phone.png"
-import alipayUrl from "../../images/32/alipay.png"
-import qqUrl from "../../images/32/qq.png"
-import wangwangUrl from "../../images/32/wangwang.png"
-import wechatUrl from "../../images/32/wechat.png"
-// import vehicleUrl from "../../assets/images/32/flight.png"
-// import ipUrl from "../../assets/images/32/red-dot.png"
-import packagesUrl from "../../images/32/package.png"
-import redDotUrl from "../../images/32/red-dot.png"
-import {
-    ajax
-} from "../../../lib/ajax.js"
+
 export const visualConfig = {
     "NODE_LABLE_OFFSET_Y": 26,
     "LINK_LABLE_OFFSET_Y": 10,
@@ -103,7 +85,6 @@ export const visualConfig = {
 };
 visualConfig.findIcon = function(link) {
     const data = visualConfig.icons;
-    console.log('333')
     for (var i = 0; i < data.length; i++) {
         if (data[i].url == link) {
             return data[i].texture;

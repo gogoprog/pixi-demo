@@ -1,19 +1,3 @@
-import accountUrl from "../../images/32/account.png"
-import bankcardUrl from "../../images/32/bankcard.png"
-import flightUrl from "../../images/32/flight.png"
-import hotelUrl from "../../images/32/hotel.png"
-import peopleUrl from "../../images/32/people.png"
-import womanUrl from "../../images/32/woman.png"
-import manUrl from "../../images/32/man.png"
-import phoneUrl from "../../images/32/phone.png"
-import alipayUrl from "../../images/32/alipay.png"
-import qqUrl from "../../images/32/qq.png"
-import wangwangUrl from "../../images/32/wangwang.png"
-import wechatUrl from "../../images/32/wechat.png"
-// import vehicleUrl from "../../assets/images/32/flight.png"
-// import ipUrl from "../../assets/images/32/red-dot.png"
-import packagesUrl from "../../images/32/package.png"
-import redDotUrl from "../../images/32/red-dot.png"
 
 export const elpVisualConfig = {
     "NODE_LABLE_OFFSET_Y": 26,
@@ -36,64 +20,6 @@ export const elpVisualConfig = {
     },
     "timelineLayout": {
         "margin-left": 150,
-    },
-    "icons": {
-        "account": {
-            "type": "account",
-            "url": accountUrl
-        },
-        "bankcard": {
-            "type": "bankcard",
-            "url": bankcardUrl
-        },
-        "man": {
-            "type": "people",
-            "url": manUrl
-        },
-        "woman": {
-            "type": "people",
-            "url": womanUrl
-        },
-        "people": {
-            "type": "people",
-            "url": peopleUrl
-        },
-        "wangwang": {
-            "type": "virtual-id",
-            "url": wangwangUrl
-        },
-        "wechat": {
-            "type": "virtual-id",
-            "url": wechatUrl
-        },
-        "qq": {
-            "type": "virtual-id",
-            "url": qqUrl
-        },
-        "alipay": {
-            "type": "virtual-id",
-            "url": alipayUrl
-        },
-        "phone": {
-            "type": "phone",
-            "url": phoneUrl
-        },
-        "hotel": {
-            "type": "location",
-            "url": hotelUrl
-        },
-        "flight": {
-            "type": "vehicle",
-            "url": flightUrl
-        },
-        "reddot": {
-            "type": "any",
-            "url": redDotUrl
-        },
-        "packages": {
-            "type": "packages",
-            "url": packagesUrl
-        }
     },
     "ui": {
         "background": 0x101010,
@@ -158,23 +84,32 @@ export const elpVisualConfig = {
     }
 };
 
-elpVisualConfig.findIcon = function(entityType) {
-    var semanticType = entityType;
-    // if (semanticType == "people") {
-    //     return this.icons.people.texture;
-    // } else if (semanticType == "vehicle") {
-    //     return this.icons.flight.texture;
-    // } else if (semanticType == "account") {
-    //     return this.icons.account.texture;
-    // } else if (semanticType == "location") {
-    //     return this.icons.hotel.texture;
-    // } else {
-    //     return this.icons.reddot.texture;
-    // }
-    if (this.icons[semanticType]) {
-        return this.icons[semanticType].texture;
-    } else {
-        return this.icons.reddot.texture;
+elpVisualConfig.findIcon = function(link) {
+    const data = this.icons;
+    for (var i = 0; i < data.length; i++) {
+        if (data[i].url == link) {
+            return data[i].texture;
+        }
     }
-
 };
+
+// elpVisualConfig.findIcon = function(entityType) {
+//     var semanticType = entityType;
+//     // if (semanticType == "people") {
+//     //     return this.icons.people.texture;
+//     // } else if (semanticType == "vehicle") {
+//     //     return this.icons.flight.texture;
+//     // } else if (semanticType == "account") {
+//     //     return this.icons.account.texture;
+//     // } else if (semanticType == "location") {
+//     //     return this.icons.hotel.texture;
+//     // } else {
+//     //     return this.icons.reddot.texture;
+//     // }
+//     if (this.icons[semanticType]) {
+//         return this.icons[semanticType].texture;
+//     } else {
+//         return this.icons.reddot.texture;
+//     }
+//
+// };
