@@ -1,18 +1,18 @@
 
 export const elpVisualConfig = {
-    "NODE_LABLE_OFFSET_Y": 26,
-    "LINK_LABLE_OFFSET_Y": 10,
-    "MAX_SCALE": 10,
+    "NODE_LABLE_OFFSET_Y": 15,
+    "LINK_LABLE_OFFSET_Y": 5,
+    "MAX_SCALE": 5,
     "MAX_ADJUST": 3,
-    "MIN_SCALE": 0.05,
+    "MIN_SCALE": 0.5,
     "NODE_WIDTH": 32,
-    "ELLIPSE_WIDTH": 0.4 * 32,
-    "ELLIPSE_HIEGHT": 0.5 * 32,
+    "ELLIPSE_WIDTH": 40,
+    "ELLIPSE_HIEGHT": 25,
     "ELLIPSE_Y_OFFSET": 0.4 * 32,
     "ELLIPSE_X_OFFSET": 0.15 * 32,
     "LAYOUT_ANIMATION": true,
     "forceLayout": {
-        "springLength": 250,
+        "springLength": 150,
         "springCoeff": 0.00008,
         "dragCoeff": 0.08,
         "gravity": -1.2,
@@ -56,7 +56,7 @@ export const elpVisualConfig = {
             }
         },
         "label": {
-            "font": { "font": '20px Microsoft YaHei,Tahoma', "fill": 0x0086E3, "align": 'center' },
+            "font": { "font": '24px Microsoft YaHei,Tahoma', "fill": 0x0086E3, "align": 'center' },
             "fontHighlight": { "font": '24px Microsoft YaHei,Tahoma', "fill": 0x0086E3, "align": 'center' },
         },
         "timeline": {

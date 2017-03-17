@@ -218,7 +218,7 @@ SimpleLineSprite.prototype.updatePosition = function() {
                 this.arrow.rotation = Math.atan2(this.y2 - this.y1, this.x2 - this.x1) - Math.PI / 2;
             }
             this.label.position.x = (this.x2 + this.x1) / 2;
-            this.label.position.y = (this.y2 + this.y1) / 2 + 10;
+            this.label.position.y = (this.y2 + this.y1) / 2 + 5;
         } else {
             var angle = Math.atan2(this.y2 - this.y1, this.x2 - this.x1);
             let dxCtl = this._controlOffsetIndex * SimpleLineSprite.prototype.MULTI_OFFSET * Math.sin(angle),
@@ -232,7 +232,7 @@ SimpleLineSprite.prototype.updatePosition = function() {
                 this.arrow.rotation = angle - Math.PI / 2;
             }
             this.label.position.x = (this.x2 + this.x1) / 2 + dxCtl / 2;
-            this.label.position.y = (this.y2 + this.y1) / 2 - dyCtl / 2 + 20;
+            this.label.position.y = (this.y2 + this.y1) / 2 - dyCtl / 2 + 5;
         }
     }else{
         let dyCtl = this._controlOffsetIndex * this.visualConfig.ELLIPSE_Y_OFFSET,
