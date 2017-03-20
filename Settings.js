@@ -21,14 +21,13 @@ class Settings {
 
         if (visConfig) {
             let data = visConfig.icons || [];
-                for (var i = 0; i < data.length; i++) {
-                    if (!data[i].texture) {
-                        data[i].texture = PIXI.Texture.fromImage(data[i].url);
-                    }
+            for (var i = 0; i < data.length; i++) {
+                if (!data[i].texture) {
+                    data[i].texture = PIXI.Texture.fromImage(data[i].url);
                 }
+            }
             this.visualConfig = visConfig;
             this.layout = createForceLayout(ngraph, visConfig.forceLayout);
-            // Settings.visualization = visConfig;
         } else {
             _.each(visualConfig.icons, function(icon) {
                 icon.texture = PIXI.Texture.fromImage(icon.url);
