@@ -85,9 +85,11 @@ export const visualConfig = {
 };
 visualConfig.findIcon = function(link) {
     const data = visualConfig.icons;
-    for (var i = 0; i < data.length; i++) {
-        if (data[i].url == link) {
-            return data[i].texture;
+    if (data) {
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].url == link) {
+                return data[i].texture;
+            }
         }
     }
 };
