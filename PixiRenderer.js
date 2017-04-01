@@ -1391,15 +1391,6 @@ export default function(settings) {
             }
         },
 
-        graphUpdateNodePosition: function(positionArray) {
-            var index = 0;
-            _.each(nodeSprites, function(n) {
-                if (positionArray[index]) {
-                    n.updateNodePosition(positionArray[index]);
-                    index++;
-                }
-            })
-        },
         setTwoNodeLayoutInXDireaction: function(nodeIDArray) {
             if (nodeIDArray.length == 2 && nodeIDArray[0] != nodeIDArray[1]) {
                 let x = viewWidth / 4;
@@ -1801,8 +1792,9 @@ export default function(settings) {
         n.parent = nodeContainer;
         n.anchor.x = 0.5;
         n.anchor.y = 0.5;
-        n.position.x = p.data.properties.x || Math.random();
-        n.position.y = p.data.properties.y || Math.random();
+        n.position.x = p.data.properties._$x || Math.random();
+        n.position.y = p.data.properties._$y || Math.random();
+        // console.log("get == " + p.data.label + " :x: " + p.data.properties._$x  + " :y: " + p.data.properties._$y);
         n.incoming = [];
         n.outgoing = [];
 
