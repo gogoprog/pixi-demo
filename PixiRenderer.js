@@ -1609,6 +1609,13 @@ export default function(settings) {
 
         addCanvasEventListener: function(eventName, func, state) {
             canvas.addEventListener(eventName, func, state);
+        },
+
+        modifyNodeLabel: function(nodeLabelsObj) {
+            for (let nodeId in nodeLabelsObj) {
+                let nodeSprite = nodeSprites[nodeId];
+                nodeSprite.ts.text = nodeLabelsObj[nodeId];
+            }
         }
 
 
