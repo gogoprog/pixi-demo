@@ -1,4 +1,3 @@
-
 export const elpVisualConfig = {
     "NODE_LABLE_OFFSET_Y": 15,
     "LINK_LABLE_OFFSET_Y": 5,
@@ -92,24 +91,3 @@ elpVisualConfig.findIcon = function(link) {
         }
     }
 };
-
-// elpVisualConfig.findIcon = function(entityType) {
-//     var semanticType = entityType;
-//     // if (semanticType == "people") {
-//     //     return this.icons.people.texture;
-//     // } else if (semanticType == "vehicle") {
-//     //     return this.icons.flight.texture;
-//     // } else if (semanticType == "account") {
-//     //     return this.icons.account.texture;
-//     // } else if (semanticType == "location") {
-//     //     return this.icons.hotel.texture;
-//     // } else {
-//     //     return this.icons.reddot.texture;
-//     // }
-//     if (this.icons[semanticType]) {
-//         return this.icons[semanticType].texture;
-//     } else {
-//         return this.icons.reddot.texture;
-//     }
-//
-// };
