@@ -26,13 +26,31 @@ class Settings {
                     data[i].texture = PIXI.Texture.fromImage(data[i].url);
                 }
             }
+
+            var graphCollIcons = visConfig.graphCollIcons || [];
+            for (var j = 1; j < 11; j++) {
+                var iconUrl = "/static/32/GraphColl/graph_coll" + j + ".png";
+                var texture = PIXI.Texture.fromImage(iconUrl);
+                graphCollIcons.push(texture);
+            }
+
             this.visualConfig = visConfig;
+            this.visualConfig.graphCollIcons = graphCollIcons;
             this.layout = createForceLayout(ngraph, visConfig.forceLayout);
         } else {
             _.each(visualConfig.icons, function(icon) {
                 icon.texture = PIXI.Texture.fromImage(icon.url);
             });
+
+            var graphCollIcons = visualConfig.graphCollIcons || [];
+            for (var j = 1; j < 11; j++) {
+                var iconUrl = "/static/32/GraphColl/graph_coll" + j + ".png";
+                var texture = PIXI.Texture.fromImage(iconUrl);
+                graphCollIcons.push(texture);
+            }
+
             this.visualConfig = visualConfig;
+            this.visualConfig.graphCollIcons = graphCollIcons;
             this.layout = createForceLayout(ngraph, visualConfig.forceLayout);
         }
 

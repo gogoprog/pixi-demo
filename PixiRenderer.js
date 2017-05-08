@@ -15,6 +15,7 @@ import "./pixiSpriteAugment.js";
 import moment from "moment";
 import vis from "vis";
 // import vis from "./vis.min.js";
+import Utility from "../../../ui/analyticService/Utility";
 
 
 export default function(settings) {
@@ -428,6 +429,12 @@ export default function(settings) {
                 }
                 hiddenNode.visible = false;
                 hiddenNode.ts.visible = false;
+                if (hiddenNode.gcs) {
+                    for (var i = 0; i < hiddenNode.gcs.length; i++) {
+                        hiddenNode.gcs[i].visible = false;
+                    }
+                }
+
                 if (hiddenNode.circleBorder) {
                     hiddenNode.circleBorder.visible = false;
                 }
@@ -466,6 +473,11 @@ export default function(settings) {
             _.each(nodeSprites, function(ns) {
                 ns.visible = true;
                 ns.ts.visible = true;
+                if (ns.gcs) {
+                    for (var i = 0; i < ns.gcs.length; i++) {
+                        ns.gcs[i].visible = true;
+                    }
+                }
                 if (ns.circleBorder) {
                     ns.circleBorder.visible = true;
                 }
@@ -484,6 +496,11 @@ export default function(settings) {
                 var showNode = nodeSprites[node];
                 showNode.visible = true;
                 showNode.ts.visible = true;
+                if (showNode.gcs) {
+                    for (var i = 0; i < showNode.gcs.length; i++) {
+                        showNode.gcs[i].visible = true;
+                    }
+                }
                 if (showNode.circleBorder) {
                     showNode.circleBorder.visible = true;
                 }
@@ -1481,6 +1498,9 @@ export default function(settings) {
         addNode: function(nodeId, data) {
             return graph.addNode(nodeId, data);
         },
+        updateNode: function(nodeId, data) {
+            return graph.addNode(nodeId, data);
+        },
         addLink: function(fromId, toId, data) {
             return graph.addLink(fromId, toId, data);
         },
@@ -1661,6 +1681,11 @@ export default function(settings) {
                 nodeSprite.scale.set(zoomValue);
                 nodeSprite.ts.scale.set(0.5 * zoomValue);
                 nodeSprite.ts.position.set(nodeSprites[nodeID].position.x, nodeSprites[nodeID].position.y + visualConfig.NODE_LABLE_OFFSET_Y * zoomValue);
+                if (nodeSprite.gcs) {
+                    for (var i = 0; i < nodeSprite.gcs.length; i++) {
+                        nodeSprite.gcs[i].scale.set(0.5 * zoomValue);
+                    }
+                }
                 if (nodeSprite.circleBorder) {
                     nodeSprite.circleBorder.scale.set(zoomValue);
                 }
@@ -1738,7 +1763,7 @@ export default function(settings) {
                 // console.log(length);
                 //console.log("text width < 40 ");
                 boarderGraphics.drawRect(n2.position.x - 24 * n2.scale.x, n2.position.y - 24 * n2.scale.y, 48 * n2.scale.x, (60) * n2.scale.y);
-
+                // boarderGraphics.drawRect(n2.position.x - 24 * n2.scale.x, n2.position.y - 24 * n2.scale.y, 60 * n2.scale.x, (80) * n2.scale.y);
             }
         });
         boarderGraphics.endFill();
@@ -1830,10 +1855,105 @@ export default function(settings) {
         n.ts = t;
         textContainer.addChild(t);
         nodeContainer.addChild(n);
-
         nodeSprites[p.id] = n;
+
         n.on('mousedown', nodeCaptureListener);
+        // initIcon(n);
+        updateNode(p);
+
     }
+
+    function updateNode(node) {
+        var nodeSprite = nodeSprites[node.id];
+        var collIdArr = getCollIds(node);
+        if (nodeSprite.gcs) {
+            var newIconSpriteIdArr = [];
+            for (var collId of collIdArr) {
+                var newIconSpriteId = node.id + "~`#" + collId;
+                newIconSpriteIdArr.push(newIconSpriteId);
+            }
+
+            var gcsLen = nodeSprite.gcs.length;
+            while (gcsLen--) {
+                var iconSprite = nodeSprite.gcs[gcsLen];
+                var oldIconSpriteId = iconSprite.id;
+                var index = newIconSpriteIdArr.indexOf(oldIconSpriteId);
+                if (index < 0) {
+                    nodeContainer.removeChild(iconSprite);
+                    nodeSprite.gcs.splice(gcsLen, 1);
+                } else {
+                    var arr = oldIconSpriteId.split("~`#");
+                    var cid = arr[arr.length - 1];
+                    cid = Utility.convertToNum(cid);
+                    var cidIndex = collIdArr.indexOf(cid);
+                    if (cidIndex > -1) {
+                        collIdArr.splice(cidIndex, 1);
+                    }
+                }
+            }
+        }
+
+        for (var collId of collIdArr) {
+            addIconToNode(node, collId);
+        }
+
+    }
+
+
+    function addIconToNode(node, collId) {
+        var iconTexture = visualConfig.findGraphCollIcon(collId);
+        var iconSprite = new PIXI.Sprite(iconTexture);
+        var nodeSprite = nodeSprites[node.id];
+        iconSprite.id = nodeSprite.id + "~`#" + collId;
+        iconSprite.anchor.x = 0.5;
+        // iconSprite.anchor.y = 0.5;
+        iconSprite.scale.set(0.5, 0.5);
+        if (nodeSprite.gcs && nodeSprite.gcs.length > 0) {
+            var incre = (nodeSprite.gcs.length - 1) * 4;
+            nodeSprite.gcs[0].position.x = nodeSprite.ts.position.x - incre;
+            nodeSprite.gcs[0].position.y = nodeSprite.ts.position.y + 17;
+            for (var i = 1; i < nodeSprite.gcs.length; i++) {
+                nodeSprite.gcs[i].position.x = nodeSprite.gcs[i - 1].position.x + 10;
+                nodeSprite.gcs[i].position.y = nodeSprite.gcs[i - 1].position.y;
+            }
+
+            iconSprite.position.x = nodeSprite.gcs[nodeSprite.gcs.length - 1].position.x + 10;
+            iconSprite.position.y = nodeSprite.gcs[nodeSprite.gcs.length - 1].position.y;
+        } else if (nodeSprite.ts) {
+            iconSprite.position.x = nodeSprite.ts.position.x;
+            iconSprite.position.y = nodeSprite.ts.position.y + 17;
+        } else {
+            iconSprite.position.x = nodeSprite.position.x - 15;
+            iconSprite.position.y = nodeSprite.position.y + 17;
+        }
+
+
+        var gcsArr = nodeSprite.gcs || [];
+        gcsArr.push(iconSprite);
+        nodeSprite.gcs = gcsArr;
+        iconSprite.visible = nodeSprite.visible;
+
+        nodeContainer.addChild(iconSprite);
+    }
+
+    function getCollIds(node) {
+        var collIdArr = [];
+        if (graphData) {
+            for (var collId in graphData.collections) {
+                var coll = graphData.collections[collId];
+                var entities = coll.entities;
+                for (var entity of entities) {
+                    if (entity.id == node.id) {
+                        collIdArr.push(coll.cid);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return collIdArr;
+    }
+
 
     function adjustControlOffsets(linkSpriteArray, arrangeOnBothSides, avoidZero) {
         var linkCount = linkSpriteArray.length,
@@ -1972,6 +2092,11 @@ export default function(settings) {
             if (nodeSprite.ts) {
                 textContainer.removeChild(nodeSprite.ts);
             }
+            if (nodeSprite.gcs) {
+                for (var i = 0; i < nodeSprite.gcs.length; i++) {
+                    nodeContainer.removeChild(nodeSprite.gcs[i]);
+                }
+            }
             nodeContainer.removeChild(nodeSprite);
             delete nodeSprites[node.id];
             delete graphEntities[node.data.id];
@@ -2032,6 +2157,10 @@ export default function(settings) {
                 }
                 if (change.link) {
                     removeLink(change.link);
+                }
+            } else if (change.changeType === 'update') {
+                if (change.node) {
+                    updateNode(change.node);
                 }
             }
         }

@@ -93,3 +93,10 @@ visualConfig.findIcon = function(link) {
         }
     }
 };
+
+visualConfig.findGraphCollIcon = function(collId) {
+    const data = visualConfig.graphCollIcons;
+    if (data) {
+        return data[collId-1];
+    }
+};
