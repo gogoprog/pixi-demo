@@ -4,7 +4,9 @@ import eventify from "ngraph.events";
 // import {visualConfig} from "./visualConfig.js";
 import Graph from "./Graph.js";
 import { SelectionManager } from "./SelectionManager.js";
-import "./pixi.es5.js";
+import { CircleBorderTexture } from "./CircleBorderSprite.js";
+// import "./pixi.es5.js";
+import "pixi.js";
 import { FPSCounter } from "./FPSCounter.js";
 import { addWheelListener } from "./WheelListener.js";
 import { zoom, rootCaptureHandler, nodeCaptureListener } from "./customizedEventHandling.js";
@@ -16,6 +18,7 @@ import moment from "moment";
 import vis from "vis";
 // import vis from "./vis.min.js";
 import Utility from "../../../ui/analyticService/Utility";
+import SimpleNodeSprite from "./SimpleNodeSprite.js";
 
 
 export default function(settings) {
@@ -106,7 +109,8 @@ export default function(settings) {
 
     nodeContainer.interactive = true;
 
-    renderer.backgroundColor = 0xFFFFFF;
+    // renderer.backgroundColor = 0xFFFFFF;
+    renderer.backgroundColor = 0x000000;
     SelectionManager.call(nodeContainer);
 
     nodeContainer.on('mouseup', function(e) {
@@ -427,17 +431,8 @@ export default function(settings) {
                 if (hiddenNode.selected) {
                     nodeContainer.deselectNode(hiddenNode);
                 }
-                hiddenNode.visible = false;
-                hiddenNode.ts.visible = false;
-                if (hiddenNode.gcs) {
-                    for (var i = 0; i < hiddenNode.gcs.length; i++) {
-                        hiddenNode.gcs[i].visible = false;
-                    }
-                }
 
-                if (hiddenNode.circleBorder) {
-                    hiddenNode.circleBorder.visible = false;
-                }
+                hiddenNode.hide();
 
                 //when we hide the nodes we should also hide the texture, arrow and the link.
                 _.each(hiddenNode.outgoing, function(olink) {
@@ -471,16 +466,7 @@ export default function(settings) {
         showAll: function() {
             isDirty = true;
             _.each(nodeSprites, function(ns) {
-                ns.visible = true;
-                ns.ts.visible = true;
-                if (ns.gcs) {
-                    for (var i = 0; i < ns.gcs.length; i++) {
-                        ns.gcs[i].visible = true;
-                    }
-                }
-                if (ns.circleBorder) {
-                    ns.circleBorder.visible = true;
-                }
+                ns.show();
             });
             _.each(linkSprites, function(ls) {
                 ls.show();
@@ -494,16 +480,7 @@ export default function(settings) {
             isDirty = true;
             _.each(idArray, function(node) {
                 var showNode = nodeSprites[node];
-                showNode.visible = true;
-                showNode.ts.visible = true;
-                if (showNode.gcs) {
-                    for (var i = 0; i < showNode.gcs.length; i++) {
-                        showNode.gcs[i].visible = true;
-                    }
-                }
-                if (showNode.circleBorder) {
-                    showNode.circleBorder.visible = true;
-                }
+                showNode.show();
 
                 /**when we hide the nodes, we also hide the texture, arrow and the link.
                  * Now we should set them visible
@@ -1809,7 +1786,7 @@ export default function(settings) {
     }
 
 
-    function initNode(p) {
+    function initNode2(p) {
         let semanticType = pixiGraphics.getEntitySemanticType(p.data.type);
         var texture = visualConfig.findIcon(semanticType);
         // var texture = visualConfig.findIcon(p.data.type);
@@ -1863,9 +1840,33 @@ export default function(settings) {
 
     }
 
+
+    function initNode(p) {
+        let semanticType = pixiGraphics.getEntitySemanticType(p.data.type);
+        var texture = visualConfig.findIcon(semanticType);
+
+        var n = new SimpleNodeSprite(texture, p, visualConfig);
+
+        if (p.data.properties && p.data.properties._$hidden) {
+            n.hide();
+        } else {
+            n.show();
+        }
+
+        n.parent = nodeContainer;
+        textContainer.addChild(n.ts);
+        nodeContainer.addChild(n);
+        nodeSprites[p.id] = n;
+
+        updateNode(p);
+    }
+
     function updateNode(node) {
         var nodeSprite = nodeSprites[node.id];
-        var collIdArr = getCollIds(node);
+        if (graphData) {
+            var collIdArr = graphData.getNodeCollId(node);
+        }
+
         if (nodeSprite.gcs) {
             var newIconSpriteIdArr = [];
             for (var collId of collIdArr) {
@@ -1936,24 +1937,6 @@ export default function(settings) {
         nodeContainer.addChild(iconSprite);
     }
 
-    function getCollIds(node) {
-        var collIdArr = [];
-        if (graphData) {
-            for (var collId in graphData.collections) {
-                var coll = graphData.collections[collId];
-                var entities = coll.entities;
-                for (var entity of entities) {
-                    if (entity.id == node.id) {
-                        collIdArr.push(coll.cid);
-                        break;
-                    }
-                }
-            }
-        }
-
-        return collIdArr;
-    }
-
 
     function adjustControlOffsets(linkSpriteArray, arrangeOnBothSides, avoidZero) {
         var linkCount = linkSpriteArray.length,
@@ -2017,22 +2000,21 @@ export default function(settings) {
         l.data = f.data;
         l.id = f.data.id;
         l.ngLink = f;
-        l.visible = true;
         if (f.data.properties && f.data.properties._$hidden) {
-            l.visible = false;
+            l.hide();
+        } else {
+            l.show();
         }
 
         srcNodeSprite.outgoing.push(l);
         tgtNodeSprite.incoming.push(l);
         linkSprites[l.id] = l;
         l.label.interactive = true;
-        l.label.visible = l.visible;
         //l.label.fill= '#00FF00'
         lineContainer.addChild(l.label);
         if (f.data.isDirected) {
             l.arrow.interactive = true;
             l.arrow.buttonMode = true;
-            l.arrow.visible = l.visible;
             lineContainer.addChild(l.arrow);
         }
     }

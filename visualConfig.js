@@ -56,8 +56,8 @@ export const visualConfig = {
             }
         },
         "label": {
-            "font": { "font": '20px Microsoft YaHei,Tahoma', "fill": '#FFFFFF', "align": 'center' },
-            "fontHighlight": { "font": '24px Microsoft YaHei,Tahoma', "fill": 0x0086E3, "align": 'center' },
+            "font": { "fontFamily": '20px Microsoft YaHei,Tahoma', "fill": '#FFFFFF', "align": 'center' },
+            "fontHighlight": { "fontFamily": '24px Microsoft YaHei,Tahoma', "fill": 0x0086E3, "align": 'center' },
         },
         "timeline": {
             "color": 0xFFFFFF,
