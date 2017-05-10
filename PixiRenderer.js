@@ -1785,62 +1785,6 @@ export default function(settings) {
         });
     }
 
-
-    function initNode2(p) {
-        let semanticType = pixiGraphics.getEntitySemanticType(p.data.type);
-        var texture = visualConfig.findIcon(semanticType);
-        // var texture = visualConfig.findIcon(p.data.type);
-        var n = new PIXI.Sprite(texture);
-
-        //textContainer.addChild(n.circleBorder);
-        n.visible = true; //add for hide the node and line
-        if (p.data.properties && p.data.properties._$hidden) {
-            n.visible = false;
-        }
-        n.id = p.id;
-        n.parent = nodeContainer;
-        n.anchor.x = 0.5;
-        n.anchor.y = 0.5;
-        n.position.x = p.data.properties._$x || Math.random();
-        n.position.y = p.data.properties._$y || Math.random();
-        // console.log("get == " + p.data.label + " :x: " + p.data.properties._$x  + " :y: " + p.data.properties._$y);
-        n.incoming = [];
-        n.outgoing = [];
-
-        n.nodeScale = 1;
-
-        n.scale.set(n.nodeScale);
-
-        n.boundaryAttr = {};
-
-        n.boundaryAttr.border = {};
-        n.boundaryAttr.fill = {};
-        n.boundaryAttr.border.color = 0x0077b3;
-        n.boundaryAttr.border.width = 1;
-        n.boundaryAttr.border.alpha = 0.6;
-        n.boundaryAttr.fill.color = 0xff6666;
-        n.boundaryAttr.fill.alpha = 0.3;
-
-        n.visualConfig = visualConfig;
-        n.interactive = true;
-        n.buttonMode = true;
-        var t = new PIXI.Text((p.data.label ? p.data.label : ""), visualConfig.ui.label.font);
-        t.position.set(p.data.x, p.data.y + visualConfig.NODE_LABLE_OFFSET_Y);
-        t.anchor.x = 0.5;
-        t.scale.set(0.5, 0.5);
-        t.visible = n.visible;
-        n.ts = t;
-        textContainer.addChild(t);
-        nodeContainer.addChild(n);
-        nodeSprites[p.id] = n;
-
-        n.on('mousedown', nodeCaptureListener);
-        // initIcon(n);
-        updateNode(p);
-
-    }
-
-
     function initNode(p) {
         let semanticType = pixiGraphics.getEntitySemanticType(p.data.type);
         var texture = visualConfig.findIcon(semanticType);

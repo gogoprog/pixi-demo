@@ -1,4 +1,5 @@
 // import { visualConfig } from "./visualConfig.js";
+//deprecated
 PIXI.Sprite.prototype.selectionChanged = function(selected) {
     this.selected = selected;
     if (selected) {
@@ -8,6 +9,7 @@ PIXI.Sprite.prototype.selectionChanged = function(selected) {
     }
 };
 
+//deprecated
 PIXI.Sprite.prototype.updateNodePosition = function(p) {
     if (this.timelineMode) {
         this.position.y = p.y;
