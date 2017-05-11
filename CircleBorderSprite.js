@@ -1,4 +1,5 @@
-CircleBorderTexture = function(borderAttr, radius) {
+import "pixi.js";
+export const CircleBorderTexture = function(borderAttr, radius) {
     PIXI.Sprite.call(this, this.getTexture(borderAttr.border.width,borderAttr.border.color,borderAttr.border.alpha,borderAttr.fill.color,borderAttr.fill.alpha, radius));
     this._thickness = borderAttr.border.width;
     this._color = borderAttr.border.color;

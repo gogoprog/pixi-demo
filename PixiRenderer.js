@@ -4,7 +4,9 @@ import eventify from "ngraph.events";
 // import {visualConfig} from "./visualConfig.js";
 import Graph from "./Graph.js";
 import { SelectionManager } from "./SelectionManager.js";
-import "./pixi.es5.js";
+import { CircleBorderTexture } from "./CircleBorderSprite.js";
+// import "./pixi.es5.js";
+import "pixi.js";
 import { FPSCounter } from "./FPSCounter.js";
 import { addWheelListener } from "./WheelListener.js";
 import { zoom, rootCaptureHandler, nodeCaptureListener } from "./customizedEventHandling.js";
@@ -15,6 +17,8 @@ import "./pixiSpriteAugment.js";
 import moment from "moment";
 import vis from "vis";
 // import vis from "./vis.min.js";
+import Utility from "../../../ui/analyticService/Utility";
+import SimpleNodeSprite from "./SimpleNodeSprite.js";
 
 
 export default function(settings) {
@@ -105,7 +109,8 @@ export default function(settings) {
 
     nodeContainer.interactive = true;
 
-    renderer.backgroundColor = 0xFFFFFF;
+    // renderer.backgroundColor = 0xFFFFFF;
+    renderer.backgroundColor = 0x000000;
     SelectionManager.call(nodeContainer);
 
     nodeContainer.on('mouseup', function(e) {
@@ -426,11 +431,8 @@ export default function(settings) {
                 if (hiddenNode.selected) {
                     nodeContainer.deselectNode(hiddenNode);
                 }
-                hiddenNode.visible = false;
-                hiddenNode.ts.visible = false;
-                if (hiddenNode.circleBorder) {
-                    hiddenNode.circleBorder.visible = false;
-                }
+
+                hiddenNode.hide();
 
                 //when we hide the nodes we should also hide the texture, arrow and the link.
                 _.each(hiddenNode.outgoing, function(olink) {
@@ -464,11 +466,7 @@ export default function(settings) {
         showAll: function() {
             isDirty = true;
             _.each(nodeSprites, function(ns) {
-                ns.visible = true;
-                ns.ts.visible = true;
-                if (ns.circleBorder) {
-                    ns.circleBorder.visible = true;
-                }
+                ns.show();
             });
             _.each(linkSprites, function(ls) {
                 ls.show();
@@ -482,11 +480,7 @@ export default function(settings) {
             isDirty = true;
             _.each(idArray, function(node) {
                 var showNode = nodeSprites[node];
-                showNode.visible = true;
-                showNode.ts.visible = true;
-                if (showNode.circleBorder) {
-                    showNode.circleBorder.visible = true;
-                }
+                showNode.show();
 
                 /**when we hide the nodes, we also hide the texture, arrow and the link.
                  * Now we should set them visible
@@ -1481,6 +1475,9 @@ export default function(settings) {
         addNode: function(nodeId, data) {
             return graph.addNode(nodeId, data);
         },
+        updateNode: function(nodeId, data) {
+            return graph.addNode(nodeId, data);
+        },
         addLink: function(fromId, toId, data) {
             return graph.addLink(fromId, toId, data);
         },
@@ -1661,6 +1658,11 @@ export default function(settings) {
                 nodeSprite.scale.set(zoomValue);
                 nodeSprite.ts.scale.set(0.5 * zoomValue);
                 nodeSprite.ts.position.set(nodeSprites[nodeID].position.x, nodeSprites[nodeID].position.y + visualConfig.NODE_LABLE_OFFSET_Y * zoomValue);
+                if (nodeSprite.gcs) {
+                    for (var i = 0; i < nodeSprite.gcs.length; i++) {
+                        nodeSprite.gcs[i].scale.set(0.5 * zoomValue);
+                    }
+                }
                 if (nodeSprite.circleBorder) {
                     nodeSprite.circleBorder.scale.set(zoomValue);
                 }
@@ -1738,7 +1740,7 @@ export default function(settings) {
                 // console.log(length);
                 //console.log("text width < 40 ");
                 boarderGraphics.drawRect(n2.position.x - 24 * n2.scale.x, n2.position.y - 24 * n2.scale.y, 48 * n2.scale.x, (60) * n2.scale.y);
-
+                // boarderGraphics.drawRect(n2.position.x - 24 * n2.scale.x, n2.position.y - 24 * n2.scale.y, 60 * n2.scale.x, (80) * n2.scale.y);
             }
         });
         boarderGraphics.endFill();
@@ -1783,57 +1785,37 @@ export default function(settings) {
         });
     }
 
-
     function initNode(p) {
         let semanticType = pixiGraphics.getEntitySemanticType(p.data.type);
         var texture = visualConfig.findIcon(semanticType);
-        // var texture = visualConfig.findIcon(p.data.type);
-        var n = new PIXI.Sprite(texture);
 
-        //textContainer.addChild(n.circleBorder);
-        n.visible = true; //add for hide the node and line
+        var n = new SimpleNodeSprite(texture, p, visualConfig);
+
         if (p.data.properties && p.data.properties._$hidden) {
-            n.visible = false;
+            n.hide();
+        } else {
+            n.show();
         }
-        n.id = p.id;
+
         n.parent = nodeContainer;
-        n.anchor.x = 0.5;
-        n.anchor.y = 0.5;
-        n.position.x = p.data.properties._$x || Math.random();
-        n.position.y = p.data.properties._$y || Math.random();
-        // console.log("get == " + p.data.label + " :x: " + p.data.properties._$x  + " :y: " + p.data.properties._$y);
-        n.incoming = [];
-        n.outgoing = [];
+        if (graphData) {
+            var collIdArr = graphData.getNodeCollId(p);
+            n.setNodeIcon(collIdArr, nodeContainer);
+        }
 
-        n.nodeScale = 1;
-
-        n.scale.set(n.nodeScale);
-
-        n.boundaryAttr = {};
-
-        n.boundaryAttr.border = {};
-        n.boundaryAttr.fill = {};
-        n.boundaryAttr.border.color = 0x0077b3;
-        n.boundaryAttr.border.width = 1;
-        n.boundaryAttr.border.alpha = 0.6;
-        n.boundaryAttr.fill.color = 0xff6666;
-        n.boundaryAttr.fill.alpha = 0.3;
-
-        n.visualConfig = visualConfig;
-        n.interactive = true;
-        n.buttonMode = true;
-        var t = new PIXI.Text((p.data.label ? p.data.label : ""), visualConfig.ui.label.font);
-        t.position.set(p.data.x, p.data.y + visualConfig.NODE_LABLE_OFFSET_Y);
-        t.anchor.x = 0.5;
-        t.scale.set(0.5, 0.5);
-        t.visible = n.visible;
-        n.ts = t;
-        textContainer.addChild(t);
+        textContainer.addChild(n.ts);
         nodeContainer.addChild(n);
-
         nodeSprites[p.id] = n;
-        n.on('mousedown', nodeCaptureListener);
     }
+
+    function updateNodeIcon(node) {
+        if (graphData) {
+            var nodeSprite = nodeSprites[node.id];
+            var collIdArr = graphData.getNodeCollId(node);
+            nodeSprite.setNodeIcon(collIdArr, nodeContainer);
+        }
+    }
+
 
     function adjustControlOffsets(linkSpriteArray, arrangeOnBothSides, avoidZero) {
         var linkCount = linkSpriteArray.length,
@@ -1897,22 +1879,21 @@ export default function(settings) {
         l.data = f.data;
         l.id = f.data.id;
         l.ngLink = f;
-        l.visible = true;
         if (f.data.properties && f.data.properties._$hidden) {
-            l.visible = false;
+            l.hide();
+        } else {
+            l.show();
         }
 
         srcNodeSprite.outgoing.push(l);
         tgtNodeSprite.incoming.push(l);
         linkSprites[l.id] = l;
         l.label.interactive = true;
-        l.label.visible = l.visible;
         //l.label.fill= '#00FF00'
         lineContainer.addChild(l.label);
         if (f.data.isDirected) {
             l.arrow.interactive = true;
             l.arrow.buttonMode = true;
-            l.arrow.visible = l.visible;
             lineContainer.addChild(l.arrow);
         }
     }
@@ -1971,6 +1952,11 @@ export default function(settings) {
             }
             if (nodeSprite.ts) {
                 textContainer.removeChild(nodeSprite.ts);
+            }
+            if (nodeSprite.gcs) {
+                for (var i = 0; i < nodeSprite.gcs.length; i++) {
+                    nodeContainer.removeChild(nodeSprite.gcs[i]);
+                }
             }
             nodeContainer.removeChild(nodeSprite);
             delete nodeSprites[node.id];
@@ -2032,6 +2018,10 @@ export default function(settings) {
                 }
                 if (change.link) {
                     removeLink(change.link);
+                }
+            } else if (change.changeType === 'update') {
+                if (change.node) {
+                    updateNodeIcon(change.node);
                 }
             }
         }
