@@ -1798,87 +1798,22 @@ export default function(settings) {
         }
 
         n.parent = nodeContainer;
+        if (graphData) {
+            var collIdArr = graphData.getNodeCollId(p);
+            n.setNodeIcon(collIdArr, nodeContainer);
+        }
+
         textContainer.addChild(n.ts);
         nodeContainer.addChild(n);
         nodeSprites[p.id] = n;
-
-        updateNode(p);
     }
 
-    function updateNode(node) {
-        var nodeSprite = nodeSprites[node.id];
+    function updateNodeIcon(node) {
         if (graphData) {
+            var nodeSprite = nodeSprites[node.id];
             var collIdArr = graphData.getNodeCollId(node);
+            nodeSprite.setNodeIcon(collIdArr, nodeContainer);
         }
-
-        if (nodeSprite.gcs) {
-            var newIconSpriteIdArr = [];
-            for (var collId of collIdArr) {
-                var newIconSpriteId = node.id + "~`#" + collId;
-                newIconSpriteIdArr.push(newIconSpriteId);
-            }
-
-            var gcsLen = nodeSprite.gcs.length;
-            while (gcsLen--) {
-                var iconSprite = nodeSprite.gcs[gcsLen];
-                var oldIconSpriteId = iconSprite.id;
-                var index = newIconSpriteIdArr.indexOf(oldIconSpriteId);
-                if (index < 0) {
-                    nodeContainer.removeChild(iconSprite);
-                    nodeSprite.gcs.splice(gcsLen, 1);
-                } else {
-                    var arr = oldIconSpriteId.split("~`#");
-                    var cid = arr[arr.length - 1];
-                    cid = Utility.convertToNum(cid);
-                    var cidIndex = collIdArr.indexOf(cid);
-                    if (cidIndex > -1) {
-                        collIdArr.splice(cidIndex, 1);
-                    }
-                }
-            }
-        }
-
-        for (var collId of collIdArr) {
-            addIconToNode(node, collId);
-        }
-
-    }
-
-
-    function addIconToNode(node, collId) {
-        var iconTexture = visualConfig.findGraphCollIcon(collId);
-        var iconSprite = new PIXI.Sprite(iconTexture);
-        var nodeSprite = nodeSprites[node.id];
-        iconSprite.id = nodeSprite.id + "~`#" + collId;
-        iconSprite.anchor.x = 0.5;
-        // iconSprite.anchor.y = 0.5;
-        iconSprite.scale.set(0.5, 0.5);
-        if (nodeSprite.gcs && nodeSprite.gcs.length > 0) {
-            var incre = (nodeSprite.gcs.length - 1) * 4;
-            nodeSprite.gcs[0].position.x = nodeSprite.ts.position.x - incre;
-            nodeSprite.gcs[0].position.y = nodeSprite.ts.position.y + 17;
-            for (var i = 1; i < nodeSprite.gcs.length; i++) {
-                nodeSprite.gcs[i].position.x = nodeSprite.gcs[i - 1].position.x + 10;
-                nodeSprite.gcs[i].position.y = nodeSprite.gcs[i - 1].position.y;
-            }
-
-            iconSprite.position.x = nodeSprite.gcs[nodeSprite.gcs.length - 1].position.x + 10;
-            iconSprite.position.y = nodeSprite.gcs[nodeSprite.gcs.length - 1].position.y;
-        } else if (nodeSprite.ts) {
-            iconSprite.position.x = nodeSprite.ts.position.x;
-            iconSprite.position.y = nodeSprite.ts.position.y + 17;
-        } else {
-            iconSprite.position.x = nodeSprite.position.x - 15;
-            iconSprite.position.y = nodeSprite.position.y + 17;
-        }
-
-
-        var gcsArr = nodeSprite.gcs || [];
-        gcsArr.push(iconSprite);
-        nodeSprite.gcs = gcsArr;
-        iconSprite.visible = nodeSprite.visible;
-
-        nodeContainer.addChild(iconSprite);
     }
 
 
@@ -2086,7 +2021,7 @@ export default function(settings) {
                 }
             } else if (change.changeType === 'update') {
                 if (change.node) {
-                    updateNode(change.node);
+                    updateNodeIcon(change.node);
                 }
             }
         }

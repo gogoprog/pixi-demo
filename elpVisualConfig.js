@@ -55,8 +55,8 @@ export const elpVisualConfig = {
             }
         },
         "label": {
-            "font": { "fontFamily": '24px Microsoft YaHei,Tahoma', "fill": 0x0086E3, "align": 'center' },
-            "fontHighlight": { "fontFamily": '24px Microsoft YaHei,Tahoma', "fill": 0x0086E3, "align": 'center' },
+            "font": { "fontFamily": 'Microsoft YaHei,Tahoma', "fill": 0x0086E3, "align": 'center', "fontSize": '24px' },
+            "fontHighlight": { "fontFamily": 'Microsoft YaHei,Tahoma', "fill": 0x0086E3, "align": 'center', "fontSize": '24px' },
         },
         "timeline": {
             "color": 0xFFFFFF,

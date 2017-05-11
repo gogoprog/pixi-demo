@@ -6,6 +6,7 @@ export const visualConfig = {
     "MAX_ADJUST": 3,
     "MIN_SCALE": 0.05,
     "NODE_WIDTH": 32,
+    "NODE_ICON_WIDTH": 18,
     "ELLIPSE_WIDTH": 0.4 * 32,
     "ELLIPSE_HIEGHT": 0.5 * 32,
     "ELLIPSE_Y_OFFSET": 0.4 * 32,
@@ -56,8 +57,8 @@ export const visualConfig = {
             }
         },
         "label": {
-            "font": { "fontFamily": '20px Microsoft YaHei,Tahoma', "fill": '#FFFFFF', "align": 'center' },
-            "fontHighlight": { "fontFamily": '24px Microsoft YaHei,Tahoma', "fill": 0x0086E3, "align": 'center' },
+            "font": { "fontFamily": 'Microsoft YaHei,Tahoma', "fill": '#FFFFFF', "align": 'center', "fontSize": '20px' },
+            "fontHighlight": { "fontFamily": 'Microsoft YaHei,Tahoma', "fill": 0x0086E3, "align": 'center', "fontSize": '24px' },
         },
         "timeline": {
             "color": 0xFFFFFF,

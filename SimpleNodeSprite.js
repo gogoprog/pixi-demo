@@ -1,6 +1,7 @@
 // import "./pixi.es5.js";
 import "pixi.js";
 import { nodeCaptureListener } from "./customizedEventHandling.js";
+import Utility from "../../../ui/analyticService/Utility";
 
 export default class SimpleNodeSprite extends PIXI.Sprite {
     constructor(texture, node, visualConfig) {
@@ -118,18 +119,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         }
 
         if (this.gcs && this.gcs.length > 0) {
-            var incre = (this.gcs.length - 1) * 4;
-            if (this.ts) {
-                this.gcs[0].position.x = this.ts.position.x - incre;
-                this.gcs[0].position.y = this.ts.position.y + 17;
-            } else {
-                this.gcs[0].position.x = p.x - incre;
-                this.gcs[0].position.y = p.y + 17;
-            }
-            for (var i = 1; i < this.gcs.length; i++) {
-                this.gcs[i].position.x = this.gcs[i - 1].position.x + 10;
-                this.gcs[i].position.y = this.gcs[i - 1].position.y;
-            }
+            this._relayoutNodeIcon();
         }
 
         if (this.circleBorder) {
@@ -138,5 +128,70 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         }
     }
 
+
+    setNodeIcon(collIdArr, nodeContainer) {
+        if (this.gcs) {
+            var gcsLen = this.gcs.length;
+            while (gcsLen--) {
+                var iconSprite = this.gcs[gcsLen];
+                var index = collIdArr.indexOf(iconSprite.id);
+                if (index < 0) {
+                    nodeContainer.removeChild(iconSprite);
+                    this.gcs.splice(gcsLen, 1);
+                } else {
+                    collIdArr.splice(index, 1);
+                }
+            }
+        }
+
+        this._addIconToNode(collIdArr, nodeContainer);
+
+        this._relayoutNodeIcon();
+    }
+
+
+    _addIconToNode(collIdArr, nodeContainer) {
+        var nodeSprite = this;
+        var gcsArr = nodeSprite.gcs || [];
+        
+        for (var collId of collIdArr) { //添加集合
+            var iconTexture = this.visualConfig.findGraphCollIcon(collId);
+            var iconSprite = new PIXI.Sprite(iconTexture);
+            iconSprite.id = collId;
+            iconSprite.anchor.x = 0.5;
+            iconSprite.anchor.y = 0.5;
+            iconSprite.scale.set(0.5, 0.5);
+
+            iconSprite.visible = nodeSprite.visible;
+            gcsArr.push(iconSprite);
+            nodeContainer.addChild(iconSprite);
+        }
+        nodeSprite.gcs = gcsArr;
+    }
+
+    _relayoutNodeIcon() {
+        if (!this.gcs || this.gcs.length == 0) {
+            return;
+        }
+
+        this.gcs.sort(function(a, b) {
+            return a.id - b.id;
+        });
+        // from the center of first icon to the center of last icon
+        var iconRowWidth = (this.gcs.length -1) * (this.visualConfig.NODE_ICON_WIDTH + 10) * 0.5;
+        var iconPosY = 0;
+
+        this.gcs[0].position.x = this.position.x - iconRowWidth * 0.5 ;
+        if (this.ts) {
+            this.gcs[0].position.y = iconPosY = this.ts.position.y + 20;
+        } else {
+            this.gcs[0].position.y = iconPosY = this.position.y + 20;
+        }
+
+        for (var i = 1; i < this.gcs.length; i++) {
+            this.gcs[i].position.x = this.gcs[i - 1].position.x + (this.visualConfig.NODE_ICON_WIDTH + 10)*0.5;
+            this.gcs[i].position.y = iconPosY;
+        }
+    }
 
 }
