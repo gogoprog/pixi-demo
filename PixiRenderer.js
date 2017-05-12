@@ -608,6 +608,9 @@ export default function(settings) {
         getSubTree: function() {
             var tid = 0;
             _.each(nodeSprites, function(node) {
+                node.treeID = 0;
+            });
+            _.each(nodeSprites, function(node) {
                 if (!node.treeID) {
                     tid++;
                     findSubGraph(node, tid);
