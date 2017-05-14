@@ -1326,11 +1326,7 @@ export default function(settings) {
             nodeSprites = [];
             linkSprites = [];
         },
-        removeSubGraph: function(subGraph) {
-            //FIXME
-            // subgraph ={ entities: [], links:[]}
 
-        },
         removeAllLinks: function() {
             isDirty = true;
             _.each(nodeSprites, function(n) {
@@ -1445,10 +1441,11 @@ export default function(settings) {
         getLayout: function() {
             return layout;
         },
-        getNodesCount: function() {
+
+        getVisibleNodesCount: function() {
             return graph.getNodesCount();
         },
-        getLinksCount: function() {
+        getVisibleLinksCount: function() {
             return graph.getLinksCount();
         },
         getNode: function(nodeId) {
@@ -1613,6 +1610,17 @@ export default function(settings) {
                 let nodeSprite = nodeSprites[nodeId];
                 nodeSprite.ts.text = nodeLabelsObj[nodeId];
             }
+        },
+
+        removeSubGraph: function(nodeIds, links) {
+            graph.beginUpdate();
+            for (let nodeId of nodeIds) {
+                graph.removeNode(nodeId);
+            }
+            for (let link of links) {
+                graph.removeLink(link);
+            }
+            graph.endUpdate();
         }
 
 
