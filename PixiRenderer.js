@@ -1442,10 +1442,10 @@ export default function(settings) {
             return layout;
         },
 
-        getVisibleNodesCount: function() {
+        getNodesCount: function() {
             return graph.getNodesCount();
         },
-        getVisibleLinksCount: function() {
+        getLinksCount: function() {
             return graph.getLinksCount();
         },
         getNode: function(nodeId) {
@@ -1612,15 +1612,16 @@ export default function(settings) {
             }
         },
 
-        removeSubGraph: function(nodeIds, links) {
-            graph.beginUpdate();
+        removeNodes: function(nodeIds) {
             for (let nodeId of nodeIds) {
                 graph.removeNode(nodeId);
             }
+        },
+
+        removeLinks: function(links) {
             for (let link of links) {
                 graph.removeLink(link);
             }
-            graph.endUpdate();
         }
 
 
