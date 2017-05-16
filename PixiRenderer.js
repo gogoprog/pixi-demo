@@ -205,6 +205,8 @@ export default function(settings) {
 
     var bfsQueue = [];
 
+    var treeNode = {}; //存放层次布局中树的结构
+    var tree = [];
 
     /**
      * now we vindicate a map for nodes to draw boundary.
@@ -716,6 +718,7 @@ export default function(settings) {
             //获取当前被选中的节点
             //here we address the random point of each subtree
             pixiGraphics.dataResetForTreeLayout();
+
             _.each(nodeContainer.nodes, function(node) {
                 if (!subTree[node.treeID].selection) {
                     subTree[node.treeID].isSelectedNode = true;
@@ -734,6 +737,13 @@ export default function(settings) {
                 if (st.isSelectedNode) {
                     st.selectedNode.treeLayoutLevel = 1;
                     st.selectedNode.isPutInTree = true;
+                    treeNode = {
+                        id: st.selectedNode.id,
+                        level: 1,
+                        parent: null,
+                        levelId: 1
+                    };
+                    tree.push(treeNode);
                     bfsQueue.unshift(st.selectedNode);
                     var templength = bfsQueue.length;
                     while (templength !== 0) {
@@ -821,11 +831,144 @@ export default function(settings) {
             }
             layoutIterations = 0;
             layoutType = "Layered";
-
             pixiGraphics.subTreeInitForTreeLayout();
-            _.each(subTree, function(st, stID) {
+            tree.levelNum = [];
+            for (var i = 0; i < tree.length; i++) {
+                tree[i].child = [];
+                if (!tree.levelNum[tree[i].level]) {
+                    tree.levelNum[tree[i].level] = 1;
+                } else {
+                    tree.levelNum[tree[i].level] = tree.levelNum[tree[i].level] + 1;
+                }
+                for (var j = 0; j < tree.length; j++) {
+                    if (tree[j].parent && tree[j].parent.id === tree[i].id) {
+                        tree[i].child.push(tree[j]);
+                    }
+                }
+            }
+
+            _.each(tree, function(p) {
+                if (!p.parent) {
+                    tree.root = p;
+                }
+            });
+
+
+
+            var levelx = []; //记录各层下一个结点应该在的坐标
+            //递归的移动树
+            function move(treeNode, len) {
+                if (!treeNode.child.length) {
+                    treeNode.positionx = treeNode.positionx + len;
+                    levelx[parseInt(treeNode.level)] = treeNode.positionx + treeNode.width / 2;
+                    return;
+                }
+                for (var i = 0; i < treeNode.child.length; i++) {
+                    move(treeNode.child[i], len);
+                }
+
+                treeNode.positionx = treeNode.positionx + len;
+            }
+            //计算层次布局每个节点的位置
+            function calTreePositon(treeNode) {
+                var length = treeNode.child.length;
+                if (!length) {
+                    if (!levelx[parseInt(treeNode.level)]) {
+                        levelx[parseInt(treeNode.level)] = 0;
+                    };
+                    treeNode.width = visualConfig.NODE_WIDTH * 4;
+                    treeNode.positionx = levelx[treeNode.level];
+                    levelx[parseInt(treeNode.level)] = levelx[parseInt(treeNode.level)] + treeNode.width / 2;
+                    treeNode.positiony = 4 * visualConfig.NODE_WIDTH * (treeNode.level - 1);
+                    return;
+                }
+
+                for (var i = 0; i < length; i++) {
+                    calTreePositon(treeNode.child[i]);
+                };
+                // operate node after all child
+                if (!levelx[parseInt(treeNode.level)]) {
+                    levelx[parseInt(treeNode.level)] = 0;
+                };
+                treeNode.width = visualConfig.NODE_WIDTH * length * 2;
+                var p1 = levelx[parseInt(treeNode.level)] + treeNode.width / 2 - visualConfig.NODE_WIDTH;
+                var p2 = treeNode.child[0].positionx + (treeNode.child[length - 1].positionx - treeNode.child[0].positionx) / 2;
+                treeNode.positionx = p2;
+                move(treeNode, (p1 - p2));
+                levelx[parseInt(treeNode.level)] = treeNode.positionx + treeNode.width / 2;
+                treeNode.positiony = 4 * visualConfig.NODE_WIDTH * (treeNode.level - 1);
+            };
+            calTreePositon(tree.root);
+
+            //画出节点
+            function draw(treeNode) {
+                var length = treeNode.child.length;
+                if (!length) {
+                    var node = nodeSprites[treeNode.id];
+                    var p = {};
+                    p.x = treeNode.positionx;
+                    p.y = treeNode.positiony;
+                    node.updateNodePosition(p);
+                    layout.setNodePosition(node.id, node.position.x, node.position.y);
+                    console.log(treeNode.id);
+                    console.log(treeNode.positionx, treeNode.positiony, treeNode.level, treeNode.width);
+                    return;
+                }
+
+                for (var i = 0; i < length; i++) {
+                    draw(treeNode.child[i]);
+                };
+                // operate node after all child
+                var node = nodeSprites[treeNode.id];
+                var p = {};
+                p.x = treeNode.positionx;
+                p.y = treeNode.positiony;
+                node.updateNodePosition(p);
+                layout.setNodePosition(node.id, node.position.x, node.position.y);
+                console.log(treeNode.id);
+                console.log(treeNode.positionx, treeNode.positiony, treeNode.level, treeNode.width);
+            };
+            draw(tree.root);
+
+            //计算每一层的半径和平均角度
+            tree.levelRadius = [];
+            tree.levelAngle = [];
+            for (var i = 1; i <= tree.levelNum.length; i++) {
+                if (i == 1) {
+                    tree.levelRadius[i] = 0;
+                } else {
+                    tree.levelRadius[i] = (visualConfig.NODE_WIDTH * 2 * tree.levelNum[i] * 1.5) / (2 * Math.PI);
+                }
+                if (i > 1) {
+                    if (tree.levelRadius[i] < tree.levelRadius[i - 1]) {
+                        tree.levelRadius[i] = tree.levelRadius[i - 1] + 4 * visualConfig.NODE_WIDTH;
+                    }
+                }
+                tree.levelAngle[i] = 360 / tree.levelNum[i];
+            }
+
+            //计算辐射布局的坐标
+            function calCirclePosition(treeNode) {
+                var length = treeNode.child.length;
+                if (!length) {
+                    treeNode.positionx = Math.cos(tree.levelAngle[treeNode.level] * treeNode.levelId * Math.PI / 180) * tree.levelRadius[treeNode.level];
+                    treeNode.positiony = Math.sin(tree.levelAngle[treeNode.level] * treeNode.levelId * Math.PI / 180) * tree.levelRadius[treeNode.level];
+                    return;
+                }
+
+                for (var i = 0; i < length; i++) {
+                    calCirclePosition(treeNode.child[i]);
+                };
+                // operate node after all child
+                treeNode.positionx = Math.cos(tree.levelAngle[treeNode.level] * treeNode.levelId * Math.PI / 180) * tree.levelRadius[treeNode.level];
+                treeNode.positiony = Math.sin(tree.levelAngle[treeNode.level] * treeNode.levelId * Math.PI / 180) * tree.levelRadius[treeNode.level];
+            };
+            //calCirclePosition(tree.root);
+            //draw(tree.root);
+            /*以前的层次布局
+            _.each(subTree, function (st, stID) {
                 if (st.isSelectedNode) {
-                    _.each(st.nodes, function(node) {
+                    _.each(st.nodes, function (node) {
                         if (stID != 1 || node.treeLayoutLevel != 1) {
                             var p = {};
                             p.x = st.positionx - (st.treeLayoutEachLevelNumb[node.treeLayoutLevel] - 1) * visualConfig.NODE_WIDTH;
@@ -842,6 +985,7 @@ export default function(settings) {
                     });
                 }
             });
+            */
             this.setNodesToFullScreen();
         },
 
@@ -2076,11 +2220,19 @@ export default function(settings) {
 
 
     function findATree(node) {
-
+        var n = 0;
         _.each(node.incoming, function(link) {
             if (!nodeSprites[link.data.sourceEntity].isPutInTree) {
                 nodeSprites[link.data.sourceEntity].treeLayoutLevel = node.treeLayoutLevel + 1;
                 nodeSprites[link.data.sourceEntity].isPutInTree = true;
+                n = n + 1;
+                treeNode = {
+                    id: link.data.sourceEntity,
+                    level: nodeSprites[link.data.sourceEntity].treeLayoutLevel,
+                    parent: node,
+                    levelId: n
+                };
+                tree.push(treeNode);
                 bfsQueue.unshift(nodeSprites[link.data.sourceEntity]);
             }
         });
@@ -2088,6 +2240,14 @@ export default function(settings) {
             if (!nodeSprites[link.data.targetEntity].isPutInTree) {
                 nodeSprites[link.data.targetEntity].treeLayoutLevel = node.treeLayoutLevel + 1;
                 nodeSprites[link.data.targetEntity].isPutInTree = true;
+                n = n + 1;
+                treeNode = {
+                    id: link.data.targetEntity,
+                    level: nodeSprites[link.data.targetEntity].treeLayoutLevel,
+                    parent: node,
+                    levelId: n
+                };
+                tree.push(treeNode);
                 bfsQueue.unshift(nodeSprites[link.data.targetEntity]);
             }
         });
