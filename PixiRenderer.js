@@ -1251,6 +1251,10 @@ export default function (settings) {
             if (layoutType != 'Network' && layoutType != 'Circular' && layoutType != 'Layered' && layoutType != 'TimelineScale') {
                 layoutType = 'Network';
             }
+            layout = networkLayout;
+            _.each(nodeSprites, function (nodeSprite, nodeId) {
+                layout.setNodePosition(nodeId,nodeSprite.position.x,nodeSprite.position.y);
+            });
         },
 
         setTwoNodeLayoutInXDireaction: function (nodeIDArray) {
@@ -1277,10 +1281,6 @@ export default function (settings) {
             }
         },
         performLayout: function () {
-            layout = networkLayout;
-            _.each(nodeSprites, function (nodeSprite, nodeId) {
-                layout.setNodePosition(nodeId,nodeSprite.position.x,nodeSprite.position.y);
-            });
             if (layoutType == 'Network') {
 
                 if (stage.isTimelineLayout) {

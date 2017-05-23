@@ -12,10 +12,12 @@ function createTreeLayout(nodeSprites, nodeContainer, visualConfig) {
     var nodes = {};
     var selectNodes = [];
     var levelx = []; //记录各层下一个结点应该在的坐标
+    var levely = [];
     var thisStep = 0;
     var totalStep = 300;
+    var NODE_WIDTH = visualConfig.NODE_WIDTH;
 
-    //预处理,用nodes存储nodeSprites中node的数据
+        //预处理,用nodes存储nodeSprites中node的数据
     function getNodes(nodeSprites) {
         var ns = {};
         _.each(nodeSprites, function (n) {
@@ -51,26 +53,27 @@ function createTreeLayout(nodeSprites, nodeContainer, visualConfig) {
     nodes = getNodes(nodeSprites);
     selectNodes = getSelectNodes(nodeContainer);
     forest = createForest(nodes, selectNodes);
-/*
     //计算层次布局坐标
     _.each(forest, function (tree) {
-        calTreePosition(tree.root);
+        let treeMaxLevelNum = parseInt(tree.maxLevelNum);
+        let maxLevelNum = Math.ceil(treeMaxLevelNum/10) * 4;
+        calTreePosition(tree.root,maxLevelNum);
     });
     _.each(forest, function (tree) {
         draw(tree.root);
-    });*/
+    });
 
-    //计算辐射布局坐标
+    /*//计算辐射布局坐标
     for (var i = 0; i < forest.length; i++) {
         calCirclePosition(forest[i], forest[i].root);
         if (i > 0) {
-            var len = forest[i].levelRadius[forest[i].levelRadius.length - 1] + forest[i - 1].root.positionx + forest[i - 1].levelRadius[forest[i - 1].levelRadius.length - 1] + visualConfig.NODE_WIDTH * 4;
+            var len = forest[i].levelRadius[forest[i].levelRadius.length - 1] + forest[i - 1].root.positionx + forest[i - 1].levelRadius[forest[i - 1].levelRadius.length - 1] + NODE_WIDTH * 4;
             move(forest[i].root, len);
         }
     }
     _.each(forest, function (tree) {
         draw(tree.root);
-    });
+    });*/
 
     //生成森林
     function createForest(nodes, selectNodes) {
@@ -134,6 +137,14 @@ function createTreeLayout(nodeSprites, nodeContainer, visualConfig) {
                 }
             }
 
+            //计算整个树的层次最大数
+            tree.maxLevelNum = 0;
+            for (var i=0; i < tree.levelNum.length; i++) {
+                if(tree.maxLevelNum < tree.levelNum[i]) {
+                    tree.maxLevelNum = tree.levelNum[i];
+                }
+            }
+
             //计算每一层的半径和平均角度
             tree.levelRadius = [];
             tree.levelAngle = [];
@@ -141,13 +152,13 @@ function createTreeLayout(nodeSprites, nodeContainer, visualConfig) {
                 if (i == 1) {
                     tree.levelRadius[i] = 0;
                 } else {
-                    tree.levelRadius[i] = (visualConfig.NODE_WIDTH * 2 * tree.levelNum[i] * 1.5) / (2 * Math.PI);
+                    tree.levelRadius[i] = (NODE_WIDTH * 2 * tree.levelNum[i] * 1.5) / (2 * Math.PI);
                 }
                 if (i > 1) {
-                    if ((tree.levelRadius[i] < tree.levelRadius[i - 1] + 4 * visualConfig.NODE_WIDTH) || tree.levelNum[i] == 1) {
-                        tree.levelRadius[i] = tree.levelRadius[i - 1] + 4 * visualConfig.NODE_WIDTH;
+                    if ((tree.levelRadius[i] < tree.levelRadius[i - 1] + 4 * NODE_WIDTH) || tree.levelNum[i] == 1) {
+                        tree.levelRadius[i] = tree.levelRadius[i - 1] + 4 * NODE_WIDTH;
                         if (i > 2) {
-                            tree.levelRadius[i] = tree.levelRadius[i - 1] * 2 - tree.levelRadius[i - 2] + 4 * visualConfig.NODE_WIDTH;
+                            tree.levelRadius[i] = tree.levelRadius[i - 1] * 2 - tree.levelRadius[i - 2] + 4 * NODE_WIDTH;
                         }
                     }
                 }
@@ -229,39 +240,40 @@ function createTreeLayout(nodeSprites, nodeContainer, visualConfig) {
     }
 
     //计算层次布局每个节点的位置
-    function calTreePosition(treeNode) {
+    function calTreePosition(treeNode,maxLevelNum) {
         var length = treeNode.child.length;
         if (!length) {
             if (!levelx[parseInt(treeNode.level)]) {
                 levelx[parseInt(treeNode.level)] = 0;
             }
-            treeNode.width = visualConfig.NODE_WIDTH * 4;
+
+            treeNode.width = NODE_WIDTH * 4;
             treeNode.positionx = levelx[treeNode.level];
             levelx[parseInt(treeNode.level)] = treeNode.positionx + treeNode.width / 2;
-            treeNode.positiony = 4 * visualConfig.NODE_WIDTH * (treeNode.level - 1);
+            treeNode.positiony = maxLevelNum * NODE_WIDTH * (treeNode.level - 1);
             return;
         }
 
         for (var i = 0; i < length; i++) {
-            calTreePosition(treeNode.child[i]);
+            calTreePosition(treeNode.child[i],maxLevelNum);
         }
 
         if (!levelx[parseInt(treeNode.level)]) {
             levelx[parseInt(treeNode.level)] = 0;
         }
         if (length > 1) {
-            treeNode.width = treeNode.child[length - 1].positionx - treeNode.child[0].positionx + visualConfig.NODE_WIDTH;
+            treeNode.width = treeNode.child[length - 1].positionx - treeNode.child[0].positionx + NODE_WIDTH;
         } else {
-            treeNode.width = visualConfig.NODE_WIDTH * 4;
+            treeNode.width = NODE_WIDTH * 4;
         }
-        var p1 = levelx[parseInt(treeNode.level)] + treeNode.width / 2 - visualConfig.NODE_WIDTH;
+        var p1 = levelx[parseInt(treeNode.level)] + treeNode.width / 2 - NODE_WIDTH * 2;
         var p2 = treeNode.child[0].positionx + (treeNode.child[length - 1].positionx - treeNode.child[0].positionx) / 2;
         treeNode.positionx = p2;
         if (p1 > p2) {
             move(treeNode, (p1 - p2));
         }
         levelx[parseInt(treeNode.level)] = treeNode.positionx + treeNode.width / 2;
-        treeNode.positiony = 4 * visualConfig.NODE_WIDTH * (treeNode.level - 1);
+        treeNode.positiony = maxLevelNum * NODE_WIDTH * (treeNode.level - 1);
     }
 
     //递归的移动树
@@ -288,8 +300,8 @@ function createTreeLayout(nodeSprites, nodeContainer, visualConfig) {
                 x: treeNode.positionx,
                 y: treeNode.positiony
             };
-            //console.log(treeNode.id);
-            //console.log(node.position.x, node.position.y, treeNode.level, treeNode.levelId);
+            console.log(treeNode.id);
+            console.log(node.position.x, node.position.y, treeNode.level, treeNode.levelId);
             return;
         }
 
@@ -302,8 +314,8 @@ function createTreeLayout(nodeSprites, nodeContainer, visualConfig) {
             x: treeNode.positionx,
             y: treeNode.positiony
         };
-        //console.log(treeNode.id);
-        //console.log(node.position.x, node.position.y, treeNode.level, treeNode.width, treeNode.levelId);
+        console.log(treeNode.id);
+        console.log(node.position.x, node.position.y, treeNode.level, treeNode.width, treeNode.levelId);
     }
 
     //计算辐射布局的坐标
