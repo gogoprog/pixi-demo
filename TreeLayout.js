@@ -51,11 +51,23 @@ function createTreeLayout(nodeSprites, nodeContainer, visualConfig) {
     nodes = getNodes(nodeSprites);
     selectNodes = getSelectNodes(nodeContainer);
     forest = createForest(nodes, selectNodes);
-
+/*
     //计算层次布局坐标
     _.each(forest, function (tree) {
         calTreePosition(tree.root);
     });
+    _.each(forest, function (tree) {
+        draw(tree.root);
+    });*/
+
+    //计算辐射布局坐标
+    for (var i = 0; i < forest.length; i++) {
+        calCirclePosition(forest[i], forest[i].root);
+        if (i > 0) {
+            var len = forest[i].levelRadius[forest[i].levelRadius.length - 1] + forest[i - 1].root.positionx + forest[i - 1].levelRadius[forest[i - 1].levelRadius.length - 1] + visualConfig.NODE_WIDTH * 4;
+            move(forest[i].root, len);
+        }
+    }
     _.each(forest, function (tree) {
         draw(tree.root);
     });
@@ -293,6 +305,24 @@ function createTreeLayout(nodeSprites, nodeContainer, visualConfig) {
         //console.log(treeNode.id);
         //console.log(node.position.x, node.position.y, treeNode.level, treeNode.width, treeNode.levelId);
     }
+
+    //计算辐射布局的坐标
+    function calCirclePosition(tree, treeNode) {
+        var length = treeNode.child.length;
+        if (!length) {
+            treeNode.positionx = Math.cos(tree.levelAngle[treeNode.level] * treeNode.levelId * Math.PI / 180) * tree.levelRadius[treeNode.level];
+            treeNode.positiony = Math.sin(tree.levelAngle[treeNode.level] * treeNode.levelId * Math.PI / 180) * tree.levelRadius[treeNode.level];
+            return;
+        }
+
+        for (var i = 0; i < length; i++) {
+            calCirclePosition(tree, treeNode.child[i]);
+        }
+        // operate node after all child
+        treeNode.positionx = Math.cos(tree.levelAngle[treeNode.level] * treeNode.levelId * Math.PI / 180) * tree.levelRadius[treeNode.level];
+        treeNode.positiony = Math.sin(tree.levelAngle[treeNode.level] * treeNode.levelId * Math.PI / 180) * tree.levelRadius[treeNode.level];
+    }
+
 
     var api = {
         step: function () {

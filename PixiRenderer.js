@@ -840,7 +840,6 @@ export default function (settings) {
             if (layoutIterationsStore == 1500) {
                 layoutIterations = 1500;
             }
-
             /*以前的层次布局
              _.each(subTree, function (st, stID) {
              if (st.isSelectedNode) {
@@ -1427,6 +1426,9 @@ export default function (settings) {
         },
         performLayout: function () {
             layout = networkLayout;
+            _.each(nodeSprites, function (nodeSprite, nodeId) {
+                layout.setNodePosition(nodeId,nodeSprite.position.x,nodeSprite.position.y);
+            });
             if (layoutType == 'Network') {
 
                 if (stage.isTimelineLayout) {
