@@ -19,6 +19,22 @@ class Settings {
         let ngraph = Graph();
         this.graph = ngraph;
 
+        this.updateVisualConfig(visConfig);
+        this.layout = createForceLayout(ngraph, this.visualConfig.forceLayout);
+
+        this.timelineContainer = timelineId;
+        this.mode = "picking";
+        this.physics = {
+            springLength: 30,
+            springCoeff: 0.0008,
+            dragCoeff: 0.01,
+            gravity: -1.2,
+            theta: 1
+        };
+
+    }
+
+    updateVisualConfig(visConfig) {
         if (visConfig) {
             let data = visConfig.icons || [];
             for (var i = 0; i < data.length; i++) {
@@ -36,7 +52,6 @@ class Settings {
 
             this.visualConfig = visConfig;
             this.visualConfig.graphCollIcons = graphCollIcons;
-            this.layout = createForceLayout(ngraph, visConfig.forceLayout);
         } else {
             _.each(visualConfig.icons, function(icon) {
                 icon.texture = PIXI.Texture.fromImage(icon.url);
@@ -51,20 +66,7 @@ class Settings {
 
             this.visualConfig = visualConfig;
             this.visualConfig.graphCollIcons = graphCollIcons;
-            this.layout = createForceLayout(ngraph, visualConfig.forceLayout);
         }
-
-        this.timelineContainer = timelineId;
-        this.mode = "picking";
-        this.background = 0x000000;
-        this.physics = {
-            springLength: 30,
-            springCoeff: 0.0008,
-            dragCoeff: 0.01,
-            gravity: -1.2,
-            theta: 1
-        };
-
     }
 
 }

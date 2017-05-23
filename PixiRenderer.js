@@ -929,7 +929,6 @@ export default function (settings) {
                 sumx = sumx / count;
                 sumy = sumy / count;
             } else {
-                console.log("no nodes selected!");
                 return;
             }
             let rootWidth = Math.abs(x2 - x1),
@@ -1349,12 +1348,7 @@ export default function (settings) {
             nodeSprites = [];
             linkSprites = [];
         },
-        removeSubGraph: function (subGraph) {
-            //FIXME
-            // subgraph ={ entities: [], links:[]}
-
-        },
-        removeAllLinks: function () {
+        removeAllLinks: function() {
             isDirty = true;
             _.each(nodeSprites, function (n) {
                 n.incoming = [];
@@ -1409,16 +1403,17 @@ export default function (settings) {
         },
 
         setTwoNodeLayoutInXDireaction: function (nodeIDArray) {
-            if (nodeIDArray.length == 2 && nodeIDArray[0] != nodeIDArray[1]) {
-                let x = viewWidth / 4;
-                this.setNodePosition(nodeIDArray[0], -x, 0);
-                this.setNodePosition(nodeIDArray[0], x, 0);
-                _.each(nodeSprites, function (nodeSprite, nodeId) {
-                    nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
-                });
-            } else {
-                this.performLayout();
+            if (nodeSprites.length === 0) {
+                return;
             }
+            let renderer = this;
+            let nodeMarginX = viewWidth / (_.keys(nodeSprites).length + 1);
+            let currentX = 0;
+            _.each(nodeSprites, function (nodeSprite, nodeId) {
+                renderer.setNodePosition(nodeId, currentX, 0);
+                nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+                currentX += nodeMarginX;
+            });
         },
         pauseAnimation: function () {
             visualConfig.LAYOUT_ANIMATION = !visualConfig.LAYOUT_ANIMATION;
@@ -1636,6 +1631,18 @@ export default function (settings) {
             for (let nodeId in nodeLabelsObj) {
                 let nodeSprite = nodeSprites[nodeId];
                 nodeSprite.ts.text = nodeLabelsObj[nodeId];
+            }
+        },
+
+        removeNodes: function(nodeIds) {
+            for (let nodeId of nodeIds) {
+                graph.removeNode(nodeId);
+            }
+        },
+
+        removeLinks: function(links) {
+            for (let link of links) {
+                graph.removeLink(link);
             }
         }
 
