@@ -703,133 +703,6 @@ export default function (settings) {
             this.setNodesToFullScreen();
         },
 
-        /*以前的层次布局相关代码
-        dataResetForTreeLayout: function () {
-            _.each(nodeSprites, function (n) {
-                n.isPutInTree = false;
-                n.treeLayoutLevel = null;
-            });
-            _.each(subTree, function (st) {
-                st.isSelectedNode = false;
-                st.selectedNode = null;
-            });
-        },
-
-
-        subTreeInitForTreeLayout: function () {
-            tree = [];
-            levelId = [];
-            pixiGraphics.getSubTree();
-            //获取当前被选中的节点
-            //here we address the random point of each subtree
-            pixiGraphics.dataResetForTreeLayout();
-
-            _.each(nodeContainer.nodes, function (node) {
-                if (!subTree[node.treeID].selection) {
-                    subTree[node.treeID].isSelectedNode = true;
-                    subTree[node.treeID].selectedNode = node;
-                    // console.log(node.id);
-                }
-            });
-
-            _.each(subTree, function (st) {
-                if (!st.isSelectedNode) {
-                    pixiGraphics.findRootOfEachTree(st);
-                }
-            });
-
-
-            _.each(subTree, function (st, stID) {
-                if (st.isSelectedNode) {
-                    st.selectedNode.treeLayoutLevel = 1;
-                    st.selectedNode.isPutInTree = true;
-                    treeNode = {
-                        id: st.selectedNode.id,
-                        level: 1,
-                        parent: null,
-                        levelId: 1
-                    };
-                    tree.push(treeNode);
-                    bfsQueue.unshift(st.selectedNode);
-                    var templength = bfsQueue.length;
-                    while (templength !== 0) {
-                        var p = bfsQueue.pop();
-
-                        if (p !== null) {
-                            findATree(p);
-                        }
-                        templength = bfsQueue.length;
-                    }
-                }
-
-            });
-
-            //compute the max width of each subTree
-            _.each(subTree, function (st) {
-                if (st.isSelectedNode) {
-                    var stMaxWidth = 0;
-                    var eachLevelNodeNumb = {};
-                    _.each(st.nodes, function (node) {
-                        if (!eachLevelNodeNumb[node.treeLayoutLevel]) {
-                            eachLevelNodeNumb[node.treeLayoutLevel] = 1;
-                        } else {
-                            eachLevelNodeNumb[node.treeLayoutLevel]++;
-                        }
-                    });
-                    st.treeLayoutEachLevelNumb = {};
-                    _.each(eachLevelNodeNumb, function (numb, level) {
-                        st.treeLayoutEachLevelNumb[level] = numb;
-                        if (numb > stMaxWidth) {
-                            stMaxWidth = numb;
-                        }
-                    });
-
-                    st.treeLayoutMaxWidth = stMaxWidth * visualConfig.NODE_WIDTH;
-                }
-            });
-
-            //compute the root position for each tree
-            //here positionx is for the x of root
-            //here positiony is for the y of root
-            _.each(subTree, function (st, stID) {
-                if (st.isSelectedNode) {
-                    if (parseInt(stID) == 1) {
-                        st.positionx = st.selectedNode.position.x;
-                        st.positiony = st.selectedNode.position.y;
-                    } else {
-                        st.positionx = subTree[parseInt(stID) - 1].positionx + subTree[parseInt(stID) - 1].treeLayoutMaxWidth + st.treeLayoutMaxWidth + visualConfig.NODE_WIDTH;
-                        st.positiony = subTree[parseInt(stID) - 1].positiony;
-                    }
-                }
-            });
-
-        },
-
-        findRootOfEachTree: function (eachSubTree) {
-
-            _.each(eachSubTree.nodes, function (n) {
-                n.degree = 0;
-                _.each(n.incoming, function (l) {
-                    n.degree++;
-                });
-                _.each(n.outgoing, function (l) {
-                    n.degree++;
-                });
-            });
-
-            eachSubTree.isSelectedNode = true;
-            eachSubTree.selectedNode = null;
-            _.each(eachSubTree.nodes, function (n) {
-                if (!eachSubTree.selectedNode) {
-                    eachSubTree.selectedNode = n;
-                } else {
-                    if (eachSubTree.selectedNode.degree < n.degree) {
-                        eachSubTree.selectedNode = n;
-                    }
-                }
-            });
-        },*/
-
         drawTreeLayout: function () {
             isDirty = true;
             layoutType = "Layered";
@@ -840,27 +713,6 @@ export default function (settings) {
             if (layoutIterationsStore == 1500) {
                 layoutIterations = 1500;
             }
-            /*以前的层次布局
-             _.each(subTree, function (st, stID) {
-             if (st.isSelectedNode) {
-             _.each(st.nodes, function (node) {
-             if (stID != 1 || node.treeLayoutLevel != 1) {
-             var p = {};
-             p.x = st.positionx - (st.treeLayoutEachLevelNumb[node.treeLayoutLevel] - 1) * visualConfig.NODE_WIDTH;
-             st.treeLayoutEachLevelNumb[node.treeLayoutLevel] = st.treeLayoutEachLevelNumb[node.treeLayoutLevel] - 2;
-             p.y = st.positiony + visualConfig.NODE_WIDTH * 4 * (node.treeLayoutLevel - 1);
-             node.updateNodePosition(p);
-             } else {
-             node.updateNodePosition({
-             x: node.position.x,
-             y: node.position.y
-             });
-             }
-             layout.setNodePosition(node.id, node.position.x, node.position.y);
-             });
-             }
-             });
-             */
             this.setNodesToFullScreen();
         },
 
@@ -2105,47 +1957,6 @@ export default function (settings) {
     }
 
 
-    function findATree(node) {
-        _.each(node.incoming, function (link) {
-            if (!nodeSprites[link.data.sourceEntity].inTree) {
-                nodeSprites[link.data.sourceEntity].treeLayoutLevel = node.treeLayoutLevel + 1;
-                nodeSprites[link.data.sourceEntity].inTree = true;
-                if (!levelId[nodeSprites[link.data.sourceEntity].treeLayoutLevel]) {
-                    levelId[nodeSprites[link.data.sourceEntity].treeLayoutLevel] = 1;
-                } else {
-                    levelId[nodeSprites[link.data.sourceEntity].treeLayoutLevel]++;
-                }
-
-                treeNode = {
-                    id: link.data.sourceEntity,
-                    level: nodeSprites[link.data.sourceEntity].treeLayoutLevel,
-                    parent: node,
-                    levelId: levelId[nodeSprites[link.data.sourceEntity].treeLayoutLevel]
-                };
-                tree.push(treeNode);
-                bfsQueue.unshift(nodeSprites[link.data.sourceEntity]);
-            }
-        });
-        _.each(node.outgoing, function (link) {
-            if (!nodeSprites[link.data.targetEntity].inTree) {
-                nodeSprites[link.data.targetEntity].treeLayoutLevel = node.treeLayoutLevel + 1;
-                nodeSprites[link.data.targetEntity].inTree = true;
-                if (!levelId[nodeSprites[link.data.targetEntity].treeLayoutLevel]) {
-                    levelId[nodeSprites[link.data.targetEntity].treeLayoutLevel] = 1;
-                } else {
-                    levelId[nodeSprites[link.data.targetEntity].treeLayoutLevel]++;
-                }
-                treeNode = {
-                    id: link.data.targetEntity,
-                    level: nodeSprites[link.data.targetEntity].treeLayoutLevel,
-                    parent: node,
-                    levelId: levelId[nodeSprites[link.data.targetEntity].treeLayoutLevel]
-                };
-                tree.push(treeNode);
-                bfsQueue.unshift(nodeSprites[link.data.targetEntity]);
-            }
-        });
-    }
 
     function moveTimeline(percentage) {
         var range = timeline.getWindow();

@@ -324,7 +324,16 @@ function createTreeLayout(nodeSprites, nodeContainer, visualConfig) {
     }
 
 
-    var api = {
+    function calStep(p1, p2, totalStep, thisStep) {
+        var perX = (p2.x - p1.x) / totalStep;
+        var perY = (p2.y - p1.y) / totalStep;
+        return {
+            x: p1.x + perX * thisStep,
+            y: p1.y + perY * thisStep
+        };
+    }
+
+    return {
         step: function () {
             thisStep++;
             if (thisStep <= totalStep) {
@@ -348,16 +357,4 @@ function createTreeLayout(nodeSprites, nodeContainer, visualConfig) {
         }
     };
 
-
-    function calStep(p1, p2, totalStep, thisStep) {
-        var perX = (p2.x - p1.x) / totalStep;
-        var perY = (p2.y - p1.y) / totalStep;
-        var p = {
-            x: p1.x + perX * thisStep,
-            y: p1.y + perY * thisStep
-        }
-        return p;
-    }
-
-    return api;
 }
