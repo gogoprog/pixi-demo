@@ -1,6 +1,7 @@
 import createForceLayout from 'ngraph.forcelayout';
 import createTreeLayout from './TreeLayout.js';
 import createCircleLayout from './CircleLayout.js';
+import createRadiateLayout from  './RadiateLayout.js';
 import physicsSimulator from "ngraph.physics.simulator";
 import eventify from "ngraph.events";
 // import {visualConfig} from "./visualConfig.js";
@@ -625,6 +626,7 @@ export default function (settings) {
             isDirty = true;
             layoutType = "Layered";
             layout = createTreeLayout(nodeSprites, nodeContainer, visualConfig);
+            //layout = createRadiateLayout(nodeSprites, nodeContainer, visualConfig);
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }
