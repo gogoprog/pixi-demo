@@ -74,32 +74,32 @@ function createForest(nodes, selectNodes) {
         //计算整个树的层次最大数以及树的总结点数
         tree.maxLevelNum = 0;
         tree.totalNum = 0;
-        for (let i=1; i < tree.levelNum.length; i++) {
-            if(tree.maxLevelNum < tree.levelNum[i]) {
+        for (let i = 1; i < tree.levelNum.length; i++) {
+            if (tree.maxLevelNum < tree.levelNum[i]) {
                 tree.maxLevelNum = tree.levelNum[i];
             }
             tree.totalNum += tree.levelNum[i];
         }
 
         /*//计算每一层的半径和平均角度
-        tree.levelRadius = [];
-        tree.levelAngle = [];
-        for (var i = 1; i < tree.levelNum.length; i++) {
-            if (i == 1) {
-                tree.levelRadius[i] = 0;
-            } else {
-                tree.levelRadius[i] = (NODE_WIDTH * 2 * tree.levelNum[i] * 1.5) / (2 * Math.PI);
-            }
-            if (i > 1) {
-                if ((tree.levelRadius[i] < tree.levelRadius[i - 1] + 4 * NODE_WIDTH) || tree.levelNum[i] == 1) {
-                    tree.levelRadius[i] = tree.levelRadius[i - 1] + 4 * NODE_WIDTH;
-                    if (i > 2) {
-                        tree.levelRadius[i] = tree.levelRadius[i - 1] * 2 - tree.levelRadius[i - 2] + 4 * NODE_WIDTH;
-                    }
-                }
-            }
-            tree.levelAngle[i] = 360 / tree.levelNum[i];
-        }*/
+         tree.levelRadius = [];
+         tree.levelAngle = [];
+         for (var i = 1; i < tree.levelNum.length; i++) {
+         if (i == 1) {
+         tree.levelRadius[i] = 0;
+         } else {
+         tree.levelRadius[i] = (NODE_WIDTH * 2 * tree.levelNum[i] * 1.5) / (2 * Math.PI);
+         }
+         if (i > 1) {
+         if ((tree.levelRadius[i] < tree.levelRadius[i - 1] + 4 * NODE_WIDTH) || tree.levelNum[i] == 1) {
+         tree.levelRadius[i] = tree.levelRadius[i - 1] + 4 * NODE_WIDTH;
+         if (i > 2) {
+         tree.levelRadius[i] = tree.levelRadius[i - 1] * 2 - tree.levelRadius[i - 2] + 4 * NODE_WIDTH;
+         }
+         }
+         }
+         tree.levelAngle[i] = 360 / tree.levelNum[i];
+         }*/
 
         forest.push(tree);  //把树加入森林
     }

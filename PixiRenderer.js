@@ -210,7 +210,6 @@ export default function (settings) {
     //var bfsQueue = [];
 
 
-
     /**
      * now we vindicate a map for nodes to draw boundary.
      * this map has two part:
@@ -615,7 +614,7 @@ export default function (settings) {
                 disableTimelineLayout();
             }
             layoutType = "Circular";
-            layout = createCircleLayout(nodeSprites,nodeContainer,visualConfig);
+            layout = createCircleLayout(nodeSprites, nodeContainer, visualConfig);
             if (layoutIterationsStore == 1500) {
                 layoutIterations = 1500;
             }
@@ -625,7 +624,7 @@ export default function (settings) {
         drawTreeLayout: function () {
             isDirty = true;
             layoutType = "Layered";
-            layout = createTreeLayout(nodeSprites,nodeContainer,visualConfig);
+            layout = createTreeLayout(nodeSprites, nodeContainer, visualConfig);
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }
@@ -1118,7 +1117,7 @@ export default function (settings) {
             nodeSprites = [];
             linkSprites = [];
         },
-        removeAllLinks: function() {
+        removeAllLinks: function () {
             isDirty = true;
             _.each(nodeSprites, function (n) {
                 n.incoming = [];
@@ -1172,7 +1171,7 @@ export default function (settings) {
             }
             layout = networkLayout;
             _.each(nodeSprites, function (nodeSprite, nodeId) {
-                layout.setNodePosition(nodeId,nodeSprite.position.x,nodeSprite.position.y);
+                layout.setNodePosition(nodeId, nodeSprite.position.x, nodeSprite.position.y);
             });
             this.setNodesToFullScreen();
 
@@ -1409,13 +1408,13 @@ export default function (settings) {
             }
         },
 
-        removeNodes: function(nodeIds) {
+        removeNodes: function (nodeIds) {
             for (let nodeId of nodeIds) {
                 graph.removeNode(nodeId);
             }
         },
 
-        removeLinks: function(links) {
+        removeLinks: function (links) {
             for (let link of links) {
                 graph.removeLink(link);
             }
@@ -1876,7 +1875,6 @@ export default function (settings) {
             selectRegionGraphics.drawRect(x, y, width, height);
         }
     }
-
 
 
     function moveTimeline(percentage) {

@@ -7,7 +7,7 @@ export default function createCircleLayout(nodeSprites, nodeContainer, visualCon
     var nodes = getNodes(nodeSprites);
     var selectNodes = getSelectNodes(nodeContainer);
     var forest = [];
-        forest = createForest(nodes, selectNodes);
+    forest = createForest(nodes, selectNodes);
     var thisStep = 0;
     var totalStep = 500;
     var NODE_WIDTH = visualConfig.NODE_WIDTH;
@@ -47,23 +47,23 @@ export default function createCircleLayout(nodeSprites, nodeContainer, visualCon
     }
 
     _.each(forest, function (tree) {
-        tree.radius = (NODE_WIDTH * 2  * tree.totalNum * 1.5) / (2 * Math.PI);
+        tree.radius = (NODE_WIDTH * 2 * tree.totalNum * 1.5) / (2 * Math.PI);
         tree.angle = 360 / tree.totalNum;
     });
 
-    for (let i=0; i < forest.length; i++){
+    for (let i = 0; i < forest.length; i++) {
         if (i > 0) {
             forest[i].positionx = forest[i - 1].positionx + forest[i - 1].radius + forest[i].radius + NODE_WIDTH * 4;
             forest[i].positiony = forest[i - 1].positiony;
-        }else{
+        } else {
             forest[i].positionx = 0;
             forest[i].positiony = 0;
         }
     }
 
-    for (let i=0; i < forest.length; i++){
+    for (let i = 0; i < forest.length; i++) {
         _.each(forest[i], function (treeNode) {
-            if (treeNode.id){
+            if (treeNode.id) {
                 treeNode.positionx = forest[i].positionx - Math.cos(forest[i].angle * treeNode.nodeId * Math.PI / 180) * forest[i].radius;
                 treeNode.positiony = forest[i].positiony + Math.sin(forest[i].angle * treeNode.nodeId * Math.PI / 180) * forest[i].radius;
                 var node = nodes[treeNode.id];

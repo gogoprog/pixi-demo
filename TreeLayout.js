@@ -58,21 +58,18 @@ export default function createTreeLayout(nodeSprites, nodeContainer, visualConfi
     _.each(forest, function (tree) {
         tree.levely = [];
         tree.levely[1] = 0;
-        for (let i=2; i<tree.levelNum.length; i++){
-            tree.levely[i] = tree.levely[i-1] + Math.ceil(tree.levelNum[i]/10) * NODE_WIDTH * 4;
+        for (let i = 2; i < tree.levelNum.length; i++) {
+            tree.levely[i] = tree.levely[i - 1] + Math.ceil(tree.levelNum[i] / 10) * NODE_WIDTH * 4;
         }
-        calTreePosition(tree.levely,tree.root);
+        calTreePosition(tree.levely, tree.root);
     });
     _.each(forest, function (tree) {
         draw(tree.root);
     });
 
 
-
-
-
     //计算层次布局每个节点的位置
-    function calTreePosition(levely,treeNode) {
+    function calTreePosition(levely, treeNode) {
         var length = treeNode.child.length;
         if (!length) {
             if (!levelx[parseInt(treeNode.level)]) {
@@ -86,7 +83,7 @@ export default function createTreeLayout(nodeSprites, nodeContainer, visualConfi
         }
 
         for (var i = 0; i < length; i++) {
-            calTreePosition(levely,treeNode.child[i]);
+            calTreePosition(levely, treeNode.child[i]);
         }
 
         if (!levelx[parseInt(treeNode.level)]) {
