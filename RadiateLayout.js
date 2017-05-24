@@ -6,8 +6,7 @@ import createForest from './CreateForest.js';
 export default function createRadiateLayout(nodeSprites, nodeContainer, visualConfig) {
     var nodes = {};
     var selectNodes = [];
-    var levelx = []; //记录各层下一个结点应该在的坐标
-    var levely = [];
+    var levela = []; //记录各层当前结点的角度
     var thisStep = 0;
     var totalStep = 500;
     var NODE_WIDTH = visualConfig.NODE_WIDTH;
@@ -50,10 +49,11 @@ export default function createRadiateLayout(nodeSprites, nodeContainer, visualCo
 
     nodes = getNodes(nodeSprites);
     selectNodes = getSelectNodes(nodeContainer);
-    forest = createForest(nodes, selectNodes);
+    forest = createForest(nodes, selectNodes, visualConfig);
 
     //计算辐射布局坐标
     for (var i = 0; i < forest.length; i++) {
+        calCircleAngle(forest[i], forest[i].root);
         calCirclePosition(forest[i], forest[i].root);
         if (i > 0) {
             var len = forest[i].levelRadius[forest[i].levelRadius.length - 1] + forest[i - 1].root.positionx + forest[i - 1].levelRadius[forest[i - 1].levelRadius.length - 1] + NODE_WIDTH * 4;
@@ -64,11 +64,25 @@ export default function createRadiateLayout(nodeSprites, nodeContainer, visualCo
         draw(tree.root);
     });
 
-    //递归的移动树
+    //递归的移动树:按角度
+    function moveAngle(treeNode, angle) {
+        if (!treeNode.child.length) {
+            treeNode.angle = treeNode.angle + angle;
+            levela[parseInt(treeNode.level)] = treeNode.angle + treeNode.width / 2;
+            return;
+        }
+        for (var i = 0; i < treeNode.child.length; i++) {
+            moveAngle(treeNode.child[i], angle);
+        }
+
+        treeNode.angle = treeNode.angle + angle;
+        levela[parseInt(treeNode.level)] = treeNode.angle + treeNode.width / 2;
+    }
+
+    //递归的移动树：按长度
     function move(treeNode, len) {
         if (!treeNode.child.length) {
             treeNode.positionx = treeNode.positionx + len;
-            levelx[parseInt(treeNode.level)] = treeNode.positionx + treeNode.width / 2;
             return;
         }
         for (var i = 0; i < treeNode.child.length; i++) {
@@ -76,7 +90,6 @@ export default function createRadiateLayout(nodeSprites, nodeContainer, visualCo
         }
 
         treeNode.positionx = treeNode.positionx + len;
-        levelx[parseInt(treeNode.level)] = treeNode.positionx + treeNode.width / 2;
     }
 
     //将节点的位置存储进nodes中
@@ -88,8 +101,8 @@ export default function createRadiateLayout(nodeSprites, nodeContainer, visualCo
                 x: treeNode.positionx,
                 y: treeNode.positiony
             };
-            // console.log(treeNode.id);
-            //console.log(node.position.x, node.position.y, treeNode.level, treeNode.levelId);
+            console.log(treeNode.id);
+            console.log(node.position.x, node.position.y, treeNode.level, treeNode.levelId, treeNode.angle);
             return;
         }
 
@@ -102,27 +115,62 @@ export default function createRadiateLayout(nodeSprites, nodeContainer, visualCo
             x: treeNode.positionx,
             y: treeNode.positiony
         };
-        // console.log(treeNode.id);
-        // console.log(node.position.x, node.position.y, treeNode.level, treeNode.width, treeNode.levelId);
+        console.log(treeNode.id);
+        console.log(node.position.x, node.position.y, treeNode.level, treeNode.levelId, treeNode.angle);
     }
 
+
     //计算辐射布局的坐标
-    function calCirclePosition(tree, treeNode) {
+    function calCircleAngle(tree, treeNode) {
         var length = treeNode.child.length;
         if (!length) {
-            treeNode.positionx = Math.cos(tree.levelAngle[treeNode.level] * treeNode.levelId * Math.PI / 180) * tree.levelRadius[treeNode.level];
-            treeNode.positiony = Math.sin(tree.levelAngle[treeNode.level] * treeNode.levelId * Math.PI / 180) * tree.levelRadius[treeNode.level];
+            if (!levela[parseInt(treeNode.level)]) {
+                levela[parseInt(treeNode.level)] = 0;
+            }
+            treeNode.width = NODE_WIDTH * 4 * 180 / (Math.PI * tree.levelRadius[treeNode.level]);
+            treeNode.angle = levela[treeNode.level];
+            levela[treeNode.level] = treeNode.angle + treeNode.width / 2;
             return;
         }
 
         for (var i = 0; i < length; i++) {
-            calCirclePosition(tree, treeNode.child[i]);
+            calCircleAngle(tree, treeNode.child[i]);
         }
-        // operate node after all child
-        treeNode.positionx = Math.cos(tree.levelAngle[treeNode.level] * treeNode.levelId * Math.PI / 180) * tree.levelRadius[treeNode.level];
-        treeNode.positiony = Math.sin(tree.levelAngle[treeNode.level] * treeNode.levelId * Math.PI / 180) * tree.levelRadius[treeNode.level];
-    }
 
+        if (!levela[parseInt(treeNode.level)]) {
+            levela[parseInt(treeNode.level)] = 0;
+        }
+        if (treeNode.level > 1) {
+            if (length > 1) {
+                treeNode.width = treeNode.child[length - 1].angle - treeNode.child[0].angle + NODE_WIDTH * 180 / (Math.PI * tree.levelRadius[treeNode.level + 1]);
+            } else {
+                treeNode.width = (NODE_WIDTH * 4 * 180) / (Math.PI * tree.levelRadius[treeNode.level + 1]);
+            }
+            var p1 = levela[parseInt(treeNode.level)] + treeNode.width / 2 - (NODE_WIDTH * 2 * 180 )/ (Math.PI * tree.levelRadius[treeNode.level]);
+            var p2 = treeNode.child[0].angle + (treeNode.child[length - 1].angle - treeNode.child[0].angle) / 2;
+            treeNode.angle = p2;
+            if (p1 > p2) {
+                moveAngle(treeNode, (p1 - p2));
+            }
+            levela[treeNode.level] = treeNode.angle + treeNode.width / 2;
+        }else{
+            treeNode.angle = 0;
+        }
+
+    }
+    function calCirclePosition(tree) {
+        _.each(tree,function (treeNode) {
+            if(treeNode.id){
+                if(parseInt(treeNode.level) === 1){
+                    treeNode.positionx = 0;
+                    treeNode.positiony = 0;
+                }else {
+                    treeNode.positionx = Math.cos(treeNode.angle * Math.PI / 180) * tree.levelRadius[treeNode.level];
+                    treeNode.positiony = Math.sin(treeNode.angle * Math.PI / 180) * tree.levelRadius[treeNode.level];
+                }
+            }
+        });
+    }
 
     function calStep(p1, p2, totalStep, thisStep) {
         var perX = (p2.x - p1.x) / totalStep;
