@@ -1502,11 +1502,17 @@ export default function (settings) {
         if (isDirty || nodeContainer.isDirty || stage.isDirty) {
             if (layoutIterations > 0) {
                 layout.step();
-                layout.step();
+                let positionChanged = layout.step();
                 //大开销计算
                 _.each(nodeSprites, function (nodeSprite, nodeId) {
                     nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
                 });
+                if(layoutType === "TreeLayout" || layoutType === "CircleLayout"){
+                    if(!positionChanged) {
+                        layoutIterations = 0;
+                        this.setNodesToFullScreen();
+                    }
+                }
                 layoutIterations -= 2;
             }
 

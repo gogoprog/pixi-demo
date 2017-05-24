@@ -184,7 +184,9 @@ export default function createTreeLayout(nodeSprites, nodeContainer, visualConfi
                         nodeSprites[node.id].position = calStep(p1, p2, totalStep, thisStep);
                     }
                 });
+                return true;
             }
+            return false;
         },
 
         getNodePosition: function (nodeId) {

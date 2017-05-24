@@ -95,7 +95,9 @@ export default function createCircleLayout(nodeSprites, nodeContainer, visualCon
                         nodeSprites[node.id].position = calStep(p1, p2, totalStep, thisStep);
                     }
                 });
+                return true;
             }
+            return false;
         },
 
         getNodePosition: function (nodeId) {
