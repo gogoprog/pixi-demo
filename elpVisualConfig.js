@@ -1,4 +1,5 @@
 export const elpVisualConfig = {
+    backgroundColor: 0xFFFFFF,
     "NODE_LABLE_OFFSET_Y": 15,
     "LINK_LABLE_OFFSET_Y": 5,
     "MAX_SCALE": 5,

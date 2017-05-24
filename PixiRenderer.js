@@ -61,10 +61,11 @@ export default function(settings) {
 
     var renderer = new PIXI.autoDetectRenderer(viewWidth, viewHeight, {
             view: settings.container,
-            transparent: true,
+            transparent: false,
             autoResize: true,
             antialias: true,
-            forceFXAA: false
+            forceFXAA: true,
+            preserveDrawingBuffer: true
         }),
 
         stage = new PIXI.Container(),
@@ -110,7 +111,7 @@ export default function(settings) {
     nodeContainer.interactive = true;
 
     // renderer.backgroundColor = 0xFFFFFF;
-    renderer.backgroundColor = 0x000000;
+    renderer.backgroundColor = visConfig.backgroundColor;
     SelectionManager.call(nodeContainer);
 
     nodeContainer.on('mouseup', function(e) {
@@ -1625,8 +1626,11 @@ export default function(settings) {
             for (let link of links) {
                 graph.removeLink(link);
             }
+        },
+        // convert the canvas drawing buffer into base64 encoded image url
+        exportImage: function () {
+            return renderer.view.toDataURL('image/png');
         }
-
 
     };
 
