@@ -1,15 +1,17 @@
 import createForceLayout from 'ngraph.forcelayout';
+import createTreeLayout from './TreeLayout.js';
+import createCircleLayout from './CircleLayout.js';
 import physicsSimulator from "ngraph.physics.simulator";
 import eventify from "ngraph.events";
 // import {visualConfig} from "./visualConfig.js";
 import Graph from "./Graph.js";
-import { SelectionManager } from "./SelectionManager.js";
-import { CircleBorderTexture } from "./CircleBorderSprite.js";
+import {SelectionManager} from "./SelectionManager.js";
+import {CircleBorderTexture} from "./CircleBorderSprite.js";
 // import "./pixi.es5.js";
 import "pixi.js";
-import { FPSCounter } from "./FPSCounter.js";
-import { addWheelListener } from "./WheelListener.js";
-import { zoom, rootCaptureHandler, nodeCaptureListener } from "./customizedEventHandling.js";
+import {FPSCounter} from "./FPSCounter.js";
+import {addWheelListener} from "./WheelListener.js";
+import {zoom, rootCaptureHandler, nodeCaptureListener} from "./customizedEventHandling.js";
 // import rootCaptureHandler from "./customizedEventHandling.js";
 import lodash from 'lodash';
 import SimpleLineSprite from "./SimpleLineSprite.js";
@@ -21,7 +23,7 @@ import Utility from "../../../ui/analyticService/Utility";
 import SimpleNodeSprite from "./SimpleNodeSprite.js";
 
 
-export default function(settings) {
+export default function (settings) {
 
     var isDirty = true;
 
@@ -44,8 +46,10 @@ export default function(settings) {
 
     // If client does not need custom layout algorithm, let's create default one:
     var layout = settings.layout;
+    var networkLayout = layout;
     if (!layout) {
         layout = createForceLayout(graph, physicsSimulator(settings.physics));
+        networkLayout = layout;
     }
     var layoutIterationsStore = 1500;
     var visConfig = settings.visualConfig;
@@ -114,13 +118,13 @@ export default function(settings) {
     renderer.backgroundColor = visConfig.backgroundColor;
     SelectionManager.call(nodeContainer);
 
-    nodeContainer.on('mouseup', function(e) {
+    nodeContainer.on('mouseup', function (e) {
         isDirty = true;
         nodeContainer.handleMouseUp(e);
         selectionChanged();
     });
 
-    nodeContainer.nodeCaptured = function(node) {
+    nodeContainer.nodeCaptured = function (node) {
         stage.hasNodeCaptured = true;
         isDirty = true;
         if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
@@ -128,7 +132,7 @@ export default function(settings) {
         }
     };
 
-    nodeContainer.nodeMoved = function(node) {
+    nodeContainer.nodeMoved = function (node) {
         isDirty = true;
         if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
             layout.setNodePosition(node.id, node.position.x, node.position.y);
@@ -137,7 +141,7 @@ export default function(settings) {
 
     };
 
-    nodeContainer.nodeReleased = function(node) {
+    nodeContainer.nodeReleased = function (node) {
         isDirty = true;
         stage.hasNodeCaptured = false;
         if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
@@ -152,16 +156,16 @@ export default function(settings) {
     };
 
     //layout 相关,把移动位置同步到layout内部
-    nodeContainer.selectedNodesPosChanged = function() {
+    nodeContainer.selectedNodesPosChanged = function () {
         isDirty = true;
-        _.each(nodeContainer.nodes, function(node) {
+        _.each(nodeContainer.nodes, function (node) {
             var pos = layout.setNodePosition(node.id, node.position.x, node.position.y);
         });
 
     };
 
 
-    stage.selectAllNodesInRegion = function(x1, y1, x2, y2, flag) {
+    stage.selectAllNodesInRegion = function (x1, y1, x2, y2, flag) {
         isDirty = true;
         var xl;
         var xr;
@@ -185,7 +189,7 @@ export default function(settings) {
         if (flag) {
             nodeContainer.deselectAll();
         }
-        _.each(nodeSprites, function(n) {
+        _.each(nodeSprites, function (n) {
             //console.log(n.position.x+" "+n.position.y);
             if (!n.visible) {
                 return;
@@ -204,7 +208,7 @@ export default function(settings) {
     var nodeSprites = {},
         linkSprites = {};
 
-    var bfsQueue = [];
+    //var bfsQueue = [];
 
 
     /**
@@ -228,7 +232,7 @@ export default function(settings) {
         stage.on('mousedown', stage.downListener);
     }
 
-    var alineTimeline = function(zoomFactor) {
+    var alineTimeline = function (zoomFactor) {
         if (zoomFactor) {
             msPerPix /= (1 + zoomFactor);
         }
@@ -239,26 +243,26 @@ export default function(settings) {
             var end = start + msPerPix * timelineWidth;
             timeline.setWindow(
                 start,
-                end, { animation: false }
+                end, {animation: false}
             );
         }
         // console.log(stage.contentRoot.position);
         let pRoot = stage.contentRoot.position;
         // reposition the nodes;
         if (pRoot.x > 160) {
-            _.each(nodeSprites, function(ns) {
-                ns.updateNodePosition({ x: -40, y: ns.position.y });
+            _.each(nodeSprites, function (ns) {
+                ns.updateNodePosition({x: -40, y: ns.position.y});
             });
         } else {
             let newX = 200 - pRoot.x / stage.contentRoot.scale.x;
-            _.each(nodeSprites, function(ns) {
-                ns.updateNodePosition({ x: newX, y: ns.position.y })
+            _.each(nodeSprites, function (ns) {
+                ns.updateNodePosition({x: newX, y: ns.position.y})
             });
         }
         stage.isDirty = true;
     };
     stage.contentRootMoved = _.throttle(alineTimeline.bind(stage), 25);
-    var zoomTimelineThrottled = _.throttle(function(config) {
+    var zoomTimelineThrottled = _.throttle(function (config) {
         timeline.setWindow(
             config.start,
             config.end,
@@ -276,13 +280,13 @@ export default function(settings) {
         positionLinksByTime(linkSprites, timelineStartMs);
         let pRoot = stage.contentRoot.position;
         if (pRoot.x > 160) {
-            _.each(nodeSprites, function(ns) {
-                ns.updateNodePosition({ x: -40, y: ns.position.y });
+            _.each(nodeSprites, function (ns) {
+                ns.updateNodePosition({x: -40, y: ns.position.y});
             });
         } else {
             let newX = 200 - pRoot.x / stage.contentRoot.scale.x;
-            _.each(nodeSprites, function(ns) {
-                ns.updateNodePosition({ x: newX, y: ns.position.y })
+            _.each(nodeSprites, function (ns) {
+                ns.updateNodePosition({x: newX, y: ns.position.y})
             });
         }
         stage.isDirty = true;
@@ -298,7 +302,7 @@ export default function(settings) {
         /**
          * Cancel global Interactive
          */
-        cancelGlobalInteractive: function() {
+        cancelGlobalInteractive: function () {
             nodeContainer.interactive = false;
             stage.interactive = false;
             // stage.interactiveChildren=false;
@@ -309,7 +313,7 @@ export default function(settings) {
         /**
          * recover global Interactive
          */
-        recoverGlobalInteractive: function() {
+        recoverGlobalInteractive: function () {
             stage.interactive = true;
             if (this.mode == "picking") {
                 nodeContainer.interactive = true;
@@ -325,7 +329,7 @@ export default function(settings) {
         /**
          * adjust the initial display location to center of the scene
          */
-        adjustInitialDisplayLocation: function() {
+        adjustInitialDisplayLocation: function () {
             this.performLayout();
             this.setNodesToFullScreen();
         },
@@ -334,7 +338,7 @@ export default function(settings) {
          * For the forcelayout Algorithm do not have the fixed cycles.
          * To arrange the nodes quickly, we need add the cycles manually.
          **/
-        addLayoutCycles: function(n) {
+        addLayoutCycles: function (n) {
             isDirty = true;
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
@@ -351,9 +355,9 @@ export default function(settings) {
         /**
          * change the boundary style of the nodes by ID
          **/
-        changeBoundaryStyleByID: function(nodeIDArray, boundAttr) {
+        changeBoundaryStyleByID: function (nodeIDArray, boundAttr) {
             isDirty = true;
-            _.each(nodeIDArray, function(nodeID) {
+            _.each(nodeIDArray, function (nodeID) {
                 nodeSprites[nodeID].boundaryAttr = boundAttr;
             });
         },
@@ -361,9 +365,9 @@ export default function(settings) {
         /**
          * change the style of the link by ID
          */
-        changeLinkStyleByID: function(linkIDArray, linkAttr) {
+        changeLinkStyleByID: function (linkIDArray, linkAttr) {
             isDirty = true;
-            _.each(linkIDArray, function(linkID) {
+            _.each(linkIDArray, function (linkID) {
                 //console.log(linkID);
                 if (!linkAttr.color) {
                     linkAttr.color = linkSprites[linkID].coustomSettingColor;
@@ -383,9 +387,9 @@ export default function(settings) {
         /**
          * reset the style of the link by ID
          */
-        resetLinkStyleByID: function(linkIDArray) {
+        resetLinkStyleByID: function (linkIDArray) {
             isDirty = true;
-            _.each(linkIDArray, function(linkID) {
+            _.each(linkIDArray, function (linkID) {
                 var styleResetLink = linkSprites[linkID];
                 var linkAttr = {};
                 linkAttr.alpha = visualConfig.ui.line.alpha;
@@ -398,9 +402,9 @@ export default function(settings) {
         /**
          * get the number of hidden nodes
          */
-        getHiddenNodesNumber: function() {
+        getHiddenNodesNumber: function () {
             var number = 0;
-            _.each(nodeSprites, function(n) {
+            _.each(nodeSprites, function (n) {
                 if (n.visible == false) {
                     number++;
                 }
@@ -411,9 +415,9 @@ export default function(settings) {
         /**
          * get the number of hidden lines
          */
-        getHiddenLinesNumber: function() {
+        getHiddenLinesNumber: function () {
             var number = 0;
-            _.each(linkSprites, function(l) {
+            _.each(linkSprites, function (l) {
                 if (l.visible == false) {
                     number++;
                 }
@@ -425,9 +429,9 @@ export default function(settings) {
         /**
          * hide nodes by ID
          */
-        hideSubGraph: function(nodeIdArray, linkIdArray) {
+        hideSubGraph: function (nodeIdArray, linkIdArray) {
             isDirty = true;
-            _.each(nodeIdArray, function(node) {
+            _.each(nodeIdArray, function (node) {
                 var hiddenNode = nodeSprites[node];
                 if (hiddenNode.selected) {
                     nodeContainer.deselectNode(hiddenNode);
@@ -436,14 +440,14 @@ export default function(settings) {
                 hiddenNode.hide();
 
                 //when we hide the nodes we should also hide the texture, arrow and the link.
-                _.each(hiddenNode.outgoing, function(olink) {
+                _.each(hiddenNode.outgoing, function (olink) {
                     if (olink.selected) {
                         nodeContainer.deselectLink(olink);
                     }
                     olink.hide();
 
                 });
-                _.each(hiddenNode.incoming, function(ilink) {
+                _.each(hiddenNode.incoming, function (ilink) {
                     if (ilink.selected) {
                         nodeContainer.deselectLink(ilink);
                     }
@@ -451,7 +455,7 @@ export default function(settings) {
                 });
             });
 
-            _.each(linkIdArray, function(linkId) {
+            _.each(linkIdArray, function (linkId) {
                 var linkToHide = linkSprites[linkId];
                 if (linkToHide.selected) {
                     nodeContainer.deselectLink(linkToHide);
@@ -464,12 +468,12 @@ export default function(settings) {
 
         },
 
-        showAll: function() {
+        showAll: function () {
             isDirty = true;
-            _.each(nodeSprites, function(ns) {
+            _.each(nodeSprites, function (ns) {
                 ns.show();
             });
-            _.each(linkSprites, function(ls) {
+            _.each(linkSprites, function (ls) {
                 ls.show();
             });
             hiddenStatusChanged();
@@ -477,9 +481,9 @@ export default function(settings) {
         /**
          * show nodes by ID
          */
-        showNodesByID: function(idArray) {
+        showNodesByID: function (idArray) {
             isDirty = true;
-            _.each(idArray, function(node) {
+            _.each(idArray, function (node) {
                 var showNode = nodeSprites[node];
                 showNode.show();
 
@@ -488,13 +492,13 @@ export default function(settings) {
                  */
                 //console.log(showNode.outgoing.targetEntity);
 
-                _.each(showNode.outgoing, function(link) {
+                _.each(showNode.outgoing, function (link) {
                     if (!link.visible && nodeSprites[link.data.targetEntity].visible) {
                         link.show();
                     }
                 });
 
-                _.each(showNode.incoming, function(link) {
+                _.each(showNode.incoming, function (link) {
                     if (!link.visible && nodeSprites[link.data.sourceEntity].visible) {
                         link.show();
                     }
@@ -506,10 +510,10 @@ export default function(settings) {
          * set which node need boundary.
          * when call this function, you should give me a group of ID and the attribute for this group
          */
-        setBoundaryNeededNodes: function(idArray, boundaryAttr) {
+        setBoundaryNeededNodes: function (idArray, boundaryAttr) {
             isDirty = true;
             //this part is for performance test
-            _.each(idArray, function(node) {
+            _.each(idArray, function (node) {
                 // nodeNeedBoundary[node] = nodeSprites[node];
                 // nodeNeedBoundary[node].boundaryAttr = boundaryAttr;
                 let nodeSprite = nodeSprites[node];
@@ -534,9 +538,9 @@ export default function(settings) {
          * delete the nodes don't need boundary.
          * when call this function, you should give me a group of ID
          */
-        deleteBoundaryOfNodes: function(idArray) {
+        deleteBoundaryOfNodes: function (idArray) {
             isDirty = true;
-            _.each(idArray, function(id) {
+            _.each(idArray, function (id) {
                 let nodeSprite = nodeSprites[id];
                 if (nodeSprite) {
                     if (nodeSprite.circleBorder) {
@@ -551,7 +555,7 @@ export default function(settings) {
         /**
          * Allow switching between picking and panning modes;
          */
-        setMode: function(newMode) {
+        setMode: function (newMode) {
             if (this.mode == newMode) {
                 return;
             }
@@ -574,7 +578,7 @@ export default function(settings) {
             }
         },
 
-        toggleMode: function() {
+        toggleMode: function () {
             if (this.mode == 'panning') {
                 this.setMode('picking');
             } else {
@@ -582,7 +586,7 @@ export default function(settings) {
             }
         },
 
-        panningMode: function() {
+        panningMode: function () {
             this.setMode('panning');
         },
 
@@ -590,7 +594,7 @@ export default function(settings) {
          * get selected nodes,
          * nodes of nodeContainer are selected @SelectionManager.js
          **/
-        getSelectedNodes: function() {
+        getSelectedNodes: function () {
             // return _.values(nodeContainer.selectedNodes);
             return nodeContainer.nodes;
         },
@@ -600,253 +604,38 @@ export default function(settings) {
          * links of nodeContainer are selected @SelectionManager.js
          **/
 
-        getSelectedLinks: function() {
+        getSelectedLinks: function () {
             // return _.values(nodeContainer.selectedLinks);
             return nodeContainer.links;
         },
 
-        //mark the subtree!
-        getSubTree: function() {
-            var tid = 0;
-            _.each(nodeSprites, function(node) {
-                node.treeID = 0;
-            });
-            _.each(nodeSprites, function(node) {
-                if (!node.treeID) {
-                    tid++;
-                    findSubGraph(node, tid);
-                }
-            });
-
-            subTree = {};
-            //init the subTree Structure
-            _.each(nodeSprites, function(node) {
-                if (node.visible) {
-                    if (!subTree[node.treeID]) {
-                        subTree[node.treeID] = {};
-                        subTree[node.treeID].nodes = new Array();
-                    }
-                    subTree[node.treeID].nodes.push(node);
-
-                    //console.log(node.id+"被放进了树"+node.treeID);
-                }
-            });
-        },
-
-        /**
-         * I must address one thing, here.
-         * the node which is in subTree{}, is visible.
-         * in another word, the subTree{} do not contains invisible nodes.
-         */
-        subTreeInitForCircleLayout: function() {
-            pixiGraphics.getSubTree();
-
-            /**init the center for each subTree
-             * init the radius for each subTree
-             * init the angle for each subTree, here ,angle is for every node-center line
-             */
-            _.each(subTree, function(st, stID) {
-                var xSum = 0;
-                var ySum = 0;
-                var maxScale = 0;
-
-                _.each(st.nodes, function(node) {
-                    xSum = xSum + node.position.x;
-                    ySum = ySum + node.position.y;
-                    if (node.scale.x > maxScale) {
-                        maxScale = node.scale.x;
-                    }
-                });
-
-                st.radius = (visualConfig.NODE_WIDTH * 2 * maxScale * st.nodes.length * 1.5) / (2 * Math.PI);
-
-                st.angle = 360 / st.nodes.length;
-                st.positionx = xSum / st.nodes.length;
-                st.positiony = ySum / st.nodes.length;
-
-            });
-
-            _.each(subTree, function(st, stID) {
-
-                if (subTree[parseInt(stID) + 1]) {
-                    subTree[parseInt(stID) + 1].positionx = st.positionx + st.radius + subTree[parseInt(stID) + 1].radius + visualConfig.NODE_WIDTH;
-                    subTree[parseInt(stID) + 1].positiony = st.positiony;
-                }
-            });
-        },
-
-        /**
-         * here we do not need to consider the listeners and so many other things,
-         * draw a circle
-         */
-        drawCircleLayout: function() {
+        drawCircleLayout: function () {
             isDirty = true;
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }
-            layoutIterations = 0;
             layoutType = "Circular";
-
-            pixiGraphics.subTreeInitForCircleLayout();
-            _.each(subTree, function(st, stID) {
-                _.each(st.nodes, function(node, nodeID) {
-                    var p = {};
-                    p.x = subTree[node.treeID].positionx - Math.cos(subTree[node.treeID].angle * nodeID * Math.PI / 180) * subTree[node.treeID].radius;
-                    p.y = subTree[node.treeID].positiony + Math.sin(subTree[node.treeID].angle * nodeID * Math.PI / 180) * subTree[node.treeID].radius;
-                    node.updateNodePosition(p);
-                    layout.setNodePosition(node.id, node.position.x, node.position.y);
-                });
-            });
+            layout = createCircleLayout(nodeSprites, nodeContainer, visualConfig);
+            if (layoutIterationsStore == 1500) {
+                layoutIterations = 1500;
+            }
             this.setNodesToFullScreen();
         },
 
-        dataResetForTreeLayout: function() {
-            _.each(nodeSprites, function(n) {
-                n.isPutInTree = false;
-                n.treeLayoutLevel = null;
-            });
-            _.each(subTree, function(st) {
-                st.isSelectedNode = false;
-                st.selectedNode = null;
-            });
-        },
-
-
-        subTreeInitForTreeLayout: function() {
-            pixiGraphics.getSubTree();
-            //获取当前被选中的节点
-            //here we address the random point of each subtree
-            pixiGraphics.dataResetForTreeLayout();
-            _.each(nodeContainer.nodes, function(node) {
-                if (!subTree[node.treeID].selection) {
-                    subTree[node.treeID].isSelectedNode = true;
-                    subTree[node.treeID].selectedNode = node;
-                    // console.log(node.id);
-                }
-            });
-
-            _.each(subTree, function(st) {
-                if (!st.isSelectedNode) {
-                    pixiGraphics.findRootOfEachTree(st);
-                }
-            });
-
-            _.each(subTree, function(st, stID) {
-                if (st.isSelectedNode) {
-                    st.selectedNode.treeLayoutLevel = 1;
-                    st.selectedNode.isPutInTree = true;
-                    bfsQueue.unshift(st.selectedNode);
-                    var templength = bfsQueue.length;
-                    while (templength !== 0) {
-                        var p = bfsQueue.pop();
-
-                        if (p !== null) {
-                            findATree(p);
-                        }
-                        templength = bfsQueue.length;
-                    }
-                }
-
-            });
-
-            //compute the max width of each subTree
-            _.each(subTree, function(st) {
-                if (st.isSelectedNode) {
-                    var stMaxWidth = 0;
-                    var eachLevelNodeNumb = {};
-                    _.each(st.nodes, function(node) {
-                        if (!eachLevelNodeNumb[node.treeLayoutLevel]) {
-                            eachLevelNodeNumb[node.treeLayoutLevel] = 1;
-                        } else {
-                            eachLevelNodeNumb[node.treeLayoutLevel]++;
-                        }
-                    });
-                    st.treeLayoutEachLevelNumb = {};
-                    _.each(eachLevelNodeNumb, function(numb, level) {
-                        st.treeLayoutEachLevelNumb[level] = numb;
-                        if (numb > stMaxWidth) {
-                            stMaxWidth = numb;
-                        }
-                    });
-
-                    st.treeLayoutMaxWidth = stMaxWidth * visualConfig.NODE_WIDTH;
-                }
-            });
-
-            //compute the root position for each tree
-            //here positionx is for the x of root
-            //here positiony is for the y of root
-            _.each(subTree, function(st, stID) {
-                if (st.isSelectedNode) {
-                    if (parseInt(stID) == 1) {
-                        st.positionx = st.selectedNode.position.x;
-                        st.positiony = st.selectedNode.position.y;
-                    } else {
-                        st.positionx = subTree[parseInt(stID) - 1].positionx + subTree[parseInt(stID) - 1].treeLayoutMaxWidth + st.treeLayoutMaxWidth + visualConfig.NODE_WIDTH;
-                        st.positiony = subTree[parseInt(stID) - 1].positiony;
-                    }
-                }
-            });
-
-        },
-
-        findRootOfEachTree: function(eachSubTree) {
-
-            _.each(eachSubTree.nodes, function(n) {
-                n.degree = 0;
-                _.each(n.incoming, function(l) {
-                    n.degree++;
-                });
-                _.each(n.outgoing, function(l) {
-                    n.degree++;
-                });
-            });
-
-            eachSubTree.isSelectedNode = true;
-            eachSubTree.selectedNode = null;
-            _.each(eachSubTree.nodes, function(n) {
-                if (!eachSubTree.selectedNode) {
-                    eachSubTree.selectedNode = n;
-                } else {
-                    if (eachSubTree.selectedNode.degree < n.degree) {
-                        eachSubTree.selectedNode = n;
-                    }
-                }
-            });
-        },
-
-        drawTreeLayout: function() {
+        drawTreeLayout: function () {
             isDirty = true;
+            layoutType = "Layered";
+            layout = createTreeLayout(nodeSprites, nodeContainer, visualConfig);
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }
-            layoutIterations = 0;
-            layoutType = "Layered";
-
-            pixiGraphics.subTreeInitForTreeLayout();
-            _.each(subTree, function(st, stID) {
-                if (st.isSelectedNode) {
-                    _.each(st.nodes, function(node) {
-                        if (stID != 1 || node.treeLayoutLevel != 1) {
-                            var p = {};
-                            p.x = st.positionx - (st.treeLayoutEachLevelNumb[node.treeLayoutLevel] - 1) * visualConfig.NODE_WIDTH;
-                            st.treeLayoutEachLevelNumb[node.treeLayoutLevel] = st.treeLayoutEachLevelNumb[node.treeLayoutLevel] - 2;
-                            p.y = st.positiony + visualConfig.NODE_WIDTH * 4 * (node.treeLayoutLevel - 1);
-                            node.updateNodePosition(p);
-                        } else {
-                            node.updateNodePosition({
-                                x: node.position.x,
-                                y: node.position.y
-                            });
-                        }
-                        layout.setNodePosition(node.id, node.position.x, node.position.y);
-                    });
-                }
-            });
+            if (layoutIterationsStore == 1500) {
+                layoutIterations = 1500;
+            }
             this.setNodesToFullScreen();
         },
 
-        setActualSize: function() {
+        setActualSize: function () {
             isDirty = true;
             var root = this.root;
             root.scale.x = 1;
@@ -856,7 +645,7 @@ export default function(settings) {
             var sumx = 0;
             var sumy = 0;
             var count = 0;
-            _.each(nodeSprites, function(n) {
+            _.each(nodeSprites, function (n) {
                 sumx += n.position.x;
                 sumy += n.position.y;
                 count++;
@@ -865,7 +654,7 @@ export default function(settings) {
                 sumx = sumx / count;
                 sumy = sumy / count;
             }
-            _.each(nodeSprites, function(n) {
+            _.each(nodeSprites, function (n) {
                 n.position.x = n.position.x - sumx + 0
                 n.position.y = n.position.y - sumy + 0;
                 n.updateNodePosition(n.position);
@@ -873,7 +662,7 @@ export default function(settings) {
             });
         },
 
-        setNodesToFullScreen: function() {
+        setNodesToFullScreen: function () {
             isDirty = true;
             var root = this.root;
             var x1 = -10000000,
@@ -881,7 +670,7 @@ export default function(settings) {
             var sumx = 0;
             var sumy = 0;
             var count = 0;
-            _.each(nodeSprites, function(n) {
+            _.each(nodeSprites, function (n) {
                 sumx += n.position.x;
                 sumy += n.position.y;
                 count++;
@@ -952,7 +741,7 @@ export default function(settings) {
             root.position.x = viewWidth / 2;
             root.position.y = viewHeight / 2;
 
-            _.each(nodeSprites, function(n) {
+            _.each(nodeSprites, function (n) {
                 n.position.x = n.position.x - sumx;
                 n.position.y = n.position.y - sumy;
                 n.updateNodePosition(n.position);
@@ -961,7 +750,7 @@ export default function(settings) {
 
         },
 
-        setSelectedNodesToFullScreen: function() {
+        setSelectedNodesToFullScreen: function () {
             isDirty = true;
             var root = this.root;
             var x1 = -1000000,
@@ -969,7 +758,7 @@ export default function(settings) {
             var sumx = 0;
             var sumy = 0;
             var count = 0;
-            _.each(nodeContainer.selectedNodes, function(n) {
+            _.each(nodeContainer.selectedNodes, function (n) {
                 sumx += n.position.x;
                 sumy += n.position.y;
                 count++;
@@ -1042,7 +831,7 @@ export default function(settings) {
             root.position.x = viewWidth / 2;
             root.position.y = viewHeight / 2;
 
-            _.each(nodeSprites, function(n) {
+            _.each(nodeSprites, function (n) {
                 n.position.x = n.position.x - sumx;
                 n.position.y = n.position.y - sumy;
                 n.updateNodePosition(n.position);
@@ -1055,7 +844,7 @@ export default function(settings) {
          * algorithm, do it via `settings` argument of ngraph.pixi.
          */
         layout: layout,
-        getLayoutType: function() {
+        getLayoutType: function () {
             return layoutType;
         },
         nodeContainer: nodeContainer,
@@ -1065,10 +854,10 @@ export default function(settings) {
         mode: mode,
         counter: counter,
 
-        unSelectSubGraph: function(nodeIdArray, linkIdArray) {
+        unSelectSubGraph: function (nodeIdArray, linkIdArray) {
             isDirty = true;
             if (nodeIdArray) {
-                _.each(nodeIdArray, function(nodeId) {
+                _.each(nodeIdArray, function (nodeId) {
                     var nodeSprite = nodeSprites[nodeId];
                     if (nodeSprite.selected) {
                         nodeContainer.deselectNode(nodeSprite);
@@ -1076,7 +865,7 @@ export default function(settings) {
                 })
             }
             if (linkIdArray) {
-                _.each(linkSprites, function(linkSprite, lid) {
+                _.each(linkSprites, function (linkSprite, lid) {
                     var actualId = linkSprite.id;
                     if (_.indexOf(linkIdArray, actualId) >= 0) {
                         nodeContainer.deselectLink(linkSprite);
@@ -1085,10 +874,10 @@ export default function(settings) {
             }
         },
 
-        selectSubGraph: function(nodeIdArray, linkIdArray) {
+        selectSubGraph: function (nodeIdArray, linkIdArray) {
             isDirty = true;
             if (nodeIdArray) {
-                _.each(nodeIdArray, function(nodeId) {
+                _.each(nodeIdArray, function (nodeId) {
                     var nodeSprite = nodeSprites[nodeId];
                     if (nodeSprite) {
                         nodeContainer.selectNode(nodeSprite);
@@ -1100,7 +889,7 @@ export default function(settings) {
                     }
                 });
             }
-            _.each(linkSprites, function(linkSprite, lid) {
+            _.each(linkSprites, function (linkSprite, lid) {
                 var actualId = linkSprite.id;
                 if (_.indexOf(linkIdArray, actualId) >= 0) {
                     nodeContainer.selectLink(linkSprite);
@@ -1109,13 +898,13 @@ export default function(settings) {
             selectionChanged();
         },
 
-        clearSelection: function() {
+        clearSelection: function () {
             isDirty = true;
             nodeContainer.deselectAll();
             selectionChanged();
         },
 
-        selectLinks: function(linkIdArray) {
+        selectLinks: function (linkIdArray) {
             isDirty = true;
             // _.each(linkSprites, function(linkSprite,lid){
             //     var actualId = linkSprite.data.data.id
@@ -1125,11 +914,11 @@ export default function(settings) {
             // });
         },
 
-        selectLinksFromNodes: function(startingNodes, direction, alsoSelectNodes) {
+        selectLinksFromNodes: function (startingNodes, direction, alsoSelectNodes) {
             isDirty = true;
-            _.each(startingNodes, function(n) {
+            _.each(startingNodes, function (n) {
                 if (direction === "both" || direction == "in") {
-                    _.each(n.incoming, function(l) {
+                    _.each(n.incoming, function (l) {
                         if (l.visible) {
                             nodeContainer.selectLink(l);
                             if (alsoSelectNodes && nodeSprites[l.data.sourceEntity].visible) {
@@ -1139,7 +928,7 @@ export default function(settings) {
                     });
                 }
                 if (direction === "both" || direction == "out") {
-                    _.each(n.outgoing, function(l) {
+                    _.each(n.outgoing, function (l) {
                         if (l.visible) {
                             nodeContainer.selectLink(l);
                             if (alsoSelectNodes && nodeSprites[l.data.targetEntity].visible) {
@@ -1152,9 +941,9 @@ export default function(settings) {
             selectionChanged();
         },
 
-        selectNodesOfLinks: function(selectedLinks) {
+        selectNodesOfLinks: function (selectedLinks) {
             isDirty = true;
-            _.each(selectedLinks, function(l) {
+            _.each(selectedLinks, function (l) {
                 var d = l.data;
                 var srcNode = nodeSprites[d.sourceEntity];
                 var tgtNode = nodeSprites[d.targetEntity];
@@ -1168,14 +957,14 @@ export default function(settings) {
             selectionChanged();
         },
 
-        selectAll: function() {
+        selectAll: function () {
             isDirty = true;
-            _.each(linkSprites, function(l) {
+            _.each(linkSprites, function (l) {
                 if (l.visible) {
                     nodeContainer.selectLink(l);
                 }
             });
-            _.each(nodeSprites, function(n) {
+            _.each(nodeSprites, function (n) {
                 if (n.visible) {
                     nodeContainer.selectNode(n);
                 }
@@ -1183,9 +972,9 @@ export default function(settings) {
             selectionChanged();
         },
 
-        selectReverseSelection: function() {
+        selectReverseSelection: function () {
             isDirty = true;
-            _.each(linkSprites, function(l) {
+            _.each(linkSprites, function (l) {
                 if (l.selected || l.visible == false) {
                     nodeContainer.deselectLink(l);
                 } else {
@@ -1193,7 +982,7 @@ export default function(settings) {
                 }
 
             });
-            _.each(nodeSprites, function(n) {
+            _.each(nodeSprites, function (n) {
                 if (n.selected || n.visible == false) {
                     nodeContainer.deselectNode(n)
                 } else {
@@ -1203,28 +992,28 @@ export default function(settings) {
             selectionChanged();
         },
 
-        hideSelectedLinks: function() {
+        hideSelectedLinks: function () {
             isDirty = true;
-            _.each(nodeContainer.links, function(link) {
+            _.each(nodeContainer.links, function (link) {
                 link.hide();
             });
         },
 
-        zoomIn: function() {
+        zoomIn: function () {
             isDirty = true;
             var x = viewWidth / 2;
             var y = viewHeight / 2;
             zoom(x, y, true, root, visualConfig);
         },
 
-        zoomOut: function() {
+        zoomOut: function () {
             isDirty = true;
             var x = viewWidth / 2;
             var y = viewHeight / 2;
             zoom(x, y, false, root, visualConfig);
         },
 
-        zoom: function(x, y, zoomingIn) {
+        zoom: function (x, y, zoomingIn) {
             isDirty = true;
             if (stage.isTimelineLayout) {
                 if (zoomingIn) {
@@ -1237,13 +1026,13 @@ export default function(settings) {
             }
         },
 
-        drawTimelineLayout: function(leftSpacing) {
+        drawTimelineLayout: function (leftSpacing) {
             isDirty = true;
             layoutIterations = 0;
             layoutType = "TimelineScale";
             var timelineItems = [];
             var now = moment().format('YYYY-MM-DDTHH:mm:ss');
-            _.each(linkSprites, function(l) {
+            _.each(linkSprites, function (l) {
                 if (!l.visible) {
                     return;
                 }
@@ -1274,7 +1063,7 @@ export default function(settings) {
                     moveable: false,
                     zoomable: false,
                     showCurrentTime: false
-                        // throttleRedraw: 100
+                    // throttleRedraw: 100
                 };
                 // Create a Timeline
                 timeline = new vis.Timeline(container, items, options);
@@ -1293,7 +1082,7 @@ export default function(settings) {
                 posY = 50; //starting point to layout nodes.
             var iconSize = visualConfig.NODE_WIDTH,
                 marginY = 30;
-            _.each(nodeSprites, function(ns) {
+            _.each(nodeSprites, function (ns) {
                 ns.updateNodePosition({
                     x: posX,
                     y: posY
@@ -1308,7 +1097,7 @@ export default function(settings) {
             var minX = 10000;
             positionLinksByTime(linkSprites, timelineStartMs);
             var nodeX = -40;
-            _.each(nodeSprites, function(ns) {
+            _.each(nodeSprites, function (ns) {
                 ns.updateNodePosition({
                     x: nodeX,
                     y: ns.position.y
@@ -1320,7 +1109,7 @@ export default function(settings) {
             stage.contentRootMoved();
         },
 
-        destroy: function() {
+        destroy: function () {
             isDirty = true;
             graph.off('changed', onGraphChanged);
             stage.destroy();
@@ -1329,14 +1118,13 @@ export default function(settings) {
             nodeSprites = [];
             linkSprites = [];
         },
-
-        removeAllLinks: function() {
+        removeAllLinks: function () {
             isDirty = true;
-            _.each(nodeSprites, function(n) {
+            _.each(nodeSprites, function (n) {
                 n.incoming = [];
                 n.outgoing = [];
             });
-            _.each(linkSprites, function(l) {
+            _.each(linkSprites, function (l) {
                 if (l.selected) {
                     nodeContainer.deselectLink(l);
                 }
@@ -1350,13 +1138,13 @@ export default function(settings) {
             });
         },
 
-        resetStyle: function(entities, links) {
+        resetStyle: function (entities, links) {
             isDirty = true;
             if (!entities && !links) {
                 entities = nodeSprites;
                 links = linkSprites;
             }
-            _.each(entities, function(entity) {
+            _.each(entities, function (entity) {
                 let nodeSprite = nodeSprites[entity] || nodeSprites[entity.id];
                 if (nodeSprite) {
                     zoomNodesById([nodeSprite.id], 1)
@@ -1368,7 +1156,7 @@ export default function(settings) {
                 }
             });
 
-            _.each(links, function(link) {
+            _.each(links, function (link) {
                 let linkSprite = linkSprites[link] || linkSprites[link.id];
                 if (linkSprite) {
                     linkSprite.thickness = visualConfig.ui.line.width;
@@ -1377,11 +1165,17 @@ export default function(settings) {
             });
         },
 
-        setLayoutType: function(layoutTypeStr) {
+        setLayoutType: function (layoutTypeStr) {
             layoutType = layoutTypeStr || 'Network';
             if (layoutType != 'Network' && layoutType != 'Circular' && layoutType != 'Layered' && layoutType != 'TimelineScale') {
                 layoutType = 'Network';
             }
+            layout = networkLayout;
+            _.each(nodeSprites, function (nodeSprite, nodeId) {
+                layout.setNodePosition(nodeId, nodeSprite.position.x, nodeSprite.position.y);
+            });
+            this.setNodesToFullScreen();
+
         },
 
         setTwoNodeLayoutInXDireaction: function (nodeIDArray) {
@@ -1397,7 +1191,7 @@ export default function(settings) {
                 currentX += nodeMarginX;
             });
         },
-        pauseAnimation: function() {
+        pauseAnimation: function () {
             visualConfig.LAYOUT_ANIMATION = !visualConfig.LAYOUT_ANIMATION;
             if (!visualConfig.LAYOUT_ANIMATION) {
                 layoutIterationsStore = layoutIterations;
@@ -1407,9 +1201,9 @@ export default function(settings) {
                 this.performLayout();
             }
         },
-        performLayout: function() {
-
+        performLayout: function () {
             if (layoutType == 'Network') {
+
                 if (stage.isTimelineLayout) {
                     disableTimelineLayout();
                 }
@@ -1421,7 +1215,7 @@ export default function(settings) {
                         layout.step();
                         layoutIterations -= 1;
                     }
-                    _.each(nodeSprites, function(nodeSprite, nodeId) {
+                    _.each(nodeSprites, function (nodeSprite, nodeId) {
                         nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
                     });
                 }
@@ -1438,112 +1232,111 @@ export default function(settings) {
             isDirty = true;
         },
 
-        getGraph: function() {
+        getGraph: function () {
             return graph;
         },
 
-        getLayout: function() {
+        getLayout: function () {
             return layout;
         },
-
-        getNodesCount: function() {
+        getNodesCount: function () {
             return graph.getNodesCount();
         },
-        getLinksCount: function() {
+        getLinksCount: function () {
             return graph.getLinksCount();
         },
-        getNode: function(nodeId) {
+        getNode: function (nodeId) {
             return graph.getNode(nodeId);
         },
-        removeNode: function(nodeId) {
+        removeNode: function (nodeId) {
             return graph.removeNode(nodeId);
         },
-        removeLink: function(link) {
+        removeLink: function (link) {
             return graph.removeLink(link);
         },
-        forEachNode: function(func) {
+        forEachNode: function (func) {
             return graph.forEachNode(func);
         },
-        forEachLink: function(func) {
+        forEachLink: function (func) {
             return graph.forEachLink(func);
         },
-        beginUpdate: function() {
+        beginUpdate: function () {
             return graph.beginUpdate();
         },
-        endUpdate: function() {
+        endUpdate: function () {
             return graph.endUpdate();
         },
-        addNode: function(nodeId, data) {
+        addNode: function (nodeId, data) {
             return graph.addNode(nodeId, data);
         },
-        updateNode: function(nodeId, data) {
+        updateNode: function (nodeId, data) {
             return graph.addNode(nodeId, data);
         },
-        addLink: function(fromId, toId, data) {
+        addLink: function (fromId, toId, data) {
             return graph.addLink(fromId, toId, data);
         },
-        clearGraph: function() {
+        clearGraph: function () {
             graph.beginUpdate();
             graph.clear();
             graph.endUpdate();
         },
 
-        disposeLayout: function() {
+        disposeLayout: function () {
             layout.dispose();
         },
 
-        setNodePosition: function(nodeId, x, y, z) {
+        setNodePosition: function (nodeId, x, y, z) {
             layout.setNodePosition(nodeId, x, y, z);
         },
-        getNodePosition: function(nodeId) {
+        getNodePosition: function (nodeId) {
             return layout.getNodePosition(nodeId);
         },
-        setGraphType: function(gType) {
+        setGraphType: function (gType) {
             graphType = gType;
         },
-        getGraphType: function() {
+        getGraphType: function () {
             return graphType;
         },
-        setGraphData: function(gData) {
+        setGraphData: function (gData) {
             graphData = gData;
         },
-        getGraphData: function() {
+        getGraphData: function () {
             return graphData;
         },
-        getGraphEntities: function() {
+        getGraphEntities: function () {
             return graphEntities;
         },
-        setGraphEntities: function(gEntities) {
+        setGraphEntities: function (gEntities) {
             graphEntities = gEntities;
         },
-        getGraphLinks: function() {
+        getGraphLinks: function () {
             return graphLinks;
         },
-        setGraphLinks: function(gLinks) {
+        setGraphLinks: function (gLinks) {
             graphLinks = gLinks;
         },
-        getGraphLinkTypes: function() {
+        getGraphLinkTypes: function () {
             return graphLinkTypes;
         },
-        getGraphEntityTypes: function() {
+        getGraphEntityTypes: function () {
             return graphEntityTypes;
         },
 
-        fillGraphData: function(gData) {
+        fillGraphData: function (gData) {
             if (!graphType) {
                 console.log("please call setGraphType");
             }
 
             graph.beginUpdate();
 
-            _.each(gData.entities, function(p) {
+            _.each(gData.entities, function (p) {
                 if (!_.has(graphEntities, p.id)) {
                     graph.addNode(p.id, p);
                     graphEntities[p.id] = p;
                     graphEntityTypes[p.type] = 1;
                 }
             });
-            _.each(gData.links, function(f) {
+            _.each(gData.links, function (f) {
                 if (!_.has(graphLinks, f.id)) {
                     graph.addLink(f.sourceEntity, f.targetEntity, f);
                     graphLinks[f.id] = f;
@@ -1554,9 +1347,9 @@ export default function(settings) {
             graph.endUpdate();
         },
 
-        getEntitySemanticType: function(nodeUuid) {
+        getEntitySemanticType: function (nodeUuid) {
             let type;
-            _.each(graphType.entityTypes, function(f) {
+            _.each(graphType.entityTypes, function (f) {
                 if (f.uuid == nodeUuid) {
                     type = f.iconUrl;
                 }
@@ -1564,9 +1357,9 @@ export default function(settings) {
             return type;
         },
 
-        getLinkSemanticType: function(linkUuid) {
+        getLinkSemanticType: function (linkUuid) {
             let type;
-            _.each(graphType.linkTypes, function(f) {
+            _.each(graphType.linkTypes, function (f) {
                 if (f.uuid == linkUuid) {
                     type = f.semanticType;
                 }
@@ -1574,9 +1367,9 @@ export default function(settings) {
             return type;
         },
 
-        getEntityType: function(nodeUuid) {
+        getEntityType: function (nodeUuid) {
             var type;
-            _.each(graphType.entityTypes, function(f) {
+            _.each(graphType.entityTypes, function (f) {
                 if (f.uuid == nodeUuid) {
                     type = f;
                 }
@@ -1584,9 +1377,9 @@ export default function(settings) {
             return type;
         },
 
-        getLinkType: function(linkUuid) {
+        getLinkType: function (linkUuid) {
             var type;
-            _.each(graphType.linkTypes, function(f) {
+            _.each(graphType.linkTypes, function (f) {
                 if (f.uuid == linkUuid) {
                     type = f;
                 }
@@ -1601,28 +1394,28 @@ export default function(settings) {
         //     }); 
         // },
 
-        onGraphChanged: function(func) {
+        onGraphChanged: function (func) {
             graph.on('changed', func);
         },
 
-        addCanvasEventListener: function(eventName, func, state) {
+        addCanvasEventListener: function (eventName, func, state) {
             canvas.addEventListener(eventName, func, state);
         },
 
-        modifyNodeLabel: function(nodeLabelsObj) {
+        modifyNodeLabel: function (nodeLabelsObj) {
             for (let nodeId in nodeLabelsObj) {
                 let nodeSprite = nodeSprites[nodeId];
                 nodeSprite.ts.text = nodeLabelsObj[nodeId];
             }
         },
 
-        removeNodes: function(nodeIds) {
+        removeNodes: function (nodeIds) {
             for (let nodeId of nodeIds) {
                 graph.removeNode(nodeId);
             }
         },
 
-        removeLinks: function(links) {
+        removeLinks: function (links) {
             for (let link of links) {
                 graph.removeLink(link);
             }
@@ -1634,18 +1427,18 @@ export default function(settings) {
 
     };
 
-    addWheelListener(canvas, _.throttle(function(e) {
+    addWheelListener(canvas, _.throttle(function (e) {
         // pixiGraphics.zoom(e.offsetX, e.offsetY, e.deltaY < 0);
         pixiGraphics.zoom(e.offsetX || (e.originalEvent ? e.originalEvent.offsetX : null), e.offsetY || (e.originalEvent ? e.originalEvent.offsetY : null), e.deltaY < 0);
     }, 50), true);
 
     var lastDownTarget;
     //FIXME, remove listener when renderer is destroyed.
-    document.addEventListener('mousedown', function(event) {
+    document.addEventListener('mousedown', function (event) {
         lastDownTarget = event.target;
     }, false);
 
-    document.addEventListener('keydown', function(event) {
+    document.addEventListener('keydown', function (event) {
         if (lastDownTarget == canvas) {
             if (event.code === "Space") {
                 pixiGraphics.toggleMode();
@@ -1668,7 +1461,7 @@ export default function(settings) {
     ///////////////////////////////////////////////////////////////////////////////
     function zoomNodesById(nodeIDArray, zoomValue) {
         isDirty = true;
-        _.each(nodeIDArray, function(nodeID) {
+        _.each(nodeIDArray, function (nodeID) {
             let nodeSprite = nodeSprites[nodeID];
             if (nodeSprite) {
                 nodeSprite.scale.set(zoomValue);
@@ -1711,7 +1504,7 @@ export default function(settings) {
                 layout.step();
                 layout.step();
                 //大开销计算
-                _.each(nodeSprites, function(nodeSprite, nodeId) {
+                _.each(nodeSprites, function (nodeSprite, nodeId) {
                     nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
                 });
                 layoutIterations -= 2;
@@ -1742,7 +1535,7 @@ export default function(settings) {
     function drawBorders() {
         boarderGraphics.clear();
 
-        _.each(nodeContainer.selectedNodes, function(n2) {
+        _.each(nodeContainer.selectedNodes, function (n2) {
 
             boarderGraphics.lineStyle(visualConfig.ui.frame.border.width, visualConfig.ui.frame.border.color, visualConfig.ui.frame.border.alpha);
             // boarderGraphics.beginFill(visualConfig.ui.frame.fill.color, visualConfig.ui.frame.fill.alpha);
@@ -1764,7 +1557,7 @@ export default function(settings) {
 
     function drawLines() {
         lineGraphics.clear();
-        _.each(linkSprites, function(link) {
+        _.each(linkSprites, function (link) {
             if (link.visible) {
                 link.renderLine(lineGraphics);
             }
@@ -1775,7 +1568,7 @@ export default function(settings) {
         var nodeTimelineStyle = visualConfig.ui.timeline;
         let endX = (timelineWidth - root.position.x) / root.scale.x + 200;
         lineGraphics.lineStyle(nodeTimelineStyle.width, nodeTimelineStyle.color, 1);
-        _.each(nodeSprites, function(ns) {
+        _.each(nodeSprites, function (ns) {
             if (ns.visible) {
                 lineGraphics.beginFill(nodeTimelineStyle.color, 1);
                 lineGraphics.drawCircle(-100, ns.position.y, 5);
@@ -1793,10 +1586,10 @@ export default function(settings) {
         timeline.destroy();
         timeline = null;
         stage.isTimelineLayout = false;
-        _.each(nodeSprites, function(ns) {
+        _.each(nodeSprites, function (ns) {
             ns.timelineMode = false;
         });
-        _.each(linkSprites, function(ls) {
+        _.each(linkSprites, function (ls) {
             ls.forceStraightLine = false;
         });
     }
@@ -1860,12 +1653,12 @@ export default function(settings) {
         var tgtNodeSprite = nodeSprites[f.toId];
         let sameTgtLink = [],
             reverseLink = [];
-        _.each(srcNodeSprite.outgoing, function(link) {
+        _.each(srcNodeSprite.outgoing, function (link) {
             if (link.data.targetEntity === f.toId) {
                 sameTgtLink.push(link);
             }
         });
-        _.each(tgtNodeSprite.outgoing, function(link) {
+        _.each(tgtNodeSprite.outgoing, function (link) {
             if (link.data.targetEntity === f.fromId) {
                 reverseLink.push(link);
             }
@@ -2053,12 +1846,12 @@ export default function(settings) {
         if (!node.treeID) {
             node.treeID = tid;
 
-            _.each(node.incoming, function(link) {
+            _.each(node.incoming, function (link) {
                 if (!nodeSprites[link.data.sourceEntity].treeID) {
                     findSubGraph(nodeSprites[link.data.sourceEntity], tid);
                 }
             });
-            _.each(node.outgoing, function(link) {
+            _.each(node.outgoing, function (link) {
                 if (!nodeSprites[link.data.targetEntity].treeID) {
                     findSubGraph(nodeSprites[link.data.targetEntity], tid);
                 }
@@ -2088,24 +1881,6 @@ export default function(settings) {
     }
 
 
-    function findATree(node) {
-
-        _.each(node.incoming, function(link) {
-            if (!nodeSprites[link.data.sourceEntity].isPutInTree) {
-                nodeSprites[link.data.sourceEntity].treeLayoutLevel = node.treeLayoutLevel + 1;
-                nodeSprites[link.data.sourceEntity].isPutInTree = true;
-                bfsQueue.unshift(nodeSprites[link.data.sourceEntity]);
-            }
-        });
-        _.each(node.outgoing, function(link) {
-            if (!nodeSprites[link.data.targetEntity].isPutInTree) {
-                nodeSprites[link.data.targetEntity].treeLayoutLevel = node.treeLayoutLevel + 1;
-                nodeSprites[link.data.targetEntity].isPutInTree = true;
-                bfsQueue.unshift(nodeSprites[link.data.targetEntity]);
-            }
-        });
-    }
-
     function moveTimeline(percentage) {
         var range = timeline.getWindow();
         var interval = range.end - range.start;
@@ -2117,7 +1892,7 @@ export default function(settings) {
     }
 
     function positionLinksByTime(linkSprites, screenStartTime) {
-        _.each(linkSprites, function(ls) {
+        _.each(linkSprites, function (ls) {
             if (!ls.visible) {
                 return;
             }
