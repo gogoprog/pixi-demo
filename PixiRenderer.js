@@ -1,5 +1,6 @@
 import createForceLayout from 'ngraph.forcelayout';
 import createTreeLayout from './TreeLayout.js';
+import createCircleLayout from './CircleLayout.js';
 import physicsSimulator from "ngraph.physics.simulator";
 import eventify from "ngraph.events";
 // import {visualConfig} from "./visualConfig.js";
@@ -608,98 +609,16 @@ export default function (settings) {
             return nodeContainer.links;
         },
 
-        //mark the subtree!
-        getSubTree: function () {
-            var tid = 0;
-            _.each(nodeSprites, function (node) {
-                node.treeID = 0;
-            });
-            _.each(nodeSprites, function (node) {
-                if (!node.treeID) {
-                    tid++;
-                    findSubGraph(node, tid);
-                }
-            });
-
-            subTree = {};
-            //init the subTree Structure
-            _.each(nodeSprites, function (node) {
-                if (node.visible) {
-                    if (!subTree[node.treeID]) {
-                        subTree[node.treeID] = {};
-                        subTree[node.treeID].nodes = new Array();
-                    }
-                    subTree[node.treeID].nodes.push(node);
-
-                    //console.log(node.id+"被放进了树"+node.treeID);
-                }
-            });
-        },
-
-        /**
-         * I must address one thing, here.
-         * the node which is in subTree{}, is visible.
-         * in another word, the subTree{} do not contains invisible nodes.
-         */
-        subTreeInitForCircleLayout: function () {
-            pixiGraphics.getSubTree();
-
-            /**init the center for each subTree
-             * init the radius for each subTree
-             * init the angle for each subTree, here ,angle is for every node-center line
-             */
-            _.each(subTree, function (st, stID) {
-                var xSum = 0;
-                var ySum = 0;
-                var maxScale = 0;
-
-                _.each(st.nodes, function (node) {
-                    xSum = xSum + node.position.x;
-                    ySum = ySum + node.position.y;
-                    if (node.scale.x > maxScale) {
-                        maxScale = node.scale.x;
-                    }
-                });
-
-                st.radius = (visualConfig.NODE_WIDTH * 2 * maxScale * st.nodes.length * 1.5) / (2 * Math.PI);
-
-                st.angle = 360 / st.nodes.length;
-                st.positionx = xSum / st.nodes.length;
-                st.positiony = ySum / st.nodes.length;
-
-            });
-
-            _.each(subTree, function (st, stID) {
-
-                if (subTree[parseInt(stID) + 1]) {
-                    subTree[parseInt(stID) + 1].positionx = st.positionx + st.radius + subTree[parseInt(stID) + 1].radius + visualConfig.NODE_WIDTH;
-                    subTree[parseInt(stID) + 1].positiony = st.positiony;
-                }
-            });
-        },
-
-        /**
-         * here we do not need to consider the listeners and so many other things,
-         * draw a circle
-         */
         drawCircleLayout: function () {
             isDirty = true;
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }
-            layoutIterations = 0;
             layoutType = "Circular";
-
-            pixiGraphics.subTreeInitForCircleLayout();
-            _.each(subTree, function (st, stID) {
-                _.each(st.nodes, function (node, nodeID) {
-                    var p = {};
-                    p.x = subTree[node.treeID].positionx - Math.cos(subTree[node.treeID].angle * nodeID * Math.PI / 180) * subTree[node.treeID].radius;
-                    p.y = subTree[node.treeID].positiony + Math.sin(subTree[node.treeID].angle * nodeID * Math.PI / 180) * subTree[node.treeID].radius;
-                    node.updateNodePosition(p);
-                    layout.setNodePosition(node.id, node.position.x, node.position.y);
-                });
-            });
+            layout = createCircleLayout(nodeSprites,nodeContainer,visualConfig);
+            if (layoutIterationsStore == 1500) {
+                layoutIterations = 1500;
+            }
             this.setNodesToFullScreen();
         },
 
@@ -1255,6 +1174,8 @@ export default function (settings) {
             _.each(nodeSprites, function (nodeSprite, nodeId) {
                 layout.setNodePosition(nodeId,nodeSprite.position.x,nodeSprite.position.y);
             });
+            this.setNodesToFullScreen();
+
         },
 
         setTwoNodeLayoutInXDireaction: function (nodeIDArray) {
