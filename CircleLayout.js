@@ -9,7 +9,7 @@ export default function createCircleLayout(nodeSprites, nodeContainer, visualCon
     var forest = [];
     forest = createForest(nodes, selectNodes, visualConfig);
     var thisStep = 0;
-    var totalStep = 500;
+    var totalStep = 250;
     var NODE_WIDTH = visualConfig.NODE_WIDTH;
     //预处理,用nodes存储nodeSprites中node的数据
     function getNodes(nodeSprites) {

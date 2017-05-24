@@ -626,8 +626,8 @@ export default function (settings) {
         drawTreeLayout: function () {
             isDirty = true;
             layoutType = "Layered";
-            // layout = createTreeLayout(nodeSprites, nodeContainer, visualConfig);
-            layout = createRadiateLayout(nodeSprites, nodeContainer, visualConfig);
+            layout = createTreeLayout(nodeSprites, nodeContainer, visualConfig);
+            // layout = createRadiateLayout(nodeSprites, nodeContainer, visualConfig);
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }
@@ -1509,13 +1509,14 @@ export default function (settings) {
                 _.each(nodeSprites, function (nodeSprite, nodeId) {
                     nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
                 });
-                if(layoutType === "TreeLayout" || layoutType === "CircleLayout"){
-                    if(!positionChanged) {
+                layoutIterations -= 2;
+                if(!positionChanged || layoutIterations <= 0) {
+                    if(layoutType === "Circular" || layoutType === "Layered"){
+                        console.log("layout freezed, setting to full screen");
                         layoutIterations = 0;
-                        this.setNodesToFullScreen();
+                        // pixiGraphics.setNodesToFullScreen();
                     }
                 }
-                layoutIterations -= 2;
             }
 
             selectRegionGraphics.clear();
