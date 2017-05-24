@@ -7,7 +7,7 @@ export default function createCircleLayout(nodeSprites, nodeContainer, visualCon
     var nodes = getNodes(nodeSprites);
     var selectNodes = getSelectNodes(nodeContainer);
     var forest = [];
-    forest = createForest(nodes, selectNodes);
+    forest = createForest(nodes, selectNodes, visualConfig);
     var thisStep = 0;
     var totalStep = 500;
     var NODE_WIDTH = visualConfig.NODE_WIDTH;

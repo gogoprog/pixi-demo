@@ -626,8 +626,8 @@ export default function (settings) {
         drawTreeLayout: function () {
             isDirty = true;
             layoutType = "Layered";
-            layout = createTreeLayout(nodeSprites, nodeContainer, visualConfig);
-            //layout = createRadiateLayout(nodeSprites, nodeContainer, visualConfig);
+            // layout = createTreeLayout(nodeSprites, nodeContainer, visualConfig);
+            layout = createRadiateLayout(nodeSprites, nodeContainer, visualConfig);
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }

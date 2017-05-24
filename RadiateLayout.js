@@ -4,19 +4,19 @@
 import createForest from './CreateForest.js';
 
 export default function createRadiateLayout(nodeSprites, nodeContainer, visualConfig) {
-    var nodes = {};
-    var selectNodes = [];
-    var levela = []; //记录各层当前结点的角度
-    var thisStep = 0;
-    var totalStep = 500;
-    var NODE_WIDTH = visualConfig.NODE_WIDTH;
-    var forest = [];
+    let nodes = {};
+    let selectNodes = [];
+    let levela = []; //记录各层当前结点的角度
+    let thisStep = 0;
+    let totalStep = 500;
+    let NODE_WIDTH = visualConfig.NODE_WIDTH;
+    let forest = [];
 
     //预处理,用nodes存储nodeSprites中node的数据
     function getNodes(nodeSprites) {
-        var ns = {};
+        let ns = {};
         _.each(nodeSprites, function (n) {
-            var node = {
+            let node = {
                 id: n.id,
                 incoming: n.incoming,
                 outgoing: n.outgoing,
@@ -32,9 +32,9 @@ export default function createRadiateLayout(nodeSprites, nodeContainer, visualCo
 
     //预处理,用selectNodes存储nodeContainer中被选中的node的数据
     function getSelectNodes(nodeContainer) {
-        var sn = [];
+        let sn = [];
         _.each(nodeContainer.nodes, function (n) {
-            var node = {
+            let node = {
                 id: n.id,
                 incoming: n.incoming,
                 outgoing: n.outgoing,
@@ -52,11 +52,11 @@ export default function createRadiateLayout(nodeSprites, nodeContainer, visualCo
     forest = createForest(nodes, selectNodes, visualConfig);
 
     //计算辐射布局坐标
-    for (var i = 0; i < forest.length; i++) {
+    for (let i = 0; i < forest.length; i++) {
         calCircleAngle(forest[i], forest[i].root);
         calCirclePosition(forest[i], forest[i].root);
         if (i > 0) {
-            var len = forest[i].levelRadius[forest[i].levelRadius.length - 1] + forest[i - 1].root.positionx + forest[i - 1].levelRadius[forest[i - 1].levelRadius.length - 1] + NODE_WIDTH * 4;
+            let len = forest[i].levelRadius[forest[i].levelRadius.length - 1] + forest[i - 1].root.positionx + forest[i - 1].levelRadius[forest[i - 1].levelRadius.length - 1] + NODE_WIDTH * 4;
             move(forest[i].root, len);
         }
     }
@@ -71,7 +71,7 @@ export default function createRadiateLayout(nodeSprites, nodeContainer, visualCo
             levela[parseInt(treeNode.level)] = treeNode.angle + treeNode.width / 2;
             return;
         }
-        for (var i = 0; i < treeNode.child.length; i++) {
+        for (let i = 0; i < treeNode.child.length; i++) {
             moveAngle(treeNode.child[i], angle);
         }
 
@@ -85,7 +85,7 @@ export default function createRadiateLayout(nodeSprites, nodeContainer, visualCo
             treeNode.positionx = treeNode.positionx + len;
             return;
         }
-        for (var i = 0; i < treeNode.child.length; i++) {
+        for (let i = 0; i < treeNode.child.length; i++) {
             move(treeNode.child[i], len);
         }
 
@@ -94,35 +94,35 @@ export default function createRadiateLayout(nodeSprites, nodeContainer, visualCo
 
     //将节点的位置存储进nodes中
     function draw(treeNode) {
-        var length = treeNode.child.length;
+        let length = treeNode.child.length;
         if (!length) {
-            var node = nodes[treeNode.id];
+            let node = nodes[treeNode.id];
             node.position = {
                 x: treeNode.positionx,
                 y: treeNode.positiony
             };
-            console.log(treeNode.id);
-            console.log(node.position.x, node.position.y, treeNode.level, treeNode.levelId, treeNode.angle);
+            // console.log(treeNode.id);
+            // console.log(node.position.x, node.position.y, treeNode.level, treeNode.levelId, treeNode.angle);
             return;
         }
 
-        for (var i = 0; i < length; i++) {
+        for (let i = 0; i < length; i++) {
             draw(treeNode.child[i]);
         }
 
-        var node = nodes[treeNode.id];
+        let node = nodes[treeNode.id];
         node.position = {
             x: treeNode.positionx,
             y: treeNode.positiony
         };
-        console.log(treeNode.id);
-        console.log(node.position.x, node.position.y, treeNode.level, treeNode.levelId, treeNode.angle);
+        // console.log(treeNode.id);
+        // console.log(node.position.x, node.position.y, treeNode.level, treeNode.levelId, treeNode.angle);
     }
 
 
     //计算辐射布局的坐标
     function calCircleAngle(tree, treeNode) {
-        var length = treeNode.child.length;
+        let length = treeNode.child.length;
         if (!length) {
             if (!levela[parseInt(treeNode.level)]) {
                 levela[parseInt(treeNode.level)] = 0;
@@ -133,7 +133,7 @@ export default function createRadiateLayout(nodeSprites, nodeContainer, visualCo
             return;
         }
 
-        for (var i = 0; i < length; i++) {
+        for (let i = 0; i < length; i++) {
             calCircleAngle(tree, treeNode.child[i]);
         }
 
@@ -146,8 +146,8 @@ export default function createRadiateLayout(nodeSprites, nodeContainer, visualCo
             } else {
                 treeNode.width = (NODE_WIDTH * 4 * 180) / (Math.PI * tree.levelRadius[treeNode.level + 1]);
             }
-            var p1 = levela[parseInt(treeNode.level)] + treeNode.width / 2 - (NODE_WIDTH * 2 * 180 )/ (Math.PI * tree.levelRadius[treeNode.level]);
-            var p2 = treeNode.child[0].angle + (treeNode.child[length - 1].angle - treeNode.child[0].angle) / 2;
+            let p1 = levela[parseInt(treeNode.level)] + treeNode.width / 2 - (NODE_WIDTH * 2 * 180 )/ (Math.PI * tree.levelRadius[treeNode.level]);
+            let p2 = treeNode.child[0].angle + (treeNode.child[length - 1].angle - treeNode.child[0].angle) / 2;
             treeNode.angle = p2;
             if (p1 > p2) {
                 moveAngle(treeNode, (p1 - p2));
@@ -173,8 +173,8 @@ export default function createRadiateLayout(nodeSprites, nodeContainer, visualCo
     }
 
     function calStep(p1, p2, totalStep, thisStep) {
-        var perX = (p2.x - p1.x) / totalStep;
-        var perY = (p2.y - p1.y) / totalStep;
+        let perX = (p2.x - p1.x) / totalStep;
+        let perY = (p2.y - p1.y) / totalStep;
         return {
             x: p1.x + perX * thisStep,
             y: p1.y + perY * thisStep
@@ -187,8 +187,8 @@ export default function createRadiateLayout(nodeSprites, nodeContainer, visualCo
             if (thisStep <= totalStep) {
                 _.each(nodes, function (node) {
                     if (node.id) {
-                        var p1 = nodeSprites[node.id].position;
-                        var p2 = node.position;
+                        let p1 = nodeSprites[node.id].position;
+                        let p2 = node.position;
                         nodeSprites[node.id].position = calStep(p1, p2, totalStep, thisStep);
                     }
                 });
