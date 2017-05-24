@@ -3,12 +3,13 @@
  */
 module.exports = createForest;
 //生成森林
-function createForest(nodes, selectNodes) {
+function createForest(nodes, selectNodes, visualConfig) {
     var treeNode = {}; //存放层次布局中树的节点
     var tree = [];
     var levelId = [];
     var forest = [];
     var bfsQueue = [];
+    var NODE_WIDTH = visualConfig.NODE_WIDTH;
 
     while (nodes.notInTreeNum > 0) {
         tree = [];       //初始化为空
@@ -35,8 +36,9 @@ function createForest(nodes, selectNodes) {
             id: root.id,
             level: 1,
             parent: null,
-            levelId: 1,
-            nodeId: nodeID
+            levelId: 0,
+            nodeId: nodeID,
+            angle: 0
         };
         nodeID++;
         tree.push(treeNode);
@@ -81,31 +83,42 @@ function createForest(nodes, selectNodes) {
             tree.totalNum += tree.levelNum[i];
         }
 
-        /*//计算每一层的半径和平均角度
-         tree.levelRadius = [];
-         tree.levelAngle = [];
-         for (var i = 1; i < tree.levelNum.length; i++) {
-         if (i == 1) {
-         tree.levelRadius[i] = 0;
-         } else {
-         tree.levelRadius[i] = (NODE_WIDTH * 2 * tree.levelNum[i] * 1.5) / (2 * Math.PI);
+        //计算每一层的半径和平均角度
+        tree.levelRadius = [];
+        tree.levelAngle = [];
+        for (var i = 1; i < tree.levelNum.length; i++) {
+            if (i == 1) {
+                tree.levelRadius[i] = 0;
+            } else {
+                tree.levelRadius[i] = (NODE_WIDTH * 2 * tree.levelNum[i] * 1.5) / (2 * Math.PI);
+            }
+            if (i > 1) {
+                if ((tree.levelRadius[i] < tree.levelRadius[i - 1] + 4 * NODE_WIDTH) || tree.levelNum[i] == 1) {
+                    tree.levelRadius[i] = tree.levelRadius[i - 1] + 4 * NODE_WIDTH;
+                    /*if (i > 2) {
+                        tree.levelRadius[i] = tree.levelRadius[i - 1] * 2 - tree.levelRadius[i - 2] + 4 * NODE_WIDTH;
+                    }*/
+                }
+            }
+            tree.levelAngle[i] = 360 / tree.levelNum[i];
+        }
+
+        /*_.each(tree,function (treeNode) {
+         if (treeNode.id){
+         if(treeNode.child){
+         treeNode.angle = (treeNode.child.length/tree.levelNum[treeNode.level]) * 360;
+         }else {
+         treeNode.angle = tree.levelAngle[treeNode.level];
          }
-         if (i > 1) {
-         if ((tree.levelRadius[i] < tree.levelRadius[i - 1] + 4 * NODE_WIDTH) || tree.levelNum[i] == 1) {
-         tree.levelRadius[i] = tree.levelRadius[i - 1] + 4 * NODE_WIDTH;
-         if (i > 2) {
-         tree.levelRadius[i] = tree.levelRadius[i - 1] * 2 - tree.levelRadius[i - 2] + 4 * NODE_WIDTH;
          }
-         }
-         }
-         tree.levelAngle[i] = 360 / tree.levelNum[i];
-         }*/
+         });*/
 
         forest.push(tree);  //把树加入森林
     }
 
     //生成一棵树
     function createATree(node) {
+        var levelID = 0;
         _.each(node.incoming, function (link) {
             if (!nodes[link.data.sourceEntity].inTree) {
                 nodes[link.data.sourceEntity].layoutLevel = node.layoutLevel + 1;
@@ -121,10 +134,12 @@ function createForest(nodes, selectNodes) {
                     id: link.data.sourceEntity,
                     level: nodes[link.data.sourceEntity].layoutLevel,
                     parent: node,
-                    levelId: levelId[nodes[link.data.sourceEntity].layoutLevel],
-                    nodeId: nodeID
+                    levelId: levelID,
+                    nodeId: nodeID,
+                    angle: 0
                 };
                 nodeID++;
+                levelID++;
                 tree.push(treeNode);
                 bfsQueue.unshift(nodes[link.data.sourceEntity]);
             }
@@ -143,10 +158,12 @@ function createForest(nodes, selectNodes) {
                     id: link.data.targetEntity,
                     level: nodes[link.data.targetEntity].layoutLevel,
                     parent: node,
-                    levelId: levelId[nodes[link.data.targetEntity].layoutLevel],
-                    nodeId: nodeID
+                    levelId: levelID,
+                    nodeId: nodeID,
+                    angle: 0
                 };
                 nodeID++;
+                levelID++;
                 tree.push(treeNode);
                 bfsQueue.unshift(nodes[link.data.targetEntity]);
             }

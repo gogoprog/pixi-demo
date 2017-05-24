@@ -52,7 +52,7 @@ export default function createTreeLayout(nodeSprites, nodeContainer, visualConfi
 
     nodes = getNodes(nodeSprites);
     selectNodes = getSelectNodes(nodeContainer);
-    forest = createForest(nodes, selectNodes);
+    forest = createForest(nodes, selectNodes,visualConfig);
 
     //计算层次布局坐标
     _.each(forest, function (tree) {
@@ -143,7 +143,7 @@ export default function createTreeLayout(nodeSprites, nodeContainer, visualConfi
             y: treeNode.positiony
         };
         console.log(treeNode.id);
-        console.log(node.position.x, node.position.y, treeNode.level, treeNode.width, treeNode.levelId);
+        console.log(node.position.x, node.position.y, treeNode.level, treeNode.levelId);
     }
 
     //计算辐射布局的坐标
