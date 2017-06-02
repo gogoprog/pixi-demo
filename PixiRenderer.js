@@ -22,9 +22,11 @@ import vis from "vis";
 // import vis from "./vis.min.js";
 import Utility from "../../../ui/analyticService/Utility";
 import SimpleNodeSprite from "./SimpleNodeSprite.js";
+import createAnimationAgent from "./AnimationAgent"
 
-
-export default function (settings) {
+let PixiRenderer;
+export default PixiRenderer = function (settings) {
+    "use strict";
 
     var isDirty = true;
 
@@ -69,12 +71,12 @@ export default function (settings) {
             transparent: false,
             autoResize: true,
             antialias: true,
-            forceFXAA: true,
+            forceFXAA: false,
             preserveDrawingBuffer: true
         }),
 
-        stage = new PIXI.Container(),
-        root = new PIXI.Container(),
+        stage = new PIXI.Container(),   // the view port, same size as canvas, used to capture mouse action
+        root = new PIXI.Container(),    // the content root
         nodeContainer = new PIXI.Container();
 
     // var lineContainer = new PIXI.ParticleContainer(5000, { scale: true, position: true, rotation: true, uvs: false, alpha: true });
@@ -292,6 +294,9 @@ export default function (settings) {
         }
         stage.isDirty = true;
     }, 200);
+
+    // add animation
+    let animationAgent = createAnimationAgent();
 
     var pixiGraphics = {
 
@@ -664,94 +669,70 @@ export default function (settings) {
             });
         },
 
-        setNodesToFullScreen: function () {
+        calculateRootPositionToCenterGraphLayout: function () {
             isDirty = true;
-            var root = this.root;
-            var x1 = -10000000,
-                y1, x2, y2;
-            var sumx = 0;
-            var sumy = 0;
-            var count = 0;
-            _.each(nodeSprites, function (n) {
-                sumx += n.position.x;
-                sumy += n.position.y;
-                count++;
-                if (x1 == -10000000) {
-                    x1 = n.position.x;
-                    y1 = n.position.y;
-                    x2 = n.position.x;
-                    y2 = n.position.y;
-                } else {
-                    if (n.position.x < x1) {
-                        x1 = n.position.x;
-                    }
-                    if (n.position.x > x2) {
-                        x2 = n.position.x;
-                    }
-                    if (n.position.y > y1) {
-                        y1 = n.position.y;
-                    }
-                    if (n.position.y < y2) {
-                        y2 = n.position.y;
-                    }
+            let root = this.root;
+            let graphRect = layout.getGraphRect();
+            // console.info("Graph rect", graphRect);
+            // console.info("Graph rect size", {
+            //     x: graphRect.x2 - graphRect.x1,
+            //     y: graphRect.y2 - graphRect.y1,
+            // });
+            // console.info("View port", {x: viewWidth, y: viewHeight});
+            if (!graphRect) {
+                console.error("No valid graph rectangle available from layout algorithm");
+                return null;
+            }
+            let targetRectWidth = viewWidth * 0.8,
+                targetRectHeight = viewHeight * 0.65;
+            // console.info("Target rectange to place graph", {x: targetRectWidth, y: targetRectHeight});
+            let rootWidth = Math.abs(graphRect.x2 - graphRect.x1),
+                rootHeight = Math.abs(graphRect.y1 - graphRect.y2);
+            let scaleX = targetRectWidth / rootWidth,
+                scaleY = targetRectHeight / rootHeight;
+            // the actuall scale that should be applied to root so that it will fit into the target rectangle
+            let scale = Math.min(scaleX, scaleY, visualConfig.MAX_ADJUST);
+            let graphCenterInStage = {
+                //(graphRect.x1 + rootWidth / 2 ) 是contentRoot坐标系，转换到stage的坐标系时需要进行scale处理， 下同
+                x: (graphRect.x1 + rootWidth / 2 ) * scale + root.position.x,
+                y: (graphRect.y1 + rootHeight / 2 ) * scale + root.position.y
+            };
+            // console.log("Graph center in content root", {
+            //     x: graphRect.x1 + rootWidth / 2,
+            //     y: graphRect.y1 + rootHeight / 2
+            // });
+            // console.log("Graph center in stage", graphCenterInStage);
+            // console.log("Root position", {
+            //     x: root.position.x,
+            //     y: root.position.y
+            // });
+            let rootPositionTransform = {
+                x: viewWidth / 2 - graphCenterInStage.x,
+                y: viewHeight / 2 - graphCenterInStage.y
+            }
+            // console.log("Root transform", rootPositionTransform);
+            return {
+                scale: {
+                    x: scale,
+                    y: scale
+                },
+                position: {
+                    x: root.position.x + rootPositionTransform.x,
+                    y: root.position.y + rootPositionTransform.y
                 }
-            });
-
-            if (count != 0) {
-                sumx = sumx / count;
-                sumy = sumy / count;
-            } else {
-                return;
             }
-            let rootWidth = Math.abs(x2 - x1),
-                rootHeight = Math.abs(y1 - y2);
-            var xScale;
-            var yScale;
-
-            xScale = visualConfig.MAX_ADJUST;
-            yScale = visualConfig.MAX_ADJUST;
-            if (rootHeight != 0) {
-
-                var border;
-                if (viewHeight / rootHeight > 10) {
-                    border = 500;
-                } else {
-                    border = (viewHeight / rootHeight) * 50;
-                }
-                yScale = (viewHeight - border) / rootHeight;
-            }
-            if (rootWidth != 0) {
-                var border0;
-                if (viewWidth / rootWidth > 10) {
-                    border0 = 350;
-                } else {
-                    border0 = (viewWidth / rootWidth) * 35;
-                }
-                xScale = (viewWidth - border0) / rootWidth;
-            }
-            if (xScale > yScale && yScale < visualConfig.MAX_ADJUST) {
-                root.scale.x = yScale * 0.8;
-                root.scale.y = yScale * 0.8;
-            } else if (yScale >= xScale && xScale < visualConfig.MAX_ADJUST) {
-                root.scale.x = xScale * 0.8;
-                root.scale.y = xScale * 0.8;
-            } else {
-                root.scale.x = visualConfig.MAX_ADJUST * 0.8;
-                root.scale.y = visualConfig.MAX_ADJUST * 0.8;
-            }
-
-            root.position.x = viewWidth / 2;
-            root.position.y = viewHeight / 2;
-
-            _.each(nodeSprites, function (n) {
-                n.position.x = n.position.x - sumx;
-                n.position.y = n.position.y - sumy;
-                n.updateNodePosition(n.position);
-                layout.setNodePosition(n.id, n.position.x, n.position.y);
-            });
-
         },
-
+        setNodesToFullScreen: function () {
+            let rootPlacement = this.calculateRootPositionToCenterGraphLayout();
+            if (rootPlacement) {
+                // console.log("Root target position: ", rootPlacement.position);
+                root.scale.x = rootPlacement.scale.x;
+                root.scale.y = rootPlacement.scale.y;
+                animationAgent.move(root, rootPlacement.position);
+            } else {
+                console.error("Center graph action not supported in current layout.");
+            }
+        },
         setSelectedNodesToFullScreen: function () {
             isDirty = true;
             var root = this.root;
@@ -1168,16 +1149,17 @@ export default function (settings) {
         },
 
         setLayoutType: function (layoutTypeStr) {
+            console.info("Setting layout type to ", layoutTypeStr);
             layoutType = layoutTypeStr || 'Network';
             if (layoutType != 'Network' && layoutType != 'Circular' && layoutType != 'Layered' && layoutType != 'TimelineScale') {
                 layoutType = 'Network';
             }
-            layout = networkLayout;
-            _.each(nodeSprites, function (nodeSprite, nodeId) {
-                layout.setNodePosition(nodeId, nodeSprite.position.x, nodeSprite.position.y);
-            });
-            this.setNodesToFullScreen();
-
+            if (layoutType === "Network") {
+                layout = networkLayout;
+                _.each(nodeSprites, function (nodeSprite, nodeId) {
+                    layout.setNodePosition(nodeId, nodeSprite.position.x, nodeSprite.position.y);
+                });
+            }
         },
 
         setTwoNodeLayoutInXDireaction: function (nodeIDArray) {
@@ -1220,6 +1202,7 @@ export default function (settings) {
                     _.each(nodeSprites, function (nodeSprite, nodeId) {
                         nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
                     });
+                    this.setNodesToFullScreen();
                 }
             } else if (layoutType == 'Circular') {
                 this.drawCircleLayout();
@@ -1230,7 +1213,6 @@ export default function (settings) {
             } else {
                 return false;
             }
-            // this.setNodesToFullScreen();
             isDirty = true;
         },
 
@@ -1389,13 +1371,6 @@ export default function (settings) {
             return type;
         },
 
-        //事件
-        // onGraphChanged: function() {
-        //      graph.on('changed', function(changes) {
-        //         console.log("changed === " + changes);
-        //     }); 
-        // },
-
         onGraphChanged: function (func) {
             graph.on('changed', func);
         },
@@ -1501,7 +1476,8 @@ export default function (settings) {
 
         requestAnimationFrame(animationLoop);
 
-        if (isDirty || nodeContainer.isDirty || stage.isDirty) {
+        if (isDirty || nodeContainer.isDirty || stage.isDirty || animationAgent.needRerender()) {
+            animationAgent.step();
             if (layoutIterations > 0) {
                 layout.step();
                 let positionChanged = layout.step();
@@ -1510,8 +1486,8 @@ export default function (settings) {
                     nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
                 });
                 layoutIterations -= 2;
-                if(!positionChanged || layoutIterations <= 0) {
-                    if(layoutType === "Circular" || layoutType === "Layered"){
+                if (!positionChanged || layoutIterations <= 0) {
+                    if (layoutType === "Circular" || layoutType === "Layered") {
                         console.log("layout freezed, setting to full screen");
                         layoutIterations = 0;
                         // pixiGraphics.setNodesToFullScreen();

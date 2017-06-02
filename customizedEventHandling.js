@@ -17,29 +17,29 @@ var getGraphCoordinates = (function() {
     };
 }());
 
-export const zoom = function(x, y, isZoomIn, stage, visualConfig) {
-    if ((isZoomIn && stage.scale.x > visualConfig.MAX_SCALE) || (!isZoomIn && stage.scale.x < visualConfig.MIN_SCALE)) {
+export const zoom = function(x, y, isZoomIn, contentRoot, visualConfig) {
+    if ((isZoomIn && contentRoot.scale.x > visualConfig.MAX_SCALE) || (!isZoomIn && contentRoot.scale.x < visualConfig.MIN_SCALE)) {
         return;
     }
     let direction = isZoomIn ? 1 : -1;
     var factor = (1 + direction * 0.1);
-    stage.scale.x *= factor;
-    stage.scale.y *= factor;
+    contentRoot.scale.x *= factor;
+    contentRoot.scale.y *= factor;
     // Technically code below is not required, but helps to zoom on mouse
     // cursor, instead center of graphGraphics coordinates
-    var beforeTransform = getGraphCoordinates(x, y, stage);
+    var beforeTransform = getGraphCoordinates(x, y, contentRoot);
     // console.log('After zooming ' + (isZoomIn ? 'in' : 'out') +
     //  ' @ViewPort(' + vpX + ',' + vpY + ') and Graph: ' + JSON.stringify(beforeTransform));
-    stage.updateTransform();
-    var afterTransform = getGraphCoordinates(x, y, stage);
+    contentRoot.updateTransform();
+    var afterTransform = getGraphCoordinates(x, y, contentRoot);
     // console.log('After zooming ' + (isZoomIn ? 'in' : 'out') +
     //  ' @ViewPort(' + vpX + ',' + vpY + ') and Graph: ' + JSON.stringify(afterTransform));
 
-    stage.position.x += (afterTransform.x - beforeTransform.x) * stage.scale.x;
-    stage.position.y += (afterTransform.y - beforeTransform.y) * stage.scale.y;
-    stage.updateTransform();
-    if(stage.parent.isTimelineLayout){
-        stage.parent.contentRootMoved(factor);
+    contentRoot.position.x += (afterTransform.x - beforeTransform.x) * contentRoot.scale.x;
+    contentRoot.position.y += (afterTransform.y - beforeTransform.y) * contentRoot.scale.y;
+    contentRoot.updateTransform();
+    if(contentRoot.parent.isTimelineLayout){
+        contentRoot.parent.contentRootMoved(factor);
     }
 };
 

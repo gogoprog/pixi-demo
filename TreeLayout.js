@@ -13,6 +13,7 @@ export default function createTreeLayout(nodeSprites, nodeContainer, visualConfi
     let totalStep = 250;
     let NODE_WIDTH = visualConfig.NODE_WIDTH;
     let forest = [];
+    let left = 10000, right = -10000, top = 10000, bottom = -10000;
 
     //预处理,用nodes存储nodeSprites中node的数据
     function getNodes(nodeSprites) {
@@ -121,17 +122,6 @@ export default function createTreeLayout(nodeSprites, nodeContainer, visualConfi
     //将节点的位置存储进nodes中
     function draw(treeNode) {
         let length = treeNode.child.length;
-        if (!length) {
-            let node = nodes[treeNode.id];
-            node.position = {
-                x: treeNode.positionx,
-                y: treeNode.positiony
-            };
-            // console.log(treeNode.id);
-            // console.log(node.position.x, node.position.y, treeNode.level, treeNode.levelId);
-            return;
-        }
-
         for (let i = 0; i < length; i++) {
             draw(treeNode.child[i]);
         }
@@ -141,8 +131,18 @@ export default function createTreeLayout(nodeSprites, nodeContainer, visualConfi
             x: treeNode.positionx,
             y: treeNode.positiony
         };
-        // console.log(treeNode.id);
-        // console.log(node.position.x, node.position.y, treeNode.level, treeNode.levelId);
+        if (treeNode.positionx < left) {
+            left = treeNode.positionx;
+        }
+        if (treeNode.positionx > right) {
+            right = treeNode.positionx;
+        }
+        if (treeNode.positiony < top) {
+            top = treeNode.positiony;
+        }
+        if (treeNode.positiony > bottom) {
+            bottom = treeNode.positiony;
+        }
     }
 
     function calStep(p1, p2, totalStep, thisStep) {
@@ -155,6 +155,20 @@ export default function createTreeLayout(nodeSprites, nodeContainer, visualConfi
     }
 
     return {
+        finalLayoutAvailable: function(){
+            return true;
+        },
+        /**
+         * @returns {Object} area required to fit in the graph. Object contains
+         * `x1`, `y1` - top left coordinates
+         * `x2`, `y2` - bottom right coordinates
+         */
+        getGraphRect: function () {
+            return {
+                x1: left, y1: top,
+                x2: right, y2: bottom
+            }
+        },
         step: function () {
             thisStep++;
             if (thisStep <= totalStep) {
