@@ -721,6 +721,7 @@ var PixiRenderer = function (settings) {
                 let rootPlacement = this.calculateRootPositionToCenterGraphLayout();
                 if (rootPlacement) {
                     // console.log("Root target position: ", rootPlacement.position);
+                    // console.log("Root target scale: ", rootPlacement.scale);
                     root.scale.x = rootPlacement.scale.x;
                     root.scale.y = rootPlacement.scale.y;
                     animationAgent.move(root, rootPlacement.position);
@@ -1216,8 +1217,9 @@ var PixiRenderer = function (settings) {
                         _.each(nodeSprites, function (nodeSprite, nodeId) {
                             nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
                         });
-                        this.setNodesToFullScreen();
                     }
+                    layout.step();
+                    this.setNodesToFullScreen();
                 } else if (layoutType == 'Circular') {
                     this.drawCircleLayout();
                 } else if (layoutType == 'Layered') {
@@ -1598,23 +1600,25 @@ var PixiRenderer = function (settings) {
         let semanticType = pixiGraphics.getEntitySemanticType(p.data.type);
         var texture = visualConfig.findIcon(semanticType);
 
-        var n = new SimpleNodeSprite(texture, p, visualConfig);
+        var nodeSprite = new SimpleNodeSprite(texture, p, visualConfig);
 
         if (p.data.properties && p.data.properties._$hidden) {
-            n.hide();
+            nodeSprite.hide();
         } else {
-            n.show();
+            nodeSprite.show();
         }
-
-        n.parent = nodeContainer;
+        nodeSprite.parent = nodeContainer;
         if (graphData) {
             var collIdArr = graphData.getNodeCollId(p);
-            n.setNodeIcon(collIdArr, nodeContainer);
+            nodeSprite.setNodeIcon(collIdArr, nodeContainer);
         }
 
-        textContainer.addChild(n.ts);
-        nodeContainer.addChild(n);
-        nodeSprites[p.id] = n;
+        textContainer.addChild(nodeSprite.ts);
+        nodeContainer.addChild(nodeSprite);
+        nodeSprites[p.id] = nodeSprite;
+        if (layout) {
+            layout.setNodePosition(nodeSprite.id, nodeSprite.position.x, nodeSprite.position.y);
+        }
     }
 
     function updateNodeIcon(node) {
