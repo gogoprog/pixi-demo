@@ -1,14 +1,15 @@
 /**
 Begin addWheelListener
 **/
-var prefix = "",
-    _addEventListener, onwheel, support;
+var prefix = "", _addEventListener, onwheel, support, _removeEventListener;
 
 // detect event model
 if (window.addEventListener) {
     _addEventListener = "addEventListener";
+    _removeEventListener = "removeEventListener";
 } else {
     _addEventListener = "attachEvent";
+    _removeEventListener = "detachEvent";
     prefix = "on";
 }
 
@@ -26,17 +27,26 @@ const addWheelListener = function(elem, callback, useCapture) {
     }
 };
 
-var _addWheelListener = function(elem, eventName, callback, useCapture) {
-        elem[_addEventListener](prefix + eventName, support == "wheel" ? callback : function(originalEvent) {
+const removeWheelListener = function (elem, eventName, callback, useCapture) {
+    if (support === "wheel") {
+        elem[_removeEventListener](prefix + eventName, callback , useCapture || false);
+    } else {
+        console.warn("Could not remove wheel listener for browser that does not support wheel event.");
+        console.warn("Listener remove instruction ignored, this may cause memory leak.");
+    }
+};
+
+let _addWheelListener = function(elem, eventName, callback, useCapture) {
+        elem[_addEventListener](prefix + eventName, support === "wheel" ? callback : function(originalEvent) {
             !originalEvent && (originalEvent = window.event);
 
             // create a normalized event object
-            var event = {
+            let event = {
                 // keep a ref to the original event object
                 originalEvent: originalEvent,
                 target: originalEvent.target || originalEvent.srcElement,
                 type: "wheel",
-                deltaMode: originalEvent.type == "MozMousePixelScroll" ? 0 : 1,
+                deltaMode: originalEvent.type === "MozMousePixelScroll" ? 0 : 1,
                 deltaX: 0,
                 delatZ: 0,
                 preventDefault: function() {
@@ -47,7 +57,7 @@ var _addWheelListener = function(elem, eventName, callback, useCapture) {
             };
 
             // calculate deltaY (and deltaX) according to the event
-            if (support == "mousewheel") {
+            if (support === "mousewheel") {
                 event.deltaY = -1 / 40 * originalEvent.wheelDelta;
                 // Webkit also support wheelDeltaX
                 originalEvent.wheelDeltaX && (event.deltaX = -1 / 40 * originalEvent.wheelDeltaX);
@@ -64,5 +74,6 @@ var _addWheelListener = function(elem, eventName, callback, useCapture) {
     End addWheelListener
     **/
 export {
-    addWheelListener
+    addWheelListener,
+    removeWheelListener
 }

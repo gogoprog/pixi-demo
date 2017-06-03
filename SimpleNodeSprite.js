@@ -1,7 +1,6 @@
 // import "./pixi.es5.js";
 import "pixi.js";
 import { nodeCaptureListener } from "./customizedEventHandling.js";
-import Utility from "../../../ui/analyticService/Utility";
 
 export default class SimpleNodeSprite extends PIXI.Sprite {
     constructor(texture, node, visualConfig) {
@@ -195,3 +194,10 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     }
 
 }
+
+SimpleNodeSprite.prototype.destroy = function (options) {
+    if(this.ts) {
+        this.ts.destroy({texture: true, baseTexture: true});
+    }
+    PIXI.Sprite.prototype.destroy.call(this, {texture: false, baseTexture: false});
+};

@@ -4,15 +4,16 @@ import { visualConfig } from "./visualConfig.js";
 
 class Settings {
     constructor(divId, classId, timelineId, visConfig) {
-        var divDoc = document.getElementById(divId);
-        var canvasDoc = document.createElement("canvas");
+        let divDoc = document.getElementById(divId);
+        let canvasDoc = document.createElement("canvas");
         canvasDoc.setAttribute("id", "visPixijs");
         canvasDoc.setAttribute("style", "border-width: 0;");
+        canvasDoc.setAttribute("tabindex", '1');
 
         divDoc.appendChild(canvasDoc);
 
-        var w = $(classId).width();
-        var h = $(classId).height();
+        let w = $(classId).width();
+        let h = $(classId).height();
         canvasDoc.width = w;
         canvasDoc.height = h;
         this.container = canvasDoc;
@@ -37,16 +38,16 @@ class Settings {
     updateVisualConfig(visConfig) {
         if (visConfig) {
             let data = visConfig.icons || [];
-            for (var i = 0; i < data.length; i++) {
+            for (let i = 0; i < data.length; i++) {
                 if (!data[i].texture) {
                     data[i].texture = PIXI.Texture.fromImage(data[i].url);
                 }
             }
 
-            var graphCollIcons = visConfig.graphCollIcons || [];
-            for (var j = 1; j < 11; j++) {
-                var iconUrl = "/static/32/GraphColl/graph_coll" + j + ".png";
-                var texture = PIXI.Texture.fromImage(iconUrl);
+            let graphCollIcons = visConfig.graphCollIcons || [];
+            for (let j = 1; j < 11; j++) {
+                let iconUrl = "/static/32/GraphColl/graph_coll" + j + ".png";
+                let texture = PIXI.Texture.fromImage(iconUrl);
                 graphCollIcons.push(texture);
             }
 
@@ -57,10 +58,10 @@ class Settings {
                 icon.texture = PIXI.Texture.fromImage(icon.url);
             });
 
-            var graphCollIcons = visualConfig.graphCollIcons || [];
-            for (var j = 1; j < 11; j++) {
-                var iconUrl = "/static/32/GraphColl/graph_coll" + j + ".png";
-                var texture = PIXI.Texture.fromImage(iconUrl);
+            let graphCollIcons = visualConfig.graphCollIcons || [];
+            for (let j = 1; j < 11; j++) {
+                let iconUrl = "/static/32/GraphColl/graph_coll" + j + ".png";
+                let texture = PIXI.Texture.fromImage(iconUrl);
                 graphCollIcons.push(texture);
             }
 

@@ -1,6 +1,6 @@
 // import { visualConfig } from "./visualConfig.js";
 //deprecated
-PIXI.Sprite.prototype.selectionChanged = function(selected) {
+PIXI.Sprite.prototype.selectionChanged = function (selected) {
     this.selected = selected;
     if (selected) {
         this.ts.style = this.visualConfig.ui.label.fontHighlight;
@@ -9,8 +9,28 @@ PIXI.Sprite.prototype.selectionChanged = function(selected) {
     }
 };
 
+
 //deprecated
-PIXI.Sprite.prototype.updateNodePosition = function(p) {
+PIXI.Sprite.prototype.destroy = function (options) {
+    PIXI.Container.prototype.destroy.call(this, options);
+    // super.destroy(options);
+
+    this._anchor = null;
+
+    const destroyTexture = typeof options === 'boolean' ? options : options && options.texture;
+
+    if (destroyTexture) {
+        const destroyBaseTexture = typeof options === 'boolean' ? options : options && options.baseTexture;
+        if (this._texture) {
+            this._texture.destroy(!!destroyBaseTexture);
+        }
+    }
+
+    this._texture = null;
+    this.shader = null;
+};
+
+PIXI.Sprite.prototype.updateNodePosition = function (p) {
     if (this.timelineMode) {
         this.position.y = p.y;
         this.position.x = p.x;
@@ -34,14 +54,14 @@ PIXI.Sprite.prototype.updateNodePosition = function(p) {
             }
         }
 
-        _.each(this.incoming, function(l) {
+        _.each(this.incoming, function (l) {
 
             l.setTo({
                 x: l.x2,
                 y: p.y,
             });
         });
-        _.each(this.outgoing, function(l) {
+        _.each(this.outgoing, function (l) {
             l.setFrom({
                 x: l.x1,
                 y: p.y
@@ -74,10 +94,10 @@ PIXI.Sprite.prototype.updateNodePosition = function(p) {
             this.circleBorder.position.x = p.x;
             this.circleBorder.position.y = p.y;
         }
-        _.each(this.incoming, function(l) {
+        _.each(this.incoming, function (l) {
             l.setTo(p);
         });
-        _.each(this.outgoing, function(l) {
+        _.each(this.outgoing, function (l) {
             l.setFrom(p);
         });
     }

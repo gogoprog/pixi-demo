@@ -1,3 +1,4 @@
+import _ from "underscore";
 /**
  * Created by yshi on 5/27/17.
  */
@@ -11,78 +12,86 @@ let POSITION_MOVE = 0, SCALING = 1;
  * @param numOfTicks        desired ticks(number of animation cycles) to finish the move
  * @returns {{tick: tick, finished: finished}}
  */
-function createPositionMover(refTarget, finalPosition, numOfTicks) {
-    let ticks = 0;
-    let originPosition = {
-        x: refTarget.position.x,
-        y: refTarget.position.y
-    }
-    let stepX = (finalPosition.x - originPosition.x)/numOfTicks,
-        stepY = (finalPosition.y - originPosition.y)/ numOfTicks;
+class PositionMover {
+    constructor(refTarget, finalPosition, numOfTicks) {
+        this.ticks = 0;
+        this.numOfTicks = numOfTicks;
+        this.finalPosition = finalPosition;
+        this.target = refTarget;
+        this.prototype = POSITION_MOVE;
+    };
 
-    return {
-        target: refTarget,
-        type: POSITION_MOVE,
-        tick: function () {
-            if (ticks <= numOfTicks) {
-                let p = refTarget.position;
-                p.x += (finalPosition.x - p.x) * ticks / numOfTicks;
-                p.y += (finalPosition.y - p.y) * ticks / numOfTicks;
-                ticks++;
-                if (ticks == numOfTicks) {
-                    console.info("Position mover for ", refTarget, "finished its job after " + ticks +" ticks")
-                }
-            } else {
-                console.warn("Position mover called after all ticks used")
+    tick() {
+        if (this.ticks <= this.numOfTicks) {
+            let p = this.target.position;
+            p.x += (this.finalPosition.x - p.x) * this.ticks / this.numOfTicks;
+            p.y += (this.finalPosition.y - p.y) * this.ticks / this.numOfTicks;
+            this.ticks++;
+            if (this.ticks == this.numOfTicks) {
+                console.info("Position mover for ", this.target, "finished its job after " + this.ticks + " ticks")
             }
-
-        },
-        finished: function () {
-            return ticks > numOfTicks;
+        } else {
+            console.warn("Position mover called after all ticks used")
         }
-    }
+
+    };
+
+    finished() {
+        return this.ticks > this.numOfTicks;
+    };
+
+    stop() {
+        this.ticks = this.numOfTicks + 1;
+        console.info("Position move ", this.target, "To", this.finalPosition, "now stopped.")
+    };
 }
 
-export default function createAnimationAgent() {
+/**
+ * Agent for managing different types of animation action.
+ *
+ * TODO add scaling support.
+ */
+export default class AnimationAgent {
+    constructor() {
+        this.defaultSteps = 40;
+        this.animationActions = [];
+    };
 
-    let defaultSteps = 40;
-    let animationActions = [];
-    return {
-        needRerender: function () {
-            return animationActions.length > 0;
-        },
-        move: function (target, to, durationIndicator) {
-            if (!durationIndicator) {
-                durationIndicator = defaultSteps;
-            }
-            animationActions = _.filter(animationActions, function (action) {
-                return action.target !== target && action.type !== POSITION_MOVE;
-            });
-            animationActions.push(
-                createPositionMover(target, to, durationIndicator)
-            );
-        },
-        resize: function (target, to, durationIndicator) {
-            // FIXME todo
-            if (!durationIndicator) {
-                durationIndicator = defaultSteps;
-            }
-            animationActions = _.filter(animationActions, function (action) {
-                return action.target !== target && action.type !== POSITION_MOVE;
-            });
-            animationActions.push(
-                createPositionMover(target, to, durationIndicator)
-            );
-        },
-        step: function () {
-            if (animationActions.length > 0) {
-                _.each(animationActions, function (action) {
-                    action.tick();
-                });
-                animationActions = _.filter(animationActions, function (action) {
-                    return !action.finished();
-                });
-            }
+    needRerender() {
+        return this.animationActions.length > 0;
+    };
+
+    move(target, to, durationIndicator) {
+        if (!durationIndicator) {
+            durationIndicator = this.defaultSteps;
         }
+        this.animationActions = _.filter(this.animationActions, function (action) {
+            return action.target !== target && action.type !== POSITION_MOVE;
+        });
+        this.animationActions.push(
+            new PositionMover(target, to, durationIndicator)
+        );
+    };
+
+    step() {
+        _.each(this.animationActions, function (action) {
+            try {
+                action.tick();
+            } catch (err) {
+                console.error("Error doing animation action ", action, err, "will stop it.");
+                action.stop();
+            }
+        });
+
+        this.animationActions = _.filter(this.animationActions, function (action) {
+            return !action.finished();
+        });
+    };
+
+    destroy() {
+        _.each(this.animationActions, function (action) {
+            action.stop();
+        });
+        this.animationActions = [];
     }
 }

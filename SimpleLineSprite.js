@@ -1,8 +1,8 @@
 // import { visualConfig } from "./visualConfig.js";
-import { PixiRenderer } from "./PixiRenderer"
+import {PixiRenderer} from "./PixiRenderer"
 let SimpleLineSprite;
-export default  SimpleLineSprite = function (label, thickness, color,arrowStyle,hasArrow, x1, y1, x2, y2, controlOffsetIndex, fontConfig, visualConfig) {
-    this.hasArrow=hasArrow;
+export default  SimpleLineSprite = function (label, thickness, color, arrowStyle, hasArrow, x1, y1, x2, y2, controlOffsetIndex, fontConfig, visualConfig) {
+    this.hasArrow = hasArrow;
     this._thickness = thickness;
     this._color = color;
     this.x1 = x1;
@@ -15,17 +15,17 @@ export default  SimpleLineSprite = function (label, thickness, color,arrowStyle,
     this.coustomSettingThickness = visualConfig.ui.line.width;
     this.coustomSettingColor = visualConfig.ui.line.color;
     this.coustomSettingAlpha = visualConfig.ui.line.alpha;
-    if(hasArrow){
-        if(!arrowStyle){
+    if (hasArrow) {
+        if (!arrowStyle) {
             this.arrow = new PIXI.Sprite(SimpleLineSprite.prototype.getTexture(thickness, color));
-        }else{
+        } else {
             this.arrow = new PIXI.Sprite(SimpleLineSprite.prototype.getMultiTexture(thickness, color));
         }
         this.arrow.scale.set(0.5, 0.5);
         this.arrow.anchor.x = 0.5;
         this.arrow.lineSprite = this;
 
-        this.arrow.on('mouseup', function(e) {
+        this.arrow.on('mouseup', function (e) {
             //console.log("mouse up!!!!");
             this.parent.linkSelected(this.lineSprite);
         });
@@ -34,8 +34,8 @@ export default  SimpleLineSprite = function (label, thickness, color,arrowStyle,
     this.label = new PIXI.Text(label, fontConfig);
     this.label.scale.set(0.5, 0.5);
     this.label.anchor.x = 0.5;
-    this.label.lineSprite=this;
-    this.label.on("mousedown",function (e) {
+    this.label.lineSprite = this;
+    this.label.on("mousedown", function (e) {
         this.parent.linkSelected(this.lineSprite);
         //console.log("++++++++++++");
     });
@@ -51,7 +51,7 @@ SimpleLineSprite.prototype = {};
 SimpleLineSprite.prototype.constructor = SimpleLineSprite;
 SimpleLineSprite.prototype.MULTI_OFFSET = 30; //10 px between each line.
 
-SimpleLineSprite.prototype.initCanvas = function() {
+SimpleLineSprite.prototype.initCanvas = function () {
     SimpleLineSprite.canvas = document.createElement("canvas");
     SimpleLineSprite.canvas.width = SimpleLineSprite.maxWidth;
     SimpleLineSprite.canvas.height = SimpleLineSprite.maxColors;
@@ -61,7 +61,7 @@ SimpleLineSprite.prototype.initCanvas = function() {
 /**
  * set the attribute of the line (color, width, alpha)
  */
-SimpleLineSprite.prototype.setLineAttr = function(linkAttr) {
+SimpleLineSprite.prototype.setLineAttr = function (linkAttr) {
     this.coustomSettingAlpha = linkAttr.alpha;
     this.coustomSettingColor = linkAttr.color;
     this.coustomSettingThickness = linkAttr.thickness;
@@ -77,7 +77,7 @@ SimpleLineSprite.prototype.setLineAttr = function(linkAttr) {
 /**
  * get the attribute of the line (LinkAttr: color, width, alpha)
  */
-SimpleLineSprite.prototype.getLineAttr = function() {
+SimpleLineSprite.prototype.getLineAttr = function () {
     var lineAttr = {};
     lineAttr.width = this.coustomSettingThickness;
     lineAttr.color = this.coustomSettingColor;
@@ -91,14 +91,14 @@ SimpleLineSprite.prototype.getLineAttr = function() {
  * @param height
  * @returns {Element}
  */
-SimpleLineSprite.prototype.getCanvas = function(width, height) {
+SimpleLineSprite.prototype.getCanvas = function (width, height) {
     var canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
     return canvas;
 };
 
-SimpleLineSprite.prototype.selectionChanged = function(selected) {
+SimpleLineSprite.prototype.selectionChanged = function (selected) {
     this.selected = selected;
     if (selected) {
         //console.log("+++++++++++++++++++++++");
@@ -127,7 +127,7 @@ SimpleLineSprite.prototype.selectionChanged = function(selected) {
 var arrowHeight = 24;
 var arrowWidth = 16;
 var thicknessFactor = 4;
-SimpleLineSprite.prototype.getTexture = function(thickness, color) {
+SimpleLineSprite.prototype.getTexture = function (thickness, color) {
     var key = thickness + "-" + color;
     if (!SimpleLineSprite.textureCache[key]) {
         console.log("Generating texture: " + key);
@@ -141,7 +141,7 @@ SimpleLineSprite.prototype.getTexture = function(thickness, color) {
         context.moveTo(0, 0);
         context.lineTo(arrowW / 2, arrowH);
         context.lineTo(arrowW, 0);
-        
+
         context.fill();
 
         var texture = new PIXI.Texture(new PIXI.BaseTexture(canvas), PIXI.SCALE_MODES.LINEAR);
@@ -152,7 +152,7 @@ SimpleLineSprite.prototype.getTexture = function(thickness, color) {
     return SimpleLineSprite.textureCache[key];
 };
 
-SimpleLineSprite.prototype.getMultiTexture = function(thickness, color) {
+SimpleLineSprite.prototype.getMultiTexture = function (thickness, color) {
     var key = thickness + "-" + color + "-multi";
     if (!SimpleLineSprite.textureCache[key]) {
         console.log("Generating texture: " + key);
@@ -178,41 +178,41 @@ SimpleLineSprite.prototype.getMultiTexture = function(thickness, color) {
     return SimpleLineSprite.textureCache[key];
 };
 
-SimpleLineSprite.prototype.setFrom = function(point) {
+SimpleLineSprite.prototype.setFrom = function (point) {
     this.x1 = point.x;
     this.y1 = point.y;
     this.updatePosition();
 };
 
-SimpleLineSprite.prototype.setTo = function(point) {
+SimpleLineSprite.prototype.setTo = function (point) {
     this.x2 = point.x;
     this.y2 = point.y;
     this.updatePosition();
 };
 
-SimpleLineSprite.prototype.renderLine = function(lineGraphics) {
+SimpleLineSprite.prototype.renderLine = function (lineGraphics) {
     lineGraphics.lineStyle(this.thickness, this.color, this.alpha);
-    
-    if(this.x1!=this.x2 || this.y1!=this.y2){
+
+    if (this.x1 != this.x2 || this.y1 != this.y2) {
         lineGraphics.moveTo(this.x1, this.y1);
         if (this._controlOffsetIndex == 0 || this.forceStraightLine) {
             lineGraphics.lineTo(this.x2, this.y2);
         } else {
             lineGraphics.quadraticCurveTo(this.cx, this.cy, this.x2, this.y2);
         }
-    }else{
-         var tempx=this.dx || 0;
-         var tempy=this.dy || 0;
-         lineGraphics.drawEllipse(this.x1, this.y1+ this.visualConfig.ELLIPSE_HIEGHT+tempy, this.visualConfig.ELLIPSE_WIDTH+tempx, this.visualConfig.ELLIPSE_HIEGHT+tempy);
+    } else {
+        var tempx = this.dx || 0;
+        var tempy = this.dy || 0;
+        lineGraphics.drawEllipse(this.x1, this.y1 + this.visualConfig.ELLIPSE_HIEGHT + tempy, this.visualConfig.ELLIPSE_WIDTH + tempx, this.visualConfig.ELLIPSE_HIEGHT + tempy);
     }
 
 };
 
-SimpleLineSprite.prototype.updatePosition = function() {
-    if(this.x1 != this.x2 || this.y1 != this.y2){
+SimpleLineSprite.prototype.updatePosition = function () {
+    if (this.x1 != this.x2 || this.y1 != this.y2) {
 
-        if(this.forceStraightLine){
-            if(this.hasArrow){
+        if (this.forceStraightLine) {
+            if (this.hasArrow) {
                 this.arrow.position.x = (this.x2 + this.x1) / 2;
                 this.arrow.position.y = (this.y2 + this.y1) / 2;
                 this.arrow.rotation = Math.atan2(this.y2 - this.y1, this.x2 - this.x1) - Math.PI / 2;
@@ -226,7 +226,7 @@ SimpleLineSprite.prototype.updatePosition = function() {
 
             this.cx = (this.x2 + this.x1) / 2 + dxCtl;
             this.cy = (this.y2 + this.y1) / 2 - dyCtl;
-            if(this.hasArrow) {
+            if (this.hasArrow) {
                 this.arrow.position.x = (this.x2 + this.x1) / 2 + dxCtl / 2;
                 this.arrow.position.y = (this.y2 + this.y1) / 2 - dyCtl / 2;
                 this.arrow.rotation = angle - Math.PI / 2;
@@ -234,73 +234,82 @@ SimpleLineSprite.prototype.updatePosition = function() {
             this.label.position.x = (this.x2 + this.x1) / 2 + dxCtl / 2;
             this.label.position.y = (this.y2 + this.y1) / 2 - dyCtl / 2 + 5;
         }
-    }else{
+    } else {
         let dyCtl = this._controlOffsetIndex * this.visualConfig.ELLIPSE_Y_OFFSET,
             dxCtl = this._controlOffsetIndex * this.visualConfig.ELLIPSE_X_OFFSET;
-            this.dy = dyCtl;
-            this.dx = dxCtl;
-            if(this.hasArrow) {
-                this.arrow.position.x = this.x1-5;
-                this.arrow.position.y = this.y1+ this.visualConfig.ELLIPSE_HIEGHT*2+dyCtl*2;
-                this.arrow.rotation = Math.PI*1.5;
-            }
-            this.label.position.x = this.x1;
-            this.label.position.y = this.y1+ this.visualConfig.ELLIPSE_HIEGHT*2+dyCtl*2+6;
+        this.dy = dyCtl;
+        this.dx = dxCtl;
+        if (this.hasArrow) {
+            this.arrow.position.x = this.x1 - 5;
+            this.arrow.position.y = this.y1 + this.visualConfig.ELLIPSE_HIEGHT * 2 + dyCtl * 2;
+            this.arrow.rotation = Math.PI * 1.5;
+        }
+        this.label.position.x = this.x1;
+        this.label.position.y = this.y1 + this.visualConfig.ELLIPSE_HIEGHT * 2 + dyCtl * 2 + 6;
     }
 };
 
 SimpleLineSprite.prototype.isLink = true; // used by the SelectionManager to check if selected target is an link or a node
-SimpleLineSprite.prototype.hide = function() {
-    this.visible=false;
-    if(this.hasArrow) {
+SimpleLineSprite.prototype.hide = function () {
+    this.visible = false;
+    if (this.hasArrow) {
         this.arrow.visible = false;
     }
-    this.label.visible=false;
+    this.label.visible = false;
 };
-SimpleLineSprite.prototype.show = function() {
-    this.visible=true;
-    if(this.hasArrow){
-        this.arrow.visible=true;
+SimpleLineSprite.prototype.show = function () {
+    this.visible = true;
+    if (this.hasArrow) {
+        this.arrow.visible = true;
     }
-    this.label.visible=true;
+    this.label.visible = true;
+};
+
+SimpleLineSprite.prototype.destroy = function (options) {
+    if (this.arrow) {
+        this.arrow.destroy({texture: false, baseTexture: false});
+    }
+    if (this.label) {
+        this.label.destroy({texture: true, baseTexture: true});
+    }
 };
 
 Object.defineProperties(SimpleLineSprite.prototype, {
     thickness: {
-        get: function() {
+        get: function () {
             return this._thickness;
         },
-        set: function(value) {
+        set: function (value) {
             this._thickness = value;
-            if(this.hasArrow){
-                if(this.arrowStyle){
+            if (this.hasArrow) {
+                if (this.arrowStyle) {
                     this.arrow.texture = this.getMultiTexture(this._thickness, this._color);
-                }else{
+                } else {
                     this.arrow.texture = this.getTexture(this._thickness, this._color);
                 }
             }
         }
     },
     color: {
-        get: function() {
+        get: function () {
             return this._color;
         },
-        set: function(value) {
+        set: function (value) {
             this._color = value;
-            if(this.hasArrow){
-                if(this.arrowStyle){
+            if (this.hasArrow) {
+                if (this.arrowStyle) {
                     this.arrow.texture = this.getMultiTexture(this._thickness, this._color);
-                }else{
+                } else {
                     this.arrow.texture = this.getTexture(this._thickness, this._color);
                 }
             }
         }
     },
     controlOffsetIndex: {
-        get: function() {
+        get: function () {
             return this._controlOffsetIndex;
         },
-        set: function(value) {
+        set: function (value) {
             this._controlOffsetIndex = value;
             this.updatePosition();
         }
