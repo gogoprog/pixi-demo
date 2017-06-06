@@ -2,112 +2,62 @@
  * Created by xuhe on 2017/5/24.
  */
 import createForest from './CreateForest.js';
+import Layout from './Layout.js';
+
+function CircleLayout(nodeSprites, nodeContainer,visualConfig) {
+    Layout.call(this, nodeSprites, nodeContainer);
+    this.NODE_WIDTH = visualConfig.NODE_WIDTH;
+    this.levelx = [];
+}
+//组合继承Layout
+CircleLayout.prototype = new Layout();
+CircleLayout.prototype.constructor = CircleLayout;
+
+CircleLayout.prototype.calCirclePosition = function (tree,treeNode) {
+    treeNode.positionx = tree.positionx - Math.cos(tree.angle * treeNode.nodeId * Math.PI / 180) * tree.radius;
+    treeNode.positiony = tree.positiony + Math.sin(tree.angle * treeNode.nodeId * Math.PI / 180) * tree.radius;
+};
 
 export default function createCircleLayout(nodeSprites, nodeContainer, visualConfig) {
-    let nodes = getNodes(nodeSprites);
-    let selectNodes = getSelectNodes(nodeContainer);
+    let circleLayout = new CircleLayout(nodeSprites, nodeContainer, visualConfig);
+    let nodes = circleLayout.getNodes(nodeSprites);
+    let selectNodes = circleLayout.getSelectNodes(nodeContainer);
     let forest = [];
     forest = createForest(nodes, selectNodes, visualConfig);
-    let thisStep = 0;
-    let totalStep = 250;
-    let NODE_WIDTH = visualConfig.NODE_WIDTH;
-    // 下面变量用于存储布局后所有顶点所占矩形的最左最右，最上最下坐标值
-    let left = 10000, right = -10000, top = 10000, bottom = -10000;
-
-    //预处理,用nodes存储nodeSprites中node的数据
-    function getNodes(nodeSprites) {
-        let ns = {};
-        _.each(nodeSprites, function (n) {
-            let node = {
-                id: n.id,
-                incoming: n.incoming,
-                outgoing: n.outgoing,
-                inTree: false,
-                scale: n.scale.x,
-                layoutLevel: 0
-            };
-            ns[n.id] = node;
-        });
-        ns.notInTreeNum = _.keys(nodeSprites).length;
-        return ns;
-    }
-
-    //预处理,用selectNodes存储nodeContainer中被选中的node的数据
-    function getSelectNodes(nodeContainer) {
-        let sn = [];
-        _.each(nodeContainer.nodes, function (n) {
-            let node = {
-                id: n.id,
-                incoming: n.incoming,
-                outgoing: n.outgoing,
-                inTree: false,
-                scale: n.scale.x,
-                layoutLevel: 0
-            };
-            sn.push(node);
-        });
-        return sn;
-    }
-
+    //计算每棵树的平均半径和角度
     _.each(forest, function (tree) {
-        tree.radius = (NODE_WIDTH * 2 * tree.totalNum * 1.5) / (2 * Math.PI);
+        tree.radius = (circleLayout.NODE_WIDTH * 2 * tree.totalNum * 1.5) / (2 * Math.PI);
         tree.angle = 360 / tree.totalNum;
     });
-
+    //计算每棵树的中心位置
     for (let i = 0; i < forest.length; i++) {
         if (i > 0) {
-            forest[i].positionx = forest[i - 1].positionx + forest[i - 1].radius + forest[i].radius + NODE_WIDTH * 4;
+            forest[i].positionx = forest[i - 1].positionx + forest[i - 1].radius + forest[i].radius + circleLayout.NODE_WIDTH * 4;
             forest[i].positiony = forest[i - 1].positiony;
         } else {
             forest[i].positionx = 0;
             forest[i].positiony = 0;
         }
     }
-
-    for (let i = 0; i < forest.length; i++) {
-        _.each(forest[i], function (treeNode) {
-            if (treeNode.id) {
-                treeNode.positionx = forest[i].positionx - Math.cos(forest[i].angle * treeNode.nodeId * Math.PI / 180) * forest[i].radius;
-                treeNode.positiony = forest[i].positiony + Math.sin(forest[i].angle * treeNode.nodeId * Math.PI / 180) * forest[i].radius;
-                let node = nodes[treeNode.id];
-                if (treeNode.positionx < left) {
-                    left = treeNode.positionx;
-                }
-                if (treeNode.positionx > right) {
-                    right = treeNode.positionx;
-                }
-                if (treeNode.positiony < top) {
-                    top = treeNode.positiony;
-                }
-                if (treeNode.positiony > bottom) {
-                    bottom = treeNode.positiony;
-                }
-                node.position = {
-                    x: treeNode.positionx,
-                    y: treeNode.positiony
-                };
-            }
+    //计算圆形布局坐标
+    _.each(forest, function (tree) {
+        _.each(tree,function (treeNode) {
+            circleLayout.calCirclePosition(tree,treeNode);
         });
-    }
-
-    function calStep(p1, p2, totalStep, thisStep) {
-        let perX = (p2.x - p1.x) / totalStep;
-        let perY = (p2.y - p1.y) / totalStep;
-        return {
-            x: p1.x + perX * thisStep,
-            y: p1.y + perY * thisStep
-        };
-    }
+    });
+    _.each(forest, function (tree) {
+        circleLayout.draw(tree.root);
+    });
 
     return {
         step: function () {
-            thisStep++;
-            if (thisStep <= totalStep) {
-                _.each(nodes, function (node) {
+            circleLayout.thisStep++;
+            if (circleLayout.thisStep <= circleLayout.totalStep) {
+                _.each(circleLayout.nodes, function (node) {
                     if (node.id) {
-                        let p1 = nodeSprites[node.id].position;
+                        let p1 = circleLayout.nodeSprites[node.id].position;
                         let p2 = node.position;
-                        nodeSprites[node.id].position = calStep(p1, p2, totalStep, thisStep);
+                        circleLayout.nodeSprites[node.id].position = circleLayout.calStep(p1, p2, circleLayout.totalStep, circleLayout.thisStep);
                     }
                 });
                 return true;
@@ -124,18 +74,18 @@ export default function createCircleLayout(nodeSprites, nodeContainer, visualCon
          */
         getGraphRect: function () {
             return {
-                x1: left, y1: top,
-                x2: right, y2: bottom
+                x1: circleLayout.left, y1: circleLayout.top,
+                x2: circleLayout.right, y2: circleLayout.bottom
             }
         },
 
         getNodePosition: function (nodeId) {
-            return nodeSprites[nodeId].position;
+            return circleLayout.nodeSprites[nodeId].position;
         },
 
         setNodePosition: function (id, x, y) {
-            nodeSprites[id].position.x = x;
-            nodeSprites[id].position.y = y;
+            circleLayout.nodeSprites[id].position.x = x;
+            circleLayout.nodeSprites[id].position.y = y;
         }
     };
 }

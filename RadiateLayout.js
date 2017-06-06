@@ -2,206 +2,164 @@
  * Created by xuhe on 2017/5/24.
  */
 import createForest from './CreateForest.js';
+import Layout  from './Layout.js';
 
-export default function createRadiateLayout(nodeSprites, nodeContainer, visualConfig) {
-    let nodes = {};
-    let selectNodes = [];
-    let levela = []; //记录各层当前结点的角度
-    let thisStep = 0;
-    let totalStep = 500;
-    let NODE_WIDTH = visualConfig.NODE_WIDTH;
-    let forest = [];
+function RadiateLayout(nodeSprites, nodeContainer,visualConfig) {
+    Layout.call(this, nodeSprites, nodeContainer);
+    this.NODE_WIDTH = visualConfig.NODE_WIDTH;
+    this.levela = [];
+    this.levelx = [];
+}
+//组合继承Layout
+RadiateLayout.prototype = new Layout();
+RadiateLayout.prototype.constructor = RadiateLayout;
 
-    //预处理,用nodes存储nodeSprites中node的数据
-    function getNodes(nodeSprites) {
-        let ns = {};
-        _.each(nodeSprites, function (n) {
-            let node = {
-                id: n.id,
-                incoming: n.incoming,
-                outgoing: n.outgoing,
-                inTree: false,
-                scale: n.scale.x,
-                layoutLevel: 0
-            };
-            ns[n.id] = node;
-        });
-        ns.notInTreeNum = _.keys(nodeSprites).length;
-        return ns;
-    }
-
-    //预处理,用selectNodes存储nodeContainer中被选中的node的数据
-    function getSelectNodes(nodeContainer) {
-        let sn = [];
-        _.each(nodeContainer.nodes, function (n) {
-            let node = {
-                id: n.id,
-                incoming: n.incoming,
-                outgoing: n.outgoing,
-                inTree: false,
-                scale: n.scale.x,
-                layoutLevel: 0
-            };
-            sn.push(node);
-        });
-        return sn;
-    }
-
-    nodes = getNodes(nodeSprites);
-    selectNodes = getSelectNodes(nodeContainer);
-    forest = createForest(nodes, selectNodes, visualConfig);
-
-    //计算辐射布局坐标
-    for (let i = 0; i < forest.length; i++) {
-        calCircleAngle(forest[i], forest[i].root);
-        calCirclePosition(forest[i], forest[i].root);
-        if (i > 0) {
-            let len = forest[i].levelRadius[forest[i].levelRadius.length - 1] + forest[i - 1].root.positionx + forest[i - 1].levelRadius[forest[i - 1].levelRadius.length - 1] + NODE_WIDTH * 4;
-            move(forest[i].root, len);
+RadiateLayout.prototype.calRadiateAngle = function (tree,treeNode) {
+    let length = treeNode.child.length;
+    if (!length) {
+        treeNode.width = this.NODE_WIDTH * 4 * 180 / (Math.PI * tree.levelRadius[treeNode.level]);
+        if (!this.levela[parseInt(treeNode.level)]) {
+            this.levela[parseInt(treeNode.level)] = 0;
         }
+        if (treeNode.level === 2) {
+            if(this.levela[treeNode.level] + treeNode.width / 2 < (tree.levelAngle[treeNode.level] + this.levela[treeNode.level])) {
+                treeNode.angle = tree.levelAngle[treeNode.level] + this.levela[treeNode.level];
+            }else {
+                treeNode.angle = this.levela[treeNode.level] + treeNode.width / 2;
+            }
+        }else {
+            treeNode.angle = this.levela[treeNode.level] + treeNode.width / 2;
+        }
+        this.levela[treeNode.level] = treeNode.angle;
+        return;
     }
-    _.each(forest, function (tree) {
-        draw(tree.root);
+
+    for (var i = 0; i < length; i++) {
+        this.calRadiateAngle(tree, treeNode.child[i]);
+    }
+
+    if (!this.levela[parseInt(treeNode.level)]) {
+        this.levela[parseInt(treeNode.level)] = 0;
+    }
+
+    if (treeNode.level > 1) {
+        if (length > 1) {
+            treeNode.width = treeNode.child[length - 1].angle - treeNode.child[0].angle + this.NODE_WIDTH * 180 / (Math.PI * tree.levelRadius[treeNode.level + 1]);
+        } else {
+            treeNode.width = (this.NODE_WIDTH * 4 * 180) / (Math.PI * tree.levelRadius[treeNode.level + 1]);
+        }
+
+
+        let p1 = this.levela[parseInt(treeNode.level)] + treeNode.width / 2;
+        let p2 = treeNode.child[0].angle + (treeNode.child[length - 1].angle - treeNode.child[0].angle) / 2;
+        if (treeNode.level === 2 && p1 < (this.levela[parseInt(treeNode.level)] + tree.levelAngle[treeNode.level])) {
+            p1 = this.levela[parseInt(treeNode.level)] + tree.levelAngle[treeNode.level];
+        }
+
+        treeNode.angle = p2;
+        this.moveAngle(treeNode, Math.abs(p1 - p2));
+        this.levela[treeNode.level] = treeNode.angle;
+    }else{
+        treeNode.angle = 0;
+    }
+
+};
+
+RadiateLayout.prototype.calRadiatePosition = function (tree) {
+    _.each(tree,function (treeNode) {
+        if(treeNode.id){
+            if(parseInt(treeNode.level) === 1){
+                treeNode.positionx = 0;
+                treeNode.positiony = 0;
+            }else {
+                treeNode.positionx = Math.cos(treeNode.angle * Math.PI / 180) * tree.levelRadius[treeNode.level];
+                treeNode.positiony = Math.sin(treeNode.angle * Math.PI / 180) * tree.levelRadius[treeNode.level];
+            }
+        }
     });
+};
 
-    //递归的移动树:按角度
-    function moveAngle(treeNode, angle) {
-        if (!treeNode.child.length) {
-            treeNode.angle = treeNode.angle + angle;
-            levela[parseInt(treeNode.level)] = treeNode.angle + treeNode.width / 2;
-            return;
-        }
-        for (let i = 0; i < treeNode.child.length; i++) {
-            moveAngle(treeNode.child[i], angle);
-        }
-
+RadiateLayout.prototype.moveAngle = function (treeNode,angle) {
+    if (!treeNode.child.length) {
         treeNode.angle = treeNode.angle + angle;
-        levela[parseInt(treeNode.level)] = treeNode.angle + treeNode.width / 2;
+        this.levela[parseInt(treeNode.level)] = treeNode.angle;
+        return;
+    }
+    for (let i = 0; i < treeNode.child.length; i++) {
+        this.moveAngle(treeNode.child[i], angle);
     }
 
-    //递归的移动树：按长度
-    function move(treeNode, len) {
+    treeNode.angle = treeNode.angle + angle;
+    this.levela[parseInt(treeNode.level)] = treeNode.angle;
+};
+
+RadiateLayout.prototype.move = function (treeNode, len) {
         if (!treeNode.child.length) {
             treeNode.positionx = treeNode.positionx + len;
             return;
         }
         for (let i = 0; i < treeNode.child.length; i++) {
-            move(treeNode.child[i], len);
+            this.move(treeNode.child[i], len);
         }
 
         treeNode.positionx = treeNode.positionx + len;
+};
+
+export default function createRadiateLayout(nodeSprites, nodeContainer, visualConfig) {
+    let radiateLayout = new RadiateLayout(nodeSprites, nodeContainer, visualConfig);
+    let nodes = radiateLayout.getNodes(nodeSprites);
+    let selectNodes = radiateLayout.getSelectNodes(nodeContainer);
+    let forest = [];
+    forest = createForest(nodes, selectNodes, visualConfig);
+
+    //计算辐射布局坐标
+    for (let i = 0; i < forest.length; i++) {
+        radiateLayout.levela = [];
+        radiateLayout.calRadiateAngle(forest[i], forest[i].root);
+        radiateLayout.calRadiatePosition(forest[i], forest[i].root);
+        if (i > 0) {
+            let len = forest[i].levelRadius[forest[i].levelRadius.length - 1] + forest[i - 1].root.positionx + forest[i - 1].levelRadius[forest[i - 1].levelRadius.length - 1] + radiateLayout.NODE_WIDTH * 4;
+            radiateLayout.move(forest[i].root, len);
+        }
     }
-
-    //将节点的位置存储进nodes中
-    function draw(treeNode) {
-        let length = treeNode.child.length;
-        if (!length) {
-            let node = nodes[treeNode.id];
-            node.position = {
-                x: treeNode.positionx,
-                y: treeNode.positiony
-            };
-            // console.log(treeNode.id);
-            // console.log(node.position.x, node.position.y, treeNode.level, treeNode.levelId, treeNode.angle);
-            return;
-        }
-
-        for (let i = 0; i < length; i++) {
-            draw(treeNode.child[i]);
-        }
-
-        let node = nodes[treeNode.id];
-        node.position = {
-            x: treeNode.positionx,
-            y: treeNode.positiony
-        };
-        // console.log(treeNode.id);
-        // console.log(node.position.x, node.position.y, treeNode.level, treeNode.levelId, treeNode.angle);
-    }
-
-
-    //计算辐射布局的坐标
-    function calCircleAngle(tree, treeNode) {
-        let length = treeNode.child.length;
-        if (!length) {
-            if (!levela[parseInt(treeNode.level)]) {
-                levela[parseInt(treeNode.level)] = 0;
-            }
-            treeNode.width = NODE_WIDTH * 4 * 180 / (Math.PI * tree.levelRadius[treeNode.level]);
-            treeNode.angle = levela[treeNode.level];
-            levela[treeNode.level] = treeNode.angle + treeNode.width / 2;
-            return;
-        }
-
-        for (let i = 0; i < length; i++) {
-            calCircleAngle(tree, treeNode.child[i]);
-        }
-
-        if (!levela[parseInt(treeNode.level)]) {
-            levela[parseInt(treeNode.level)] = 0;
-        }
-        if (treeNode.level > 1) {
-            if (length > 1) {
-                treeNode.width = treeNode.child[length - 1].angle - treeNode.child[0].angle + NODE_WIDTH * 180 / (Math.PI * tree.levelRadius[treeNode.level + 1]);
-            } else {
-                treeNode.width = (NODE_WIDTH * 4 * 180) / (Math.PI * tree.levelRadius[treeNode.level + 1]);
-            }
-            let p1 = levela[parseInt(treeNode.level)] + treeNode.width / 2 - (NODE_WIDTH * 2 * 180 )/ (Math.PI * tree.levelRadius[treeNode.level]);
-            let p2 = treeNode.child[0].angle + (treeNode.child[length - 1].angle - treeNode.child[0].angle) / 2;
-            treeNode.angle = p2;
-            if (p1 > p2) {
-                moveAngle(treeNode, (p1 - p2));
-            }
-            levela[treeNode.level] = treeNode.angle + treeNode.width / 2;
-        }else{
-            treeNode.angle = 0;
-        }
-
-    }
-    function calCirclePosition(tree) {
-        _.each(tree,function (treeNode) {
-            if(treeNode.id){
-                if(parseInt(treeNode.level) === 1){
-                    treeNode.positionx = 0;
-                    treeNode.positiony = 0;
-                }else {
-                    treeNode.positionx = Math.cos(treeNode.angle * Math.PI / 180) * tree.levelRadius[treeNode.level];
-                    treeNode.positiony = Math.sin(treeNode.angle * Math.PI / 180) * tree.levelRadius[treeNode.level];
-                }
-            }
-        });
-    }
-
-    function calStep(p1, p2, totalStep, thisStep) {
-        let perX = (p2.x - p1.x) / totalStep;
-        let perY = (p2.y - p1.y) / totalStep;
-        return {
-            x: p1.x + perX * thisStep,
-            y: p1.y + perY * thisStep
-        };
-    }
+    _.each(forest, function (tree) {
+        radiateLayout.draw(tree.root);
+    });
 
     return {
+        finalLayoutAvailable: function(){
+            return true;
+        },
+
+        getGraphRect: function () {
+            return {
+                x1: radiateLayout.left, y1: radiateLayout.top,
+                x2: radiateLayout.right, y2: radiateLayout.bottom
+            }
+        },
+
         step: function () {
-            thisStep++;
-            if (thisStep <= totalStep) {
-                _.each(nodes, function (node) {
+            radiateLayout.thisStep++;
+            if (radiateLayout.thisStep <= radiateLayout.totalStep) {
+                _.each(radiateLayout.nodes, function (node) {
                     if (node.id) {
-                        let p1 = nodeSprites[node.id].position;
+                        let p1 = radiateLayout.nodeSprites[node.id].position;
                         let p2 = node.position;
-                        nodeSprites[node.id].position = calStep(p1, p2, totalStep, thisStep);
+                        radiateLayout.nodeSprites[node.id].position = radiateLayout.calStep(p1, p2, radiateLayout.totalStep, radiateLayout.thisStep);
                     }
                 });
+                return true;
             }
+            return false;
         },
 
         getNodePosition: function (nodeId) {
-            return nodeSprites[nodeId].position;
+            return radiateLayout.nodeSprites[nodeId].position;
         },
 
         setNodePosition: function (id, x, y) {
-            nodeSprites[id].position.x = x;
-            nodeSprites[id].position.y = y;
+            radiateLayout.nodeSprites[id].position.x = x;
+            radiateLayout.nodeSprites[id].position.y = y;
         }
     };
 }

@@ -89,29 +89,18 @@ function createForest(nodes, selectNodes, visualConfig) {
         for (var i = 1; i < tree.levelNum.length; i++) {
             if (i == 1) {
                 tree.levelRadius[i] = 0;
-            } else {
-                tree.levelRadius[i] = (NODE_WIDTH * 2 * tree.levelNum[i] * 1.5) / (2 * Math.PI);
-            }
-            if (i > 1) {
-                if ((tree.levelRadius[i] < tree.levelRadius[i - 1] + 4 * NODE_WIDTH) || tree.levelNum[i] == 1) {
-                    tree.levelRadius[i] = tree.levelRadius[i - 1] + 4 * NODE_WIDTH;
-                    /*if (i > 2) {
-                        tree.levelRadius[i] = tree.levelRadius[i - 1] * 2 - tree.levelRadius[i - 2] + 4 * NODE_WIDTH;
-                    }*/
+            } else if (i > 1 && i < (tree.levelNum.length - 1)) {
+                var defaultRadius = (NODE_WIDTH * 2 * tree.levelNum[i] * 1.5) / (2 * Math.PI);
+                tree.levelRadius[i] = tree.levelRadius[i - 1] + Math.ceil(tree.levelNum[i] / 10) *  4 * NODE_WIDTH + Math.ceil(tree.levelNum[i+1] / 10) *  3 * NODE_WIDTH;
+                if (tree.levelRadius[i] < defaultRadius){
+                    tree.levelRadius[i] = defaultRadius;
                 }
+            } else {
+                tree.levelRadius[i] = tree.levelRadius[i - 1] + Math.ceil(tree.levelNum[i] / 10) *  4 * NODE_WIDTH;
             }
+
             tree.levelAngle[i] = 360 / tree.levelNum[i];
         }
-
-        /*_.each(tree,function (treeNode) {
-         if (treeNode.id){
-         if(treeNode.child){
-         treeNode.angle = (treeNode.child.length/tree.levelNum[treeNode.level]) * 360;
-         }else {
-         treeNode.angle = tree.levelAngle[treeNode.level];
-         }
-         }
-         });*/
 
         forest.push(tree);  //把树加入森林
     }
