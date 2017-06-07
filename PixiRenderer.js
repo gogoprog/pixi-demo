@@ -1,7 +1,7 @@
 import createForceLayout from 'ngraph.forcelayout';
-import createTreeLayout from './TreeLayout.js';
-import createCircleLayout from './CircleLayout.js';
-import createRadiateLayout from  './RadiateLayout.js';
+import TreeLayout from './TreeLayout.js';
+import CircleLayout from './CircleLayout.js';
+import RadiateLayout from './RadiateLayout.js';
 import physicsSimulator from "ngraph.physics.simulator";
 import eventify from "ngraph.events";
 import Graph from "./Graph.js";
@@ -616,7 +616,7 @@ var PixiRenderer = function (settings) {
                     disableTimelineLayout();
                 }
                 layoutType = "Circular";
-                layout = createCircleLayout(nodeSprites, nodeContainer, visualConfig);
+                layout = new CircleLayout(nodeSprites, nodeContainer, visualConfig);
                 if (layoutIterationsStore == 1500) {
                     layoutIterations = 1500;
                 }
@@ -626,8 +626,8 @@ var PixiRenderer = function (settings) {
             drawTreeLayout: function () {
                 isDirty = true;
                 layoutType = "Layered";
-                // layout = createTreeLayout(nodeSprites, nodeContainer, visualConfig);
-                layout = createRadiateLayout(nodeSprites, nodeContainer, visualConfig);
+                layout = new TreeLayout(nodeSprites, nodeContainer, visualConfig);
+                // layout = new RadiateLayout(nodeSprites, nodeContainer, visualConfig);
                 if (stage.isTimelineLayout) {
                     disableTimelineLayout();
                 }

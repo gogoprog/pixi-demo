@@ -2,7 +2,7 @@
  * Created by xuhe on 2017/6/6.
  */
 
-export default function  Layout(nodeSprites, nodeContainer) {
+export default function Layout(nodeSprites, nodeContainer) {
     this.nodeSprites = nodeSprites;
     this.nodeContainer = nodeContainer;
     this.thisStep = 0;
@@ -12,11 +12,8 @@ export default function  Layout(nodeSprites, nodeContainer) {
     this.top = 10000;
     this.bottom = -10000;
     this.nodes = this.getNodes();
-
 }
 
-Layout.prototype.nodeSprites = this.nodeSprites;
-Layout.prototype.nodeContainer = this.nodeContainer;
 Layout.prototype.getNodes = function () {
     let ns = {};
     let that = this;
@@ -86,32 +83,27 @@ Layout.prototype.calStep = function (p1, p2, totalStep, thisStep) {
         y: p1.y + perY * thisStep
     };
 };
-/*Layout.prototype.finalLayoutAvailable = function () {
+
+Layout.prototype.finalLayoutAvailable = function () {
     return true;
 };
-/!**
- * @returns {Object} area required to fit in the graph. Object contains
- * `x1`, `y1` - top left coordinates
- * `x2`, `y2` - bottom right coordinates
- *!/
+
 Layout.prototype.getGraphRect = function () {
     return {
         x1: this.left, y1: this.top,
         x2: this.right, y2: this.bottom
     }
 };
+
 Layout.prototype.step = function () {
     this.thisStep++;
     let that = this;
-    let thisStep = this.thisStep;
-    let totalStep = this.totalStep;
-    let nodeSprites = this.nodeSprites;
-    if (thisStep <= totalStep) {
+    if (that.thisStep <= that.totalStep) {
         _.each(this.nodes, function (node) {
             if (node.id) {
-                let p1 = nodeSprites[node.id].position;
+                let p1 = that.nodeSprites[node.id].position;
                 let p2 = node.position;
-                nodeSprites[node.id].position = that.calStep(p1, p2, totalStep, thisStep);
+                that.nodeSprites[node.id].position = that.calStep(p1, p2, that.totalStep, that.thisStep);
             }
         });
         return true;
@@ -120,24 +112,13 @@ Layout.prototype.step = function () {
 };
 
 Layout.prototype.getNodePosition = function (nodeId) {
-    return Layout.prototype.nodeSprites[nodeId].position;
+    return this.nodeSprites[nodeId].position;
 };
 
 Layout.prototype.setNodePosition = function (id, x, y) {
-    Layout.prototype.nodeSprites[id].position.x = x;
-    Layout.prototype.nodeSprites[id].position.y = y;
+    this.nodeSprites[id].position.x = x;
+    this.nodeSprites[id].position.y = y;
 };
 
-Layout.prototype.getReturn = function(){
-    return {
-        finalLayoutAvailable: this.finalLayoutAvailable,
 
-        getGraphRect: this.getGraphRect,
-        step: this.step,
-
-        getNodePosition: this.getNodePosition,
-
-        setNodePosition: this.setNodePosition
-    };*/
-// };
 

@@ -3,18 +3,37 @@
  */
 import createForest from './CreateForest.js';
 import Layout from './Layout.js';
-// module.exports = createTreeLayout;
 
-
-function TreeLayout(nodeSprites, nodeContainer,visualConfig) {
+export default function TreeLayout(nodeSprites, nodeContainer,visualConfig) {
     Layout.call(this, nodeSprites, nodeContainer);
     this.NODE_WIDTH = visualConfig.NODE_WIDTH;
     this.levelx = [];
+
+    //initialize!
+    let nodes = this.getNodes();
+    let selectNodes = this.getSelectNodes();
+    let forest = [];
+    forest = createForest(nodes,selectNodes,visualConfig);
+    let that = this;
+    //计算层次布局坐标
+    _.each(forest, function (tree) {
+        tree.levely = [];
+        tree.levely[1] = 0;
+        for (let i = 2; i < tree.levelNum.length; i++) {
+            tree.levely[i] = tree.levely[i - 1] + Math.ceil(tree.levelNum[i] / 10) * that.NODE_WIDTH * 4;
+        }
+        that.calTreePosition(tree.levely, tree.root);
+    });
+
+    _.each(forest, function (tree) {
+        that.draw(tree.root);
+    });
 }
+
 //组合继承Layout
 TreeLayout.prototype = new Layout();
 TreeLayout.prototype.constructor = TreeLayout;
-
+//TreeLayout 的方法
 TreeLayout.prototype.calTreePosition = function(levely, treeNode) {
     let length = treeNode.child.length;
     if (!length) {
@@ -65,66 +84,3 @@ TreeLayout.prototype.move = function (treeNode, len) {
 };
 
 
-export default function createTreeLayout(nodeSprites, nodeContainer, visualConfig) {
-    let treeLayout = new TreeLayout(nodeSprites, nodeContainer, visualConfig);
-    let nodes = treeLayout.getNodes(nodeSprites);
-    let selectNodes = treeLayout.getSelectNodes(nodeContainer);
-    let forest = [];
-    forest = createForest(nodes,selectNodes,visualConfig);
-
-    //计算层次布局坐标
-    _.each(forest, function (tree) {
-        tree.levely = [];
-        tree.levely[1] = 0;
-        for (let i = 2; i < tree.levelNum.length; i++) {
-            tree.levely[i] = tree.levely[i - 1] + Math.ceil(tree.levelNum[i] / 10) * treeLayout.NODE_WIDTH * 4;
-        }
-        treeLayout.calTreePosition(tree.levely, tree.root);
-    });
-
-    _.each(forest, function (tree) {
-        treeLayout.draw(tree.root);
-    });
-
-
-    return {
-        finalLayoutAvailable: function(){
-            return true;
-        },
-        /**
-         * @returns {Object} area required to fit in the graph. Object contains
-         * `x1`, `y1` - top left coordinates
-         * `x2`, `y2` - bottom right coordinates
-         */
-        getGraphRect: function () {
-            return {
-                x1: treeLayout.left, y1: treeLayout.top,
-                x2: treeLayout.right, y2: treeLayout.bottom
-            }
-        },
-
-        step: function () {
-            treeLayout.thisStep++;
-            if (treeLayout.thisStep <= treeLayout.totalStep) {
-                _.each(treeLayout.nodes, function (node) {
-                    if (node.id) {
-                        let p1 = treeLayout.nodeSprites[node.id].position;
-                        let p2 = node.position;
-                        treeLayout.nodeSprites[node.id].position = treeLayout.calStep(p1, p2, treeLayout.totalStep,treeLayout.thisStep);
-                    }
-                });
-                return true;
-            }
-            return false;
-        },
-
-        getNodePosition: function (nodeId) {
-            return treeLayout.nodeSprites[nodeId].position;
-        },
-
-        setNodePosition: function (id, x, y) {
-            treeLayout.nodeSprites[id].position.x = x;
-            treeLayout.nodeSprites[id].position.y = y;
-        }
-    };
-}
