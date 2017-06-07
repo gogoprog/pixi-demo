@@ -38,6 +38,7 @@ function createForest(nodes, selectNodes, visualConfig) {
             parent: null,
             levelId: 0,
             nodeId: nodeID,
+            type: nodes[root.id].type,
             angle: 0
         };
         nodeID++;
@@ -57,19 +58,43 @@ function createForest(nodes, selectNodes, visualConfig) {
             templength = bfsQueue.length;
         }
 
+        //对整个树的结点进行排序
+        tree.sort(function (x, y) {
+            if (x.type < y.type) {
+                return -1;
+            }
+            if (x.type > y.type) {
+                return 1;
+            }
+            return 0;
+        });
+
         //找出每个节点的子节点
         tree.levelNum = [];
-        for (var i = 0; i < tree.length; i++) {
+        for (let i = 0; i < tree.length; i++) {
             tree[i].child = [];
+            tree[i].nodeId = i;
             if (!tree.levelNum[tree[i].level]) {
                 tree.levelNum[tree[i].level] = 1;
             } else {
                 tree.levelNum[tree[i].level] = tree.levelNum[tree[i].level] + 1;
             }
-            for (var j = 0; j < tree.length; j++) {
+            for (let j = 0; j < tree.length; j++) {
                 if (tree[j].parent && tree[j].parent.id === tree[i].id) {
                     tree[i].child.push(tree[j]);
                 }
+            }
+            //对树的每个结点的子结点进行排序
+            if (tree[i].child) {
+                tree[i].child.sort(function (x, y) {
+                    if (x.type < y.type) {
+                        return -1;
+                    }
+                    if (x.type > y.type) {
+                        return 1;
+                    }
+                    return 0;
+                });
             }
         }
 
@@ -91,12 +116,12 @@ function createForest(nodes, selectNodes, visualConfig) {
                 tree.levelRadius[i] = 0;
             } else if (i > 1 && i < (tree.levelNum.length - 1)) {
                 var defaultRadius = (NODE_WIDTH * 2 * tree.levelNum[i] * 1.5) / (2 * Math.PI);
-                tree.levelRadius[i] = tree.levelRadius[i - 1] + Math.ceil(tree.levelNum[i] / 10) *  4 * NODE_WIDTH + Math.ceil(tree.levelNum[i+1] / 10) *  3 * NODE_WIDTH;
-                if (tree.levelRadius[i] < defaultRadius){
+                tree.levelRadius[i] = tree.levelRadius[i - 1] + Math.ceil(tree.levelNum[i] / 10) * 4 * NODE_WIDTH + Math.ceil(tree.levelNum[i + 1] / 10) * 3 * NODE_WIDTH;
+                if (tree.levelRadius[i] < defaultRadius) {
                     tree.levelRadius[i] = defaultRadius;
                 }
             } else {
-                tree.levelRadius[i] = tree.levelRadius[i - 1] + Math.ceil(tree.levelNum[i] / 10) *  4 * NODE_WIDTH;
+                tree.levelRadius[i] = tree.levelRadius[i - 1] + Math.ceil(tree.levelNum[i] / 10) * 4 * NODE_WIDTH;
             }
 
             tree.levelAngle[i] = 360 / tree.levelNum[i];
@@ -125,6 +150,7 @@ function createForest(nodes, selectNodes, visualConfig) {
                     parent: node,
                     levelId: levelID,
                     nodeId: nodeID,
+                    type: nodes[link.data.sourceEntity].type,
                     angle: 0
                 };
                 nodeID++;
@@ -149,6 +175,7 @@ function createForest(nodes, selectNodes, visualConfig) {
                     parent: node,
                     levelId: levelID,
                     nodeId: nodeID,
+                    type: nodes[link.data.targetEntity].type,
                     angle: 0
                 };
                 nodeID++;

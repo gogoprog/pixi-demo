@@ -7,6 +7,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         super(texture);
 
         this.id = node.id;
+        this.type = node.data.type;
         this.anchor.x = 0.5;
         this.anchor.y = 0.5;
         this.position.x = node.data.properties._$x || Math.random();

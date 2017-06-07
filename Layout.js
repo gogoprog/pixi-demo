@@ -24,7 +24,8 @@ Layout.prototype.getNodes = function () {
             outgoing: n.outgoing,
             inTree: false,
             scale: n.scale.x,
-            layoutLevel: 0
+            layoutLevel: 0,
+            type: n.type
         };
         ns[n.id] = node;
     });
@@ -42,7 +43,8 @@ Layout.prototype.getSelectNodes = function () {
             outgoing: n.outgoing,
             inTree: false,
             scale: n.scale.x,
-            layoutLevel: 0
+            layoutLevel: 0,
+            type: n.type
         };
         sn.push(node);
     });
