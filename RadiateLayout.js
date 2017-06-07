@@ -100,11 +100,6 @@ RadiateLayout.prototype.calRadiatePosition = function (tree) {
 };
 
 RadiateLayout.prototype.moveAngle = function (treeNode, angle) {
-    if (!treeNode.child.length) {
-        treeNode.angle = treeNode.angle + angle;
-        this.levela[parseInt(treeNode.level)] = treeNode.angle;
-        return;
-    }
     for (let i = 0; i < treeNode.child.length; i++) {
         this.moveAngle(treeNode.child[i], angle);
     }
@@ -114,10 +109,6 @@ RadiateLayout.prototype.moveAngle = function (treeNode, angle) {
 };
 
 RadiateLayout.prototype.move = function (treeNode, len) {
-    if (!treeNode.child.length) {
-        treeNode.positionx = treeNode.positionx + len;
-        return;
-    }
     for (let i = 0; i < treeNode.child.length; i++) {
         this.move(treeNode.child[i], len);
     }

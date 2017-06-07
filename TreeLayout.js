@@ -70,11 +70,6 @@ TreeLayout.prototype.calTreePosition = function(levely, treeNode) {
 };
 
 TreeLayout.prototype.move = function (treeNode, len) {
-    if (!treeNode.child.length) {
-        treeNode.positionx = treeNode.positionx + len;
-        this.levelx[parseInt(treeNode.level)] = treeNode.positionx + treeNode.width / 2;
-        return;
-    }
     for (let i = 0; i < treeNode.child.length; i++) {
         this.move(treeNode.child[i], len);
     }
