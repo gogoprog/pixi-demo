@@ -115,4 +115,3 @@ RadiateLayout.prototype.move = function (treeNode, len) {
 
     treeNode.positionx = treeNode.positionx + len;
 };
-

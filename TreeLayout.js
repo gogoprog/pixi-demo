@@ -77,5 +77,3 @@ TreeLayout.prototype.move = function (treeNode, len) {
     treeNode.positionx = treeNode.positionx + len;
     this.levelx[parseInt(treeNode.level)] = treeNode.positionx + treeNode.width / 2;
 };
-
-

@@ -49,4 +49,3 @@ CircleLayout.prototype.calCirclePosition = function (tree,treeNode) {
     treeNode.positionx = tree.positionx - Math.cos(tree.angle * treeNode.nodeId * Math.PI / 180) * tree.radius;
     treeNode.positiony = tree.positiony + Math.sin(tree.angle * treeNode.nodeId * Math.PI / 180) * tree.radius;
 };
-

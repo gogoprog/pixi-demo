@@ -119,6 +119,3 @@ Layout.prototype.setNodePosition = function (id, x, y) {
     this.nodeSprites[id].position.x = x;
     this.nodeSprites[id].position.y = y;
 };
-
-
-
