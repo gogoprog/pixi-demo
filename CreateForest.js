@@ -117,9 +117,9 @@ function createForest(nodes, selectNodes, visualConfig) {
     function sortType(x,y) {
         if (x.type === y.type) {
             return 0;
-        }else if (x.type > y.type) {
+        } else if (x.type > y.type) {
             return 1;
-        }else {
+        } else {
             return -1;
         }
     }
