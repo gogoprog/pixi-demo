@@ -25,7 +25,8 @@ Layout.prototype.getNodes = function () {
             inTree: false,
             scale: n.scale.x,
             layoutLevel: 0,
-            type: n.type
+            type: n.type,
+            cluster: n.cluster
         };
         ns[n.id] = node;
     });
@@ -44,7 +45,8 @@ Layout.prototype.getSelectNodes = function () {
             inTree: false,
             scale: n.scale.x,
             layoutLevel: 0,
-            type: n.type
+            type: n.type,
+            cluster: n.cluster
         };
         sn.push(node);
     });
@@ -59,6 +61,8 @@ Layout.prototype.draw = function (treeNode) {
     }
 
     let node = that.nodes[treeNode.id];
+    console.log(treeNode.level,treeNode.levelId);
+    console.log(node.cluster);
     node.position = {
         x: treeNode.positionx,
         y: treeNode.positiony

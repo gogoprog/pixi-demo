@@ -2,6 +2,7 @@ import createForceLayout from 'ngraph.forcelayout';
 import TreeLayout from './TreeLayout.js';
 import CircleLayout from './CircleLayout.js';
 import RadiateLayout from './RadiateLayout.js';
+import CWLayout from './CWLayout.js'
 import physicsSimulator from "ngraph.physics.simulator";
 import eventify from "ngraph.events";
 import Graph from "./Graph.js";
@@ -626,6 +627,7 @@ var PixiRenderer = function (settings) {
             drawTreeLayout: function () {
                 isDirty = true;
                 layoutType = "Layered";
+                CWLayout(nodeSprites);
                 layout = new TreeLayout(nodeSprites, nodeContainer, visualConfig);
                 // layout = new RadiateLayout(nodeSprites, nodeContainer, visualConfig);
                 if (stage.isTimelineLayout) {
