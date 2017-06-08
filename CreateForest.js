@@ -59,15 +59,7 @@ function createForest(nodes, selectNodes, visualConfig) {
         }
 
         //对整个树的结点进行排序
-        tree.sort(function (x, y) {
-            if (x.type < y.type) {
-                return -1;
-            }
-            if (x.type > y.type) {
-                return 1;
-            }
-            return 0;
-        });
+        tree.sort(sortType);
 
         //找出每个节点的子节点
         tree.levelNum = [];
@@ -86,15 +78,7 @@ function createForest(nodes, selectNodes, visualConfig) {
             }
             //对树的每个结点的子结点进行排序
             if (tree[i].child) {
-                tree[i].child.sort(function (x, y) {
-                    if (x.type < y.type) {
-                        return -1;
-                    }
-                    if (x.type > y.type) {
-                        return 1;
-                    }
-                    return 0;
-                });
+                tree[i].child.sort(sortType);
             }
         }
 
@@ -129,7 +113,16 @@ function createForest(nodes, selectNodes, visualConfig) {
 
         forest.push(tree);  //把树加入森林
     }
-
+    //对类型排序
+    function sortType(x,y) {
+        if (x.type === y.type) {
+            return 0;
+        }else if (x.type > y.type) {
+            return 1;
+        }else {
+            return -1;
+        }
+    }
     //生成一棵树
     function createATree(node) {
         var levelID = 0;
