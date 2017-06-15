@@ -1,7 +1,7 @@
 /**
  * Created by xuhe on 2017/6/6.
  */
-
+var eventify = require('ngraph.events');
 export default function Layout(nodeSprites, nodeContainer) {
     this.nodeSprites = nodeSprites;
     this.nodeContainer = nodeContainer;
@@ -12,11 +12,13 @@ export default function Layout(nodeSprites, nodeContainer) {
     this.top = 10000;
     this.bottom = -10000;
     this.nodes = this.getNodes();
+    this.currentPosition = {};
 }
 
 Layout.prototype.getNodes = function () {
     let ns = {};
     let that = this;
+    ns.notInTreeNum = _.keys(that.nodeSprites).length;
     _.each(that.nodeSprites, function (n) {
         let node = {
             id: n.id,
@@ -28,9 +30,12 @@ Layout.prototype.getNodes = function () {
             type: n.type,
             cluster: n.cluster
         };
+        if(that.isNodeOriginallyPinned(n)){
+            node.isPinned = true;
+        }
         ns[n.id] = node;
     });
-    ns.notInTreeNum = _.keys(that.nodeSprites).length;
+
     return ns;
 };
 
@@ -48,6 +53,9 @@ Layout.prototype.getSelectNodes = function () {
             type: n.type,
             cluster: n.cluster
         };
+        if(that.isNodeOriginallyPinned(n)){
+            node.isPinned = true;
+        }
         sn.push(node);
     });
     return sn;
@@ -61,8 +69,8 @@ Layout.prototype.draw = function (treeNode) {
     }
 
     let node = that.nodes[treeNode.id];
-    console.log(treeNode.level,treeNode.levelId);
-    console.log(node.cluster);
+    // console.log(treeNode.level,treeNode.levelId);
+    // console.log(node.cluster);
     node.position = {
         x: treeNode.positionx,
         y: treeNode.positiony
@@ -105,23 +113,41 @@ Layout.prototype.step = function () {
     this.thisStep++;
     let that = this;
     if (that.thisStep <= that.totalStep) {
-        _.each(this.nodes, function (node) {
+        _.each(that.nodes, function (node) {
             if (node.id) {
-                let p1 = that.nodeSprites[node.id].position;
-                let p2 = node.position;
-                that.nodeSprites[node.id].position = that.calStep(p1, p2, that.totalStep, that.thisStep);
+                if(!node.isPinned){
+                    let p1 = that.nodeSprites[node.id].position;
+                    let p2 = node.position;
+                    that.currentPosition[node.id]= that.calStep(p1, p2, that.totalStep, that.thisStep);
+                }else {
+                    that.currentPosition[node.id]= that.nodeSprites[node.id].position;
+                }
+
             }
         });
         return true;
     }
+    this.thisStep = 0;
     return false;
 };
 
 Layout.prototype.getNodePosition = function (nodeId) {
-    return this.nodeSprites[nodeId].position;
+    return this.currentPosition[nodeId];
 };
 
 Layout.prototype.setNodePosition = function (id, x, y) {
     this.nodeSprites[id].position.x = x;
     this.nodeSprites[id].position.y = y;
+};
+
+Layout.prototype.pinNode = function (node, isPinned) {
+    this.nodes[node.id].isPinned = !!isPinned;
+};
+
+Layout.prototype.isNodePinned = function (node) {
+    return this.nodes[node.id].isPinned;
+};
+
+Layout.prototype.isNodeOriginallyPinned = function(node) {
+    return (node && (node.pinned || (node.data && node.data.pinned)));
 };

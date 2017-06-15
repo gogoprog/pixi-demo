@@ -126,16 +126,18 @@ var PixiRenderer = function (settings) {
     nodeContainer.nodeCaptured = function (node) {
         stage.hasNodeCaptured = true;
         isDirty = true;
-        if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
+        if (visualConfig.LAYOUT_ANIMATION) {
             layout.pinNode(node, true);
         }
     };
 
     nodeContainer.nodeMoved = function (node) {
         isDirty = true;
-        if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
+        if (visualConfig.LAYOUT_ANIMATION) {
             layout.setNodePosition(node.id, node.position.x, node.position.y);
-            layoutIterations += 60;
+            if (layoutType === 'Network') {
+                layoutIterations += 60;
+            }
         }
 
     };
@@ -143,14 +145,15 @@ var PixiRenderer = function (settings) {
     nodeContainer.nodeReleased = function (node) {
         isDirty = true;
         stage.hasNodeCaptured = false;
-        if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
+        if (visualConfig.LAYOUT_ANIMATION) {
             if (node.pinned) {
                 node.pinned = false;
                 layout.pinNode(node, false);
+                layoutIterations = 300;
             } else {
                 node.pinned = true;
+                layout.pinNode(node, true);
             }
-            layoutIterations = 300;
         }
     };
 
@@ -296,1131 +299,1134 @@ var PixiRenderer = function (settings) {
 
     var pixiGraphics = {
 
-            /**
-             * Allows client to start animation loop, without worrying about RAF stuff.
-             */
-            run: animationLoop,
+        /**
+         * Allows client to start animation loop, without worrying about RAF stuff.
+         */
+        run: animationLoop,
 
-            /**
-             * Cancel global Interactive
-             */
-            cancelGlobalInteractive: function () {
+        /**
+         * Cancel global Interactive
+         */
+        cancelGlobalInteractive: function () {
+            nodeContainer.interactive = false;
+            stage.interactive = false;
+            // stage.interactiveChildren=false;
+            nodeContainer.interactiveChildren = false;
+
+        },
+
+        /**
+         * recover global Interactive
+         */
+        recoverGlobalInteractive: function () {
+            stage.interactive = true;
+            if (this.mode == "picking") {
+                nodeContainer.interactive = true;
+                nodeContainer.interactiveChildren = true;
+
+            } else {
                 nodeContainer.interactive = false;
-                stage.interactive = false;
-                // stage.interactiveChildren=false;
                 nodeContainer.interactiveChildren = false;
 
-            },
+            }
+        },
 
-            /**
-             * recover global Interactive
-             */
-            recoverGlobalInteractive: function () {
-                stage.interactive = true;
-                if (this.mode == "picking") {
-                    nodeContainer.interactive = true;
-                    nodeContainer.interactiveChildren = true;
+        /**
+         * adjust the initial display location to center of the scene
+         */
+        adjustInitialDisplayLocation: function () {
+            this.performLayout();
+            this.setNodesToFullScreen();
+        },
 
+        /*
+         * For the forcelayout Algorithm do not have the fixed cycles.
+         * To arrange the nodes quickly, we need add the cycles manually.
+         **/
+        addLayoutCycles: function (n) {
+            isDirty = true;
+            if (stage.isTimelineLayout) {
+                disableTimelineLayout();
+            }
+            layoutType = "Network";
+            layoutIterations += n;
+        },
+
+        /**
+         * zoom in and zoom out for the node
+         */
+        nodeZoomByID: zoomNodesById,
+
+        /**
+         * change the boundary style of the nodes by ID
+         **/
+        changeBoundaryStyleByID: function (nodeIDArray, boundAttr) {
+            isDirty = true;
+            _.each(nodeIDArray, function (nodeID) {
+                nodeSprites[nodeID].boundaryAttr = boundAttr;
+            });
+        },
+
+        /**
+         * change the style of the link by ID
+         */
+        changeLinkStyleByID: function (linkIDArray, linkAttr) {
+            isDirty = true;
+            _.each(linkIDArray, function (linkID) {
+                //console.log(linkID);
+                if (!linkAttr.color) {
+                    linkAttr.color = linkSprites[linkID].coustomSettingColor;
+                }
+                if (!linkAttr.alpha) {
+                    linkAttr.alpha = linkSprites[linkID].coustomSettingAlpha;
+                }
+                if (!linkAttr.thickness) {
+                    linkAttr.thickness = linkSprites[linkID].coustomSettingThickness;
                 } else {
-                    nodeContainer.interactive = false;
-                    nodeContainer.interactiveChildren = false;
-
+                    linkAttr.thickness = Math.round(linkAttr.thickness); // Make sure its integer;
                 }
-            },
+                linkSprites[linkID].setLineAttr(linkAttr);
+            });
+        },
 
-            /**
-             * adjust the initial display location to center of the scene
-             */
-            adjustInitialDisplayLocation: function () {
-                this.performLayout();
-                this.setNodesToFullScreen();
-            },
+        /**
+         * reset the style of the link by ID
+         */
+        resetLinkStyleByID: function (linkIDArray) {
+            isDirty = true;
+            _.each(linkIDArray, function (linkID) {
+                var styleResetLink = linkSprites[linkID];
+                var linkAttr = {};
+                linkAttr.alpha = visualConfig.ui.line.alpha;
+                linkAttr.color = visualConfig.ui.line.color;
+                linkAttr.thickness = visualConfig.ui.line.width;
+                styleResetLink.setLineAttr(linkAttr);
+            });
+        },
 
-            /*
-             * For the forcelayout Algorithm do not have the fixed cycles.
-             * To arrange the nodes quickly, we need add the cycles manually.
-             **/
-            addLayoutCycles: function (n) {
-                isDirty = true;
-                if (stage.isTimelineLayout) {
-                    disableTimelineLayout();
+        /**
+         * get the number of hidden nodes
+         */
+        getHiddenNodesNumber: function () {
+            var number = 0;
+            _.each(nodeSprites, function (n) {
+                if (n.visible == false) {
+                    number++;
                 }
-                layoutType = "Network";
-                layoutIterations += n;
-            },
-
-            /**
-             * zoom in and zoom out for the node
-             */
-            nodeZoomByID: zoomNodesById,
-
-            /**
-             * change the boundary style of the nodes by ID
-             **/
-            changeBoundaryStyleByID: function (nodeIDArray, boundAttr) {
-                isDirty = true;
-                _.each(nodeIDArray, function (nodeID) {
-                    nodeSprites[nodeID].boundaryAttr = boundAttr;
-                });
-            },
-
-            /**
-             * change the style of the link by ID
-             */
-            changeLinkStyleByID: function (linkIDArray, linkAttr) {
-                isDirty = true;
-                _.each(linkIDArray, function (linkID) {
-                    //console.log(linkID);
-                    if (!linkAttr.color) {
-                        linkAttr.color = linkSprites[linkID].coustomSettingColor;
-                    }
-                    if (!linkAttr.alpha) {
-                        linkAttr.alpha = linkSprites[linkID].coustomSettingAlpha;
-                    }
-                    if (!linkAttr.thickness) {
-                        linkAttr.thickness = linkSprites[linkID].coustomSettingThickness;
-                    } else {
-                        linkAttr.thickness = Math.round(linkAttr.thickness); // Make sure its integer;
-                    }
-                    linkSprites[linkID].setLineAttr(linkAttr);
-                });
-            },
-
-            /**
-             * reset the style of the link by ID
-             */
-            resetLinkStyleByID: function (linkIDArray) {
-                isDirty = true;
-                _.each(linkIDArray, function (linkID) {
-                    var styleResetLink = linkSprites[linkID];
-                    var linkAttr = {};
-                    linkAttr.alpha = visualConfig.ui.line.alpha;
-                    linkAttr.color = visualConfig.ui.line.color;
-                    linkAttr.thickness = visualConfig.ui.line.width;
-                    styleResetLink.setLineAttr(linkAttr);
-                });
-            },
-
-            /**
-             * get the number of hidden nodes
-             */
-            getHiddenNodesNumber: function () {
-                var number = 0;
-                _.each(nodeSprites, function (n) {
-                    if (n.visible == false) {
-                        number++;
-                    }
-                });
-                // console.log(number + " nodes are hidden!!");
-                return number;
-            },
-            /**
-             * get the number of hidden lines
-             */
-            getHiddenLinesNumber: function () {
-                var number = 0;
-                _.each(linkSprites, function (l) {
-                    if (l.visible == false) {
-                        number++;
-                    }
-                });
-                // console.log(number + " lines are hidden!!");
-                return number;
-            },
-
-            /**
-             * hide nodes by ID
-             */
-            hideSubGraph: function (nodeIdArray, linkIdArray) {
-                isDirty = true;
-                _.each(nodeIdArray, function (node) {
-                    var hiddenNode = nodeSprites[node];
-                    if (hiddenNode.selected) {
-                        nodeContainer.deselectNode(hiddenNode);
-                    }
-
-                    hiddenNode.hide();
-
-                    //when we hide the nodes we should also hide the texture, arrow and the link.
-                    _.each(hiddenNode.outgoing, function (olink) {
-                        if (olink.selected) {
-                            nodeContainer.deselectLink(olink);
-                        }
-                        olink.hide();
-
-                    });
-                    _.each(hiddenNode.incoming, function (ilink) {
-                        if (ilink.selected) {
-                            nodeContainer.deselectLink(ilink);
-                        }
-                        ilink.hide();
-                    });
-                });
-
-                _.each(linkIdArray, function (linkId) {
-                    var linkToHide = linkSprites[linkId];
-                    if (linkToHide.selected) {
-                        nodeContainer.deselectLink(linkToHide);
-                    }
-                    linkToHide.hide();
-                });
-
-                selectionChanged();
-                hiddenStatusChanged();
-
-            },
-
-            showAll: function () {
-                isDirty = true;
-                _.each(nodeSprites, function (ns) {
-                    ns.show();
-                });
-                _.each(linkSprites, function (ls) {
-                    ls.show();
-                });
-                hiddenStatusChanged();
-            },
-            /**
-             * show nodes by ID
-             */
-            showNodesByID: function (idArray) {
-                isDirty = true;
-                _.each(idArray, function (node) {
-                    var showNode = nodeSprites[node];
-                    showNode.show();
-
-                    /**when we hide the nodes, we also hide the texture, arrow and the link.
-                     * Now we should set them visible
-                     */
-                    //console.log(showNode.outgoing.targetEntity);
-
-                    _.each(showNode.outgoing, function (link) {
-                        if (!link.visible && nodeSprites[link.data.targetEntity].visible) {
-                            link.show();
-                        }
-                    });
-
-                    _.each(showNode.incoming, function (link) {
-                        if (!link.visible && nodeSprites[link.data.sourceEntity].visible) {
-                            link.show();
-                        }
-                    });
-                });
-            },
-
-            /**
-             * set which node need boundary.
-             * when call this function, you should give me a group of ID and the attribute for this group
-             */
-            setBoundaryNeededNodes: function (idArray, boundaryAttr) {
-                isDirty = true;
-                //this part is for performance test
-                _.each(idArray, function (node) {
-                    // nodeNeedBoundary[node] = nodeSprites[node];
-                    // nodeNeedBoundary[node].boundaryAttr = boundaryAttr;
-                    let nodeSprite = nodeSprites[node];
-                    nodeSprite.boundaryAttr = boundaryAttr;
-                    if (!nodeSprite.circleBorder) {
-                        nodeSprite.circleBorder = new CircleBorderTexture(nodeSprite.boundaryAttr, visualConfig.NODE_WIDTH * 1.4 / 2);
-                        nodeSprite.circleBorder.scale.x = nodeSprite.scale.x;
-                        nodeSprite.circleBorder.scale.y = nodeSprite.scale.y;
-                        nodeSprite.circleBorder.anchor.x = 0.5;
-                        nodeSprite.circleBorder.anchor.y = 0.5;
-                        nodeSprite.circleBorder.position.x = nodeSprite.position.x;
-                        nodeSprite.circleBorder.position.y = nodeSprite.position.y;
-                        nodeSprite.circleBorder.visible = nodeSprite.visible;
-                        textContainer.addChild(nodeSprite.circleBorder);
-                    } else {
-                        nodeSprite.circleBorder.setNewStyle(nodeSprite.boundaryAttr, visualConfig.NODE_WIDTH * 1.4 / 2);
-                    }
-                });
-            },
-
-            /**
-             * delete the nodes don't need boundary.
-             * when call this function, you should give me a group of ID
-             */
-            deleteBoundaryOfNodes: function (idArray) {
-                isDirty = true;
-                _.each(idArray, function (id) {
-                    let nodeSprite = nodeSprites[id];
-                    if (nodeSprite) {
-                        if (nodeSprite.circleBorder) {
-                            textContainer.removeChild(nodeSprite.circleBorder);
-                            nodeSprite.circleBorder = null;
-                            nodeSprite.boundaryAttr = null;
-                        }
-                    }
-                });
-            },
-
-            /**
-             * Allow switching between picking and panning modes;
-             */
-            setMode: function (newMode) {
-                if (this.mode == newMode) {
-                    return;
+            });
+            // console.log(number + " nodes are hidden!!");
+            return number;
+        },
+        /**
+         * get the number of hidden lines
+         */
+        getHiddenLinesNumber: function () {
+            var number = 0;
+            _.each(linkSprites, function (l) {
+                if (l.visible == false) {
+                    number++;
                 }
-                if (this.mode == "panning") {
-                    this.mode = 'picking';
-                    stage.mode = this.mode;
-                    nodeContainer.interactive = true;
-                    nodeContainer.interactiveChildren = true;
-                    // stage.interactive = false;
-                    stage.buttonMode = false;
+            });
+            // console.log(number + " lines are hidden!!");
+            return number;
+        },
 
+        /**
+         * hide nodes by ID
+         */
+        hideSubGraph: function (nodeIdArray, linkIdArray) {
+            isDirty = true;
+            _.each(nodeIdArray, function (node) {
+                var hiddenNode = nodeSprites[node];
+                if (hiddenNode.selected) {
+                    nodeContainer.deselectNode(hiddenNode);
+                }
+
+                hiddenNode.hide();
+
+                //when we hide the nodes we should also hide the texture, arrow and the link.
+                _.each(hiddenNode.outgoing, function (olink) {
+                    if (olink.selected) {
+                        nodeContainer.deselectLink(olink);
+                    }
+                    olink.hide();
+
+                });
+                _.each(hiddenNode.incoming, function (ilink) {
+                    if (ilink.selected) {
+                        nodeContainer.deselectLink(ilink);
+                    }
+                    ilink.hide();
+                });
+            });
+
+            _.each(linkIdArray, function (linkId) {
+                var linkToHide = linkSprites[linkId];
+                if (linkToHide.selected) {
+                    nodeContainer.deselectLink(linkToHide);
+                }
+                linkToHide.hide();
+            });
+
+            selectionChanged();
+            hiddenStatusChanged();
+
+        },
+
+        showAll: function () {
+            isDirty = true;
+            _.each(nodeSprites, function (ns) {
+                ns.show();
+            });
+            _.each(linkSprites, function (ls) {
+                ls.show();
+            });
+            hiddenStatusChanged();
+        },
+        /**
+         * show nodes by ID
+         */
+        showNodesByID: function (idArray) {
+            isDirty = true;
+            _.each(idArray, function (node) {
+                var showNode = nodeSprites[node];
+                showNode.show();
+
+                /**when we hide the nodes, we also hide the texture, arrow and the link.
+                 * Now we should set them visible
+                 */
+                //console.log(showNode.outgoing.targetEntity);
+
+                _.each(showNode.outgoing, function (link) {
+                    if (!link.visible && nodeSprites[link.data.targetEntity].visible) {
+                        link.show();
+                    }
+                });
+
+                _.each(showNode.incoming, function (link) {
+                    if (!link.visible && nodeSprites[link.data.sourceEntity].visible) {
+                        link.show();
+                    }
+                });
+            });
+        },
+
+        /**
+         * set which node need boundary.
+         * when call this function, you should give me a group of ID and the attribute for this group
+         */
+        setBoundaryNeededNodes: function (idArray, boundaryAttr) {
+            isDirty = true;
+            //this part is for performance test
+            _.each(idArray, function (node) {
+                // nodeNeedBoundary[node] = nodeSprites[node];
+                // nodeNeedBoundary[node].boundaryAttr = boundaryAttr;
+                let nodeSprite = nodeSprites[node];
+                nodeSprite.boundaryAttr = boundaryAttr;
+                if (!nodeSprite.circleBorder) {
+                    nodeSprite.circleBorder = new CircleBorderTexture(nodeSprite.boundaryAttr, visualConfig.NODE_WIDTH * 1.4 / 2);
+                    nodeSprite.circleBorder.scale.x = nodeSprite.scale.x;
+                    nodeSprite.circleBorder.scale.y = nodeSprite.scale.y;
+                    nodeSprite.circleBorder.anchor.x = 0.5;
+                    nodeSprite.circleBorder.anchor.y = 0.5;
+                    nodeSprite.circleBorder.position.x = nodeSprite.position.x;
+                    nodeSprite.circleBorder.position.y = nodeSprite.position.y;
+                    nodeSprite.circleBorder.visible = nodeSprite.visible;
+                    textContainer.addChild(nodeSprite.circleBorder);
                 } else {
-                    this.mode = 'panning';
-                    // stage.interactive = true;
-                    stage.buttonMode = true;
-                    stage.mode = this.mode;
-                    nodeContainer.interactiveChildren = false;
-                    nodeContainer.interactive = false;
-
+                    nodeSprite.circleBorder.setNewStyle(nodeSprite.boundaryAttr, visualConfig.NODE_WIDTH * 1.4 / 2);
                 }
-            },
+            });
+        },
 
-            toggleMode: function () {
-                if (this.mode == 'panning') {
-                    this.setMode('picking');
-                } else {
-                    this.setMode('panning');
+        /**
+         * delete the nodes don't need boundary.
+         * when call this function, you should give me a group of ID
+         */
+        deleteBoundaryOfNodes: function (idArray) {
+            isDirty = true;
+            _.each(idArray, function (id) {
+                let nodeSprite = nodeSprites[id];
+                if (nodeSprite) {
+                    if (nodeSprite.circleBorder) {
+                        textContainer.removeChild(nodeSprite.circleBorder);
+                        nodeSprite.circleBorder = null;
+                        nodeSprite.boundaryAttr = null;
+                    }
                 }
-            },
+            });
+        },
 
-            panningMode: function () {
+        /**
+         * Allow switching between picking and panning modes;
+         */
+        setMode: function (newMode) {
+            if (this.mode == newMode) {
+                return;
+            }
+            if (this.mode == "panning") {
+                this.mode = 'picking';
+                stage.mode = this.mode;
+                nodeContainer.interactive = true;
+                nodeContainer.interactiveChildren = true;
+                // stage.interactive = false;
+                stage.buttonMode = false;
+
+            } else {
+                this.mode = 'panning';
+                // stage.interactive = true;
+                stage.buttonMode = true;
+                stage.mode = this.mode;
+                nodeContainer.interactiveChildren = false;
+                nodeContainer.interactive = false;
+
+            }
+        },
+
+        toggleMode: function () {
+            if (this.mode == 'panning') {
+                this.setMode('picking');
+            } else {
                 this.setMode('panning');
-            },
+            }
+        },
 
-            /*
-             * get selected nodes,
-             * nodes of nodeContainer are selected @SelectionManager.js
-             **/
-            getSelectedNodes: function () {
-                // return _.values(nodeContainer.selectedNodes);
-                return nodeContainer.nodes;
-            },
+        panningMode: function () {
+            this.setMode('panning');
+        },
 
-            /*
-             * get selected Links,
-             * links of nodeContainer are selected @SelectionManager.js
-             **/
+        /*
+         * get selected nodes,
+         * nodes of nodeContainer are selected @SelectionManager.js
+         **/
+        getSelectedNodes: function () {
+            // return _.values(nodeContainer.selectedNodes);
+            return nodeContainer.nodes;
+        },
 
-            getSelectedLinks: function () {
-                // return _.values(nodeContainer.selectedLinks);
-                return nodeContainer.links;
-            },
+        /*
+         * get selected Links,
+         * links of nodeContainer are selected @SelectionManager.js
+         **/
 
-            drawCircleLayout: function () {
-                isDirty = true;
-                if (stage.isTimelineLayout) {
-                    disableTimelineLayout();
-                }
-                layoutType = "Circular";
-                layout = new CircleLayout(nodeSprites, nodeContainer, visualConfig);
-                if (layoutIterationsStore == 1500) {
-                    layoutIterations = 1500;
-                }
-                this.setNodesToFullScreen();
-            },
+        getSelectedLinks: function () {
+            // return _.values(nodeContainer.selectedLinks);
+            return nodeContainer.links;
+        },
 
-            drawTreeLayout: function () {
-                isDirty = true;
-                layoutType = "Layered";
-                CWLayout(nodeSprites);
-                layout = new TreeLayout(nodeSprites, nodeContainer, visualConfig);
-                // layout = new RadiateLayout(nodeSprites, nodeContainer, visualConfig);
-                if (stage.isTimelineLayout) {
-                    disableTimelineLayout();
-                }
-                if (layoutIterationsStore == 1500) {
-                    layoutIterations = 1500;
-                }
-                this.setNodesToFullScreen();
-            },
+        drawCircleLayout: function () {
+            isDirty = true;
+            if (stage.isTimelineLayout) {
+                disableTimelineLayout();
+            }
+            layoutType = "Circular";
+            layout = new CircleLayout(nodeSprites, nodeContainer, visualConfig);
+            if (layoutIterationsStore == 1500) {
+                layoutIterations = 1500;
+            }
+            this.setNodesToFullScreen();
+        },
 
-            setActualSize: function () {
-                isDirty = true;
-                var root = this.root;
-                root.scale.x = 1;
-                root.scale.y = 1;
-                root.position.x = viewWidth / 2;
-                root.position.y = viewHeight / 2;
-                var sumx = 0;
-                var sumy = 0;
-                var count = 0;
-                _.each(nodeSprites, function (n) {
-                    sumx += n.position.x;
-                    sumy += n.position.y;
-                    count++;
-                });
-                if (count != 0) {
-                    sumx = sumx / count;
-                    sumy = sumy / count;
-                }
-                _.each(nodeSprites, function (n) {
-                    n.position.x = n.position.x - sumx + 0
-                    n.position.y = n.position.y - sumy + 0;
-                    n.updateNodePosition(n.position);
-                    layout.setNodePosition(n.id, n.position.x, n.position.y);
-                });
-            },
+        drawTreeLayout: function () {
+            isDirty = true;
+            layoutType = "Layered";
+            //CWLayout(nodeSprites);
+            layout = new TreeLayout(nodeSprites, nodeContainer, visualConfig);
+            // layout = new RadiateLayout(nodeSprites, nodeContainer, visualConfig);
+            if (stage.isTimelineLayout) {
+                disableTimelineLayout();
+            }
+            if (layoutIterationsStore == 1500) {
+                layoutIterations = 1500;
+            }
+            this.setNodesToFullScreen();
+        },
 
-            calculateRootPositionToCenterGraphLayout: function () {
-                isDirty = true;
-                let root = this.root;
-                let graphRect = layout.getGraphRect();
-                // console.info("Graph rect", graphRect);
-                // console.info("Graph rect size", {
-                //     x: graphRect.x2 - graphRect.x1,
-                //     y: graphRect.y2 - graphRect.y1,
-                // });
-                // console.info("View port", {x: viewWidth, y: viewHeight});
-                if (!graphRect) {
-                    console.error("No valid graph rectangle available from layout algorithm");
-                    return null;
+        setActualSize: function () {
+            isDirty = true;
+            var root = this.root;
+            root.scale.x = 1;
+            root.scale.y = 1;
+            root.position.x = viewWidth / 2;
+            root.position.y = viewHeight / 2;
+            var sumx = 0;
+            var sumy = 0;
+            var count = 0;
+            _.each(nodeSprites, function (n) {
+                sumx += n.position.x;
+                sumy += n.position.y;
+                count++;
+            });
+            if (count != 0) {
+                sumx = sumx / count;
+                sumy = sumy / count;
+            }
+            _.each(nodeSprites, function (n) {
+                n.position.x = n.position.x - sumx + 0
+                n.position.y = n.position.y - sumy + 0;
+                n.updateNodePosition(n.position);
+                layout.setNodePosition(n.id, n.position.x, n.position.y);
+            });
+        },
+
+        calculateRootPositionToCenterGraphLayout: function () {
+            isDirty = true;
+            let root = this.root;
+            let graphRect = layout.getGraphRect();
+            // console.info("Graph rect", graphRect);
+            // console.info("Graph rect size", {
+            //     x: graphRect.x2 - graphRect.x1,
+            //     y: graphRect.y2 - graphRect.y1,
+            // });
+            // console.info("View port", {x: viewWidth, y: viewHeight});
+            if (!graphRect) {
+                console.error("No valid graph rectangle available from layout algorithm");
+                return null;
+            }
+            let targetRectWidth = viewWidth * 0.8,
+                targetRectHeight = viewHeight * 0.65;
+            // console.info("Target rectange to place graph", {x: targetRectWidth, y: targetRectHeight});
+            let rootWidth = Math.abs(graphRect.x2 - graphRect.x1),
+                rootHeight = Math.abs(graphRect.y1 - graphRect.y2);
+            let scaleX = targetRectWidth / rootWidth,
+                scaleY = targetRectHeight / rootHeight;
+            // the actuall scale that should be applied to root so that it will fit into the target rectangle
+            let scale = Math.min(scaleX, scaleY, visualConfig.MAX_ADJUST);
+            let graphCenterInStage = {
+                //(graphRect.x1 + rootWidth / 2 ) 是contentRoot坐标系，转换到stage的坐标系时需要进行scale处理， 下同
+                x: (graphRect.x1 + rootWidth / 2 ) * scale + root.position.x,
+                y: (graphRect.y1 + rootHeight / 2 ) * scale + root.position.y
+            };
+            // console.log("Graph center in content root", {
+            //     x: graphRect.x1 + rootWidth / 2,
+            //     y: graphRect.y1 + rootHeight / 2
+            // });
+            // console.log("Graph center in stage", graphCenterInStage);
+            // console.log("Root position", {
+            //     x: root.position.x,
+            //     y: root.position.y
+            // });
+            let rootPositionTransform = {
+                x: viewWidth / 2 - graphCenterInStage.x,
+                y: viewHeight / 2 - graphCenterInStage.y
+            }
+            // console.log("Root transform", rootPositionTransform);
+            return {
+                scale: {
+                    x: scale,
+                    y: scale
+                },
+                position: {
+                    x: root.position.x + rootPositionTransform.x,
+                    y: root.position.y + rootPositionTransform.y
                 }
-                let targetRectWidth = viewWidth * 0.8,
-                    targetRectHeight = viewHeight * 0.65;
-                // console.info("Target rectange to place graph", {x: targetRectWidth, y: targetRectHeight});
-                let rootWidth = Math.abs(graphRect.x2 - graphRect.x1),
-                    rootHeight = Math.abs(graphRect.y1 - graphRect.y2);
-                let scaleX = targetRectWidth / rootWidth,
-                    scaleY = targetRectHeight / rootHeight;
-                // the actuall scale that should be applied to root so that it will fit into the target rectangle
-                let scale = Math.min(scaleX, scaleY, visualConfig.MAX_ADJUST);
-                let graphCenterInStage = {
-                    //(graphRect.x1 + rootWidth / 2 ) 是contentRoot坐标系，转换到stage的坐标系时需要进行scale处理， 下同
-                    x: (graphRect.x1 + rootWidth / 2 ) * scale + root.position.x,
-                    y: (graphRect.y1 + rootHeight / 2 ) * scale + root.position.y
-                };
-                // console.log("Graph center in content root", {
-                //     x: graphRect.x1 + rootWidth / 2,
-                //     y: graphRect.y1 + rootHeight / 2
-                // });
-                // console.log("Graph center in stage", graphCenterInStage);
-                // console.log("Root position", {
-                //     x: root.position.x,
-                //     y: root.position.y
-                // });
-                let rootPositionTransform = {
-                    x: viewWidth / 2 - graphCenterInStage.x,
-                    y: viewHeight / 2 - graphCenterInStage.y
-                }
-                // console.log("Root transform", rootPositionTransform);
-                return {
-                    scale: {
-                        x: scale,
-                        y: scale
-                    },
-                    position: {
-                        x: root.position.x + rootPositionTransform.x,
-                        y: root.position.y + rootPositionTransform.y
-                    }
-                }
-            },
-            setNodesToFullScreen: function () {
-                let rootPlacement = this.calculateRootPositionToCenterGraphLayout();
-                if (rootPlacement) {
-                    // console.log("Root target position: ", rootPlacement.position);
-                    // console.log("Root target scale: ", rootPlacement.scale);
-                    root.scale.x = rootPlacement.scale.x;
-                    root.scale.y = rootPlacement.scale.y;
-                    animationAgent.move(root, rootPlacement.position);
+            }
+        },
+        setNodesToFullScreen: function () {
+            let rootPlacement = this.calculateRootPositionToCenterGraphLayout();
+            if (rootPlacement) {
+                // console.log("Root target position: ", rootPlacement.position);
+                // console.log("Root target scale: ", rootPlacement.scale);
+                root.scale.x = rootPlacement.scale.x;
+                root.scale.y = rootPlacement.scale.y;
+                animationAgent.move(root, rootPlacement.position);
+            } else {
+                console.error("Center graph action not supported in current layout.");
+            }
+        },
+        setSelectedNodesToFullScreen: function () {
+            isDirty = true;
+            var root = this.root;
+            var x1 = -1000000,
+                y1, x2, y2;
+            var sumx = 0;
+            var sumy = 0;
+            var count = 0;
+            _.each(nodeContainer.selectedNodes, function (n) {
+                sumx += n.position.x;
+                sumy += n.position.y;
+                count++;
+                if (x1 == -1000000) {
+                    x1 = n.position.x;
+                    y1 = n.position.y;
+                    x2 = n.position.x;
+                    y2 = n.position.y;
                 } else {
-                    console.error("Center graph action not supported in current layout.");
-                }
-            },
-            setSelectedNodesToFullScreen: function () {
-                isDirty = true;
-                var root = this.root;
-                var x1 = -1000000,
-                    y1, x2, y2;
-                var sumx = 0;
-                var sumy = 0;
-                var count = 0;
-                _.each(nodeContainer.selectedNodes, function (n) {
-                    sumx += n.position.x;
-                    sumy += n.position.y;
-                    count++;
-                    if (x1 == -1000000) {
+                    if (n.position.x < x1) {
                         x1 = n.position.x;
-                        y1 = n.position.y;
+                    }
+                    if (n.position.x > x2) {
                         x2 = n.position.x;
+                    }
+                    if (n.position.y > y1) {
+                        y1 = n.position.y;
+                    }
+                    if (n.position.y < y2) {
                         y2 = n.position.y;
-                    } else {
-                        if (n.position.x < x1) {
-                            x1 = n.position.x;
-                        }
-                        if (n.position.x > x2) {
-                            x2 = n.position.x;
-                        }
-                        if (n.position.y > y1) {
-                            y1 = n.position.y;
-                        }
-                        if (n.position.y < y2) {
-                            y2 = n.position.y;
-                        }
                     }
-                });
+                }
+            });
 
-                if (count != 0) {
-                    sumx = sumx / count;
-                    sumy = sumy / count;
+            if (count != 0) {
+                sumx = sumx / count;
+                sumy = sumy / count;
+            } else {
+                console.log("no nodes selected!");
+                return;
+            }
+            let rootWidth = Math.abs(x2 - x1),
+                rootHeight = Math.abs(y1 - y2);
+            var xScale;
+            var yScale;
+            xScale = visualConfig.MAX_ADJUST;
+            yScale = visualConfig.MAX_ADJUST;
+            if (rootHeight != 0) {
+
+                var border;
+                if (viewHeight / rootHeight > 10) {
+                    border = 500;
                 } else {
-                    console.log("no nodes selected!");
-                    return;
+                    border = (viewHeight / rootHeight) * 50;
                 }
-                let rootWidth = Math.abs(x2 - x1),
-                    rootHeight = Math.abs(y1 - y2);
-                var xScale;
-                var yScale;
-                xScale = visualConfig.MAX_ADJUST;
-                yScale = visualConfig.MAX_ADJUST;
-                if (rootHeight != 0) {
-
-                    var border;
-                    if (viewHeight / rootHeight > 10) {
-                        border = 500;
-                    } else {
-                        border = (viewHeight / rootHeight) * 50;
-                    }
-                    yScale = (viewHeight - border) / rootHeight;
-                }
-                if (rootWidth != 0) {
-                    var border0;
-                    if (viewWidth / rootWidth > 10) {
-                        border0 = 350;
-                    } else {
-                        border0 = (viewWidth / rootWidth) * 35;
-                    }
-                    xScale = (viewWidth - border0) / rootWidth;
-                }
-
-                if (xScale > yScale && yScale < visualConfig.MAX_ADJUST) {
-                    root.scale.x = yScale * 0.8;
-                    root.scale.y = yScale * 0.8;
-                } else if (yScale >= xScale && xScale < visualConfig.MAX_ADJUST) {
-                    root.scale.x = xScale * 0.8;
-                    root.scale.y = xScale * 0.8;
+                yScale = (viewHeight - border) / rootHeight;
+            }
+            if (rootWidth != 0) {
+                var border0;
+                if (viewWidth / rootWidth > 10) {
+                    border0 = 350;
                 } else {
-                    root.scale.x = visualConfig.MAX_ADJUST * 0.8;
-                    root.scale.y = visualConfig.MAX_ADJUST * 0.8;
-
+                    border0 = (viewWidth / rootWidth) * 35;
                 }
+                xScale = (viewWidth - border0) / rootWidth;
+            }
 
-                root.position.x = viewWidth / 2;
-                root.position.y = viewHeight / 2;
+            if (xScale > yScale && yScale < visualConfig.MAX_ADJUST) {
+                root.scale.x = yScale * 0.8;
+                root.scale.y = yScale * 0.8;
+            } else if (yScale >= xScale && xScale < visualConfig.MAX_ADJUST) {
+                root.scale.x = xScale * 0.8;
+                root.scale.y = xScale * 0.8;
+            } else {
+                root.scale.x = visualConfig.MAX_ADJUST * 0.8;
+                root.scale.y = visualConfig.MAX_ADJUST * 0.8;
 
-                _.each(nodeSprites, function (n) {
-                    n.position.x = n.position.x - sumx;
-                    n.position.y = n.position.y - sumy;
-                    n.updateNodePosition(n.position);
-                    layout.setNodePosition(n.id, n.position.x, n.position.y);
-                });
-            },
+            }
 
-            /**
-             * [Read only] Current layout algorithm. If you want to pass custom layout
-             * algorithm, do it via `settings` argument of ngraph.pixi.
-             */
-            layout: layout,
-            getLayoutType: function () {
-                return layoutType;
-            },
-            nodeContainer: nodeContainer,
-            root: root,
-            stage: stage,
-            lineContainer: lineContainer,
-            mode: mode,
-            counter: counter,
+            root.position.x = viewWidth / 2;
+            root.position.y = viewHeight / 2;
 
-            unSelectSubGraph: function (nodeIdArray, linkIdArray) {
-                isDirty = true;
-                if (nodeIdArray) {
-                    _.each(nodeIdArray, function (nodeId) {
-                        var nodeSprite = nodeSprites[nodeId];
-                        if (nodeSprite.selected) {
-                            nodeContainer.deselectNode(nodeSprite);
-                        }
-                    })
-                }
-                if (linkIdArray) {
-                    _.each(linkSprites, function (linkSprite, lid) {
-                        var actualId = linkSprite.id;
-                        if (_.indexOf(linkIdArray, actualId) >= 0) {
-                            nodeContainer.deselectLink(linkSprite);
-                        }
-                    });
-                }
-            },
+            _.each(nodeSprites, function (n) {
+                n.position.x = n.position.x - sumx;
+                n.position.y = n.position.y - sumy;
+                n.updateNodePosition(n.position);
+                layout.setNodePosition(n.id, n.position.x, n.position.y);
+            });
+        },
 
-            selectSubGraph: function (nodeIdArray, linkIdArray) {
-                isDirty = true;
-                if (nodeIdArray) {
-                    _.each(nodeIdArray, function (nodeId) {
-                        var nodeSprite = nodeSprites[nodeId];
-                        if (nodeSprite) {
-                            nodeContainer.selectNode(nodeSprite);
-                            // _.each(nodeSprite.outgoing, function(linkSprite) {
-                            //     if (linkIdArray.indexOf(linkSprite.id) >= 0) {
-                            //         nodeContainer.selectLink(linkSprite);
-                            //     }
-                            // });
-                        }
-                    });
-                }
+        /**
+         * [Read only] Current layout algorithm. If you want to pass custom layout
+         * algorithm, do it via `settings` argument of ngraph.pixi.
+         */
+        layout: layout,
+        getLayoutType: function () {
+            return layoutType;
+        },
+        nodeContainer: nodeContainer,
+        root: root,
+        stage: stage,
+        lineContainer: lineContainer,
+        mode: mode,
+        counter: counter,
+
+        unSelectSubGraph: function (nodeIdArray, linkIdArray) {
+            isDirty = true;
+            if (nodeIdArray) {
+                _.each(nodeIdArray, function (nodeId) {
+                    var nodeSprite = nodeSprites[nodeId];
+                    if (nodeSprite.selected) {
+                        nodeContainer.deselectNode(nodeSprite);
+                    }
+                })
+            }
+            if (linkIdArray) {
                 _.each(linkSprites, function (linkSprite, lid) {
                     var actualId = linkSprite.id;
                     if (_.indexOf(linkIdArray, actualId) >= 0) {
-                        nodeContainer.selectLink(linkSprite);
+                        nodeContainer.deselectLink(linkSprite);
                     }
                 });
-                selectionChanged();
-            },
+            }
+        },
 
-            clearSelection: function () {
-                isDirty = true;
-                nodeContainer.deselectAll();
-                selectionChanged();
-            },
-
-            selectLinks: function (linkIdArray) {
-                isDirty = true;
-                // _.each(linkSprites, function(linkSprite,lid){
-                //     var actualId = linkSprite.data.data.id
-                //     if( _.indexOf(linkIdArray, actualId) >=0){
-                //         nodeContainer.selectLink(linkSprite);
-                //     }
-                // });
-            },
-
-            selectLinksFromNodes: function (startingNodes, direction, alsoSelectNodes) {
-                isDirty = true;
-                _.each(startingNodes, function (n) {
-                    if (direction === "both" || direction == "in") {
-                        _.each(n.incoming, function (l) {
-                            if (l.visible) {
-                                nodeContainer.selectLink(l);
-                                if (alsoSelectNodes && nodeSprites[l.data.sourceEntity].visible) {
-                                    nodeContainer.selectNode(nodeSprites[l.data.sourceEntity]);
-                                }
-                            }
-                        });
-                    }
-                    if (direction === "both" || direction == "out") {
-                        _.each(n.outgoing, function (l) {
-                            if (l.visible) {
-                                nodeContainer.selectLink(l);
-                                if (alsoSelectNodes && nodeSprites[l.data.targetEntity].visible) {
-                                    nodeContainer.selectNode(nodeSprites[l.data.targetEntity]);
-                                }
-                            }
-                        });
-                    }
-                });
-                selectionChanged();
-            },
-
-            selectNodesOfLinks: function (selectedLinks) {
-                isDirty = true;
-                _.each(selectedLinks, function (l) {
-                    var d = l.data;
-                    var srcNode = nodeSprites[d.sourceEntity];
-                    var tgtNode = nodeSprites[d.targetEntity];
-                    if (srcNode) {
-                        nodeContainer.selectNode(srcNode);
-                    }
-                    if (tgtNode) {
-                        nodeContainer.selectNode(tgtNode);
-                    }
-                });
-                selectionChanged();
-            },
-
-            selectAll: function () {
-                isDirty = true;
-                _.each(linkSprites, function (l) {
-                    if (l.visible) {
-                        nodeContainer.selectLink(l);
-                    }
-                });
-                _.each(nodeSprites, function (n) {
-                    if (n.visible) {
-                        nodeContainer.selectNode(n);
-                    }
-                });
-                selectionChanged();
-            },
-
-            selectReverseSelection: function () {
-                isDirty = true;
-                _.each(linkSprites, function (l) {
-                    if (l.selected || l.visible == false) {
-                        nodeContainer.deselectLink(l);
-                    } else {
-                        nodeContainer.selectLink(l);
-                    }
-
-                });
-                _.each(nodeSprites, function (n) {
-                    if (n.selected || n.visible == false) {
-                        nodeContainer.deselectNode(n)
-                    } else {
-                        nodeContainer.selectNode(n);
-                    }
-                });
-                selectionChanged();
-            },
-
-            hideSelectedLinks: function () {
-                isDirty = true;
-                _.each(nodeContainer.links, function (link) {
-                    link.hide();
-                });
-            },
-
-            zoomIn: function () {
-                isDirty = true;
-                var x = viewWidth / 2;
-                var y = viewHeight / 2;
-                zoom(x, y, true, root, visualConfig);
-            },
-
-            zoomOut: function () {
-                isDirty = true;
-                var x = viewWidth / 2;
-                var y = viewHeight / 2;
-                zoom(x, y, false, root, visualConfig);
-            },
-
-            zoom: function (x, y, zoomingIn) {
-                isDirty = true;
-                if (stage.isTimelineLayout) {
-                    if (zoomingIn) {
-                        zoomTimeline(-0.1);
-                    } else {
-                        zoomTimeline(0.1);
-                    }
-                } else {
-                    zoom(x, y, zoomingIn, root, visualConfig);
-                }
-            },
-
-            drawTimelineLayout: function (leftSpacing) {
-                isDirty = true;
-                layoutIterations = 0;
-                layoutType = "TimelineScale";
-                var timelineItems = [];
-                var now = moment().format('YYYY-MM-DDTHH:mm:ss');
-                _.each(linkSprites, function (l) {
-                    if (!l.visible) {
-                        return;
-                    }
-                    timelineItems.push({
-                        id: l.data.id,
-                        content: l.data.label,
-                        start: l.data.datetime || now,
-                        // type: 'point'
-                    });
-                });
-                if (!timeline) {
-                    var container = document.getElementById(settings.timelineContainer);
-                    if (!container) {
-                        throw "时间标尺容器未指定";
-                    }
-                    var items = new vis.DataSet(timelineItems);
-                    var options = {
-                        height: "100px",
-                        locales: {
-                            "zh-cn": {
-                                current: 'current',
-                                time: 'time',
-                            }
-                        },
-                        stack: false,
-                        locale: 'zh-cn',
-                        zoomMin: 1000 * 60 * 15,
-                        moveable: false,
-                        zoomable: false,
-                        showCurrentTime: false
-                        // throttleRedraw: 100
-                    };
-                    // Create a Timeline
-                    timeline = new vis.Timeline(container, items, options);
-                    timelineWindow = timeline.getWindow();
-                    var interval = timelineWindow.end - timelineWindow.start;
-                    timelineWidth = $("#" + settings.timelineContainer).width();
-                    msPerPix = Math.floor(interval / timelineWidth);
-                }
-
-                root.scale.x = 1;
-                root.scale.y = 1;
-                root.position.x = 0;
-                root.position.y = 120; // 与时间标尺高度保持一致
-                root.scalable = false;
-                var posX = 50, // local position in root;
-                    posY = 50; //starting point to layout nodes.
-                var iconSize = visualConfig.NODE_WIDTH,
-                    marginY = 30;
-                _.each(nodeSprites, function (ns) {
-                    ns.updateNodePosition({
-                        x: posX,
-                        y: posY
-                    });
-                    ns.timelineMode = true;
-                    // layout.setNodePosition(ns.id, posX, posY);
-                    posY += (iconSize + marginY);
-                });
-                // var sortedLinkSprites = sortLinksByDateTime();
-                var timelineStartMs = timelineWindow.start.valueOf();
-                originSpotTime = timelineStartMs;
-                var minX = 10000;
-                positionLinksByTime(linkSprites, timelineStartMs);
-                var nodeX = -40;
-                _.each(nodeSprites, function (ns) {
-                    ns.updateNodePosition({
-                        x: nodeX,
-                        y: ns.position.y
-                    });
-                });
-                // if nodeX is too much left, try to move it to center
-                stage.isTimelineLayout = true;
-                root.position.x = leftSpacing || visualConfig.timelineLayout['margin-left'] + 60;
-                stage.contentRootMoved();
-            },
-
-            destroy: function () {
-                destroyed = true;
-                isDirty = false;
-                document.removeEventListener('mousedown',this._mouseDownListener);
-                document.removeEventListener('keydown', this._keyDownListener);
-                removeWheelListener(canvas, this._zoomActionListener);
-                graph.off('changed', onGraphChanged);
-                animationAgent.destroy();
-                _.each(nodeSprites, function (ns) {
-                    ns.destroy();
-                });
-                _.each(linkSprites, function (ls) {
-                    ls.destroy();
-                });
-                nodeSprites = null;
-                linkSprites = null;
-                layout = null;
-                networkLayout = null;
-                animationAgent = null;
-                graphData = null;
-                graphEntityTypes = null;
-                graphLinkTypes = null;
-                graphEntities = null;
-                graphLinks = null;
-
-                stage.destroy(false);   // false to not let pixi containers destroy sprites.
-                renderer.destroy(true); // true for removing the underlying view(canvas)
-            },
-            removeAllLinks: function () {
-                isDirty = true;
-                _.each(nodeSprites, function (n) {
-                    n.incoming = [];
-                    n.outgoing = [];
-                });
-                _.each(linkSprites, function (l) {
-                    if (l.selected) {
-                        nodeContainer.deselectLink(l);
-                    }
-                    if (l.label) {
-                        lineContainer.removeChild(l.label);
-                    }
-                    if (l.arrow) {
-                        lineContainer.removeChild(l.arrow);
-                    }
-                    delete linkSprites[l.id];
-                });
-            },
-
-            resetStyle: function (entities, links) {
-                isDirty = true;
-                if (!entities && !links) {
-                    entities = nodeSprites;
-                    links = linkSprites;
-                }
-                _.each(entities, function (entity) {
-                    let nodeSprite = nodeSprites[entity] || nodeSprites[entity.id];
+        selectSubGraph: function (nodeIdArray, linkIdArray) {
+            isDirty = true;
+            if (nodeIdArray) {
+                _.each(nodeIdArray, function (nodeId) {
+                    var nodeSprite = nodeSprites[nodeId];
                     if (nodeSprite) {
-                        zoomNodesById([nodeSprite.id], 1)
-                        if (nodeSprite.circleBorder) {
-                            textContainer.removeChild(nodeSprite.circleBorder);
-                            nodeSprite.circleBorder = null;
-                            nodeSprite.boundaryAttr = null;
-                        }
+                        nodeContainer.selectNode(nodeSprite);
+                        // _.each(nodeSprite.outgoing, function(linkSprite) {
+                        //     if (linkIdArray.indexOf(linkSprite.id) >= 0) {
+                        //         nodeContainer.selectLink(linkSprite);
+                        //     }
+                        // });
                     }
                 });
-
-                _.each(links, function (link) {
-                    let linkSprite = linkSprites[link] || linkSprites[link.id];
-                    if (linkSprite) {
-                        linkSprite.thickness = visualConfig.ui.line.width;
-                        linkSprite.color = visualConfig.ui.line.color;
-                    }
-                });
-            },
-
-            setLayoutType: function (layoutTypeStr) {
-                console.info("Setting layout type to ", layoutTypeStr);
-                layoutType = layoutTypeStr || 'Network';
-                if (layoutType != 'Network' && layoutType != 'Circular' && layoutType != 'Layered' && layoutType != 'TimelineScale') {
-                    layoutType = 'Network';
+            }
+            _.each(linkSprites, function (linkSprite, lid) {
+                var actualId = linkSprite.id;
+                if (_.indexOf(linkIdArray, actualId) >= 0) {
+                    nodeContainer.selectLink(linkSprite);
                 }
-                if (layoutType === "Network") {
-                    layout = networkLayout;
-                    _.each(nodeSprites, function (nodeSprite, nodeId) {
-                        layout.setNodePosition(nodeId, nodeSprite.position.x, nodeSprite.position.y);
+            });
+            selectionChanged();
+        },
+
+        clearSelection: function () {
+            isDirty = true;
+            nodeContainer.deselectAll();
+            selectionChanged();
+        },
+
+        selectLinks: function (linkIdArray) {
+            isDirty = true;
+            // _.each(linkSprites, function(linkSprite,lid){
+            //     var actualId = linkSprite.data.data.id
+            //     if( _.indexOf(linkIdArray, actualId) >=0){
+            //         nodeContainer.selectLink(linkSprite);
+            //     }
+            // });
+        },
+
+        selectLinksFromNodes: function (startingNodes, direction, alsoSelectNodes) {
+            isDirty = true;
+            _.each(startingNodes, function (n) {
+                if (direction === "both" || direction == "in") {
+                    _.each(n.incoming, function (l) {
+                        if (l.visible) {
+                            nodeContainer.selectLink(l);
+                            if (alsoSelectNodes && nodeSprites[l.data.sourceEntity].visible) {
+                                nodeContainer.selectNode(nodeSprites[l.data.sourceEntity]);
+                            }
+                        }
                     });
                 }
-            },
+                if (direction === "both" || direction == "out") {
+                    _.each(n.outgoing, function (l) {
+                        if (l.visible) {
+                            nodeContainer.selectLink(l);
+                            if (alsoSelectNodes && nodeSprites[l.data.targetEntity].visible) {
+                                nodeContainer.selectNode(nodeSprites[l.data.targetEntity]);
+                            }
+                        }
+                    });
+                }
+            });
+            selectionChanged();
+        },
 
-            setTwoNodeLayoutInXDireaction: function (nodeIDArray) {
-                if (nodeSprites.length === 0) {
+        selectNodesOfLinks: function (selectedLinks) {
+            isDirty = true;
+            _.each(selectedLinks, function (l) {
+                var d = l.data;
+                var srcNode = nodeSprites[d.sourceEntity];
+                var tgtNode = nodeSprites[d.targetEntity];
+                if (srcNode) {
+                    nodeContainer.selectNode(srcNode);
+                }
+                if (tgtNode) {
+                    nodeContainer.selectNode(tgtNode);
+                }
+            });
+            selectionChanged();
+        },
+
+        selectAll: function () {
+            isDirty = true;
+            _.each(linkSprites, function (l) {
+                if (l.visible) {
+                    nodeContainer.selectLink(l);
+                }
+            });
+            _.each(nodeSprites, function (n) {
+                if (n.visible) {
+                    nodeContainer.selectNode(n);
+                }
+            });
+            selectionChanged();
+        },
+
+        selectReverseSelection: function () {
+            isDirty = true;
+            _.each(linkSprites, function (l) {
+                if (l.selected || l.visible == false) {
+                    nodeContainer.deselectLink(l);
+                } else {
+                    nodeContainer.selectLink(l);
+                }
+
+            });
+            _.each(nodeSprites, function (n) {
+                if (n.selected || n.visible == false) {
+                    nodeContainer.deselectNode(n)
+                } else {
+                    nodeContainer.selectNode(n);
+                }
+            });
+            selectionChanged();
+        },
+
+        hideSelectedLinks: function () {
+            isDirty = true;
+            _.each(nodeContainer.links, function (link) {
+                link.hide();
+            });
+        },
+
+        zoomIn: function () {
+            isDirty = true;
+            var x = viewWidth / 2;
+            var y = viewHeight / 2;
+            zoom(x, y, true, root, visualConfig);
+        },
+
+        zoomOut: function () {
+            isDirty = true;
+            var x = viewWidth / 2;
+            var y = viewHeight / 2;
+            zoom(x, y, false, root, visualConfig);
+        },
+
+        zoom: function (x, y, zoomingIn) {
+            isDirty = true;
+            if (stage.isTimelineLayout) {
+                if (zoomingIn) {
+                    zoomTimeline(-0.1);
+                } else {
+                    zoomTimeline(0.1);
+                }
+            } else {
+                zoom(x, y, zoomingIn, root, visualConfig);
+            }
+        },
+
+        drawTimelineLayout: function (leftSpacing) {
+            isDirty = true;
+            layoutIterations = 0;
+            layoutType = "TimelineScale";
+            var timelineItems = [];
+            var now = moment().format('YYYY-MM-DDTHH:mm:ss');
+            _.each(linkSprites, function (l) {
+                if (!l.visible) {
                     return;
                 }
-                let renderer = this;
-                let nodeMarginX = viewWidth / (_.keys(nodeSprites).length + 1);
-                let currentX = 0;
-                _.each(nodeSprites, function (nodeSprite, nodeId) {
-                    renderer.setNodePosition(nodeId, currentX, 0);
-                    nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
-                    currentX += nodeMarginX;
+                timelineItems.push({
+                    id: l.data.id,
+                    content: l.data.label,
+                    start: l.data.datetime || now,
+                    // type: 'point'
                 });
-            },
-            pauseAnimation: function () {
-                visualConfig.LAYOUT_ANIMATION = !visualConfig.LAYOUT_ANIMATION;
-                if (!visualConfig.LAYOUT_ANIMATION) {
-                    layoutIterationsStore = layoutIterations;
-                    layoutIterations = -1;
-                } else {
-                    layoutIterations = layoutIterationsStore;
-                    this.performLayout();
+            });
+            if (!timeline) {
+                var container = document.getElementById(settings.timelineContainer);
+                if (!container) {
+                    throw "时间标尺容器未指定";
                 }
-            },
-            performLayout: function () {
-                if (layoutType == 'Network') {
-
-                    if (stage.isTimelineLayout) {
-                        disableTimelineLayout();
-                    }
-                    if (layoutIterationsStore == 1500) {
-                        layoutIterations = 1500;
-                    }
-                    if (!visualConfig.LAYOUT_ANIMATION) {
-                        while (layoutIterations > 0) {
-                            layout.step();
-                            layoutIterations -= 1;
+                var items = new vis.DataSet(timelineItems);
+                var options = {
+                    height: "100px",
+                    locales: {
+                        "zh-cn": {
+                            current: 'current',
+                            time: 'time',
                         }
-                        _.each(nodeSprites, function (nodeSprite, nodeId) {
-                            nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
-                        });
-                    }
-                    layout.step();
-                    this.setNodesToFullScreen();
-                } else if (layoutType == 'Circular') {
-                    this.drawCircleLayout();
-                } else if (layoutType == 'Layered') {
-                    this.drawTreeLayout();
-                } else if (layoutType == 'TimelineScale') {
-                    this.drawTimelineLayout();
-                } else {
-                    return false;
-                }
-                isDirty = true;
-            },
-
-            getGraph: function () {
-                return graph;
-            },
-
-            getLayout: function () {
-                return layout;
-            },
-            getNodesCount: function () {
-                return graph.getNodesCount();
-            },
-            getLinksCount: function () {
-                return graph.getLinksCount();
-            },
-            getNode: function (nodeId) {
-                return graph.getNode(nodeId);
-            },
-            removeNode: function (nodeId) {
-                return graph.removeNode(nodeId);
-            },
-            removeLink: function (link) {
-                return graph.removeLink(link);
-            },
-            forEachNode: function (func) {
-                return graph.forEachNode(func);
-            },
-            forEachLink: function (func) {
-                return graph.forEachLink(func);
-            },
-            beginUpdate: function () {
-                return graph.beginUpdate();
-            },
-            endUpdate: function () {
-                return graph.endUpdate();
-            },
-            addNode: function (nodeId, data) {
-                return graph.addNode(nodeId, data);
-            },
-            updateNode: function (nodeId, data) {
-                return graph.addNode(nodeId, data);
-            },
-            addLink: function (fromId, toId, data) {
-                return graph.addLink(fromId, toId, data);
-            },
-            clearGraph: function () {
-                graph.beginUpdate();
-                graph.clear();
-                graph.endUpdate();
-            },
-
-            disposeLayout: function () {
-                layout.dispose();
-            },
-
-            setNodePosition: function (nodeId, x, y, z) {
-                layout.setNodePosition(nodeId, x, y, z);
-            },
-            getNodePosition: function (nodeId) {
-                return layout.getNodePosition(nodeId);
-            },
-            setGraphType: function (gType) {
-                graphType = gType;
-            },
-            getGraphType: function () {
-                return graphType;
-            },
-            setGraphData: function (gData) {
-                graphData = gData;
-            },
-            getGraphData: function () {
-                return graphData;
-            },
-            getGraphEntities: function () {
-                return graphEntities;
-            },
-            setGraphEntities: function (gEntities) {
-                graphEntities = gEntities;
-            },
-            getGraphLinks: function () {
-                return graphLinks;
-            },
-            setGraphLinks: function (gLinks) {
-                graphLinks = gLinks;
-            },
-            getGraphLinkTypes: function () {
-                return graphLinkTypes;
-            },
-            getGraphEntityTypes: function () {
-                return graphEntityTypes;
-            },
-
-            fillGraphData: function (gData) {
-                if (!graphType) {
-                    console.log("please call setGraphType");
-                }
-
-                graph.beginUpdate();
-
-                _.each(gData.entities, function (p) {
-                    if (!_.has(graphEntities, p.id)) {
-                        graph.addNode(p.id, p);
-                        graphEntities[p.id] = p;
-                        graphEntityTypes[p.type] = 1;
-                    }
-                });
-                _.each(gData.links, function (f) {
-                    if (!_.has(graphLinks, f.id)) {
-                        graph.addLink(f.sourceEntity, f.targetEntity, f);
-                        graphLinks[f.id] = f;
-                        graphLinkTypes[f.type] = 1;
-                    }
-                });
-
-                graph.endUpdate();
-            },
-
-            getEntitySemanticType: function (nodeUuid) {
-                let type;
-                _.each(graphType.entityTypes, function (f) {
-                    if (f.uuid == nodeUuid) {
-                        type = f.iconUrl;
-                    }
-                });
-                return type;
-            },
-
-            getLinkSemanticType: function (linkUuid) {
-                let type;
-                _.each(graphType.linkTypes, function (f) {
-                    if (f.uuid == linkUuid) {
-                        type = f.semanticType;
-                    }
-                });
-                return type;
-            },
-
-            getEntityType: function (nodeUuid) {
-                var type;
-                _.each(graphType.entityTypes, function (f) {
-                    if (f.uuid == nodeUuid) {
-                        type = f;
-                    }
-                });
-                return type;
-            },
-
-            getLinkType: function (linkUuid) {
-                var type;
-                _.each(graphType.linkTypes, function (f) {
-                    if (f.uuid == linkUuid) {
-                        type = f;
-                    }
-                });
-                return type;
-            },
-
-            onGraphChanged: function (func) {
-                graph.on('changed', func);
-            },
-
-            addCanvasEventListener: function (eventName, func, state) {
-                canvas.addEventListener(eventName, func, state);
-            },
-
-            modifyNodeLabel: function (nodeLabelsObj) {
-                for (let nodeId in nodeLabelsObj) {
-                    let nodeSprite = nodeSprites[nodeId];
-                    nodeSprite.ts.text = nodeLabelsObj[nodeId];
-                }
-            },
-
-            removeNodes: function (nodeIds) {
-                for (let nodeId of nodeIds) {
-                    graph.removeNode(nodeId);
-                }
-            },
-
-            removeLinks: function (links) {
-                for (let link of links) {
-                    graph.removeLink(link);
-                }
-            },
-            // convert the canvas drawing buffer into base64 encoded image url
-            exportImage: function () {
-                return renderer.view.toDataURL('image/png');
+                    },
+                    stack: false,
+                    locale: 'zh-cn',
+                    zoomMin: 1000 * 60 * 15,
+                    moveable: false,
+                    zoomable: false,
+                    showCurrentTime: false
+                    // throttleRedraw: 100
+                };
+                // Create a Timeline
+                timeline = new vis.Timeline(container, items, options);
+                timelineWindow = timeline.getWindow();
+                var interval = timelineWindow.end - timelineWindow.start;
+                timelineWidth = $("#" + settings.timelineContainer).width();
+                msPerPix = Math.floor(interval / timelineWidth);
             }
 
-        };
+            root.scale.x = 1;
+            root.scale.y = 1;
+            root.position.x = 0;
+            root.position.y = 120; // 与时间标尺高度保持一致
+            root.scalable = false;
+            var posX = 50, // local position in root;
+                posY = 50; //starting point to layout nodes.
+            var iconSize = visualConfig.NODE_WIDTH,
+                marginY = 30;
+            _.each(nodeSprites, function (ns) {
+                ns.updateNodePosition({
+                    x: posX,
+                    y: posY
+                });
+                ns.timelineMode = true;
+                // layout.setNodePosition(ns.id, posX, posY);
+                posY += (iconSize + marginY);
+            });
+            // var sortedLinkSprites = sortLinksByDateTime();
+            var timelineStartMs = timelineWindow.start.valueOf();
+            originSpotTime = timelineStartMs;
+            var minX = 10000;
+            positionLinksByTime(linkSprites, timelineStartMs);
+            var nodeX = -40;
+            _.each(nodeSprites, function (ns) {
+                ns.updateNodePosition({
+                    x: nodeX,
+                    y: ns.position.y
+                });
+            });
+            // if nodeX is too much left, try to move it to center
+            stage.isTimelineLayout = true;
+            root.position.x = leftSpacing || visualConfig.timelineLayout['margin-left'] + 60;
+            stage.contentRootMoved();
+        },
+
+        destroy: function () {
+            destroyed = true;
+            isDirty = false;
+            document.removeEventListener('mousedown', this._mouseDownListener);
+            document.removeEventListener('keydown', this._keyDownListener);
+            removeWheelListener(canvas, this._zoomActionListener);
+            graph.off('changed', onGraphChanged);
+            animationAgent.destroy();
+            _.each(nodeSprites, function (ns) {
+                ns.destroy();
+            });
+            _.each(linkSprites, function (ls) {
+                ls.destroy();
+            });
+            nodeSprites = null;
+            linkSprites = null;
+            layout = null;
+            networkLayout = null;
+            animationAgent = null;
+            graphData = null;
+            graphEntityTypes = null;
+            graphLinkTypes = null;
+            graphEntities = null;
+            graphLinks = null;
+
+            stage.destroy(false);   // false to not let pixi containers destroy sprites.
+            renderer.destroy(true); // true for removing the underlying view(canvas)
+        },
+        removeAllLinks: function () {
+            isDirty = true;
+            _.each(nodeSprites, function (n) {
+                n.incoming = [];
+                n.outgoing = [];
+            });
+            _.each(linkSprites, function (l) {
+                if (l.selected) {
+                    nodeContainer.deselectLink(l);
+                }
+                if (l.label) {
+                    lineContainer.removeChild(l.label);
+                }
+                if (l.arrow) {
+                    lineContainer.removeChild(l.arrow);
+                }
+                delete linkSprites[l.id];
+            });
+        },
+
+        resetStyle: function (entities, links) {
+            isDirty = true;
+            if (!entities && !links) {
+                entities = nodeSprites;
+                links = linkSprites;
+            }
+            _.each(entities, function (entity) {
+                let nodeSprite = nodeSprites[entity] || nodeSprites[entity.id];
+                if (nodeSprite) {
+                    zoomNodesById([nodeSprite.id], 1)
+                    if (nodeSprite.circleBorder) {
+                        textContainer.removeChild(nodeSprite.circleBorder);
+                        nodeSprite.circleBorder = null;
+                        nodeSprite.boundaryAttr = null;
+                    }
+                }
+            });
+
+            _.each(links, function (link) {
+                let linkSprite = linkSprites[link] || linkSprites[link.id];
+                if (linkSprite) {
+                    linkSprite.thickness = visualConfig.ui.line.width;
+                    linkSprite.color = visualConfig.ui.line.color;
+                }
+            });
+        },
+
+        setLayoutType: function (layoutTypeStr) {
+            console.info("Setting layout type to ", layoutTypeStr);
+            layoutType = layoutTypeStr || 'Network';
+            if (layoutType != 'Network' && layoutType != 'Circular' && layoutType != 'Layered' && layoutType != 'TimelineScale') {
+                layoutType = 'Network';
+            }
+            if (layoutType === "Network") {
+                layout = networkLayout;
+                _.each(nodeSprites, function (nodeSprite, nodeId) {
+                    layout.setNodePosition(nodeId, nodeSprite.position.x, nodeSprite.position.y);
+                    if (nodeSprite.pinned) {
+                        layout.pinNode(nodeSprite, true);
+                    }
+                });
+            }
+        },
+
+        setTwoNodeLayoutInXDireaction: function (nodeIDArray) {
+            if (nodeSprites.length === 0) {
+                return;
+            }
+            let renderer = this;
+            let nodeMarginX = viewWidth / (_.keys(nodeSprites).length + 1);
+            let currentX = 0;
+            _.each(nodeSprites, function (nodeSprite, nodeId) {
+                renderer.setNodePosition(nodeId, currentX, 0);
+                nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+                currentX += nodeMarginX;
+            });
+        },
+        pauseAnimation: function () {
+            visualConfig.LAYOUT_ANIMATION = !visualConfig.LAYOUT_ANIMATION;
+            if (!visualConfig.LAYOUT_ANIMATION) {
+                layoutIterationsStore = layoutIterations;
+                layoutIterations = -1;
+            } else {
+                layoutIterations = layoutIterationsStore;
+                this.performLayout();
+            }
+        },
+        performLayout: function () {
+            if (layoutType == 'Network') {
+
+                if (stage.isTimelineLayout) {
+                    disableTimelineLayout();
+                }
+                if (layoutIterationsStore == 1500) {
+                    layoutIterations = 1500;
+                }
+                if (!visualConfig.LAYOUT_ANIMATION) {
+                    while (layoutIterations > 0) {
+                        layout.step();
+                        layoutIterations -= 1;
+                    }
+                    _.each(nodeSprites, function (nodeSprite, nodeId) {
+                        nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+                    });
+                }
+                layout.step();
+                this.setNodesToFullScreen();
+            } else if (layoutType == 'Circular') {
+                this.drawCircleLayout();
+            } else if (layoutType == 'Layered') {
+                this.drawTreeLayout();
+            } else if (layoutType == 'TimelineScale') {
+                this.drawTimelineLayout();
+            } else {
+                return false;
+            }
+            isDirty = true;
+        },
+
+        getGraph: function () {
+            return graph;
+        },
+
+        getLayout: function () {
+            return layout;
+        },
+        getNodesCount: function () {
+            return graph.getNodesCount();
+        },
+        getLinksCount: function () {
+            return graph.getLinksCount();
+        },
+        getNode: function (nodeId) {
+            return graph.getNode(nodeId);
+        },
+        removeNode: function (nodeId) {
+            return graph.removeNode(nodeId);
+        },
+        removeLink: function (link) {
+            return graph.removeLink(link);
+        },
+        forEachNode: function (func) {
+            return graph.forEachNode(func);
+        },
+        forEachLink: function (func) {
+            return graph.forEachLink(func);
+        },
+        beginUpdate: function () {
+            return graph.beginUpdate();
+        },
+        endUpdate: function () {
+            return graph.endUpdate();
+        },
+        addNode: function (nodeId, data) {
+            return graph.addNode(nodeId, data);
+        },
+        updateNode: function (nodeId, data) {
+            return graph.addNode(nodeId, data);
+        },
+        addLink: function (fromId, toId, data) {
+            return graph.addLink(fromId, toId, data);
+        },
+        clearGraph: function () {
+            graph.beginUpdate();
+            graph.clear();
+            graph.endUpdate();
+        },
+
+        disposeLayout: function () {
+            layout.dispose();
+        },
+
+        setNodePosition: function (nodeId, x, y, z) {
+            layout.setNodePosition(nodeId, x, y, z);
+        },
+        getNodePosition: function (nodeId) {
+            return layout.getNodePosition(nodeId);
+        },
+        setGraphType: function (gType) {
+            graphType = gType;
+        },
+        getGraphType: function () {
+            return graphType;
+        },
+        setGraphData: function (gData) {
+            graphData = gData;
+        },
+        getGraphData: function () {
+            return graphData;
+        },
+        getGraphEntities: function () {
+            return graphEntities;
+        },
+        setGraphEntities: function (gEntities) {
+            graphEntities = gEntities;
+        },
+        getGraphLinks: function () {
+            return graphLinks;
+        },
+        setGraphLinks: function (gLinks) {
+            graphLinks = gLinks;
+        },
+        getGraphLinkTypes: function () {
+            return graphLinkTypes;
+        },
+        getGraphEntityTypes: function () {
+            return graphEntityTypes;
+        },
+
+        fillGraphData: function (gData) {
+            if (!graphType) {
+                console.log("please call setGraphType");
+            }
+
+            graph.beginUpdate();
+
+            _.each(gData.entities, function (p) {
+                if (!_.has(graphEntities, p.id)) {
+                    graph.addNode(p.id, p);
+                    graphEntities[p.id] = p;
+                    graphEntityTypes[p.type] = 1;
+                }
+            });
+            _.each(gData.links, function (f) {
+                if (!_.has(graphLinks, f.id)) {
+                    graph.addLink(f.sourceEntity, f.targetEntity, f);
+                    graphLinks[f.id] = f;
+                    graphLinkTypes[f.type] = 1;
+                }
+            });
+
+            graph.endUpdate();
+        },
+
+        getEntitySemanticType: function (nodeUuid) {
+            let type;
+            _.each(graphType.entityTypes, function (f) {
+                if (f.uuid == nodeUuid) {
+                    type = f.iconUrl;
+                }
+            });
+            return type;
+        },
+
+        getLinkSemanticType: function (linkUuid) {
+            let type;
+            _.each(graphType.linkTypes, function (f) {
+                if (f.uuid == linkUuid) {
+                    type = f.semanticType;
+                }
+            });
+            return type;
+        },
+
+        getEntityType: function (nodeUuid) {
+            var type;
+            _.each(graphType.entityTypes, function (f) {
+                if (f.uuid == nodeUuid) {
+                    type = f;
+                }
+            });
+            return type;
+        },
+
+        getLinkType: function (linkUuid) {
+            var type;
+            _.each(graphType.linkTypes, function (f) {
+                if (f.uuid == linkUuid) {
+                    type = f;
+                }
+            });
+            return type;
+        },
+
+        onGraphChanged: function (func) {
+            graph.on('changed', func);
+        },
+
+        addCanvasEventListener: function (eventName, func, state) {
+            canvas.addEventListener(eventName, func, state);
+        },
+
+        modifyNodeLabel: function (nodeLabelsObj) {
+            for (let nodeId in nodeLabelsObj) {
+                let nodeSprite = nodeSprites[nodeId];
+                nodeSprite.ts.text = nodeLabelsObj[nodeId];
+            }
+        },
+
+        removeNodes: function (nodeIds) {
+            for (let nodeId of nodeIds) {
+                graph.removeNode(nodeId);
+            }
+        },
+
+        removeLinks: function (links) {
+            for (let link of links) {
+                graph.removeLink(link);
+            }
+        },
+        // convert the canvas drawing buffer into base64 encoded image url
+        exportImage: function () {
+            return renderer.view.toDataURL('image/png');
+        }
+
+    };
 
     pixiGraphics._zoomActionListener = _.throttle(function (e) {
         pixiGraphics.zoom(e.offsetX || (e.originalEvent ? e.originalEvent.offsetX : null), e.offsetY || (e.originalEvent ? e.originalEvent.offsetY : null), e.deltaY < 0);
@@ -1445,7 +1451,7 @@ var PixiRenderer = function (settings) {
             }
         }
     };
-    document.addEventListener('mousedown',pixiGraphics._mouseDownListener);
+    document.addEventListener('mousedown', pixiGraphics._mouseDownListener);
     document.addEventListener('keydown', pixiGraphics._keyDownListener);
 
     eventify(pixiGraphics);
