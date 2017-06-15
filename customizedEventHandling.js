@@ -5,19 +5,19 @@
  **/
 // import { visualConfig } from "./visualConfig.js";
 
-var getGraphCoordinates = (function() {
+var getGraphCoordinates = (function () {
     var ctx = {
-        global: { x: 0, y: 0 } // store it inside closure to avoid GC pressure
+        global: {x: 0, y: 0} // store it inside closure to avoid GC pressure
     };
 
-    return function(x, y, stage) {
+    return function (x, y, stage) {
         ctx.global.x = x;
         ctx.global.y = y;
         return PIXI.interaction.InteractionData.prototype.getLocalPosition.call(ctx, stage);
     };
 }());
 
-export const zoom = function(x, y, isZoomIn, contentRoot, visualConfig) {
+export const zoom = function (x, y, isZoomIn, contentRoot, visualConfig) {
     if ((isZoomIn && contentRoot.scale.x > visualConfig.MAX_SCALE) || (!isZoomIn && contentRoot.scale.x < visualConfig.MIN_SCALE)) {
         return;
     }
@@ -38,25 +38,25 @@ export const zoom = function(x, y, isZoomIn, contentRoot, visualConfig) {
     contentRoot.position.x += (afterTransform.x - beforeTransform.x) * contentRoot.scale.x;
     contentRoot.position.y += (afterTransform.y - beforeTransform.y) * contentRoot.scale.y;
     contentRoot.updateTransform();
-    if(contentRoot.parent.isTimelineLayout){
+    if (contentRoot.parent.isTimelineLayout) {
         contentRoot.parent.contentRootMoved(factor);
     }
 };
 
-var setupWheelListener = function(domElement, stage) {
-    addWheelListener(domElement, function(e) {
+var setupWheelListener = function (domElement, stage) {
+    addWheelListener(domElement, function (e) {
         zoom(e.offsetX, e.offsetY, e.deltaY < 0, stage);
     }, true);
 };
 
-export const rootCaptureHandler = function(e) {
+export const rootCaptureHandler = function (e) {
     if (!this.interactive || this.hasNodeCaptured) {
-        return false;
+        return;
     }
 
-    this.data=e.data;
+    this.data = e.data;
 
-    if (this.mode == "panning") {
+    if (this.mode === "panning") {
         this.mouseLocation = {
             x: e.data.global.x,
             y: e.data.global.y
@@ -81,22 +81,22 @@ export const rootCaptureHandler = function(e) {
     }
 };
 
-var rootReleaseHandler = function(e) {
+var rootReleaseHandler = function (e) {
     this.off('mousemove', this.moveListener);
     this.off('mouseup', this.upListener);
-    this.data=null;
+    this.data = null;
     this.dragging = false;
     this.moveListener = null;
     this.upListener = null;
-    this.selectingArea=false;
-    this.selectRegion=null;
-    if(this.isTimelineLayout) {
+    this.selectingArea = false;
+    this.selectRegion = null;
+    if (this.isTimelineLayout) {
         this.contentRootMoved();
     }
     this.isDirty = true;
 };
 
-var rootMoveHandler = function(e) {
+var rootMoveHandler = function (e) {
     //throttle 限制回调函数被调用次数的方式
     var oldPosition = this.mouseLocation;
     var newPosition = e.data.global;
@@ -112,12 +112,12 @@ var rootMoveHandler = function(e) {
         };
         this.contentRoot.position.x += dx;
         this.contentRoot.position.y += dy;
-        if(this.isTimelineLayout) {
+        if (this.isTimelineLayout) {
             this.contentRootMoved();
         }
         this.isDirty = true;
     } else if (this.selectingArea) {
-        if(Math.abs(dx) >5 && Math.abs(dy) > 5){
+        if (Math.abs(dx) > 5 && Math.abs(dy) > 5) {
             this.selectRegion = {
                 // x1: oldPosition.x-this.contentRoot.position.x,
                 // y1: oldPosition.y-this.contentRoot.position.y,
@@ -130,35 +130,35 @@ var rootMoveHandler = function(e) {
                 // ix: oldPosition.x-this.contentRoot.position.x,
                 // iy: oldPosition.y-this.contentRoot.position.y
             };
-            var op={};
-            var np={};
-            op.global={};
-            np.global={};
+            var op = {};
+            var np = {};
+            op.global = {};
+            np.global = {};
 
-            op.global.x=oldPosition.x;
-            op.global.y=oldPosition.y;
-            np.global.x=newPosition.x;
-            np.global.y=newPosition.y;
+            op.global.x = oldPosition.x;
+            op.global.y = oldPosition.y;
+            np.global.x = newPosition.x;
+            np.global.y = newPosition.y;
 
-            var top=new PIXI.Point();
-            var tnp=new PIXI.Point();
-            top=PIXI.interaction.InteractionData.prototype.getLocalPosition.call(op, this.contentRoot);
-            tnp=PIXI.interaction.InteractionData.prototype.getLocalPosition.call(np, this.contentRoot);
+            var top = new PIXI.Point();
+            var tnp = new PIXI.Point();
+            top = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(op, this.contentRoot);
+            tnp = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(np, this.contentRoot);
             //console.log(top.x+" "+top.y+" "+tnp.x+" "+tnp.y);
-            var me=e.data.originalEvent;
+            var me = e.data.originalEvent;
             //console.log("e",e);
-            var flag=true;
-            if(me.ctrlKey || me.shiftKey){
-                flag=false;
+            var flag = true;
+            if (me.ctrlKey || me.shiftKey) {
+                flag = false;
             }
-            this.selectAllNodesInRegion(top.x,top.y,tnp.x,tnp.y,flag);
+            this.selectAllNodesInRegion(top.x, top.y, tnp.x, tnp.y, flag);
         }
     }
 
 };
 
 
-export const nodeCaptureListener = function(e) {
+export const nodeCaptureListener = function (e) {
     // console.log('Mouse down on node ' + JSON.stringify(this.position));
     this.interactionData = e.data;
     this.parent.nodeCaptured(this);
@@ -177,7 +177,7 @@ export const nodeCaptureListener = function(e) {
     }
 };
 
-var nodeReleaseListener = function(e) {
+var nodeReleaseListener = function (e) {
     this.off('mousemove', this.moveListener);
     this.alpha = 1;
     this.dragging = false;
@@ -193,14 +193,14 @@ var nodeReleaseListener = function(e) {
 };
 
 var newPosition = new PIXI.Point();
-var nodeMoveListener = function(e) {
+var nodeMoveListener = function (e) {
     // console.log('node mouse move fired');
-    this.parent.dragJustNow=false;
+    this.parent.dragJustNow = false;
     newPosition.copy(this.interactionData.getLocalPosition(this.parent));
-    if(this.timelineMode) {
-        var dx =  Math.abs(newPosition.x-this.position.x);
+    if (this.timelineMode) {
+        var dx = Math.abs(newPosition.x - this.position.x);
         newPosition.x = this.position.x; // disable movement in x;
-        if(dx > (this.visualConfig.NODE_WIDTH/2 + 5)) { // when mouse move horizontally two far away from node, just release it.
+        if (dx > (this.visualConfig.NODE_WIDTH / 2 + 5)) { // when mouse move horizontally two far away from node, just release it.
             // console.log("Dx " + dx);
             this.releaseListener(e);
         }
@@ -208,20 +208,20 @@ var nodeMoveListener = function(e) {
     if (this.dragging && this.selected) {
         //newPosition=null;
         //this.updateNodePosition(newPosition);
-        var dx = newPosition.x-this.position.x;
-        var dy = newPosition.y-this.position.y;
+        var dx = newPosition.x - this.position.x;
+        var dy = newPosition.y - this.position.y;
         let container = this.parent;
-        _.each(this.parent.nodes,function (n) {
-            var np=new PIXI.Point();
-            np.x=n.position.x+dx;
-            np.y=n.position.y+dy;
+        _.each(this.parent.nodes, function (n) {
+            var np = new PIXI.Point();
+            np.x = n.position.x + dx;
+            np.y = n.position.y + dy;
             n.updateNodePosition(np);
             container.nodeMoved(n);
         });
-        this.parent.dragJustNow=true;
-    }else if(!this.selected){
+        this.parent.dragJustNow = true;
+    } else if (!this.selected) {
         var mouseEvent = e.data.originalEvent;
-        if(!mouseEvent.ctrlKey && !mouseEvent.shiftKey){
+        if (!mouseEvent.ctrlKey && !mouseEvent.shiftKey) {
             this.parent.deselectAll();
         }
         this.parent.selectNode(this);

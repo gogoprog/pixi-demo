@@ -1,7 +1,5 @@
-// import { visualConfig } from "./visualConfig.js";
-import {PixiRenderer} from "./PixiRenderer"
 let SimpleLineSprite;
-export default  SimpleLineSprite = function (label, thickness, color, arrowStyle, hasArrow, x1, y1, x2, y2, controlOffsetIndex, fontConfig, visualConfig) {
+export default SimpleLineSprite = function (label, thickness, color, arrowStyle, hasArrow, x1, y1, x2, y2, controlOffsetIndex, fontConfig, visualConfig) {
     this.hasArrow = hasArrow;
     this._thickness = thickness;
     this._color = color;

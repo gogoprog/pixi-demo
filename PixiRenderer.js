@@ -2,24 +2,25 @@ import createForceLayout from 'ngraph.forcelayout';
 import TreeLayout from './TreeLayout.js';
 import CircleLayout from './CircleLayout.js';
 import RadiateLayout from './RadiateLayout.js';
-import CWLayout from './CWLayout.js'
+import CWLayout from './CWLayout.js';
+import TreeLayout from './TreeLayout';
+import CircleLayout from './CircleLayout';
+import RadiateLayout from './RadiateLayout';
 import physicsSimulator from "ngraph.physics.simulator";
 import eventify from "ngraph.events";
-import Graph from "./Graph.js";
-import {SelectionManager} from "./SelectionManager.js";
-import {CircleBorderTexture} from "./CircleBorderSprite.js";
+import Graph from "./Graph";
+import {SelectionManager} from "./SelectionManager";
+import {CircleBorderTexture} from "./CircleBorderSprite";
 import "pixi.js";
-import {FPSCounter} from "./FPSCounter.js";
-import {addWheelListener, removeWheelListener} from "./WheelListener.js";
-import {zoom, rootCaptureHandler, nodeCaptureListener} from "./customizedEventHandling.js";
-import lodash from 'lodash';
-import SimpleLineSprite from "./SimpleLineSprite.js";
-import "./pixiSpriteAugment.js";
+import {addWheelListener, removeWheelListener} from "./WheelListener";
+import {zoom, rootCaptureHandler, nodeCaptureListener} from "./customizedEventHandling";
+import SimpleLineSprite from "./SimpleLineSprite";
+import "./pixiSpriteAugment";
 import moment from "moment";
 import vis from "vis";
-import Utility from "../../../ui/analyticService/Utility";
-import SimpleNodeSprite from "./SimpleNodeSprite.js";
-import AnimationAgent from "./AnimationAgent"
+import SimpleNodeSprite from "./SimpleNodeSprite";
+import AnimationAgent from "./AnimationAgent";
+import FPSCounter from "./FPSCounter";
 
 var PixiRenderer = function (settings) {
     "use strict";

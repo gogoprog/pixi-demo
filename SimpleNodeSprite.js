@@ -1,6 +1,4 @@
-// import "./pixi.es5.js";
-import "pixi.js";
-import { nodeCaptureListener } from "./customizedEventHandling.js";
+import { nodeCaptureListener } from "./customizedEventHandling";
 
 export default class SimpleNodeSprite extends PIXI.Sprite {
     constructor(texture, node, visualConfig) {
@@ -153,7 +151,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     _addIconToNode(collIdArr, nodeContainer) {
         var nodeSprite = this;
         var gcsArr = nodeSprite.gcs || [];
-        
+
         for (var collId of collIdArr) { //添加集合
             var iconTexture = this.visualConfig.findGraphCollIcon(collId);
             var iconSprite = new PIXI.Sprite(iconTexture);

@@ -1,4 +1,3 @@
-// import { visualConfig } from "./visualConfig.js";
 //deprecated
 PIXI.Sprite.prototype.selectionChanged = function (selected) {
     this.selected = selected;
@@ -76,17 +75,17 @@ PIXI.Sprite.prototype.updateNodePosition = function (p) {
         }
 
         if (this.gcs && this.gcs.length > 0) {
-            var incre = (this.gcs.length - 1) * 4;
+            let increment = (this.gcs.length - 1) * 4;
             if (this.ts) {
-                this.gcs[0].position.x = this.ts.position.x - incre;
+                this.gcs[0].position.x = this.ts.position.x - increment;
                 this.gcs[0].position.y = this.ts.position.y + 17;
             } else {
-                this.gcs[0].position.x = p.x - incre;
+                this.gcs[0].position.x = p.x - increment;
                 this.gcs[0].position.y = p.y + 17;
             }
-            for (var i = 1; i < this.gcs.length; i++) {
-                this.gcs[i].position.x = this.gcs[i - 1].position.x + 10;
-                this.gcs[i].position.y = this.gcs[i - 1].position.y;
+            for (let j = 1; j < this.gcs.length; j++) {
+                this.gcs[j].position.x = this.gcs[j - 1].position.x + 10;
+                this.gcs[j].position.y = this.gcs[j - 1].position.y;
             }
         }
 
