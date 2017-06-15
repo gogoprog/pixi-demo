@@ -1,7 +1,4 @@
 import createForceLayout from 'ngraph.forcelayout';
-import TreeLayout from './TreeLayout.js';
-import CircleLayout from './CircleLayout.js';
-import RadiateLayout from './RadiateLayout.js';
 import CWLayout from './CWLayout.js';
 import TreeLayout from './TreeLayout';
 import CircleLayout from './CircleLayout';
