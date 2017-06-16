@@ -1,4 +1,5 @@
 import createForceLayout from 'ngraph.forcelayout';
+import CWLayout from './CWLayout.js';
 import TreeLayout from './TreeLayout';
 import CircleLayout from './CircleLayout';
 import RadiateLayout from './RadiateLayout';
@@ -16,7 +17,7 @@ import moment from "moment";
 import vis from "vis";
 import SimpleNodeSprite from "./SimpleNodeSprite";
 import AnimationAgent from "./AnimationAgent";
-import FPSCounter from "./FPSCounter"
+import FPSCounter from "./FPSCounter";
 
 var PixiRenderer = function (settings) {
     "use strict";
@@ -123,16 +124,18 @@ var PixiRenderer = function (settings) {
     nodeContainer.nodeCaptured = function (node) {
         stage.hasNodeCaptured = true;
         isDirty = true;
-        if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
+        if (visualConfig.LAYOUT_ANIMATION) {
             layout.pinNode(node, true);
         }
     };
 
     nodeContainer.nodeMoved = function (node) {
         isDirty = true;
-        if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
+        if (visualConfig.LAYOUT_ANIMATION) {
             layout.setNodePosition(node.id, node.position.x, node.position.y);
-            layoutIterations += 60;
+            if (layoutType === 'Network') {
+                layoutIterations += 60;
+            }
         }
 
     };
@@ -140,14 +143,15 @@ var PixiRenderer = function (settings) {
     nodeContainer.nodeReleased = function (node) {
         isDirty = true;
         stage.hasNodeCaptured = false;
-        if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
+        if (visualConfig.LAYOUT_ANIMATION) {
             if (node.pinned) {
                 node.pinned = false;
                 layout.pinNode(node, false);
+                layoutIterations = 300;
             } else {
                 node.pinned = true;
+                layout.pinNode(node, true);
             }
-            layoutIterations = 300;
         }
     };
 
@@ -624,6 +628,7 @@ var PixiRenderer = function (settings) {
         drawTreeLayout: function () {
             isDirty = true;
             layoutType = "Layered";
+            //CWLayout(nodeSprites);
             layout = new TreeLayout(nodeSprites, nodeContainer, visualConfig);
             // layout = new RadiateLayout(nodeSprites, nodeContainer, visualConfig);
             if (stage.isTimelineLayout) {
@@ -1171,6 +1176,9 @@ var PixiRenderer = function (settings) {
                 layout = networkLayout;
                 _.each(nodeSprites, function (nodeSprite, nodeId) {
                     layout.setNodePosition(nodeId, nodeSprite.position.x, nodeSprite.position.y);
+                    if (nodeSprite.pinned) {
+                        layout.pinNode(nodeSprite, true);
+                    }
                 });
             }
         },
