@@ -1509,7 +1509,7 @@ var PixiRenderer = function (settings) {
                     nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
                 });
                 layoutIterations -= 2;
-                if (!positionChanged || layoutIterations <= 0) {
+                if (positionChanged || layoutIterations <= 0) {
                     if (layoutType === "Circular" || layoutType === "Layered") {
                         console.log("layout freezed, setting to full screen");
                         layoutIterations = 0;

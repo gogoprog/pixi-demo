@@ -125,10 +125,10 @@ Layout.prototype.step = function () {
 
             }
         });
-        return true;
+        return false;
     }
     this.thisStep = 0;
-    return false;
+    return true;
 };
 
 Layout.prototype.getNodePosition = function (nodeId) {
