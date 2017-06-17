@@ -1,10 +1,13 @@
 import createForceLayout from 'ngraph.forcelayout';
-import CWLayout from './CWLayout.js';
-import TreeLayout from './TreeLayout';
-import CircleLayout from './CircleLayout';
-import RadiateLayout from './RadiateLayout';
 import physicsSimulator from "ngraph.physics.simulator";
 import eventify from "ngraph.events";
+import moment from "moment";
+import vis from "vis";
+
+import CWLayout from './CWLayout.js';
+import LayeredLayout from './LayeredLayout';
+import CircleLayout from './CircleLayout';
+import RadiateLayout from './RadiateLayout';
 import Graph from "./Graph";
 import {SelectionManager} from "./SelectionManager";
 import {CircleBorderTexture} from "./CircleBorderSprite";
@@ -13,8 +16,6 @@ import {addWheelListener, removeWheelListener} from "./WheelListener";
 import {zoom, rootCaptureHandler, nodeCaptureListener} from "./customizedEventHandling";
 import SimpleLineSprite from "./SimpleLineSprite";
 import "./pixiSpriteAugment";
-import moment from "moment";
-import vis from "vis";
 import SimpleNodeSprite from "./SimpleNodeSprite";
 import AnimationAgent from "./AnimationAgent";
 import FPSCounter from "./FPSCounter";
@@ -66,7 +67,7 @@ var PixiRenderer = function (settings) {
             autoResize: true,
             antialias: true,
             forceFXAA: false,
-            preserveDrawingBuffer: true
+            preserveDrawingBuffer: true,
         }),
         stage = new PIXI.Container(),   // the view port, same size as canvas, used to capture mouse action
         root = new PIXI.Container(),    // the content root
@@ -243,7 +244,7 @@ var PixiRenderer = function (settings) {
             var end = start + msPerPix * timelineWidth;
             timeline.setWindow(
                 start,
-                end, {animation: false}
+                end, {animation: false},
             );
         }
         // console.log(stage.contentRoot.position);
@@ -266,7 +267,7 @@ var PixiRenderer = function (settings) {
         timeline.setWindow(
             config.start,
             config.end,
-            config.option
+            config.option,
         );
         timeline.redraw();
         // calculate the position of root layer and each lines;
@@ -625,12 +626,25 @@ var PixiRenderer = function (settings) {
             this.setNodesToFullScreen();
         },
 
-        drawTreeLayout: function () {
+        drawLayeredLayout: function () {
             isDirty = true;
             layoutType = "Layered";
             //CWLayout(nodeSprites);
-            layout = new TreeLayout(nodeSprites, nodeContainer, visualConfig);
+            layout = new LayeredLayout(nodeSprites, nodeContainer, visualConfig);
             // layout = new RadiateLayout(nodeSprites, nodeContainer, visualConfig);
+            if (stage.isTimelineLayout) {
+                disableTimelineLayout();
+            }
+            if (layoutIterationsStore == 1500) {
+                layoutIterations = 1500;
+            }
+            this.setNodesToFullScreen();
+        },
+
+        drawRadiateLayout: function () {
+            isDirty = true;
+            layoutType = "Radiate";
+            layout = new RadiateLayout(nodeSprites, nodeContainer, visualConfig);
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }
@@ -693,7 +707,7 @@ var PixiRenderer = function (settings) {
             let graphCenterInStage = {
                 //(graphRect.x1 + rootWidth / 2 ) 是contentRoot坐标系，转换到stage的坐标系时需要进行scale处理， 下同
                 x: (graphRect.x1 + rootWidth / 2 ) * scale + root.position.x,
-                y: (graphRect.y1 + rootHeight / 2 ) * scale + root.position.y
+                y: (graphRect.y1 + rootHeight / 2 ) * scale + root.position.y,
             };
             // console.log("Graph center in content root", {
             //     x: graphRect.x1 + rootWidth / 2,
@@ -706,18 +720,18 @@ var PixiRenderer = function (settings) {
             // });
             let rootPositionTransform = {
                 x: viewWidth / 2 - graphCenterInStage.x,
-                y: viewHeight / 2 - graphCenterInStage.y
+                y: viewHeight / 2 - graphCenterInStage.y,
             }
             // console.log("Root transform", rootPositionTransform);
             return {
                 scale: {
                     x: scale,
-                    y: scale
+                    y: scale,
                 },
                 position: {
                     x: root.position.x + rootPositionTransform.x,
-                    y: root.position.y + rootPositionTransform.y
-                }
+                    y: root.position.y + rootPositionTransform.y,
+                },
             }
         },
         setNodesToFullScreen: function () {
@@ -1037,14 +1051,14 @@ var PixiRenderer = function (settings) {
                         "zh-cn": {
                             current: 'current',
                             time: 'time',
-                        }
+                        },
                     },
                     stack: false,
                     locale: 'zh-cn',
                     zoomMin: 1000 * 60 * 15,
                     moveable: false,
                     zoomable: false,
-                    showCurrentTime: false
+                    showCurrentTime: false,
                     // throttleRedraw: 100
                 };
                 // Create a Timeline
@@ -1067,7 +1081,7 @@ var PixiRenderer = function (settings) {
             _.each(nodeSprites, function (ns) {
                 ns.updateNodePosition({
                     x: posX,
-                    y: posY
+                    y: posY,
                 });
                 ns.timelineMode = true;
                 // layout.setNodePosition(ns.id, posX, posY);
@@ -1082,7 +1096,7 @@ var PixiRenderer = function (settings) {
             _.each(nodeSprites, function (ns) {
                 ns.updateNodePosition({
                     x: nodeX,
-                    y: ns.position.y
+                    y: ns.position.y,
                 });
             });
             // if nodeX is too much left, try to move it to center
@@ -1167,9 +1181,13 @@ var PixiRenderer = function (settings) {
         },
 
         setLayoutType: function (layoutTypeStr) {
-            console.info("Setting layout type to ", layoutTypeStr);
+            console.info('Setting layout type to ', layoutTypeStr);
             layoutType = layoutTypeStr || 'Network';
-            if (layoutType != 'Network' && layoutType != 'Circular' && layoutType != 'Layered' && layoutType != 'TimelineScale') {
+            if (layoutType !== 'Network'
+                && layoutType !== 'Circular'
+                && layoutType !== 'Layered'
+                && layoutType !== 'Radiate'
+                && layoutType !== 'TimelineScale') {
                 layoutType = 'Network';
             }
             if (layoutType === "Network") {
@@ -1226,11 +1244,13 @@ var PixiRenderer = function (settings) {
                 }
                 layout.step();
                 this.setNodesToFullScreen();
-            } else if (layoutType == 'Circular') {
+            } else if (layoutType === 'Circular') {
                 this.drawCircleLayout();
-            } else if (layoutType == 'Layered') {
-                this.drawTreeLayout();
-            } else if (layoutType == 'TimelineScale') {
+            } else if (layoutType === 'Layered') {
+                this.drawLayeredLayout();
+            } else if (layoutType === 'Radiate') {
+                this.drawRadiateLayout();
+            } else if (layoutType === 'TimelineScale') {
                 this.drawTimelineLayout();
             } else {
                 return false;
@@ -1422,7 +1442,7 @@ var PixiRenderer = function (settings) {
         // convert the canvas drawing buffer into base64 encoded image url
         exportImage: function () {
             return renderer.view.toDataURL('image/png');
-        }
+        },
 
     };
 
@@ -1897,7 +1917,7 @@ var PixiRenderer = function (settings) {
 
         timeline.setWindow({
             start: range.start.valueOf() - interval * percentage,
-            end: range.end.valueOf() - interval * percentage
+            end: range.end.valueOf() - interval * percentage,
         });
     }
 
@@ -1920,11 +1940,11 @@ var PixiRenderer = function (settings) {
             ls.forceStraightLine = true;
             ls.setFrom({
                 x: fromX,
-                y: fromY
+                y: fromY,
             });
             ls.setTo({
                 x: toX,
-                y: toY
+                y: toY,
             });
         });
     }
@@ -1936,8 +1956,8 @@ var PixiRenderer = function (settings) {
             start: range.start.valueOf() - interval * percentage,
             end: range.end.valueOf() + interval * percentage,
             option: {
-                animation: false
-            }
+                animation: false,
+            },
         })
     }
 

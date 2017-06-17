@@ -4,19 +4,19 @@
 import createForest from './CreateForest.js';
 import Layout from './Layout.js';
 
-export default function TreeLayout(nodeSprites, nodeContainer,visualConfig) {
+export default function LayeredLayout(nodeSprites, nodeContainer, visualConfig) {
     Layout.call(this, nodeSprites, nodeContainer);
     this.NODE_WIDTH = visualConfig.NODE_WIDTH;
     this.levelx = [];
 
-    //initialize!
+    // initialize!
     let nodes = this.getNodes();
     let selectNodes = this.getSelectNodes();
     let forest = [];
-    forest = createForest(nodes,selectNodes,visualConfig);
+    forest = createForest(nodes, selectNodes, visualConfig);
     let that = this;
-    //计算层次布局坐标
-    _.each(forest, function (tree) {
+    // 计算层次布局坐标
+    _.each(forest, (tree) => {
         tree.levely = [];
         tree.levely[1] = 0;
         for (let i = 2; i < tree.levelNum.length; i++) {
@@ -30,11 +30,11 @@ export default function TreeLayout(nodeSprites, nodeContainer,visualConfig) {
     });
 }
 
-//组合继承Layout
-TreeLayout.prototype = new Layout();
-TreeLayout.prototype.constructor = TreeLayout;
-//TreeLayout 的方法
-TreeLayout.prototype.calTreePosition = function(levely, treeNode) {
+// 组合继承Layout
+LayeredLayout.prototype = new Layout();
+LayeredLayout.prototype.constructor = LayeredLayout;
+//LayeredLayout 的方法
+LayeredLayout.prototype.calTreePosition = function (levely, treeNode) {
     let length = treeNode.child.length;
     if (!length) {
         if (!this.levelx[parseInt(treeNode.level)]) {
@@ -69,7 +69,7 @@ TreeLayout.prototype.calTreePosition = function(levely, treeNode) {
     treeNode.positiony = levely[treeNode.level];
 };
 
-TreeLayout.prototype.move = function (treeNode, len) {
+LayeredLayout.prototype.move = function (treeNode, len) {
     for (let i = 0; i < treeNode.child.length; i++) {
         this.move(treeNode.child[i], len);
     }
