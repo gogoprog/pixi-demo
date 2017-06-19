@@ -6,6 +6,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
 
         this.id = node.id;
         this.type = node.data.type;
+        this.data = node.data;
         this.anchor.x = 0.5;
         this.anchor.y = 0.5;
         this.position.x = node.data.properties._$x || Math.random();
@@ -46,6 +47,10 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             }
         }
 
+        if (this.ls) {
+            this.ls.visible = false;
+        }
+
         if (this.circleBorder) {
             this.circleBorder.visible = false;
         }
@@ -58,6 +63,10 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             for (var i = 0; i < this.gcs.length; i++) {
                 this.gcs[i].visible = true;
             }
+        }
+
+        if (this.ls) {
+            this.ls.visible = true;
         }
 
         if (this.circleBorder) {
@@ -120,6 +129,11 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             this._relayoutNodeIcon();
         }
 
+        if (this.ls) {
+            this.ls.position.x = p.x + this.visualConfig.NODE_LOCK_WIDTH * 0.5;
+            this.ls.position.y = p.y - this.visualConfig.NODE_LOCK_WIDTH * 0.5;
+        }
+
         if (this.circleBorder) {
             this.circleBorder.position.x = p.x;
             this.circleBorder.position.y = p.y;
@@ -176,10 +190,10 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             return a.id - b.id;
         });
         // from the center of first icon to the center of last icon
-        var iconRowWidth = (this.gcs.length -1) * (this.visualConfig.NODE_ICON_WIDTH + 10) * 0.5;
+        var iconRowWidth = (this.gcs.length - 1) * (this.visualConfig.NODE_ICON_WIDTH + 10) * 0.5;
         var iconPosY = 0;
 
-        this.gcs[0].position.x = this.position.x - iconRowWidth * 0.5 ;
+        this.gcs[0].position.x = this.position.x - iconRowWidth * 0.5;
         if (this.ts) {
             this.gcs[0].position.y = iconPosY = this.ts.position.y + 20;
         } else {
@@ -187,16 +201,36 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         }
 
         for (var i = 1; i < this.gcs.length; i++) {
-            this.gcs[i].position.x = this.gcs[i - 1].position.x + (this.visualConfig.NODE_ICON_WIDTH + 10)*0.5;
+            this.gcs[i].position.x = this.gcs[i - 1].position.x + (this.visualConfig.NODE_ICON_WIDTH + 10) * 0.5;
             this.gcs[i].position.y = iconPosY;
         }
     }
 
+    setNodeLockIcon(nodeContainer) {
+        var nodeSprite = this;
+        var iconTexture = this.visualConfig.getLockIcon();
+        var iconSprite = new PIXI.Sprite(iconTexture);
+        iconSprite.anchor.x = 0.5;
+        iconSprite.anchor.y = 0.5;
+        iconSprite.scale.set(0.5, 0.5);
+        iconSprite.position.x = nodeSprite.position.x + this.visualConfig.NODE_LOCK_WIDTH * 0.5;
+        iconSprite.position.y = nodeSprite.position.y - this.visualConfig.NODE_LOCK_WIDTH * 0.5;
+
+        iconSprite.visible = nodeSprite.visible;
+        nodeContainer.addChild(iconSprite);
+        nodeSprite.ls = iconSprite;
+    }
+
+    removeNodeLockIcon(nodeContainer) {
+        nodeContainer.removeChild(this.ls);
+        this.ls = null;
+    }
+
 }
 
-SimpleNodeSprite.prototype.destroy = function (options) {
-    if(this.ts) {
-        this.ts.destroy({texture: true, baseTexture: true});
+SimpleNodeSprite.prototype.destroy = function(options) {
+    if (this.ts) {
+        this.ts.destroy({ texture: true, baseTexture: true });
     }
-    PIXI.Sprite.prototype.destroy.call(this, {texture: false, baseTexture: false});
+    PIXI.Sprite.prototype.destroy.call(this, { texture: false, baseTexture: false });
 };
