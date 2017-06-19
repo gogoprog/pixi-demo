@@ -123,11 +123,9 @@ var PixiRenderer = function (settings) {
     });
 
     nodeContainer.nodeCaptured = function (node) {
-        stage.hasNodeCaptured = true;
-        isDirty = true;
-        if (visualConfig.LAYOUT_ANIMATION) {
-            layout.pinNode(node, true);
-        }
+        stage.interactive = false;
+        nodeContainer.interactive = false;
+        nodeContainer.interactiveChildren = false;
     };
 
     nodeContainer.nodeMoved = function (node) {
@@ -142,18 +140,9 @@ var PixiRenderer = function (settings) {
     };
 
     nodeContainer.nodeReleased = function (node) {
-        isDirty = true;
-        stage.hasNodeCaptured = false;
-        if (visualConfig.LAYOUT_ANIMATION) {
-            if (node.pinned) {
-                node.pinned = false;
-                layout.pinNode(node, false);
-                layoutIterations = 300;
-            } else {
-                node.pinned = true;
-                layout.pinNode(node, true);
-            }
-        }
+        stage.interactive = true;
+        nodeContainer.interactive = true;
+        nodeContainer.interactiveChildren = true;
     };
 
     //layout 相关,把移动位置同步到layout内部
@@ -1444,6 +1433,35 @@ var PixiRenderer = function (settings) {
             return renderer.view.toDataURL('image/png');
         },
 
+        lock: function(nodes) {
+            isDirty = true;
+            if (visualConfig.LAYOUT_ANIMATION) {
+                for (let node of nodes) {
+                    if (!node.pinned) {
+                        node.pinned = true;
+                        layout.pinNode(node, true);
+                        node.setNodeLockIcon(nodeContainer);
+                        node.data.properties["_$lock"] = true;
+                    }
+                }
+            }
+        },
+
+        unlock: function(nodes) {
+            isDirty = true;
+            if (visualConfig.LAYOUT_ANIMATION) {
+                for (let node of nodes) {
+                    if (node.pinned) {
+                        node.pinned = false;
+                        layout.pinNode(node, false);
+                        layoutIterations = 300;
+                        node.removeNodeLockIcon(nodeContainer);
+                        delete node.data.properties["_$lock"];
+                    }
+                }
+            }
+        }
+
     };
 
     pixiGraphics._zoomActionListener = _.throttle(function (e) {
@@ -1490,6 +1508,9 @@ var PixiRenderer = function (settings) {
                     for (var i = 0; i < nodeSprite.gcs.length; i++) {
                         nodeSprite.gcs[i].scale.set(0.5 * zoomValue);
                     }
+                }
+                if (nodeSprite.ls) {
+                    nodeSprite.ls.scale.set(0.5 * zoomValue);
                 }
                 if (nodeSprite.circleBorder) {
                     nodeSprite.circleBorder.scale.set(zoomValue);
@@ -1637,6 +1658,12 @@ var PixiRenderer = function (settings) {
         if (graphData) {
             var collIdArr = graphData.getNodeCollId(p);
             nodeSprite.setNodeIcon(collIdArr, nodeContainer);
+        }
+
+        if (p.data.properties["_$lock"]) {
+            nodeSprite.pinned = true;
+            layout.pinNode(nodeSprite, true);
+            nodeSprite.setNodeLockIcon(nodeContainer);
         }
 
         textContainer.addChild(nodeSprite.ts);
@@ -1797,6 +1824,10 @@ var PixiRenderer = function (settings) {
                     nodeContainer.removeChild(nodeSprite.gcs[i]);
                 }
             }
+            if (nodeSprite.ls) {
+                nodeContainer.removeChild(nodeSprite.ls);
+            }
+
             nodeContainer.removeChild(nodeSprite);
             delete nodeSprites[node.id];
             delete graphEntities[node.data.id];

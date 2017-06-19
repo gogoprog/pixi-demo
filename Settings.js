@@ -36,6 +36,7 @@ class Settings {
     }
 
     updateVisualConfig(visConfig) {
+        let lockIconUrl = "/static/32/Lock/lock_state.png";
         if (visConfig) {
             let data = visConfig.icons || [];
             for (let i = 0; i < data.length; i++) {
@@ -50,6 +51,8 @@ class Settings {
                 let texture = PIXI.Texture.fromImage(iconUrl);
                 graphCollIcons.push(texture);
             }
+            
+            visConfig.lockIcon = PIXI.Texture.fromImage(lockIconUrl);
 
             this.visualConfig = visConfig;
             this.visualConfig.graphCollIcons = graphCollIcons;
@@ -64,6 +67,8 @@ class Settings {
                 let texture = PIXI.Texture.fromImage(iconUrl);
                 graphCollIcons.push(texture);
             }
+
+            visualConfig.lockIcon = PIXI.Texture.fromImage(lockIconUrl);
 
             this.visualConfig = visualConfig;
             this.visualConfig.graphCollIcons = graphCollIcons;

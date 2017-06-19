@@ -8,6 +8,7 @@ export const visualConfig = {
     "MIN_SCALE": 0.05,
     "NODE_WIDTH": 32,
     "NODE_ICON_WIDTH": 18,
+    "NODE_LOCK_WIDTH": 24,
     "ELLIPSE_WIDTH": 0.4 * 32,
     "ELLIPSE_HIEGHT": 0.5 * 32,
     "ELLIPSE_Y_OFFSET": 0.4 * 32,
@@ -101,4 +102,9 @@ visualConfig.findGraphCollIcon = function(collId) {
     if (data) {
         return data[collId-1];
     }
+};
+
+visualConfig.getLockIcon = function() {
+    const data = visualConfig.lockIcon;
+    return data;
 };

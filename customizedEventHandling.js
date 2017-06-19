@@ -50,7 +50,7 @@ var setupWheelListener = function (domElement, stage) {
 };
 
 export const rootCaptureHandler = function (e) {
-    if (!this.interactive || this.hasNodeCaptured) {
+    if (!this.interactive) {
         return;
     }
 
