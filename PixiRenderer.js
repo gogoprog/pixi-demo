@@ -1428,12 +1428,104 @@ var PixiRenderer = function (settings) {
                 graph.removeLink(link);
             }
         },
-        // convert the canvas drawing buffer into base64 encoded image url
-        exportImage: function () {
-            return renderer.view.toDataURL('image/png');
+
+        /**
+         * export the target object onto a canvas for saving as image.
+         * Copied from PIXI WebGLExtract.canvas method.
+         * #1 the origin WebGLExtract.canvas method allows us to export the whole pixi content as image instead of
+         * just the area displayed on canvas.
+         * #2 we have to copy and modify the below code to solve the transparent background issue. Our content
+         * root container is actually transparent.
+         * @param myRenderer
+         * @param target
+         */
+        canvas(myRenderer, target) {
+            const TEMP_RECT = new PIXI.Rectangle();
+            const BYTES_PER_PIXEL = 4;
+            let textureBuffer;
+            let resolution;
+            let frame;
+            let flipY = false;
+            let renderTexture;
+
+            if (target) {
+                if (target instanceof PIXI.RenderTexture) {
+                    renderTexture = target;
+                } else {
+                    renderTexture = myRenderer.generateTexture(target);
+                }
+            }
+
+            if (renderTexture) {
+                textureBuffer = renderTexture.baseTexture._glRenderTargets[myRenderer.CONTEXT_UID];
+                resolution = textureBuffer.resolution;
+                frame = renderTexture.frame;
+                flipY = false;
+            } else {
+                textureBuffer = myRenderer.rootRenderTarget;
+                resolution = textureBuffer.resolution;
+                flipY = true;
+
+                frame = TEMP_RECT;
+                frame.width = textureBuffer.size.width;
+                frame.height = textureBuffer.size.height;
+            }
+
+            const width = frame.width * resolution;
+            const height = frame.height * resolution;
+
+            const canvasBuffer = new PIXI.CanvasRenderTarget(width, height);
+            // background is an additional canvas to server as background plate.
+            const background = new PIXI.CanvasRenderTarget(width, height);
+
+            if (textureBuffer) {
+                // bind the buffer
+                renderer.bindRenderTarget(textureBuffer);
+
+                // set up an array of pixels
+                const webglPixels = new Uint8Array(BYTES_PER_PIXEL * width * height);
+
+                // read pixels to the array
+                const gl = myRenderer.gl;
+
+                gl.readPixels(
+                    frame.x * resolution,
+                    frame.y * resolution,
+                    width,
+                    height,
+                    gl.RGBA,
+                    gl.UNSIGNED_BYTE,
+                    webglPixels,
+                );
+
+                // canvasBuffer.context.fillStyle = 'blue';
+                background.context.fillStyle = `#${visConfig.backgroundColor.toString(16)}`;
+                background.context.fillRect(0, 0, width, height);
+
+                // add the pixels to the canvas
+                const canvasData = canvasBuffer.context.getImageData(0, 0, width, height);
+
+                canvasData.data.set(webglPixels);
+                // canvasBuffer.context.drawImage(canvasData.data, 0, 0);
+                canvasBuffer.context.putImageData(canvasData, 0, 0);
+                background.context.drawImage(canvasBuffer.canvas, 0, 0);
+                // pulling pixels
+                if (flipY) {
+                    background.context.scale(1, -1);
+                    background.context.drawImage(background.canvas, 0, -height);
+                }
+            }
+
+            // send the canvas back..
+            return background.canvas;
         },
 
-        lock: function(nodes) {
+        // convert the canvas drawing buffer into base64 encoded image url
+        exportImage: function (blobDataReceiver) {
+            this.canvas(renderer, root).toBlob(blobDataReceiver, 'image/png');
+        },
+
+        lock: function (nodes) {
             isDirty = true;
             if (visualConfig.LAYOUT_ANIMATION) {
                 for (let node of nodes) {
@@ -1447,7 +1539,7 @@ var PixiRenderer = function (settings) {
             }
         },
 
-        unlock: function(nodes) {
+        unlock: function (nodes) {
             isDirty = true;
             if (visualConfig.LAYOUT_ANIMATION) {
                 for (let node of nodes) {
