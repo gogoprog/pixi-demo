@@ -123,9 +123,11 @@ var PixiRenderer = function (settings) {
     });
 
     nodeContainer.nodeCaptured = function (node) {
-        stage.interactive = false;
-        nodeContainer.interactive = false;
-        nodeContainer.interactiveChildren = false;
+        stage.hasNodeCaptured = true;
+        isDirty = true;
+        if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
+            layout.pinNode(node, true);
+        }
     };
 
     nodeContainer.nodeMoved = function (node) {
@@ -140,9 +142,17 @@ var PixiRenderer = function (settings) {
     };
 
     nodeContainer.nodeReleased = function (node) {
-        stage.interactive = true;
-        nodeContainer.interactive = true;
-        nodeContainer.interactiveChildren = true;
+        isDirty = true;
+        stage.hasNodeCaptured = false;
+        if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
+            if (node.pinned) {
+                node.pinned = false;
+                layout.pinNode(node, false);
+            } else {
+                node.pinned = true;
+            }
+            layoutIterations = 300;
+        }
     };
 
     //layout 相关,把移动位置同步到layout内部
