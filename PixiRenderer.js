@@ -1625,11 +1625,17 @@ var PixiRenderer = function (settings) {
         isDirty = true;
         pixiGraphics.fire('selectionChanged');
         drawBorders();
+        rightup();
     }
 
     function hiddenStatusChanged() {
         isDirty = true;
         pixiGraphics.fire('hiddenStatusChanged');
+    }
+
+    function rightup() {
+        isDirty = true;
+        pixiGraphics.fire('rightup');
     }
 
 
@@ -1774,6 +1780,7 @@ var PixiRenderer = function (settings) {
         if (layout) {
             layout.setNodePosition(nodeSprite.id, nodeSprite.position.x, nodeSprite.position.y);
         }
+
     }
 
     function updateNodeIcon(node) {
