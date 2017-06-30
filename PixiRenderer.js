@@ -1592,6 +1592,14 @@ var PixiRenderer = function (settings) {
     document.addEventListener('mousedown', pixiGraphics._mouseDownListener);
     document.addEventListener('keydown', pixiGraphics._keyDownListener);
 
+    pixiGraphics._contextmenuHandler = function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        return false;
+    }
+
+    pixiGraphics.addCanvasEventListener('contextmenu', pixiGraphics._contextmenuHandler, false);
+
     eventify(pixiGraphics);
     return pixiGraphics;
 
@@ -1635,14 +1643,7 @@ var PixiRenderer = function (settings) {
     function contextmenuListener(e) {
         isDirty = true;
         pixiGraphics.fire('contextmenu', e);
-        pixiGraphics.addCanvasEventListener('contextmenu', contextmenuHandler, false);
-    }
-
-    function contextmenuHandler(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-    }
+    }  
 
     function animationLoop() {
 
