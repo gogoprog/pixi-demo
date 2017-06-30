@@ -1449,7 +1449,7 @@ var PixiRenderer = function (settings) {
          * @param myRenderer
          * @param target
          */
-        canvas(myRenderer, target) {
+        canvas(myRenderer, target, originViewWidth, originViewHeight) {
             const TEMP_RECT = new PIXI.Rectangle();
             const BYTES_PER_PIXEL = 4;
             let textureBuffer;
@@ -1481,10 +1481,30 @@ var PixiRenderer = function (settings) {
                 frame.height = textureBuffer.size.height;
             }
 
-            const width = frame.width * resolution;
-            const height = frame.height * resolution;
+            let width = frame.width * resolution;
+            let height = frame.height * resolution;
 
-            const canvasBuffer = new PIXI.CanvasRenderTarget(width, height);
+            if (width === 0 || height === 0) {
+                width = originViewWidth;
+                height = originViewHeight;
+            }
+
+            let canvasWidth = width;
+            let canvasHeight = height;
+
+            let diffWidth = 0;
+            let diffHeight = 0;
+            if (width < originViewWidth) {
+                diffWidth = originViewWidth - width;
+                width = originViewWidth;
+            }
+
+            if (height < originViewHeight) {
+                diffHeight = originViewHeight - height;
+                height = originViewHeight;
+            }
+
+            const canvasBuffer = new PIXI.CanvasRenderTarget(canvasWidth, canvasHeight);
             // background is an additional canvas to server as background plate.
             const background = new PIXI.CanvasRenderTarget(width, height);
 
@@ -1493,16 +1513,16 @@ var PixiRenderer = function (settings) {
                 renderer.bindRenderTarget(textureBuffer);
 
                 // set up an array of pixels
-                const webglPixels = new Uint8Array(BYTES_PER_PIXEL * width * height);
+                const webglPixels = new Uint8Array(BYTES_PER_PIXEL * canvasWidth * canvasHeight);   //
 
                 // read pixels to the array
                 const gl = myRenderer.gl;
-
+                //
                 gl.readPixels(
                     frame.x * resolution,
                     frame.y * resolution,
-                    width,
-                    height,
+                    canvasWidth,
+                    canvasHeight,
                     gl.RGBA,
                     gl.UNSIGNED_BYTE,
                     webglPixels,
@@ -1513,12 +1533,12 @@ var PixiRenderer = function (settings) {
                 background.context.fillRect(0, 0, width, height);
 
                 // add the pixels to the canvas
-                const canvasData = canvasBuffer.context.getImageData(0, 0, width, height);
+                const canvasData = canvasBuffer.context.getImageData(0, 0, canvasWidth, canvasHeight);  //
 
                 canvasData.data.set(webglPixels);
                 // canvasBuffer.context.drawImage(canvasData.data, 0, 0);
                 canvasBuffer.context.putImageData(canvasData, 0, 0);
-                background.context.drawImage(canvasBuffer.canvas, 0, 0);
+                background.context.drawImage(canvasBuffer.canvas, diffWidth/2, diffHeight/2, canvasWidth, canvasHeight);
                 // pulling pixels
                 if (flipY) {
                     background.context.scale(1, -1);
@@ -1532,7 +1552,7 @@ var PixiRenderer = function (settings) {
 
         // convert the canvas drawing buffer into base64 encoded image url
         exportImage: function (blobDataReceiver) {
-            this.canvas(renderer, root).toBlob(blobDataReceiver, 'image/png');
+            this.canvas(renderer, root, viewWidth, viewHeight).toBlob(blobDataReceiver, 'image/png');
         },
 
         lock: function (nodes) {
