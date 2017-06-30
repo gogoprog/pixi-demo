@@ -1625,7 +1625,6 @@ var PixiRenderer = function (settings) {
         isDirty = true;
         pixiGraphics.fire('selectionChanged');
         drawBorders();
-        rightup();
     }
 
     function hiddenStatusChanged() {
@@ -1633,12 +1632,11 @@ var PixiRenderer = function (settings) {
         pixiGraphics.fire('hiddenStatusChanged');
     }
 
-    function rightup() {
+    function rightup(e) {
         isDirty = true;
-        pixiGraphics.fire('rightup');
+        pixiGraphics.fire('rightup', e);
     }
-
-
+    
     function animationLoop() {
 
         if (destroyed) {
@@ -1781,6 +1779,7 @@ var PixiRenderer = function (settings) {
             layout.setNodePosition(nodeSprite.id, nodeSprite.position.x, nodeSprite.position.y);
         }
 
+        nodeSprite.on('rightup', rightup);
     }
 
     function updateNodeIcon(node) {
