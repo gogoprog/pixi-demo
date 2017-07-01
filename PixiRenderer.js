@@ -9,11 +9,11 @@ import LayeredLayout from './LayeredLayout';
 import CircleLayout from './CircleLayout';
 import RadiateLayout from './RadiateLayout';
 import Graph from "./Graph";
-import {SelectionManager} from "./SelectionManager";
-import {CircleBorderTexture} from "./CircleBorderSprite";
+import { SelectionManager } from "./SelectionManager";
+import { CircleBorderTexture } from "./CircleBorderSprite";
 import "pixi.js";
-import {addWheelListener, removeWheelListener} from "./WheelListener";
-import {zoom, rootCaptureHandler, nodeCaptureListener} from "./customizedEventHandling";
+import { addWheelListener, removeWheelListener } from "./WheelListener";
+import { zoom, rootCaptureHandler, nodeCaptureListener } from "./customizedEventHandling";
 import SimpleLineSprite from "./SimpleLineSprite";
 import "./pixiSpriteAugment";
 import SimpleNodeSprite from "./SimpleNodeSprite";
@@ -62,13 +62,13 @@ var PixiRenderer = function (settings) {
     var timeline, timelineWindow, msPerPix, originSpotTime, timelineWidth; // the timeline object.
 
     var renderer = new PIXI.autoDetectRenderer(viewWidth, viewHeight, {
-            view: settings.container,
-            transparent: false,
-            autoResize: true,
-            antialias: true,
-            forceFXAA: false,
-            preserveDrawingBuffer: true,
-        }),
+        view: settings.container,
+        transparent: false,
+        autoResize: true,
+        antialias: true,
+        forceFXAA: false,
+        preserveDrawingBuffer: true,
+    }),
         stage = new PIXI.Container(),   // the view port, same size as canvas, used to capture mouse action
         root = new PIXI.Container(),    // the content root
         nodeContainer = new PIXI.Container();
@@ -243,7 +243,7 @@ var PixiRenderer = function (settings) {
             var end = start + msPerPix * timelineWidth;
             timeline.setWindow(
                 start,
-                end, {animation: false},
+                end, { animation: false },
             );
         }
         // console.log(stage.contentRoot.position);
@@ -251,12 +251,12 @@ var PixiRenderer = function (settings) {
         // reposition the nodes;
         if (pRoot.x > 160) {
             _.each(nodeSprites, function (ns) {
-                ns.updateNodePosition({x: -40, y: ns.position.y});
+                ns.updateNodePosition({ x: -40, y: ns.position.y });
             });
         } else {
             let newX = 200 - pRoot.x / stage.contentRoot.scale.x;
             _.each(nodeSprites, function (ns) {
-                ns.updateNodePosition({x: newX, y: ns.position.y})
+                ns.updateNodePosition({ x: newX, y: ns.position.y })
             });
         }
         stage.isDirty = true;
@@ -281,12 +281,12 @@ var PixiRenderer = function (settings) {
         let pRoot = stage.contentRoot.position;
         if (pRoot.x > 160) {
             _.each(nodeSprites, function (ns) {
-                ns.updateNodePosition({x: -40, y: ns.position.y});
+                ns.updateNodePosition({ x: -40, y: ns.position.y });
             });
         } else {
             let newX = 200 - pRoot.x / stage.contentRoot.scale.x;
             _.each(nodeSprites, function (ns) {
-                ns.updateNodePosition({x: newX, y: ns.position.y})
+                ns.updateNodePosition({ x: newX, y: ns.position.y })
             });
         }
         stage.isDirty = true;
@@ -705,8 +705,8 @@ var PixiRenderer = function (settings) {
             let scale = Math.min(scaleX, scaleY, visualConfig.MAX_ADJUST);
             let graphCenterInStage = {
                 //(graphRect.x1 + rootWidth / 2 ) 是contentRoot坐标系，转换到stage的坐标系时需要进行scale处理， 下同
-                x: (graphRect.x1 + rootWidth / 2 ) * scale + root.position.x,
-                y: (graphRect.y1 + rootHeight / 2 ) * scale + root.position.y,
+                x: (graphRect.x1 + rootWidth / 2) * scale + root.position.x,
+                y: (graphRect.y1 + rootHeight / 2) * scale + root.position.y,
             };
             // console.log("Graph center in content root", {
             //     x: graphRect.x1 + rootWidth / 2,
@@ -1612,6 +1612,14 @@ var PixiRenderer = function (settings) {
     document.addEventListener('mousedown', pixiGraphics._mouseDownListener);
     document.addEventListener('keydown', pixiGraphics._keyDownListener);
 
+    pixiGraphics._contextmenuHandler = function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        return false;
+    }
+
+    pixiGraphics.addCanvasEventListener('contextmenu', pixiGraphics._contextmenuHandler, false);
+
     eventify(pixiGraphics);
     return pixiGraphics;
 
@@ -1652,6 +1660,10 @@ var PixiRenderer = function (settings) {
         pixiGraphics.fire('hiddenStatusChanged');
     }
 
+    function contextmenuListener(e) {
+        isDirty = true;
+        pixiGraphics.fire('contextmenu', e);
+    }  
 
     function animationLoop() {
 
@@ -1794,6 +1806,8 @@ var PixiRenderer = function (settings) {
         if (layout) {
             layout.setNodePosition(nodeSprite.id, nodeSprite.position.x, nodeSprite.position.y);
         }
+        nodeSprite.on('mousedown', nodeCaptureListener);
+        nodeSprite.on('rightup', contextmenuListener);
     }
 
     function updateNodeIcon(node) {

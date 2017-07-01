@@ -1,5 +1,3 @@
-import { nodeCaptureListener } from "./customizedEventHandling";
-
 export default class SimpleNodeSprite extends PIXI.Sprite {
     constructor(texture, node, visualConfig) {
         super(texture);
@@ -34,8 +32,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         t.anchor.x = 0.5;
         t.scale.set(0.5, 0.5);
         this.ts = t;
-
-        this.on('mousedown', nodeCaptureListener);
     }
 
     hide() {
