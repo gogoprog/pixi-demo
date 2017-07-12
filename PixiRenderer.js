@@ -1124,6 +1124,8 @@ var PixiRenderer = function (settings) {
             networkLayout = null;
             animationAgent = null;
             graphData = null;
+            graph.clear();
+            graph = null;
             graphEntityTypes = null;
             graphLinkTypes = null;
             graphEntities = null;
@@ -1663,7 +1665,7 @@ var PixiRenderer = function (settings) {
     function contextmenuListener(e) {
         isDirty = true;
         pixiGraphics.fire('contextmenu', e);
-    }  
+    }
 
     function animationLoop() {
 
