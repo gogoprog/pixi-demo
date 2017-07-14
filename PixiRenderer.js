@@ -1325,7 +1325,7 @@ var PixiRenderer = function (settings) {
             return graphType;
         },
         setGraphData: function (gData) {
-            graphData = gData;
+            graphData = graph.setEntityGraphSource(gData);
         },
         getGraphData: function () {
             return graphData;
