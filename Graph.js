@@ -279,32 +279,40 @@ export default function Graph(source, options) {
 
         setEntityGraphSource(entityGraphSource){
             let self = this;
-            this.source = entityGraphSource;
-            entityGraphSource.on('changed', changeList => {
-                this.beginUpdate();
+            self.source = entityGraphSource;
+            entityGraphSource.on('changed', (changeList) => {
+                self.beginUpdate();
                 for (let i = 0; i < changeList.length; ++i) {
                     const change = changeList[i];
                     console.log('Renderer graph received change event', change);
                     if (change.changeType === 'add' || change.changeType === 'update') {
-                        if (change.node) {
-                            self.addNode(change.node.id, change.node);
+                        if (change.entity) {
+                            self.addNode(change.entity.id, change.entity);
                         }
                         if (change.link) {
                             self.addLink(change.link.sourceEntity, change.link.targetEntity, change.link);
                         }
                     } else if (change.changeType === 'remove') {
-                        if (change.node) {
-                            self.removeNode(change.node.id);
+                        if (change.entity) {
+                            self.removeNode(change.entity.id);
                         }
                         if (change.link) {
                             self.removeLink(change.link);
                         }
                     }
                 }
-                this.endUpdate();
+                self.endUpdate();
+            });
+            entityGraphSource.on('init', function () {
+                entityGraphSource.forEachEntity(function (entity) {
+                    self.addNode(entity.id, entity);
+                });
+                entityGraphSource.forEachLink(function (link) {
+                    self.addLink(link.sourceEntity, link.targetEntity, link);
+                });
             });
         },
-    }
+    };
 
     // this will add `on()` and `fire()` methods.
     eventify(graphPart);
