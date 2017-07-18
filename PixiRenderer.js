@@ -57,6 +57,7 @@ var PixiRenderer = function (settings) {
 
     var layoutType = "Network";
     var canvas = settings.container;
+    var disabledWheel = settings.disabledWheel; //disabled addWheelListener
     var viewWidth = settings.container.clientWidth,
         viewHeight = settings.container.clientHeight;
     var timeline, timelineWindow, msPerPix, originSpotTime, timelineWidth; // the timeline object.
@@ -1591,9 +1592,11 @@ var PixiRenderer = function (settings) {
     pixiGraphics._zoomActionListener = _.throttle(function (e) {
         pixiGraphics.zoom(e.offsetX || (e.originalEvent ? e.originalEvent.offsetX : null), e.offsetY || (e.originalEvent ? e.originalEvent.offsetY : null), e.deltaY < 0);
     }, 100);
-    addWheelListener(canvas, pixiGraphics._zoomActionListener);
-
-
+    
+    if(!disabledWheel) {
+        addWheelListener(canvas, pixiGraphics._zoomActionListener);
+    }
+    
     pixiGraphics._lastDownTarget = null;
     pixiGraphics._mouseDownListener = function (event) {
         pixiGraphics._lastDownTarget = event.target;
