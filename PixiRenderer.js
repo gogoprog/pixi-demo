@@ -1326,7 +1326,8 @@ var PixiRenderer = function (settings) {
             return graphType;
         },
         setGraphData: function (gData) {
-            graphData = gData;
+            graph.setEntityGraphSource(gData);
+            // graphData = gData;
         },
         getGraphData: function () {
             return graphData;
@@ -1592,11 +1593,11 @@ var PixiRenderer = function (settings) {
     pixiGraphics._zoomActionListener = _.throttle(function (e) {
         pixiGraphics.zoom(e.offsetX || (e.originalEvent ? e.originalEvent.offsetX : null), e.offsetY || (e.originalEvent ? e.originalEvent.offsetY : null), e.deltaY < 0);
     }, 100);
-    
+
     if(!disabledWheel) {
         addWheelListener(canvas, pixiGraphics._zoomActionListener);
     }
-    
+
     pixiGraphics._lastDownTarget = null;
     pixiGraphics._mouseDownListener = function (event) {
         pixiGraphics._lastDownTarget = event.target;
