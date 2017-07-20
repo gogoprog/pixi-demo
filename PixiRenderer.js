@@ -129,7 +129,6 @@ var PixiRenderer = function (settings) {
         isDirty = true;
         if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
             if (!node.pinned) {
-                node.pinned = true;
                 layout.pinNode(node, true);
             }
         }
@@ -153,6 +152,8 @@ var PixiRenderer = function (settings) {
             if (node.pinned && !node.data.properties["_$lock"]) {
                 node.pinned = false;
                 layout.pinNode(node, false);
+            } else {
+                node.pinned = true;
             }
             layoutIterations = 300;
         }
