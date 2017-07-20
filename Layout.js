@@ -149,5 +149,5 @@ Layout.prototype.isNodePinned = function (node) {
 };
 
 Layout.prototype.isNodeOriginallyPinned = function(node) {
-    return (node && (node.pinned || (node.data && node.data.pinned)));
+    return (node.pinned && node.data.properties["_$lock"]);
 };

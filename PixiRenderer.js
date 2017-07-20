@@ -124,10 +124,14 @@ var PixiRenderer = function (settings) {
     });
 
     nodeContainer.nodeCaptured = function (node) {
+        pixiGraphics.setIterationFrequency(2);
         stage.hasNodeCaptured = true;
         isDirty = true;
         if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
-            layout.pinNode(node, true);
+            if (!node.pinned) {
+                node.pinned = true;
+                layout.pinNode(node, true);
+            }
         }
     };
 
@@ -146,11 +150,9 @@ var PixiRenderer = function (settings) {
         isDirty = true;
         stage.hasNodeCaptured = false;
         if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
-            if (node.pinned) {
+            if (node.pinned && !node.data.properties["_$lock"]) {
                 node.pinned = false;
                 layout.pinNode(node, false);
-            } else {
-                node.pinned = true;
             }
             layoutIterations = 300;
         }
@@ -223,8 +225,9 @@ var PixiRenderer = function (settings) {
     graph.forEachNode(initNode);
     graph.forEachLink(initLink);
     // setupWheelListener(canvas, root); // wheel listener 现在在外部模板内设置，通过zoom接口来调用renderer的缩放方法。
-    var layoutIterations = 0,
-        counter = new FPSCounter();
+    var layoutIterations = 0;
+    var counter = new FPSCounter();
+    var iterationFrequency = 20;
 
     listenToGraphEvents();
     stage.interactive = true;
@@ -335,7 +338,6 @@ var PixiRenderer = function (settings) {
          */
         adjustInitialDisplayLocation: function () {
             this.performLayout();
-            this.setNodesToFullScreen();
         },
 
         /*
@@ -1103,6 +1105,7 @@ var PixiRenderer = function (settings) {
             stage.isTimelineLayout = true;
             root.position.x = leftSpacing || visualConfig.timelineLayout['margin-left'] + 60;
             stage.contentRootMoved();
+            this.setNodesToFullScreen();
         },
 
         destroy: function () {
@@ -1257,6 +1260,7 @@ var PixiRenderer = function (settings) {
             } else {
                 return false;
             }
+
             isDirty = true;
         },
 
@@ -1585,7 +1589,12 @@ var PixiRenderer = function (settings) {
                     }
                 }
             }
+        },
+
+        setIterationFrequency: function (iterFreq) {
+            iterationFrequency = iterFreq;
         }
+       
 
     };
 
@@ -1669,7 +1678,8 @@ var PixiRenderer = function (settings) {
         isDirty = true;
         pixiGraphics.fire('contextmenu', e);
     }
-
+  
+    
     function animationLoop() {
 
         if (destroyed) {
@@ -1684,11 +1694,16 @@ var PixiRenderer = function (settings) {
             if (layoutIterations > 0) {
                 layout.step();
                 let positionChanged = layout.step();
-                //大开销计算
-                _.each(nodeSprites, function (nodeSprite, nodeId) {
+
+                _.each(nodeSprites, function (nodeSprite, nodeId) { //大开销计算
                     nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+                    if (nodeSprite.pinned && !nodeSprite.data.properties["_$lock"]) {
+                        nodeSprite.pinned = false;
+                        layout.pinNode(nodeSprite, false);
+                    }
                 });
-                layoutIterations -= 2;
+
+                layoutIterations -= iterationFrequency;
                 if (positionChanged || layoutIterations <= 0) {
                     if (layoutType === "Circular" || layoutType === "Layered") {
                         console.log("layout freezed, setting to full screen");
