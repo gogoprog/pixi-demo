@@ -280,21 +280,21 @@ export default function Graph(source, options) {
         setEntityGraphSource(entityGraphSource){
             let self = this;
             this.source = entityGraphSource;
-            entityGraphSource.on('changed', changeList => {
+            entityGraphSource.on('changed', (changeList) => {
                 this.beginUpdate();
                 for (let i = 0; i < changeList.length; ++i) {
                     const change = changeList[i];
                     console.log('Renderer graph received change event', change);
                     if (change.changeType === 'add' || change.changeType === 'update') {
-                        if (change.node) {
-                            self.addNode(change.node.id, change.node);
+                        if (change.entity) {
+                            self.addNode(change.entity.id, change.entity);
                         }
                         if (change.link) {
                             self.addLink(change.link.sourceEntity, change.link.targetEntity, change.link);
                         }
                     } else if (change.changeType === 'remove') {
-                        if (change.node) {
-                            self.removeNode(change.node.id);
+                        if (change.entity) {
+                            self.removeNode(change.entity.id);
                         }
                         if (change.link) {
                             self.removeLink(change.link);
@@ -302,6 +302,19 @@ export default function Graph(source, options) {
                     }
                 }
                 this.endUpdate();
+            });
+            entityGraphSource.on('init', () => {
+                console.log('Renderer graph received source init event');
+                self.beginUpdate();
+
+                self.source.forEachEntity((e) => {
+                    self.addNode(e.id, e);
+                });
+                self.source.forEachLink((l) => {
+                    self.addLink(l.sourceEntity, l.targetEntity, l);
+                });
+                self.endUpdate();
+                console.log('Renderer graph finished handling source init event');
             });
         },
     }
