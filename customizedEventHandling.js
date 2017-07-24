@@ -54,6 +54,7 @@ export const rootCaptureHandler = function (e) {
         return;
     }
 
+    this.isDirty = true;
     this.data = e.data;
 
     if (this.mode === "panning") {
@@ -164,6 +165,8 @@ export const nodeCaptureListener = function (e) {
     this.parent.nodeCaptured(this);
     this.dragging = true;
     this.alpha = 0.6;
+    this.parent.isDirty = true;
+    this.parent.setPositionDirty(false);
 
     newPosition.copy(this.interactionData.getLocalPosition(this.parent));
 
@@ -183,7 +186,7 @@ var nodeReleaseListener = function (e) {
     this.dragging = false;
     this.parent.nodeReleased(this);
     //newPosition.copy(this.interactionData.getLocalPosition(this.parent));
-
+    this.parent.isDirty = true;
     this.interactionData = null;
     this.parent.selectedNodesPosChanged();
     this.parent.nodeSelected(this);
@@ -196,6 +199,7 @@ var newPosition = new PIXI.Point();
 var nodeMoveListener = function (e) {
     // console.log('node mouse move fired');
     this.parent.dragJustNow = false;
+    this.parent.setPositionDirty(false);
     newPosition.copy(this.interactionData.getLocalPosition(this.parent));
     if (this.timelineMode) {
         var dx = Math.abs(newPosition.x - this.position.x);
@@ -218,7 +222,9 @@ var nodeMoveListener = function (e) {
             n.updateNodePosition(np);
             container.nodeMoved(n);
         });
+        this.parent.isDirty = true;
         this.parent.dragJustNow = true;
+        this.parent.setPositionDirty(true);
     } else if (!this.selected) {
         var mouseEvent = e.data.originalEvent;
         if (!mouseEvent.ctrlKey && !mouseEvent.shiftKey) {
@@ -228,8 +234,35 @@ var nodeMoveListener = function (e) {
         //newPosition=null;
         this.updateNodePosition(newPosition);
         this.parent.nodeMoved(this);
+        this.parent.setPositionDirty(true);
     }
 };
+
+export const linkCaptureListener = function (e) {
+    this.interactionData = e.data;
+    if (!this.selected) {
+        var mouseEvent = e.data.originalEvent;
+        if (!mouseEvent.ctrlKey && !mouseEvent.shiftKey) {
+            this.parent.deselectAll();
+        }
+        this.parent.linkSelected(this.lineSprite);
+    }
+    if (!this.releaseListener) {
+        this.releaseListener = linkReleaseListener.bind(this);
+        this.on('mouseup', this.releaseListener);
+    }
+};
+
+var linkReleaseListener = function (e) {
+    this.interactionData = null;
+    this.off('mouseup', this.releaseListener);
+    this.releaseListener = null;
+    this.parent.isDirty = true;
+};
+
+
+
+
 
 // export {
 //   zoom

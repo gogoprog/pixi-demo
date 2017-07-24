@@ -9,7 +9,9 @@ import LayeredLayout from './LayeredLayout';
 import CircleLayout from './CircleLayout';
 import RadiateLayout from './RadiateLayout';
 import Graph from "./Graph";
-import { SelectionManager } from "./SelectionManager";
+import { NodeSelectionManager } from "./NodeSelectionManager";
+import { LinkSelectionManager } from "./LinkSelectionManager";
+import { RootSelectionManager } from "./RootSelectionManager";
 import { CircleBorderTexture } from "./CircleBorderSprite";
 import "pixi.js";
 import { addWheelListener, removeWheelListener } from "./WheelListener";
@@ -75,7 +77,7 @@ var PixiRenderer = function (settings) {
         nodeContainer = new PIXI.Container();
 
     // var lineContainer = new PIXI.ParticleContainer(5000, { scale: true, position: true, rotation: true, uvs: false, alpha: true });
-    var lineContainer = nodeContainer;
+    var lineContainer = new PIXI.Container();
     var textContainer = new PIXI.Container();
     var boarderGraphics = new PIXI.Graphics();
     var selectRegionGraphics = new PIXI.Graphics();
@@ -94,6 +96,7 @@ var PixiRenderer = function (settings) {
     boarderGraphics.zIndex = 10;
     selectRegionGraphics.zIndex = 11;
     textContainer.zIndex = 15;
+    lineContainer.zIndex = 18;
     nodeContainer.zIndex = 20;
 
     root.addChild(lineGraphics);
@@ -101,6 +104,7 @@ var PixiRenderer = function (settings) {
     stage.addChild(selectRegionGraphics);
     root.addChild(textContainer);
     root.addChild(nodeContainer);
+    root.addChild(lineContainer);
 
     stage.contentRoot = root;
 
@@ -109,24 +113,25 @@ var PixiRenderer = function (settings) {
     stage.height = viewHeight;
 
     //TODO here set the canvas as 20000*20000
-    nodeContainer.hitArea = new PIXI.Rectangle(-10000, -10000, 20000, 20000);
-
-    nodeContainer.interactive = true;
+    root.hitArea = new PIXI.Rectangle(-10000, -10000, 20000, 20000);
+    root.interactive = true;
 
     // renderer.backgroundColor = 0xFFFFFF;
     renderer.backgroundColor = visConfig.backgroundColor;
-    SelectionManager.call(nodeContainer);
 
-    nodeContainer.on('mouseup', function (e) {
+    NodeSelectionManager.call(nodeContainer, lineContainer);
+    LinkSelectionManager.call(lineContainer, nodeContainer);
+    RootSelectionManager.call(root, nodeContainer, lineContainer);
+
+    root.on('mouseup', function (e) {
         isDirty = true;
-        nodeContainer.handleMouseUp(e);
+        root.handleMouseUp(e);
         selectionChanged();
     });
 
     nodeContainer.nodeCaptured = function (node) {
         pixiGraphics.setIterationFrequency(2);
         stage.hasNodeCaptured = true;
-        isDirty = true;
         if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
             if (!node.pinned) {
                 layout.pinNode(node, true);
@@ -135,18 +140,15 @@ var PixiRenderer = function (settings) {
     };
 
     nodeContainer.nodeMoved = function (node) {
-        isDirty = true;
         if (visualConfig.LAYOUT_ANIMATION) {
             layout.setNodePosition(node.id, node.position.x, node.position.y);
             if (layoutType === 'Network') {
-                layoutIterations += 60;
+                layoutIterations += 4;
             }
         }
-
     };
 
     nodeContainer.nodeReleased = function (node) {
-        isDirty = true;
         stage.hasNodeCaptured = false;
         if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
             if (node.pinned && !node.data.properties["_$lock"]) {
@@ -155,7 +157,6 @@ var PixiRenderer = function (settings) {
             } else {
                 node.pinned = true;
             }
-            layoutIterations = 300;
         }
     };
 
@@ -209,8 +210,8 @@ var PixiRenderer = function (settings) {
      * nodeSprites is for all of the nodes, their attribute can be found in initNode;
      * linkSprites is for all of the links, their attribute can be found in SimpleLineSprite;
      */
-    var nodeSprites = {},
-        linkSprites = {};
+    var nodeSprites = {};
+    var linkSprites = {};
 
     //var bfsQueue = [];
 
@@ -311,11 +312,9 @@ var PixiRenderer = function (settings) {
          * Cancel global Interactive
          */
         cancelGlobalInteractive: function () {
-            nodeContainer.interactive = false;
             stage.interactive = false;
-            // stage.interactiveChildren=false;
-            nodeContainer.interactiveChildren = false;
-
+            root.interactive = false;
+            root.interactiveChildren = false;
         },
 
         /**
@@ -324,13 +323,11 @@ var PixiRenderer = function (settings) {
         recoverGlobalInteractive: function () {
             stage.interactive = true;
             if (this.mode == "picking") {
-                nodeContainer.interactive = true;
-                nodeContainer.interactiveChildren = true;
-
+                root.interactive = true;
+                root.interactiveChildren = true;
             } else {
-                nodeContainer.interactive = false;
-                nodeContainer.interactiveChildren = false;
-
+                root.interactive = false;
+                root.interactiveChildren = false;
             }
         },
 
@@ -449,14 +446,14 @@ var PixiRenderer = function (settings) {
                 //when we hide the nodes we should also hide the texture, arrow and the link.
                 _.each(hiddenNode.outgoing, function (olink) {
                     if (olink.selected) {
-                        nodeContainer.deselectLink(olink);
+                        lineContainer.deselectLink(olink);
                     }
                     olink.hide();
 
                 });
                 _.each(hiddenNode.incoming, function (ilink) {
                     if (ilink.selected) {
-                        nodeContainer.deselectLink(ilink);
+                        lineContainer.deselectLink(ilink);
                     }
                     ilink.hide();
                 });
@@ -465,7 +462,7 @@ var PixiRenderer = function (settings) {
             _.each(linkIdArray, function (linkId) {
                 var linkToHide = linkSprites[linkId];
                 if (linkToHide.selected) {
-                    nodeContainer.deselectLink(linkToHide);
+                    lineContainer.deselectLink(linkToHide);
                 }
                 linkToHide.hide();
             });
@@ -569,19 +566,17 @@ var PixiRenderer = function (settings) {
             if (this.mode == "panning") {
                 this.mode = 'picking';
                 stage.mode = this.mode;
-                nodeContainer.interactive = true;
-                nodeContainer.interactiveChildren = true;
+                root.interactive = true;
+                root.interactiveChildren = true;
                 // stage.interactive = false;
                 stage.buttonMode = false;
-
             } else {
                 this.mode = 'panning';
                 // stage.interactive = true;
                 stage.buttonMode = true;
                 stage.mode = this.mode;
-                nodeContainer.interactiveChildren = false;
-                nodeContainer.interactive = false;
-
+                root.interactiveChildren = false;
+                root.interactive = false;
             }
         },
 
@@ -613,7 +608,7 @@ var PixiRenderer = function (settings) {
 
         getSelectedLinks: function () {
             // return _.values(nodeContainer.selectedLinks);
-            return nodeContainer.links;
+            return lineContainer.links;
         },
 
         drawCircleLayout: function () {
@@ -682,6 +677,9 @@ var PixiRenderer = function (settings) {
                 n.updateNodePosition(n.position);
                 layout.setNodePosition(n.id, n.position.x, n.position.y);
             });
+
+            drawBorders();
+            drawLines();
         },
 
         calculateRootPositionToCenterGraphLayout: function () {
@@ -737,6 +735,7 @@ var PixiRenderer = function (settings) {
                 },
             }
         },
+
         setNodesToFullScreen: function () {
             let rootPlacement = this.calculateRootPositionToCenterGraphLayout();
             if (rootPlacement) {
@@ -749,6 +748,7 @@ var PixiRenderer = function (settings) {
                 console.error("Center graph action not supported in current layout.");
             }
         },
+
         setSelectedNodesToFullScreen: function () {
             isDirty = true;
             var root = this.root;
@@ -836,6 +836,9 @@ var PixiRenderer = function (settings) {
                 n.updateNodePosition(n.position);
                 layout.setNodePosition(n.id, n.position.x, n.position.y);
             });
+            
+            drawBorders();
+            drawLines();
         },
 
         /**
@@ -867,7 +870,7 @@ var PixiRenderer = function (settings) {
                 _.each(linkSprites, function (linkSprite, lid) {
                     var actualId = linkSprite.id;
                     if (_.indexOf(linkIdArray, actualId) >= 0) {
-                        nodeContainer.deselectLink(linkSprite);
+                        lineContainer.deselectLink(linkSprite);
                     }
                 });
             }
@@ -891,15 +894,14 @@ var PixiRenderer = function (settings) {
             _.each(linkSprites, function (linkSprite, lid) {
                 var actualId = linkSprite.id;
                 if (_.indexOf(linkIdArray, actualId) >= 0) {
-                    nodeContainer.selectLink(linkSprite);
+                    lineContainer.selectLink(linkSprite);
                 }
             });
             selectionChanged();
         },
 
         clearSelection: function () {
-            isDirty = true;
-            nodeContainer.deselectAll();
+            root.deselectAll();
             selectionChanged();
         },
 
@@ -919,7 +921,7 @@ var PixiRenderer = function (settings) {
                 if (direction === "both" || direction == "in") {
                     _.each(n.incoming, function (l) {
                         if (l.visible) {
-                            nodeContainer.selectLink(l);
+                            lineContainer.selectLink(l);
                             if (alsoSelectNodes && nodeSprites[l.data.sourceEntity].visible) {
                                 nodeContainer.selectNode(nodeSprites[l.data.sourceEntity]);
                             }
@@ -929,7 +931,7 @@ var PixiRenderer = function (settings) {
                 if (direction === "both" || direction == "out") {
                     _.each(n.outgoing, function (l) {
                         if (l.visible) {
-                            nodeContainer.selectLink(l);
+                            lineContainer.selectLink(l);
                             if (alsoSelectNodes && nodeSprites[l.data.targetEntity].visible) {
                                 nodeContainer.selectNode(nodeSprites[l.data.targetEntity]);
                             }
@@ -960,7 +962,7 @@ var PixiRenderer = function (settings) {
             isDirty = true;
             _.each(linkSprites, function (l) {
                 if (l.visible) {
-                    nodeContainer.selectLink(l);
+                    lineContainer.selectLink(l);
                 }
             });
             _.each(nodeSprites, function (n) {
@@ -975,9 +977,9 @@ var PixiRenderer = function (settings) {
             isDirty = true;
             _.each(linkSprites, function (l) {
                 if (l.selected || l.visible == false) {
-                    nodeContainer.deselectLink(l);
+                    lineContainer.deselectLink(l);
                 } else {
-                    nodeContainer.selectLink(l);
+                    lineContainer.selectLink(l);
                 }
 
             });
@@ -993,7 +995,7 @@ var PixiRenderer = function (settings) {
 
         hideSelectedLinks: function () {
             isDirty = true;
-            _.each(nodeContainer.links, function (link) {
+            _.each(lineContainer.links, function (link) {
                 link.hide();
             });
         },
@@ -1136,9 +1138,17 @@ var PixiRenderer = function (settings) {
             graphEntities = null;
             graphLinks = null;
 
+            boarderGraphics.destroy(false);
+            selectRegionGraphics.destroy(false);
+            lineGraphics.destroy(false);
+            textContainer.destroy(false);
+            nodeContainer.destroy(false);
+            lineContainer.destroy(false);
+            root.destroy(false);
             stage.destroy(false);   // false to not let pixi containers destroy sprites.
             renderer.destroy(true); // true for removing the underlying view(canvas)
         },
+
         removeAllLinks: function () {
             isDirty = true;
             _.each(nodeSprites, function (n) {
@@ -1147,7 +1157,7 @@ var PixiRenderer = function (settings) {
             });
             _.each(linkSprites, function (l) {
                 if (l.selected) {
-                    nodeContainer.deselectLink(l);
+                    lineContainer.deselectLink(l);
                 }
                 if (l.label) {
                     lineContainer.removeChild(l.label);
@@ -1220,6 +1230,7 @@ var PixiRenderer = function (settings) {
                 currentX += nodeMarginX;
             });
         },
+
         pauseAnimation: function () {
             visualConfig.LAYOUT_ANIMATION = !visualConfig.LAYOUT_ANIMATION;
             if (!visualConfig.LAYOUT_ANIMATION) {
@@ -1230,6 +1241,7 @@ var PixiRenderer = function (settings) {
                 this.performLayout();
             }
         },
+
         performLayout: function () {
             if (layoutType == 'Network') {
 
@@ -1331,7 +1343,8 @@ var PixiRenderer = function (settings) {
             return graphType;
         },
         setGraphData: function (gData) {
-            graphData = graph.setEntityGraphSource(gData);
+            // graphData = graph.setEntityGraphSource(gData);
+            graphData = gData;
         },
         getGraphData: function () {
             return graphData;
@@ -1668,6 +1681,7 @@ var PixiRenderer = function (settings) {
         isDirty = true;
         pixiGraphics.fire('selectionChanged');
         drawBorders();
+        drawChangeLines();
     }
 
     function hiddenStatusChanged() {
@@ -1682,7 +1696,6 @@ var PixiRenderer = function (settings) {
   
     
     function animationLoop() {
-
         if (destroyed) {
             console.info("Renderer destroyed, exiting animation loop");
             return;
@@ -1690,7 +1703,7 @@ var PixiRenderer = function (settings) {
 
         requestAnimationFrame(animationLoop);
 
-        if (isDirty || nodeContainer.isDirty || stage.isDirty || animationAgent.needRerender()) {
+        if (isDirty || nodeContainer.isDirty || lineContainer.isDirty || stage.isDirty || animationAgent.needRerender()) {
             animationAgent.step();
             if (layoutIterations > 0) {
                 layout.step();
@@ -1712,15 +1725,16 @@ var PixiRenderer = function (settings) {
                         // pixiGraphics.setNodesToFullScreen();
                     }
                 }
+
+                drawBorders();
+                drawLines();
             }
 
             selectRegionGraphics.clear();
             if (stage.selectRegion && stage.selectingArea) {
                 drawSelectionRegion();
             }
-
-            drawBorders();
-            drawLines();
+            
             if (stage.isTimelineLayout) {
                 drawNodeTimelines();
             }
@@ -1732,36 +1746,45 @@ var PixiRenderer = function (settings) {
         }
         nodeContainer.isDirty = false;
         stage.isDirty = false;
+        lineContainer.isDirty = false;
     }
 
 
     //TODO 画边框,查看drawRoudedRect性能
     function drawBorders() {
+        let keys = Object.keys(nodeContainer.selectedNodes);
         boarderGraphics.clear();
-        boarderGraphics.lineStyle(visualConfig.ui.frame.border.width, visualConfig.ui.frame.border.color, visualConfig.ui.frame.border.alpha);
-        _.each(nodeContainer.selectedNodes, function (n2) {
-
-
-            // boarderGraphics.beginFill(visualConfig.ui.frame.fill.color, visualConfig.ui.frame.fill.alpha);
-            // boarderGraphics.lineStyle(n2.boundaryAttr.border.width, n2.boundaryAttr.border.color, n2.boundaryAttr.border.alpha);
-            // boarderGraphics.beginFill(n2.boundaryAttr.fill.color, n2.boundaryAttr.fill.alpha);
-
-            //if the node is invisible, we don't need draw is boundary
-            //TODO here we should consider the performance.
-            if (n2.visible) {
-                // var length=n2.ts.text.width;
-                // console.log(length);
-                //console.log("text width < 40 ");
-                boarderGraphics.drawRect(n2.position.x - 24 * n2.scale.x, n2.position.y - 24 * n2.scale.y, 48 * n2.scale.x, (60) * n2.scale.y);
-                // boarderGraphics.drawRect(n2.position.x - 24 * n2.scale.x, n2.position.y - 24 * n2.scale.y, 60 * n2.scale.x, (80) * n2.scale.y);
-            }
-        });
-        boarderGraphics.endFill();
+        if (keys.length > 0) {
+            boarderGraphics.lineStyle(visualConfig.ui.frame.border.width, visualConfig.ui.frame.border.color, visualConfig.ui.frame.border.alpha);
+            _.each(nodeContainer.selectedNodes, function (n2) {
+                //if the node is invisible, we don't need draw is boundary
+                //TODO here we should consider the performance.
+                if (n2.visible) {
+                    boarderGraphics.drawRect(n2.position.x - 24 * n2.scale.x, n2.position.y - 24 * n2.scale.y, 48 * n2.scale.x, (60) * n2.scale.y);
+                }
+            });
+            boarderGraphics.endFill();
+        }
     }
 
     function drawLines() {
         lineGraphics.clear();
         _.each(linkSprites, function (link) {
+            if (link.visible) {
+                link.renderLine(lineGraphics);
+            }
+        });
+    }
+
+    
+    function drawChangeLines() {
+        _.each(lineContainer.selectedLinks, function (link) {
+            if (link.visible) {
+                link.renderLine(lineGraphics);
+            }
+        });
+
+        _.each(lineContainer.unSelectedLinks, function (link) {
             if (link.visible) {
                 link.renderLine(lineGraphics);
             }
@@ -2000,7 +2023,7 @@ var PixiRenderer = function (settings) {
         var l = linkSprites[link.data.id];
         if (l) {
             if (l.selected) {
-                nodeContainer.deselectLink(l);
+                lineContainer.deselectLink(l);
             }
             if (l.label) {
                 lineContainer.removeChild(l.label);
