@@ -9,9 +9,7 @@ import LayeredLayout from './LayeredLayout';
 import CircleLayout from './CircleLayout';
 import RadiateLayout from './RadiateLayout';
 import Graph from "./Graph";
-import { NodeSelectionManager } from "./NodeSelectionManager";
-import { LinkSelectionManager } from "./LinkSelectionManager";
-import { RootSelectionManager } from "./RootSelectionManager";
+import { SelectionManager } from "./SelectionManager";
 import { CircleBorderTexture } from "./CircleBorderSprite";
 import "pixi.js";
 import { addWheelListener, removeWheelListener } from "./WheelListener";
@@ -119,9 +117,7 @@ var PixiRenderer = function (settings) {
     // renderer.backgroundColor = 0xFFFFFF;
     renderer.backgroundColor = visConfig.backgroundColor;
 
-    NodeSelectionManager.call(nodeContainer, lineContainer);
-    LinkSelectionManager.call(lineContainer, nodeContainer);
-    RootSelectionManager.call(root, nodeContainer, lineContainer);
+    SelectionManager.call(root, nodeContainer, lineContainer);
 
     root.on('mouseup', function (e) {
         isDirty = true;
@@ -192,7 +188,7 @@ var PixiRenderer = function (settings) {
             yb = y2;
         }
         if (flag) {
-            nodeContainer.deselectAll();
+            root.deselectAll();
         }
         _.each(nodeSprites, function (n) {
             //console.log(n.position.x+" "+n.position.y);
@@ -654,6 +650,7 @@ var PixiRenderer = function (settings) {
 
         setActualSize: function () {
             isDirty = true;
+            nodeContainer.positionDirty = true;
             var root = this.root;
             root.scale.x = 1;
             root.scale.y = 1;
@@ -677,9 +674,6 @@ var PixiRenderer = function (settings) {
                 n.updateNodePosition(n.position);
                 layout.setNodePosition(n.id, n.position.x, n.position.y);
             });
-
-            drawBorders();
-            drawLines();
         },
 
         calculateRootPositionToCenterGraphLayout: function () {
@@ -744,6 +738,7 @@ var PixiRenderer = function (settings) {
                 root.scale.x = rootPlacement.scale.x;
                 root.scale.y = rootPlacement.scale.y;
                 animationAgent.move(root, rootPlacement.position);
+                nodeContainer.positionDirty = true;
             } else {
                 console.error("Center graph action not supported in current layout.");
             }
@@ -751,6 +746,7 @@ var PixiRenderer = function (settings) {
 
         setSelectedNodesToFullScreen: function () {
             isDirty = true;
+            nodeContainer.positionDirty = true;
             var root = this.root;
             var x1 = -1000000,
                 y1, x2, y2;
@@ -836,9 +832,6 @@ var PixiRenderer = function (settings) {
                 n.updateNodePosition(n.position);
                 layout.setNodePosition(n.id, n.position.x, n.position.y);
             });
-            
-            drawBorders();
-            drawLines();
         },
 
         /**
@@ -1029,6 +1022,7 @@ var PixiRenderer = function (settings) {
 
         drawTimelineLayout: function (leftSpacing) {
             isDirty = true;
+            nodeContainer.positionDirty = true;
             layoutIterations = 0;
             layoutType = "TimelineScale";
             var timelineItems = [];
@@ -1108,7 +1102,7 @@ var PixiRenderer = function (settings) {
             stage.isTimelineLayout = true;
             root.position.x = leftSpacing || visualConfig.timelineLayout['margin-left'] + 60;
             stage.contentRootMoved();
-            this.setNodesToFullScreen();
+            // this.setNodesToFullScreen();
         },
 
         destroy: function () {
@@ -1728,6 +1722,9 @@ var PixiRenderer = function (settings) {
 
                 drawBorders();
                 drawLines();
+            } else if (nodeContainer.positionDirty) {
+                drawBorders();
+                drawLines();
             }
 
             selectRegionGraphics.clear();
@@ -1747,6 +1744,7 @@ var PixiRenderer = function (settings) {
         nodeContainer.isDirty = false;
         stage.isDirty = false;
         lineContainer.isDirty = false;
+        nodeContainer.positionDirty = false;
     }
 
 
@@ -2045,6 +2043,7 @@ var PixiRenderer = function (settings) {
             }
             delete linkSprites[l.id];
             delete graphLinks[l.data.id];
+            l.destroy();
             // console.log("Removed link: " + link.id);
         } else {
             console.log("Could not find link sprite: " + link.id);
@@ -2068,6 +2067,7 @@ var PixiRenderer = function (settings) {
                 }
                 if (change.link) {
                     removeLink(change.link);
+                    lineContainer.unSelectedLinks = {};
                 }
             } else if (change.changeType === 'update') {
                 if (change.node) {

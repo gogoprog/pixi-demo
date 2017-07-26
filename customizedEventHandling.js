@@ -228,7 +228,7 @@ var nodeMoveListener = function (e) {
     } else if (!this.selected) {
         var mouseEvent = e.data.originalEvent;
         if (!mouseEvent.ctrlKey && !mouseEvent.shiftKey) {
-            this.parent.deselectAll();
+            this.parent.parent.deselectAll();
         }
         this.parent.selectNode(this);
         //newPosition=null;
@@ -243,7 +243,7 @@ export const linkCaptureListener = function (e) {
     if (!this.selected) {
         var mouseEvent = e.data.originalEvent;
         if (!mouseEvent.ctrlKey && !mouseEvent.shiftKey) {
-            this.parent.deselectAll();
+            this.parent.parent.deselectAll();
         }
         this.parent.linkSelected(this.lineSprite);
     }
