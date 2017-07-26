@@ -1560,7 +1560,11 @@ var PixiRenderer = function (settings) {
 
         // convert the canvas drawing buffer into base64 encoded image url
         exportImage: function (blobDataReceiver) {
-            this.canvas(renderer, root, viewWidth, viewHeight).toBlob(blobDataReceiver, 'image/png');
+            if (renderer.gl) {
+                this.canvas(renderer, root, viewWidth, viewHeight).toBlob(blobDataReceiver, 'image/png');
+            } else {
+                canvas.toBlob(blobDataReceiver, 'image/png');
+            }
         },
 
         lock: function (nodes) {
