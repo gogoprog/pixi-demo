@@ -277,6 +277,23 @@ export default function Graph(source, options) {
          */
         getLink: getLink,
 
+        getLinkById: (srcNodeId, tgtNodeId, linkId) => {
+            var node = getNode(srcNodeId),
+                i;
+            if (!node || !node.links) {
+                return null;
+            }
+
+            for (i = 0; i < node.links.length; ++i) {
+                var link = node.links[i];
+                if (link.fromId === srcNodeId && link.toId === tgtNodeId && link.id === linkId) {
+                    return link;
+                }
+            }
+
+            return null;
+        },
+
         setEntityGraphSource(entityGraphSource){
             let self = this;
             this.source = entityGraphSource;
@@ -285,7 +302,7 @@ export default function Graph(source, options) {
                 for (let i = 0; i < changeList.length; ++i) {
                     const change = changeList[i];
                     console.log('Renderer graph received change event', change);
-                    if (change.changeType === 'add' || change.changeType === 'update') {
+                    if (change.changeType === 'add') {
                         if (change.entity) {
                             self.addNode(change.entity.id, change.entity);
                         }
@@ -298,6 +315,27 @@ export default function Graph(source, options) {
                         }
                         if (change.link) {
                             self.removeLink(change.link);
+                        }
+                    } else if (change.changeType === 'update') {
+                        if (change.entity) {
+                            let node = self.getNode(change.entity.id);
+                            if (node) {
+                                node.data = change.entity;
+                                recordNodeChange(node, 'update');
+                            } else {
+                                console.warn('Node added through update event, ', change);
+                                self.addNode(change.entity.id, change.entity);
+                            }
+                        }
+                        if (change.link) {
+                            let l = change.link;
+                            let link = self.getLinkById(l.sourceEntity, l.targetEntity, l.id);
+                            if (link) {
+                                link.data = l;
+                                recordLinkChange(link, 'update');
+                            } else {
+                                self.addLink(l.sourceEntity, l.targetEntity, l);
+                            }
                         }
                     }
                 }
