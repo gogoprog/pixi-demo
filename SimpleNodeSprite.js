@@ -157,6 +157,10 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         this._relayoutNodeIcon();
     }
 
+    updateLabel(str) {
+        this.ts.text = str;
+    }
+
 
     _addIconToNode(collIdArr, nodeContainer) {
         var nodeSprite = this;

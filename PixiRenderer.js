@@ -9,11 +9,11 @@ import LayeredLayout from './LayeredLayout';
 import CircleLayout from './CircleLayout';
 import RadiateLayout from './RadiateLayout';
 import Graph from "./Graph";
-import { SelectionManager } from "./SelectionManager";
-import { CircleBorderTexture } from "./CircleBorderSprite";
+import {SelectionManager} from "./SelectionManager";
+import {CircleBorderTexture} from "./CircleBorderSprite";
 import "pixi.js";
-import { addWheelListener, removeWheelListener } from "./WheelListener";
-import { zoom, rootCaptureHandler, nodeCaptureListener } from "./customizedEventHandling";
+import {addWheelListener, removeWheelListener} from "./WheelListener";
+import {zoom, rootCaptureHandler, nodeCaptureListener} from "./customizedEventHandling";
 import SimpleLineSprite from "./SimpleLineSprite";
 import "./pixiSpriteAugment";
 import SimpleNodeSprite from "./SimpleNodeSprite";
@@ -63,13 +63,13 @@ var PixiRenderer = function (settings) {
     var timeline, timelineWindow, msPerPix, originSpotTime, timelineWidth; // the timeline object.
 
     var renderer = new PIXI.autoDetectRenderer(viewWidth, viewHeight, {
-        view: settings.container,
-        transparent: false,
-        autoResize: true,
-        antialias: true,
-        forceFXAA: false,
-        preserveDrawingBuffer: true,
-    }),
+            view: settings.container,
+            transparent: false,
+            autoResize: true,
+            antialias: true,
+            forceFXAA: false,
+            preserveDrawingBuffer: true,
+        }),
         stage = new PIXI.Container(),   // the view port, same size as canvas, used to capture mouse action
         root = new PIXI.Container(),    // the content root
         nodeContainer = new PIXI.Container();
@@ -244,7 +244,7 @@ var PixiRenderer = function (settings) {
             var end = start + msPerPix * timelineWidth;
             timeline.setWindow(
                 start,
-                end, { animation: false },
+                end, {animation: false},
             );
         }
         // console.log(stage.contentRoot.position);
@@ -252,12 +252,12 @@ var PixiRenderer = function (settings) {
         // reposition the nodes;
         if (pRoot.x > 160) {
             _.each(nodeSprites, function (ns) {
-                ns.updateNodePosition({ x: -40, y: ns.position.y });
+                ns.updateNodePosition({x: -40, y: ns.position.y});
             });
         } else {
             let newX = 200 - pRoot.x / stage.contentRoot.scale.x;
             _.each(nodeSprites, function (ns) {
-                ns.updateNodePosition({ x: newX, y: ns.position.y })
+                ns.updateNodePosition({x: newX, y: ns.position.y})
             });
         }
         stage.isDirty = true;
@@ -282,12 +282,12 @@ var PixiRenderer = function (settings) {
         let pRoot = stage.contentRoot.position;
         if (pRoot.x > 160) {
             _.each(nodeSprites, function (ns) {
-                ns.updateNodePosition({ x: -40, y: ns.position.y });
+                ns.updateNodePosition({x: -40, y: ns.position.y});
             });
         } else {
             let newX = 200 - pRoot.x / stage.contentRoot.scale.x;
             _.each(nodeSprites, function (ns) {
-                ns.updateNodePosition({ x: newX, y: ns.position.y })
+                ns.updateNodePosition({x: newX, y: ns.position.y})
             });
         }
         stage.isDirty = true;
@@ -1542,7 +1542,7 @@ var PixiRenderer = function (settings) {
                 canvasData.data.set(webglPixels);
                 // canvasBuffer.context.drawImage(canvasData.data, 0, 0);
                 canvasBuffer.context.putImageData(canvasData, 0, 0);
-                background.context.drawImage(canvasBuffer.canvas, diffWidth/2, diffHeight/2, canvasWidth, canvasHeight);
+                background.context.drawImage(canvasBuffer.canvas, diffWidth / 2, diffHeight / 2, canvasWidth, canvasHeight);
                 // pulling pixels
                 if (flipY) {
                     background.context.scale(1, -1);
@@ -1594,7 +1594,7 @@ var PixiRenderer = function (settings) {
         pixiGraphics.zoom(e.offsetX || (e.originalEvent ? e.originalEvent.offsetX : null), e.offsetY || (e.originalEvent ? e.originalEvent.offsetY : null), e.deltaY < 0);
     }, 100);
 
-    if(!disabledWheel) {
+    if (!disabledWheel) {
         addWheelListener(canvas, pixiGraphics._zoomActionListener);
     }
 
@@ -2013,6 +2013,18 @@ var PixiRenderer = function (settings) {
         }
     }
 
+    function updateNode(node) {
+        var nodeSprite = nodeSprites[node.id];
+        nodeSprite.updateLabel(node.data.label);
+        nodeSprite.data = node;
+    }
+
+    function updateLink(link) {
+        var linkSprite = linkSprites[link.id];
+        linkSprite.updateLabel(link.data.label);
+        linkSprite.data = link;
+    }
+
     function onGraphChanged(changes) {
         isDirty = true;
         for (var i = 0; i < changes.length; ++i) {
@@ -2034,6 +2046,10 @@ var PixiRenderer = function (settings) {
             } else if (change.changeType === 'update') {
                 if (change.node) {
                     updateNodeIcon(change.node);
+                    updateNode(change.node);
+                }
+                if (change.link) {
+                    updateLink(change.link)
                 }
             }
         }
