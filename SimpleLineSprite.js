@@ -72,6 +72,10 @@ SimpleLineSprite.prototype.setLineAttr = function (linkAttr) {
 
 };
 
+SimpleLineSprite.prototype.updateLabel = function (str) {
+    this.label.text = str;
+}
+
 /**
  * get the attribute of the line (LinkAttr: color, width, alpha)
  */
