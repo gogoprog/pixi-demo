@@ -75,18 +75,7 @@ Layout.prototype.draw = function (treeNode) {
         x: treeNode.positionx,
         y: treeNode.positiony
     };
-    if (treeNode.positionx < this.left) {
-        this.left = treeNode.positionx;
-    }
-    if (treeNode.positionx > this.right) {
-        this.right = treeNode.positionx;
-    }
-    if (treeNode.positiony < this.top) {
-        this.top = treeNode.positiony;
-    }
-    if (treeNode.positiony > this.bottom) {
-        this.bottom = treeNode.positiony;
-    }
+   
 };
 
 Layout.prototype.calStep = function (p1, p2, totalStep, thisStep) {
@@ -103,6 +92,27 @@ Layout.prototype.finalLayoutAvailable = function () {
 };
 
 Layout.prototype.getGraphRect = function () {
+    let that = this;
+    for (let nodeId in this.nodes) {
+        if (nodeId == "notInTreeNum") {
+            continue;
+        }
+        let node = this.nodes[nodeId];
+        if (node.position.x < that.left) {
+            that.left = node.position.x;
+        }
+        if (node.position.x > that.right) {
+            that.right = node.position.x;
+        }
+        if (node.position.y < that.top) {
+            that.top = node.position.y;
+        }
+        if (node.position.y > that.bottom) {
+            that.bottom = node.position.y;
+        }
+    }
+    
+    
     return {
         x1: this.left, y1: this.top,
         x2: this.right, y2: this.bottom
@@ -136,8 +146,8 @@ Layout.prototype.getNodePosition = function (nodeId) {
 };
 
 Layout.prototype.setNodePosition = function (id, x, y) {
-    this.nodeSprites[id].position.x = x;
-    this.nodeSprites[id].position.y = y;
+    this.nodes[id].position.x = x;
+    this.nodes[id].position.y = y;
 };
 
 Layout.prototype.pinNode = function (node, isPinned) {

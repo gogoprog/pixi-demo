@@ -649,31 +649,21 @@ var PixiRenderer = function (settings) {
         },
 
         setActualSize: function () {
+            if (layoutType === 'TimelineScale') {
+                return;
+            }
+
             isDirty = true;
             nodeContainer.positionDirty = true;
             var root = this.root;
             root.scale.x = 1;
             root.scale.y = 1;
-            root.position.x = viewWidth / 2;
-            root.position.y = viewHeight / 2;
-            var sumx = 0;
-            var sumy = 0;
-            var count = 0;
-            _.each(nodeSprites, function (n) {
-                sumx += n.position.x;
-                sumy += n.position.y;
-                count++;
-            });
-            if (count != 0) {
-                sumx = sumx / count;
-                sumy = sumy / count;
+            let rootPlacement = this.calculateRootPositionToCenterForActualSize();
+            if (rootPlacement) {
+                animationAgent.move(root, rootPlacement.position);
+            } else {
+                console.error("Center graph action not supported in current layout.");
             }
-            _.each(nodeSprites, function (n) {
-                n.position.x = n.position.x - sumx + 0
-                n.position.y = n.position.y - sumy + 0;
-                n.updateNodePosition(n.position);
-                layout.setNodePosition(n.id, n.position.x, n.position.y);
-            });
         },
 
         calculateRootPositionToCenterGraphLayout: function () {
@@ -718,6 +708,46 @@ var PixiRenderer = function (settings) {
                 y: viewHeight / 2 - graphCenterInStage.y,
             }
             // console.log("Root transform", rootPositionTransform);
+            return {
+                scale: {
+                    x: scale,
+                    y: scale,
+                },
+                position: {
+                    x: root.position.x + rootPositionTransform.x,
+                    y: root.position.y + rootPositionTransform.y,
+                },
+            }
+        },
+
+        calculateRootPositionToCenterForActualSize: function () {
+            isDirty = true;
+            let root = this.root;
+            let graphRect = layout.getGraphRect();
+            if (!graphRect) {
+                console.error("No valid graph rectangle available from layout algorithm");
+                return null;
+            }
+            let targetRectWidth = viewWidth * 0.8,
+                targetRectHeight = viewHeight * 0.65;
+            let rootWidth = Math.abs(graphRect.x2 - graphRect.x1),
+                rootHeight = Math.abs(graphRect.y1 - graphRect.y2);
+            let scaleX = targetRectWidth / rootWidth,
+                scaleY = targetRectHeight / rootHeight;
+            // the actuall scale that should be applied to root so that it will fit into the target rectangle
+            let scale = Math.min(scaleX, scaleY, visualConfig.MAX_ADJUST);
+            let graphCenterInStage = {
+                //(graphRect.x1 + rootWidth / 2 ) 是contentRoot坐标系，转换到stage的坐标系时需要进行scale处理， 下同
+                x: (graphRect.x1 + rootWidth / 2) * 1 + root.position.x,
+                y: (graphRect.y1 + rootHeight / 2) * 1 + root.position.y,
+            };
+            
+            let rootPositionTransform = {
+                x: viewWidth / 2 - graphCenterInStage.x,
+                y: viewHeight / 2 - graphCenterInStage.y,
+            }
+            // console.log("Root transform", rootPositionTransform);
+            console.log("scale.x " + scale + " scale.y " + scale + " position.x " + (root.position.x + rootPositionTransform.x) + " position.y " + (root.position.y + rootPositionTransform.y));
             return {
                 scale: {
                     x: scale,

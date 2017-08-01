@@ -18,9 +18,9 @@ var getGraphCoordinates = (function () {
 }());
 
 export const zoom = function (x, y, isZoomIn, contentRoot, visualConfig) {
-    if ((isZoomIn && contentRoot.scale.x > visualConfig.MAX_SCALE) || (!isZoomIn && contentRoot.scale.x < visualConfig.MIN_SCALE)) {
-        return;
-    }
+    // if ((isZoomIn && contentRoot.scale.x > visualConfig.MAX_SCALE) || (!isZoomIn && contentRoot.scale.x < visualConfig.MIN_SCALE)) {
+    //     return;
+    // }
     let direction = isZoomIn ? 1 : -1;
     var factor = (1 + direction * 0.1);
     contentRoot.scale.x *= factor;
