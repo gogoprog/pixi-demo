@@ -1,35 +1,84 @@
-export const SelectionManager = function() {
-    this.nodes = [];
-    this.links = [];
-    this.selectedNodes = {};
-    this.selectedLinks = {};
-    this.recentlySelected = null;
-    this.isDirty = true;
+export const SelectionManager = function(nodeContainer, lineContainer) {
+    this.nodeContainer = nodeContainer;
+    this.lineContainer = lineContainer;
+    this.isDirty = false;
 
-    this.nodeSelected = function(node) {
-        this.isDirty=true;
+    NodeSelectionManager.call(nodeContainer);
+    LinkSelectionManager.call(lineContainer);
+    
+    this.deselectAll = function() {
+        this.nodeContainer.deselectAllNodes();
+        this.lineContainer.deselectAllLinks();
+    };
+
+    this.handleMouseUp = function (e) {
+        this.isDirty = true;
+        var mouseEvent = e.data.originalEvent;
+        if (this.nodeContainer.recentlySelected) {
+            var n = this.nodeContainer.recentlySelected; 
+            if (mouseEvent.ctrlKey || mouseEvent.shiftKey) {
+                if (n.selected) {   // multi-selecting
+                    this.nodeContainer.deselectNode(n);
+                } else {
+                    this.nodeContainer.selectNode(n);
+                }
+            } else {
+                if (!this.dragJustNow) {
+                    this.deselectAll();
+                } else {
+                    this.dragJustNow = false;
+                }
+                this.nodeContainer.selectNode(n);
+            }
+            this.nodeContainer.recentlySelected = null;
+        } else if (this.lineContainer.recentlySelected) {
+            var n = this.lineContainer.recentlySelected; 
+            if (mouseEvent.ctrlKey || mouseEvent.shiftKey) {
+                if (n.selected) {   // multi-selecting
+                    this.lineContainer.deselectLink(n);
+                } else {
+                    this.lineContainer.selectLink(n);
+                }
+            } else {
+                this.deselectAll();
+                this.lineContainer.selectLink(n);
+            }
+            this.lineContainer.recentlySelected = null;
+        } else {
+            if (!this.parent.selectRegion) {
+                this.deselectAll();
+            }
+        }
+    };
+    
+};
+
+const NodeSelectionManager = function () {
+    this.nodes = [];
+    this.selectedNodes = {};
+    this.recentlySelected = null;
+    this.isDirty = false;
+    this.positionDirty = false;
+
+    this.nodeSelected = function (node) {
+        this.isDirty = true;
         this.recentlySelected = node;
     };
 
-    this.linkSelected = function(link) {
-        //console.log("here");
-        this.isDirty=true;
-        this.recentlySelected = link;
-    };
-
-    this.selectNode = function(node) {
-        this.isDirty=true;
+    this.selectNode = function (node) {
         if (node) {
-            if(!_.has(this.selectedNodes, node.id)){
+            this.isDirty = true;
+            if (!_.has(this.selectedNodes, node.id)) {
                 this.selectedNodes[node.id] = node;
                 this.nodes.push(node);
                 node.selectionChanged(true);
             }
         }
     };
-    this.deselectNode = function(node) {
-        this.isDirty=true;
+
+    this.deselectNode = function (node) {
         if (node.selected) {
+            this.isDirty = true;
             var index = this.nodes.indexOf(this.selectedNodes[node.id]);
             if (index > -1) {
                 this.nodes.splice(index, 1);
@@ -38,83 +87,75 @@ export const SelectionManager = function() {
             delete this.selectedNodes[node.id];
         }
     };
-    this.selectLink = function(link) {
-        this.isDirty=true;
+
+    this.deselectAllNodes = function () {
+        let keys = Object.keys(this.selectedNodes);
+        if (keys.length > 0) {
+            this.isDirty = true;
+            _.each(this.selectedNodes, function (node, id) {
+                node.selectionChanged(false);
+            });
+            this.selectedNodes = {};
+            this.nodes = [];
+        }
+    };
+
+    this.setPositionDirty = function (posDirty) {
+        this.positionDirty = posDirty;
+    };
+
+};
+
+const LinkSelectionManager = function () {
+    this.links = [];
+    this.selectedLinks = {};
+    this.recentlySelected = null;
+    this.isDirty = false;
+    this.unSelectedLinks = {};
+
+    this.linkSelected = function (link) {
+        this.isDirty = true;
+        this.recentlySelected = link;
+    };
+
+    this.selectLink = function (link) {
         if (link) {
-            if(!_.has(this.selectedLinks, link.id)){
+            this.isDirty = true;
+            if (!_.has(this.selectedLinks, link.id)) {
                 this.selectedLinks[link.id] = link;
                 this.links.push(link);
                 link.selectionChanged(true);
             }
         }
     };
-    this.deselectLink = function(link) {
-        this.isDirty=true;
+
+    this.deselectLink = function (link) {
         if (link.selected) {
+            this.isDirty = true;
             var index = this.links.indexOf(this.selectedLinks[link.id]);
             if (index > -1) {
                 this.links.splice(index, 1);
             }
             link.selectionChanged(false);
             delete this.selectedLinks[link.id];
+            this.unSelectedLinks[link.id] = link;
         }
     };
 
-    this.deselectAll = function() {
-        this.isDirty=true;
-        _.each(this.selectedNodes, function(node, id) {
-            node.selectionChanged(false);
-            // console.log("Deselect node " + id);
-        });
-        this.selectedNodes = {};
-        this.nodes=[];
-        _.each(this.selectedLinks, function(link, id) {
-            link.selectionChanged(false);
-            // console.log("Deselect link " + id);
-        });
-        this.selectedLinks = {};
-        this.links=[];
-    };
-
-    this.handleMouseUp = function(e) {
-        this.isDirty=true;
-        var mouseEvent = e.data.originalEvent;
-        if (this.recentlySelected) {
-            var n = this.recentlySelected; // could be a node or a link
-            if (mouseEvent.ctrlKey || mouseEvent.shiftKey) {
-                // multi-selecting
-                let container = n.isLink ? this.selectedLinks : this.selectedNodes;
-                if (n.isLink) {
-                    if (n.selected) {
-                        this.deselectLink(n);
-                    } else {
-                        this.selectLink(n);
-                    }
-                } else {
-                    if (n.selected) {
-                        this.deselectNode(n);
-                    } else {
-                        this.selectNode(n);
-                    }
-                }
-            } else {
-                //console.log(this.dragJustNow);
-                if(!this.dragJustNow){
-                    this.deselectAll();
-                }else{
-                    this.dragJustNow=false;
-                }
-                if (n.isLink) {
-                    this.selectLink(n);
-                } else {
-                    this.selectNode(n);
-                }
-            }
-            this.recentlySelected = null;
-        } else {
-            if(!this.parent.parent.selectRegion ){
-                this.deselectAll();
-            }
+    this.deselectAllLinks = function () {
+        var self = this;
+        let keys = Object.keys(this.selectedLinks);
+        if (keys.length > 0) {
+            this.isDirty = true;
+            _.each(this.selectedLinks, function (link, id) {
+                link.selectionChanged(false);
+                self.unSelectedLinks[id] = link;
+            });
+            this.selectedLinks = {};
+            this.links = [];
         }
     };
+    
 };
+
+

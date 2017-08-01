@@ -1,3 +1,5 @@
+import { linkCaptureListener } from "./customizedEventHandling";
+
 let SimpleLineSprite;
 export default SimpleLineSprite = function (label, thickness, color, arrowStyle, hasArrow, x1, y1, x2, y2, controlOffsetIndex, fontConfig, visualConfig) {
     this.hasArrow = hasArrow;
@@ -23,20 +25,14 @@ export default SimpleLineSprite = function (label, thickness, color, arrowStyle,
         this.arrow.anchor.x = 0.5;
         this.arrow.lineSprite = this;
 
-        this.arrow.on('mouseup', function (e) {
-            //console.log("mouse up!!!!");
-            this.parent.linkSelected(this.lineSprite);
-        });
+        this.arrow.on('mouseup', linkCaptureListener);
     }
 
     this.label = new PIXI.Text(label, fontConfig);
     this.label.scale.set(0.5, 0.5);
     this.label.anchor.x = 0.5;
     this.label.lineSprite = this;
-    this.label.on("mousedown", function (e) {
-        this.parent.linkSelected(this.lineSprite);
-        //console.log("++++++++++++");
-    });
+    this.label.on("mousedown", linkCaptureListener);
     this.updatePosition();
 };
 SimpleLineSprite.maxWidth = 100;
@@ -247,7 +243,6 @@ SimpleLineSprite.prototype.updatePosition = function () {
     }
 };
 
-SimpleLineSprite.prototype.isLink = true; // used by the SelectionManager to check if selected target is an link or a node
 SimpleLineSprite.prototype.hide = function () {
     this.visible = false;
     if (this.hasArrow) {
