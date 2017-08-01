@@ -649,21 +649,41 @@ var PixiRenderer = function (settings) {
         },
 
         setActualSize: function () {
-            if (layoutType === 'TimelineScale') {
-                return;
-            }
-
             isDirty = true;
             nodeContainer.positionDirty = true;
             var root = this.root;
             root.scale.x = 1;
             root.scale.y = 1;
-            let rootPlacement = this.calculateRootPositionToCenterForActualSize();
-            if (rootPlacement) {
-                animationAgent.move(root, rootPlacement.position);
+            if (layoutType === 'TimelineScale') {
+                root.position.x = viewWidth / 2;
+                root.position.y = viewHeight / 2;
+                var sumx = 0;
+                var sumy = 0;
+                var count = 0;
+                _.each(nodeSprites, function (n) {
+                    sumx += n.position.x;
+                    sumy += n.position.y;
+                    count++;
+                });
+                if (count != 0) {
+                    sumx = sumx / count;
+                    sumy = sumy / count;
+                }
+                _.each(nodeSprites, function (n) {
+                    n.position.x = n.position.x - sumx + 0
+                    n.position.y = n.position.y - sumy + 0;
+                    n.updateNodePosition(n.position);
+                    layout.setNodePosition(n.id, n.position.x, n.position.y);
+                });
             } else {
-                console.error("Center graph action not supported in current layout.");
+                let rootPlacement = this.calculateRootPositionToCenterForActualSize();
+                if (rootPlacement) {
+                    animationAgent.move(root, rootPlacement.position);
+                } else {
+                    console.error("Center graph action not supported in current layout.");
+                }
             }
+            
         },
 
         calculateRootPositionToCenterGraphLayout: function () {
@@ -872,10 +892,8 @@ var PixiRenderer = function (settings) {
         getLayoutType: function () {
             return layoutType;
         },
-        nodeContainer: nodeContainer,
         root: root,
         stage: stage,
-        lineContainer: lineContainer,
         mode: mode,
         counter: counter,
 
@@ -1040,6 +1058,7 @@ var PixiRenderer = function (settings) {
         zoom: function (x, y, zoomingIn) {
             isDirty = true;
             if (stage.isTimelineLayout) {
+                nodeContainer.positionDirty = true;
                 if (zoomingIn) {
                     zoomTimeline(-0.1);
                 } else {
@@ -1132,7 +1151,6 @@ var PixiRenderer = function (settings) {
             stage.isTimelineLayout = true;
             root.position.x = leftSpacing || visualConfig.timelineLayout['margin-left'] + 60;
             stage.contentRootMoved();
-            // this.setNodesToFullScreen();
         },
 
         destroy: function () {
@@ -1233,8 +1251,8 @@ var PixiRenderer = function (settings) {
             if (layoutType === "Network") {
                 layout = networkLayout;
                 _.each(nodeSprites, function (nodeSprite, nodeId) {
-                    layout.setNodePosition(nodeId, nodeSprite.position.x, nodeSprite.position.y);
-                    if (nodeSprite.pinned) {
+                    if (nodeSprite.data.properties["_$lock"]) {
+                        layout.setNodePosition(nodeId, nodeSprite.position.x, nodeSprite.position.y);
                         layout.pinNode(nodeSprite, true);
                     }
                 });
@@ -1759,6 +1777,8 @@ var PixiRenderer = function (settings) {
             } else if (nodeContainer.positionDirty) {
                 drawBorders();
                 drawLines();
+            } else if (selectRegionGraphics.isDirty) {
+                drawBorders();
             }
 
             selectRegionGraphics.clear();
@@ -2139,7 +2159,6 @@ var PixiRenderer = function (settings) {
 
 
     function drawSelectionRegion() {
-
         if (stage.selectRegion) {
             var frameCfg = visualConfig.ui.frame;
             selectRegionGraphics.lineStyle(frameCfg.border.width, frameCfg.border.color, frameCfg.border.alpha);
@@ -2152,6 +2171,12 @@ var PixiRenderer = function (settings) {
             // var y = stage.selectRegion.y1-stage.contentRoot.position.y;
             //selectRegionGraphics.drawRect(stage.selectRegion.x1, stage.selectRegion.y1, width, height);
             selectRegionGraphics.drawRect(x, y, width, height);
+
+            if (layoutType === 'TimelineScale') {
+                selectRegionGraphics.isDirty = true;
+            } else {
+                selectRegionGraphics.isDirty = false;
+            }
         }
     }
 
