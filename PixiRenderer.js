@@ -1236,6 +1236,8 @@ var PixiRenderer = function (settings) {
                     linkSprite.color = visualConfig.ui.line.color;
                 }
             });
+
+            pixiGraphics.updateLineContainerStyleDirty();
         },
 
         setLayoutType: function (layoutTypeStr) {
@@ -1653,8 +1655,11 @@ var PixiRenderer = function (settings) {
 
         setIterationFrequency: function (iterFreq) {
             iterationFrequency = iterFreq;
-        }
+        },
        
+       updateLineContainerStyleDirty: function () {
+           lineContainer.styleDirty = true;
+       }
 
     };
 
@@ -1779,6 +1784,8 @@ var PixiRenderer = function (settings) {
                 drawLines();
             } else if (selectRegionGraphics.isDirty) {
                 drawBorders();
+            } else if (lineContainer.styleDirty) {
+                drawLines();
             }
 
             selectRegionGraphics.clear();
@@ -1899,9 +1906,9 @@ var PixiRenderer = function (settings) {
         textContainer.addChild(nodeSprite.ts);
         nodeContainer.addChild(nodeSprite);
         nodeSprites[p.id] = nodeSprite;
-        if (layout) {
-            layout.setNodePosition(nodeSprite.id, nodeSprite.position.x, nodeSprite.position.y);
-        }
+        // if (layout) {
+        //     layout.setNodePosition(nodeSprite.id, nodeSprite.position.x, nodeSprite.position.y);
+        // }
         nodeSprite.on('mousedown', nodeCaptureListener);
         nodeSprite.on('rightup', contextmenuListener);
     }

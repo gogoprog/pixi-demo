@@ -112,6 +112,7 @@ const LinkSelectionManager = function () {
     this.recentlySelected = null;
     this.isDirty = false;
     this.unSelectedLinks = {};
+    this.styleDirty = false;
 
     this.linkSelected = function (link) {
         this.isDirty = true;
