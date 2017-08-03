@@ -146,8 +146,10 @@ Layout.prototype.getNodePosition = function (nodeId) {
 };
 
 Layout.prototype.setNodePosition = function (id, x, y) {
-    this.nodes[id].position.x = x;
-    this.nodes[id].position.y = y;
+    if (id !== "notInTreeNum") {
+        this.nodes[id].position.x = x;
+        this.nodes[id].position.y = y;
+    }
 };
 
 Layout.prototype.pinNode = function (node, isPinned) {
