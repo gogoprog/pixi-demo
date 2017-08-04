@@ -1806,6 +1806,7 @@ var PixiRenderer = function (settings) {
         stage.isDirty = false;
         lineContainer.isDirty = false;
         nodeContainer.positionDirty = false;
+        lineContainer.styleDirty = false;
     }
 
 
