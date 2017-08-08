@@ -147,8 +147,8 @@ Layout.prototype.getNodePosition = function (nodeId) {
 
 Layout.prototype.setNodePosition = function (id, x, y) {
     if (id !== "notInTreeNum") {
-        this.nodes[id].position.x = x;
-        this.nodes[id].position.y = y;
+        this.nodeSprites[id].position.x = x;
+        this.nodeSprites[id].position.y = y;
     }
 };
 

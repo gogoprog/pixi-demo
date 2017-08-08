@@ -1755,11 +1755,7 @@ var PixiRenderer = function (settings) {
         requestAnimationFrame(animationLoop);
 
         if (isDirty || nodeContainer.isDirty || lineContainer.isDirty || stage.isDirty || animationAgent.needRerender()) {
-            animationAgent.step();
-            if (layoutIterations > 0) {
-                layout.step();
-                let positionChanged = layout.step();
-
+            if (layoutIterations == 0) {
                 _.each(nodeSprites, function (nodeSprite, nodeId) { //大开销计算
                     nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
                     if (nodeSprite.pinned && !nodeSprite.data.properties["_$lock"]) {
@@ -1767,6 +1763,24 @@ var PixiRenderer = function (settings) {
                         layout.pinNode(nodeSprite, false);
                     }
                 });
+
+                drawBorders();
+                drawLines();
+            }
+            
+            
+            animationAgent.step();
+            if (layoutIterations > 0) {
+                layout.step();
+                let positionChanged = layout.step();
+
+                // _.each(nodeSprites, function (nodeSprite, nodeId) { //大开销计算
+                //     nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+                //     if (nodeSprite.pinned && !nodeSprite.data.properties["_$lock"]) {
+                //         nodeSprite.pinned = false;
+                //         layout.pinNode(nodeSprite, false);
+                //     }
+                // });
 
                 layoutIterations -= iterationFrequency;
                 if (positionChanged || layoutIterations <= 0) {
@@ -1777,8 +1791,8 @@ var PixiRenderer = function (settings) {
                     }
                 }
 
-                drawBorders();
-                drawLines();
+                // drawBorders();
+                // drawLines();
             } else if (nodeContainer.positionDirty) {
                 drawBorders();
                 drawLines();
@@ -1796,11 +1810,23 @@ var PixiRenderer = function (settings) {
             if (stage.isTimelineLayout) {
                 drawNodeTimelines();
             }
+
+            drawBorders();
+            drawLines();
+
             renderer.render(stage);
             counter.nextFrame();
         }
         if (layoutIterations == 0) {
             isDirty = false;
+
+            // _.each(nodeSprites, function (nodeSprite, nodeId) { //大开销计算
+            //     nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+            //     if (nodeSprite.pinned && !nodeSprite.data.properties["_$lock"]) {
+            //         nodeSprite.pinned = false;
+            //         layout.pinNode(nodeSprite, false);
+            //     }
+            // });
         }
         nodeContainer.isDirty = false;
         stage.isDirty = false;
@@ -1907,9 +1933,9 @@ var PixiRenderer = function (settings) {
         textContainer.addChild(nodeSprite.ts);
         nodeContainer.addChild(nodeSprite);
         nodeSprites[p.id] = nodeSprite;
-        // if (layout) {
-        //     layout.setNodePosition(nodeSprite.id, nodeSprite.position.x, nodeSprite.position.y);
-        // }
+        if (layout) {
+            layout.setNodePosition(nodeSprite.id, nodeSprite.position.x, nodeSprite.position.y);
+        }
         nodeSprite.on('mousedown', nodeCaptureListener);
         nodeSprite.on('rightup', contextmenuListener);
     }
