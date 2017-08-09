@@ -1808,21 +1808,21 @@ var PixiRenderer = function (settings) {
                         }
                     }
 
-                    selectRegionGraphics.clear();
-                    if (stage.selectRegion && stage.selectingArea) {
-                        drawSelectionRegion();
-                    }
-                    
-                    if (stage.isTimelineLayout) {
-                        drawNodeTimelines();
-                    }
-
-                    drawBorders();
-                    drawLines();
-
-                    renderer.render(stage);
-                    counter.nextFrame();
                 }
+                selectRegionGraphics.clear();
+                if (stage.selectRegion && stage.selectingArea) {
+                    drawSelectionRegion();
+                }
+                
+                if (stage.isTimelineLayout) {
+                    drawNodeTimelines();
+                }
+
+                drawBorders();
+                drawLines();
+
+                renderer.render(stage);
+                counter.nextFrame();
 
                 nodeContainer.isDirty = false;
                 stage.isDirty = false;
