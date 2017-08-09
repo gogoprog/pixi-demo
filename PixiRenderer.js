@@ -226,6 +226,7 @@ var PixiRenderer = function (settings) {
     var layoutIterations = 0;
     var counter = new FPSCounter();
     var iterationFrequency = 20;
+    var animationStop = true;
 
     listenToGraphEvents();
     stage.interactive = true;
@@ -1286,6 +1287,10 @@ var PixiRenderer = function (settings) {
             }
         },
 
+        stopAnimation: function () {
+            animationStop = !animationStop;
+        },
+
         performLayout: function () {
             if (layoutType == 'Network') {
 
@@ -1387,8 +1392,8 @@ var PixiRenderer = function (settings) {
             return graphType;
         },
         setGraphData: function (gData) {
-            // graphData = graph.setEntityGraphSource(gData);
-            graphData = gData;
+            graphData = graph.setEntityGraphSource(gData);
+            // graphData = gData;
         },
         getGraphData: function () {
             return graphData;
@@ -1755,32 +1760,20 @@ var PixiRenderer = function (settings) {
         requestAnimationFrame(animationLoop);
 
         if (isDirty || nodeContainer.isDirty || lineContainer.isDirty || stage.isDirty || animationAgent.needRerender()) {
-            if (layoutIterations == 0) {
-                _.each(nodeSprites, function (nodeSprite, nodeId) { //大开销计算
-                    nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
-                    if (nodeSprite.pinned && !nodeSprite.data.properties["_$lock"]) {
-                        nodeSprite.pinned = false;
-                        layout.pinNode(nodeSprite, false);
-                    }
-                });
-
-                drawBorders();
-                drawLines();
-            }
-            
-            
             animationAgent.step();
             if (layoutIterations > 0) {
                 layout.step();
                 let positionChanged = layout.step();
 
-                // _.each(nodeSprites, function (nodeSprite, nodeId) { //大开销计算
-                //     nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
-                //     if (nodeSprite.pinned && !nodeSprite.data.properties["_$lock"]) {
-                //         nodeSprite.pinned = false;
-                //         layout.pinNode(nodeSprite, false);
-                //     }
-                // });
+                if (!animationStop || layoutType !== 'Network') {
+                    _.each(nodeSprites, function (nodeSprite, nodeId) { //大开销计算
+                        nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+                        if (nodeSprite.pinned && !nodeSprite.data.properties["_$lock"]) {
+                            nodeSprite.pinned = false;
+                            layout.pinNode(nodeSprite, false);
+                        }
+                    });
+                }
 
                 layoutIterations -= iterationFrequency;
                 if (positionChanged || layoutIterations <= 0) {
@@ -1791,8 +1784,8 @@ var PixiRenderer = function (settings) {
                     }
                 }
 
-                // drawBorders();
-                // drawLines();
+                drawBorders();
+                drawLines();
             } else if (nodeContainer.positionDirty) {
                 drawBorders();
                 drawLines();
@@ -1817,16 +1810,26 @@ var PixiRenderer = function (settings) {
             renderer.render(stage);
             counter.nextFrame();
         }
+
         if (layoutIterations == 0) {
             isDirty = false;
+        }
 
-            // _.each(nodeSprites, function (nodeSprite, nodeId) { //大开销计算
-            //     nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
-            //     if (nodeSprite.pinned && !nodeSprite.data.properties["_$lock"]) {
-            //         nodeSprite.pinned = false;
-            //         layout.pinNode(nodeSprite, false);
-            //     }
-            // });
+        if (layoutIterations == 0 && animationStop && layoutType === 'Network') {
+            isDirty = false;
+            _.each(nodeSprites, function (nodeSprite, nodeId) { //大开销计算
+                nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+                if (nodeSprite.pinned && !nodeSprite.data.properties["_$lock"]) {
+                    nodeSprite.pinned = false;
+                    layout.pinNode(nodeSprite, false);
+                }
+            });
+
+            drawBorders();
+            drawLines();
+
+            renderer.render(stage);
+            counter.nextFrame();
         }
         nodeContainer.isDirty = false;
         stage.isDirty = false;
