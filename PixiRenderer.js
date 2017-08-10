@@ -49,7 +49,6 @@ var PixiRenderer = function (settings) {
         layout = createForceLayout(graph, physicsSimulator(settings.physics));
         networkLayout = layout;
     }
-    var layoutIterationsStore = 1500;
     var visConfig = settings.visualConfig;
     if (visConfig) {
         var visualConfig = visConfig;
@@ -126,9 +125,8 @@ var PixiRenderer = function (settings) {
     });
 
     nodeContainer.nodeCaptured = function (node) {
-        pixiGraphics.setIterationFrequency(2);
         stage.hasNodeCaptured = true;
-        if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
+        if (layoutType == "Network" && dynamicLayout) {
             if (!node.pinned) {
                 layout.pinNode(node, true);
             }
@@ -136,17 +134,12 @@ var PixiRenderer = function (settings) {
     };
 
     nodeContainer.nodeMoved = function (node) {
-        if (visualConfig.LAYOUT_ANIMATION) {
-            layout.setNodePosition(node.id, node.position.x, node.position.y);
-            if (layoutType === 'Network') {
-                layoutIterations += 4;
-            }
-        }
+        layout.setNodePosition(node.id, node.position.x, node.position.y);
     };
 
     nodeContainer.nodeReleased = function (node) {
         stage.hasNodeCaptured = false;
-        if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
+        if (layoutType == "Network" && dynamicLayout) {
             if (node.pinned && !node.data.properties["_$lock"]) {
                 node.pinned = false;
                 layout.pinNode(node, false);
@@ -225,7 +218,7 @@ var PixiRenderer = function (settings) {
     // setupWheelListener(canvas, root); // wheel listener 现在在外部模板内设置，通过zoom接口来调用renderer的缩放方法。
     var layoutIterations = 0;
     var counter = new FPSCounter();
-    var iterationFrequency = 20;
+    var dynamicLayout = false;
 
     listenToGraphEvents();
     stage.interactive = true;
@@ -331,7 +324,7 @@ var PixiRenderer = function (settings) {
          * adjust the initial display location to center of the scene
          */
         adjustInitialDisplayLocation: function () {
-            this.performLayout();
+            this.performLayout(true);
         },
 
         /*
@@ -607,45 +600,34 @@ var PixiRenderer = function (settings) {
             return lineContainer.links;
         },
 
-        drawCircleLayout: function () {
+        drawCircleLayout: function (disableAnimation) {
             isDirty = true;
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }
             layoutType = "Circular";
             layout = new CircleLayout(nodeSprites, nodeContainer, visualConfig);
-            if (layoutIterationsStore == 1500) {
-                layoutIterations = 1500;
-            }
-            this.setNodesToFullScreen();
+            this.setNodesToFullScreen(disableAnimation);
         },
 
-        drawLayeredLayout: function () {
+        drawLayeredLayout: function (disableAnimation) {
             isDirty = true;
             layoutType = "Layered";
-            //CWLayout(nodeSprites);
             layout = new LayeredLayout(nodeSprites, nodeContainer, visualConfig);
-            // layout = new RadiateLayout(nodeSprites, nodeContainer, visualConfig);
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }
-            if (layoutIterationsStore == 1500) {
-                layoutIterations = 1500;
-            }
-            this.setNodesToFullScreen();
+            this.setNodesToFullScreen(disableAnimation);
         },
 
-        drawRadiateLayout: function () {
+        drawRadiateLayout: function (disableAnimation) {
             isDirty = true;
             layoutType = "Radiate";
             layout = new RadiateLayout(nodeSprites, nodeContainer, visualConfig);
             if (stage.isTimelineLayout) {
                 disableTimelineLayout();
             }
-            if (layoutIterationsStore == 1500) {
-                layoutIterations = 1500;
-            }
-            this.setNodesToFullScreen();
+            this.setNodesToFullScreen(disableAnimation);
         },
 
         setActualSize: function () {
@@ -780,14 +762,25 @@ var PixiRenderer = function (settings) {
             }
         },
 
-        setNodesToFullScreen: function () {
+        setNodesToFullScreen: function (disableAnimation) {
             let rootPlacement = this.calculateRootPositionToCenterGraphLayout();
             if (rootPlacement) {
                 // console.log("Root target position: ", rootPlacement.position);
                 // console.log("Root target scale: ", rootPlacement.scale);
                 root.scale.x = rootPlacement.scale.x;
                 root.scale.y = rootPlacement.scale.y;
-                animationAgent.move(root, rootPlacement.position);
+                if(disableAnimation) {
+                    root.position.x = rootPlacement.position.x;
+                    root.position.y = rootPlacement.position.y;
+                } else {
+                    animationAgent.move(root, rootPlacement.position); 
+                }
+                // if (layoutType === 'Network') {
+                //     root.position.x = rootPlacement.position.x;
+                //     root.position.y = rootPlacement.position.y;
+                // } else {
+                //     animationAgent.move(root, rootPlacement.position);
+                // }
                 nodeContainer.positionDirty = true;
             } else {
                 console.error("Center graph action not supported in current layout.");
@@ -1072,7 +1065,6 @@ var PixiRenderer = function (settings) {
         drawTimelineLayout: function (leftSpacing) {
             isDirty = true;
             nodeContainer.positionDirty = true;
-            layoutIterations = 0;
             layoutType = "TimelineScale";
             var timelineItems = [];
             var now = moment().format('YYYY-MM-DDTHH:mm:ss');
@@ -1243,6 +1235,7 @@ var PixiRenderer = function (settings) {
         setLayoutType: function (layoutTypeStr) {
             console.info('Setting layout type to ', layoutTypeStr);
             layoutType = layoutTypeStr || 'Network';
+
             if (layoutType !== 'Network'
                 && layoutType !== 'Circular'
                 && layoutType !== 'Layered'
@@ -1251,6 +1244,11 @@ var PixiRenderer = function (settings) {
                 layoutType = 'Network';
             }
             if (layoutType === "Network") {
+                if (!dynamicLayout && layoutTypeStr !== 'Network') {
+                    layoutIterations = 0;
+                } else {
+                    layoutIterations = 1500;
+                }
                 layout = networkLayout;
                 _.each(nodeSprites, function (nodeSprite, nodeId) {
                     if (nodeSprite.data.properties["_$lock"]) {
@@ -1259,6 +1257,7 @@ var PixiRenderer = function (settings) {
                     }
                 });
             }
+
         },
 
         setTwoNodeLayoutInXDireaction: function (nodeIDArray) {
@@ -1275,43 +1274,45 @@ var PixiRenderer = function (settings) {
             });
         },
 
-        pauseAnimation: function () {
-            visualConfig.LAYOUT_ANIMATION = !visualConfig.LAYOUT_ANIMATION;
-            if (!visualConfig.LAYOUT_ANIMATION) {
-                layoutIterationsStore = layoutIterations;
-                layoutIterations = -1;
-            } else {
-                layoutIterations = layoutIterationsStore;
-                this.performLayout();
-            }
+        updateDynamicLayout: function (dynamic) {
+            dynamicLayout = dynamic;
         },
 
-        performLayout: function () {
+        performLayout: function (disableAnimation) {
             if (layoutType == 'Network') {
-
                 if (stage.isTimelineLayout) {
                     disableTimelineLayout();
                 }
-                if (layoutIterationsStore == 1500) {
+
+                if (!dynamicLayout) {
                     layoutIterations = 1500;
-                }
-                if (!visualConfig.LAYOUT_ANIMATION) {
+
                     while (layoutIterations > 0) {
                         layout.step();
                         layoutIterations -= 1;
                     }
-                    _.each(nodeSprites, function (nodeSprite, nodeId) {
-                        nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
-                    });
+
+                    if (layoutIterations == 0) {
+                        _.each(nodeSprites, function (nodeSprite, nodeId) { //大开销计算
+                            nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+                        });
+
+                        drawBorders();
+                        drawLines();
+
+                        renderer.render(stage);
+                        counter.nextFrame();
+                    }
+
                 }
-                layout.step();
-                this.setNodesToFullScreen();
+
+                this.setNodesToFullScreen(disableAnimation);
             } else if (layoutType === 'Circular') {
-                this.drawCircleLayout();
+                this.drawCircleLayout(disableAnimation);
             } else if (layoutType === 'Layered') {
-                this.drawLayeredLayout();
+                this.drawLayeredLayout(disableAnimation);
             } else if (layoutType === 'Radiate') {
-                this.drawRadiateLayout();
+                this.drawRadiateLayout(disableAnimation);
             } else if (layoutType === 'TimelineScale') {
                 this.drawTimelineLayout();
             } else {
@@ -1626,35 +1627,26 @@ var PixiRenderer = function (settings) {
 
         lock: function (nodes) {
             isDirty = true;
-            if (visualConfig.LAYOUT_ANIMATION) {
-                for (let node of nodes) {
-                    if (!node.pinned) {
-                        node.pinned = true;
-                        layout.pinNode(node, true);
-                        node.setNodeLockIcon(nodeContainer);
-                        node.data.properties["_$lock"] = true;
-                    }
+            for (let node of nodes) {
+                if (!node.pinned) {
+                    node.pinned = true;
+                    layout.pinNode(node, true);
+                    node.setNodeLockIcon(nodeContainer);
+                    node.data.properties["_$lock"] = true;
                 }
             }
         },
 
         unlock: function (nodes) {
             isDirty = true;
-            if (visualConfig.LAYOUT_ANIMATION) {
-                for (let node of nodes) {
-                    if (node.pinned) {
-                        node.pinned = false;
-                        layout.pinNode(node, false);
-                        layoutIterations = 300;
-                        node.removeNodeLockIcon(nodeContainer);
-                        delete node.data.properties["_$lock"];
-                    }
+            for (let node of nodes) {
+                if (node.pinned) {
+                    node.pinned = false;
+                    layout.pinNode(node, false);
+                    node.removeNodeLockIcon(nodeContainer);
+                    delete node.data.properties["_$lock"];
                 }
             }
-        },
-
-        setIterationFrequency: function (iterFreq) {
-            iterationFrequency = iterFreq;
         },
        
        updateLineContainerStyleDirty: function () {
@@ -1753,62 +1745,90 @@ var PixiRenderer = function (settings) {
         }
 
         requestAnimationFrame(animationLoop);
+        
+        animationAgent.step();
 
-        if (isDirty || nodeContainer.isDirty || lineContainer.isDirty || stage.isDirty || animationAgent.needRerender()) {
-            animationAgent.step();
-            if (layoutIterations > 0) {
+        let layoutPositionChanged = false;
+        if (layoutType === 'Network') {
+            if(dynamicLayout) {
+                layoutPositionChanged = true;
                 layout.step();
-                let positionChanged = layout.step();
-
-                _.each(nodeSprites, function (nodeSprite, nodeId) { //大开销计算
-                    nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
-                    if (nodeSprite.pinned && !nodeSprite.data.properties["_$lock"]) {
-                        nodeSprite.pinned = false;
-                        layout.pinNode(nodeSprite, false);
-                    }
-                });
-
-                layoutIterations -= iterationFrequency;
-                if (positionChanged || layoutIterations <= 0) {
-                    if (layoutType === "Circular" || layoutType === "Layered") {
-                        console.log("layout freezed, setting to full screen");
-                        layoutIterations = 0;
-                        // pixiGraphics.setNodesToFullScreen();
-                    }
-                }
-
-                drawBorders();
-                drawLines();
-            } else if (nodeContainer.positionDirty) {
-                drawBorders();
-                drawLines();
-            } else if (selectRegionGraphics.isDirty) {
-                drawBorders();
-            } else if (lineContainer.styleDirty) {
-                drawLines();
+                updateNodeSpritesPosition();
             }
+        } else if (layoutType === 'TimelineScale' ){
+            // 
+        } else {
+            // Circular, Layered, Radiate
+            let layoutFreeze = layout.step();
+            layoutPositionChanged = !layoutFreeze;
+            if(layoutPositionChanged){
+                updateNodeSpritesPosition();
+            }
+        }
+
+
+        // if (dynamicLayout && layoutType === 'Network') {
+        //     layout.step();
+        //     updateNodeSpritesPosition();
+        // } else {
+        //     if (isDirty || nodeContainer.isDirty || stage.isDirty || lineContainer.isDirty
+        //         || nodeContainer.positionDirty || lineContainer.styleDirty || animationAgent.needRerender()) {
+        //         if ((!settings.analytic || layoutType !== 'Network') && layoutType !== 'TimelineScale') {
+        //             layout.step();
+        //             updateNodeSpritesPosition();
+        //         }
+        //     }
+        // }
+
+        if (layoutPositionChanged || isDirty || nodeContainer.isDirty || stage.isDirty || lineContainer.isDirty
+                || nodeContainer.positionDirty || lineContainer.styleDirty || animationAgent.needRerender()) {
+            drawBorders();
+            drawLines();
 
             selectRegionGraphics.clear();
             if (stage.selectRegion && stage.selectingArea) {
                 drawSelectionRegion();
             }
-            
+
             if (stage.isTimelineLayout) {
                 drawNodeTimelines();
             }
+
             renderer.render(stage);
             counter.nextFrame();
-        }
-        if (layoutIterations == 0) {
+
             isDirty = false;
+            nodeContainer.isDirty = false;
+            stage.isDirty = false;
+            lineContainer.isDirty = false;
+            nodeContainer.positionDirty = false;
+            lineContainer.styleDirty = false;
         }
-        nodeContainer.isDirty = false;
-        stage.isDirty = false;
-        lineContainer.isDirty = false;
-        nodeContainer.positionDirty = false;
-        lineContainer.styleDirty = false;
     }
 
+    function updateNodeSpritesPosition() {
+        _.each(nodeSprites, function (nodeSprite, nodeId) { //大开销计算
+            nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+            if (nodeSprite.pinned && !nodeSprite.data.properties["_$lock"]) {
+                nodeSprite.pinned = false;
+                layout.pinNode(nodeSprite, false);
+            }
+        });
+    }
+
+    function rendererLoading() {
+        let _dom = document.getElementById('sys-loading1');
+        if (_dom) {
+            _dom.style.display = 'block';
+        }
+    }
+
+    function removeRendererLoading() {
+        let _dom = document.getElementById('sys-loading1');
+        if (_dom) {
+            _dom.style.display = 'none';
+        }
+    }
 
     //TODO 画边框,查看drawRoudedRect性能
     function drawBorders() {
@@ -1836,6 +1856,15 @@ var PixiRenderer = function (settings) {
         });
     }
 
+    function drawShowLines() {
+        lineGraphics.clear();
+        _.each(linkSprites, function (link) {
+            if (!link.data.properties._$hidden) {
+                link.renderLine(lineGraphics);
+                link.show();
+            }
+        });
+    }
     
     function drawChangeLines() {
         _.each(lineContainer.selectedLinks, function (link) {
@@ -1886,7 +1915,7 @@ var PixiRenderer = function (settings) {
         var texture = visualConfig.findIcon(semanticType);
 
         var nodeSprite = new SimpleNodeSprite(texture, p, visualConfig);
-
+        
         if (p.data.properties && p.data.properties._$hidden) {
             nodeSprite.hide();
         } else {
@@ -1907,9 +1936,9 @@ var PixiRenderer = function (settings) {
         textContainer.addChild(nodeSprite.ts);
         nodeContainer.addChild(nodeSprite);
         nodeSprites[p.id] = nodeSprite;
-        // if (layout) {
-        //     layout.setNodePosition(nodeSprite.id, nodeSprite.position.x, nodeSprite.position.y);
-        // }
+        if (layout) {
+            layout.setNodePosition(nodeSprite.id, nodeSprite.position.x, nodeSprite.position.y);
+        }
         nodeSprite.on('mousedown', nodeCaptureListener);
         nodeSprite.on('rightup', contextmenuListener);
     }
@@ -1985,6 +2014,7 @@ var PixiRenderer = function (settings) {
         l.data = f.data;
         l.id = f.data.id;
         l.ngLink = f;
+        
         if (f.data.properties && f.data.properties._$hidden) {
             l.hide();
         } else {

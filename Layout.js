@@ -119,6 +119,9 @@ Layout.prototype.getGraphRect = function () {
     }
 };
 
+/**
+ * return if the layout is finished.
+ */
 Layout.prototype.step = function () {
     this.thisStep++;
     let that = this;
@@ -147,8 +150,8 @@ Layout.prototype.getNodePosition = function (nodeId) {
 
 Layout.prototype.setNodePosition = function (id, x, y) {
     if (id !== "notInTreeNum") {
-        this.nodes[id].position.x = x;
-        this.nodes[id].position.y = y;
+        this.nodeSprites[id].position.x = x;
+        this.nodeSprites[id].position.y = y;
     }
 };
 
