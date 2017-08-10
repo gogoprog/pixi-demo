@@ -119,6 +119,9 @@ Layout.prototype.getGraphRect = function () {
     }
 };
 
+/**
+ * return if the layout is finished.
+ */
 Layout.prototype.step = function () {
     this.thisStep++;
     let that = this;
