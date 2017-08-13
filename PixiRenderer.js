@@ -1806,6 +1806,10 @@ var PixiRenderer = function (settings) {
             nodeSprite.setNodeLockIcon(nodeContainer);
         }
 
+        if (p.data.properties['_$merged']) {
+            nodeSprite.setMultiple(true);
+        }
+
         textContainer.addChild(nodeSprite.ts);
         nodeContainer.addChild(nodeSprite);
         nodeSprites[p.id] = nodeSprite;
