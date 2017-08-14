@@ -665,7 +665,7 @@ var PixiRenderer = function (settings) {
                     console.error("Center graph action not supported in current layout.");
                 }
             }
-            
+
         },
 
         calculateRootPositionToCenterGraphLayout: function () {
@@ -743,7 +743,7 @@ var PixiRenderer = function (settings) {
                 x: (graphRect.x1 + rootWidth / 2) * 1 + root.position.x,
                 y: (graphRect.y1 + rootHeight / 2) * 1 + root.position.y,
             };
-            
+
             let rootPositionTransform = {
                 x: viewWidth / 2 - graphCenterInStage.x,
                 y: viewHeight / 2 - graphCenterInStage.y,
@@ -773,7 +773,7 @@ var PixiRenderer = function (settings) {
                     root.position.x = rootPlacement.position.x;
                     root.position.y = rootPlacement.position.y;
                 } else {
-                    animationAgent.move(root, rootPlacement.position); 
+                    animationAgent.move(root, rootPlacement.position);
                 }
                 // if (layoutType === 'Network') {
                 //     root.position.x = rootPlacement.position.x;
@@ -1648,7 +1648,7 @@ var PixiRenderer = function (settings) {
                 }
             }
         },
-       
+
        updateLineContainerStyleDirty: function () {
            lineContainer.styleDirty = true;
        }
@@ -1736,8 +1736,8 @@ var PixiRenderer = function (settings) {
         isDirty = true;
         pixiGraphics.fire('contextmenu', e);
     }
-  
-    
+
+
     function animationLoop() {
         if (destroyed) {
             console.info("Renderer destroyed, exiting animation loop");
@@ -1745,7 +1745,7 @@ var PixiRenderer = function (settings) {
         }
 
         requestAnimationFrame(animationLoop);
-        
+
         animationAgent.step();
 
         let layoutPositionChanged = false;
@@ -1756,12 +1756,13 @@ var PixiRenderer = function (settings) {
                 updateNodeSpritesPosition();
             }
         } else if (layoutType === 'TimelineScale' ){
-            // 
+            //
         } else {
             // Circular, Layered, Radiate
             let layoutFreeze = layout.step();
             layoutPositionChanged = !layoutFreeze;
             if(layoutPositionChanged){
+                console.log(layoutType, 'Node position changed');
                 updateNodeSpritesPosition();
             }
         }
@@ -1865,7 +1866,7 @@ var PixiRenderer = function (settings) {
             }
         });
     }
-    
+
     function drawChangeLines() {
         _.each(lineContainer.selectedLinks, function (link) {
             if (link.visible) {
@@ -1915,7 +1916,7 @@ var PixiRenderer = function (settings) {
         var texture = visualConfig.findIcon(semanticType);
 
         var nodeSprite = new SimpleNodeSprite(texture, p, visualConfig);
-        
+
         if (p.data.properties && p.data.properties._$hidden) {
             nodeSprite.hide();
         } else {
@@ -2018,7 +2019,7 @@ var PixiRenderer = function (settings) {
         l.data = f.data;
         l.id = f.data.id;
         l.ngLink = f;
-        
+
         if (f.data.properties && f.data.properties._$hidden) {
             l.hide();
         } else {
@@ -2100,6 +2101,10 @@ var PixiRenderer = function (settings) {
             }
             if (nodeSprite.ls) {
                 nodeContainer.removeChild(nodeSprite.ls);
+            }
+
+            if (nodeSprite.ms) {
+                nodeContainer.removeChild(nodeSprite.ms);
             }
 
             nodeContainer.removeChild(nodeSprite);
