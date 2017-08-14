@@ -100,8 +100,8 @@ var PixiRenderer = function (settings) {
     root.addChild(boarderGraphics);
     stage.addChild(selectRegionGraphics);
     root.addChild(textContainer);
-    root.addChild(nodeContainer);
     root.addChild(lineContainer);
+    root.addChild(nodeContainer);
 
     stage.contentRoot = root;
 
@@ -767,8 +767,13 @@ var PixiRenderer = function (settings) {
             if (rootPlacement) {
                 // console.log("Root target position: ", rootPlacement.position);
                 // console.log("Root target scale: ", rootPlacement.scale);
-                root.scale.x = rootPlacement.scale.x;
-                root.scale.y = rootPlacement.scale.y;
+                if (rootPlacement.scale.x > 1 || rootPlacement.scale.y > 1) {
+                    root.scale.x = 1;
+                    root.scale.y = 1;
+                } else {
+                    root.scale.x = rootPlacement.scale.x;
+                    root.scale.y = rootPlacement.scale.y;
+                }
                 if(disableAnimation) {
                     root.position.x = rootPlacement.position.x;
                     root.position.y = rootPlacement.position.y;
