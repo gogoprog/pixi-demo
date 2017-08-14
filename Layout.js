@@ -6,7 +6,7 @@ export default function Layout(nodeSprites, nodeContainer) {
     this.nodeSprites = nodeSprites;
     this.nodeContainer = nodeContainer;
     this.thisStep = 0;
-    this.totalStep = 250;
+    this.totalStep = 120;
     this.left = 10000;
     this.right = -10000;
     this.top = 10000;
@@ -75,7 +75,7 @@ Layout.prototype.draw = function (treeNode) {
         x: treeNode.positionx,
         y: treeNode.positiony
     };
-   
+
 };
 
 Layout.prototype.calStep = function (p1, p2, totalStep, thisStep) {
@@ -111,8 +111,8 @@ Layout.prototype.getGraphRect = function () {
             that.bottom = node.position.y;
         }
     }
-    
-    
+
+
     return {
         x1: this.left, y1: this.top,
         x2: this.right, y2: this.bottom
@@ -140,7 +140,7 @@ Layout.prototype.step = function () {
         });
         return false;
     }
-    this.thisStep = 0;
+    // this.thisStep = 0;
     return true;
 };
 
