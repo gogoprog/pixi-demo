@@ -1621,7 +1621,7 @@ var PixiRenderer = function (settings) {
             if (renderer.gl) {
                 this.canvas(renderer, root, viewWidth, viewHeight).toBlob(blobDataReceiver, 'image/png');
             } else {
-                canvas.toBlob(blobDataReceiver, 'image/png');
+                return canvas.toDataURL();
             }
         },
 
