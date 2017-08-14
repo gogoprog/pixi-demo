@@ -296,13 +296,13 @@ export default function Graph(source, options) {
 
         setEntityGraphSource(entityGraphSource){
             let self = this;
-            this.source = entityGraphSource;
+            self.source = entityGraphSource;
             entityGraphSource.on('changed', (changeList) => {
-                this.beginUpdate();
+                self.beginUpdate();
                 for (let i = 0; i < changeList.length; ++i) {
                     const change = changeList[i];
                     console.log('Renderer graph received change event', change);
-                    if (change.changeType === 'add') {
+                    if (change.changeType === 'add' || change.changeType === 'update') {
                         if (change.entity) {
                             self.addNode(change.entity.id, change.entity);
                         }
@@ -339,7 +339,15 @@ export default function Graph(source, options) {
                         }
                     }
                 }
-                this.endUpdate();
+                self.endUpdate();
+            });
+            entityGraphSource.on('init', function () {
+                entityGraphSource.forEachEntity(function (entity) {
+                    self.addNode(entity.id, entity);
+                });
+                entityGraphSource.forEachLink(function (link) {
+                    self.addLink(link.sourceEntity, link.targetEntity, link);
+                });
             });
             entityGraphSource.on('init', () => {
                 console.log('Renderer graph received source init event');
@@ -355,7 +363,7 @@ export default function Graph(source, options) {
                 console.log('Renderer graph finished handling source init event');
             });
         },
-    }
+    };
 
     // this will add `on()` and `fire()` methods.
     eventify(graphPart);
