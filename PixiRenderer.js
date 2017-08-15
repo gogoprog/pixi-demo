@@ -775,6 +775,12 @@ var PixiRenderer = function (settings) {
                     root.scale.y = rootPlacement.scale.y;
                 }
                 if(disableAnimation) {
+                     if (rootPlacement.scale.x > 1 || rootPlacement.scale.y > 1) {
+                        root.scale.x = 1;
+                        root.scale.y = 1;
+                        rootPlacement.position.x = rootPlacement.position.x / rootPlacement.scale.x;
+                        rootPlacement.position.y = rootPlacement.position.y / rootPlacement.scale.y;
+                    }
                     root.position.x = rootPlacement.position.x;
                     root.position.y = rootPlacement.position.y;
                 } else {
