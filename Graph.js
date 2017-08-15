@@ -277,6 +277,23 @@ export default function Graph(source, options) {
          */
         getLink: getLink,
 
+        getLinkById: (srcNodeId, tgtNodeId, linkId) => {
+            var node = getNode(srcNodeId),
+                i;
+            if (!node || !node.links) {
+                return null;
+            }
+
+            for (i = 0; i < node.links.length; ++i) {
+                var link = node.links[i];
+                if (link.fromId === srcNodeId && link.toId === tgtNodeId && link.id === linkId) {
+                    return link;
+                }
+            }
+
+            return null;
+        },
+
         setEntityGraphSource(entityGraphSource){
             let self = this;
             self.source = entityGraphSource;
@@ -299,6 +316,27 @@ export default function Graph(source, options) {
                         if (change.link) {
                             self.removeLink(change.link);
                         }
+                    } else if (change.changeType === 'update') {
+                        if (change.entity) {
+                            let node = self.getNode(change.entity.id);
+                            if (node) {
+                                node.data = change.entity;
+                                recordNodeChange(node, 'update');
+                            } else {
+                                console.warn('Node added through update event, ', change);
+                                self.addNode(change.entity.id, change.entity);
+                            }
+                        }
+                        if (change.link) {
+                            let l = change.link;
+                            let link = self.getLinkById(l.sourceEntity, l.targetEntity, l.id);
+                            if (link) {
+                                link.data = l;
+                                recordLinkChange(link, 'update');
+                            } else {
+                                self.addLink(l.sourceEntity, l.targetEntity, l);
+                            }
+                        }
                     }
                 }
                 self.endUpdate();
@@ -310,6 +348,19 @@ export default function Graph(source, options) {
                 entityGraphSource.forEachLink(function (link) {
                     self.addLink(link.sourceEntity, link.targetEntity, link);
                 });
+            });
+            entityGraphSource.on('init', () => {
+                console.log('Renderer graph received source init event');
+                self.beginUpdate();
+
+                self.source.forEachEntity((e) => {
+                    self.addNode(e.id, e);
+                });
+                self.source.forEachLink((l) => {
+                    self.addLink(l.sourceEntity, l.targetEntity, l);
+                });
+                self.endUpdate();
+                console.log('Renderer graph finished handling source init event');
             });
         },
     };
