@@ -1399,7 +1399,7 @@ var PixiRenderer = function (settings) {
             return graphType;
         },
         setGraphData: function (gData) {
-            // graphData = graph.setEntityGraphSource(gData);
+            // graph.setEntityGraphSource(gData);
             graphData = gData;
         },
         getGraphData: function () {
@@ -1721,8 +1721,12 @@ var PixiRenderer = function (settings) {
                         nodeSprite.gcs[i].scale.set(0.5 * zoomValue);
                     }
                 }
+                nodeSprite.relayoutNodeIcon();
+
                 if (nodeSprite.ls) {
                     nodeSprite.ls.scale.set(0.5 * zoomValue);
+                    nodeSprite.ls.position.x = nodeSprite.position.x + visualConfig.NODE_LOCK_WIDTH * 0.5 * zoomValue;
+                    nodeSprite.ls.position.y = nodeSprite.position.y - visualConfig.NODE_LOCK_WIDTH * 0.5 * zoomValue;
                 }
                 if (nodeSprite.circleBorder) {
                     nodeSprite.circleBorder.scale.set(zoomValue);
