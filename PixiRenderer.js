@@ -25,7 +25,7 @@ var PixiRenderer = function (settings) {
 
     var isDirty = true;
 
-    var graphType;
+    var graphType = {entityTypes: [], linkTypes: []};
     var graphData;
     var graphEntities = {};
     var graphLinks = {};
@@ -1399,8 +1399,8 @@ var PixiRenderer = function (settings) {
             return graphType;
         },
         setGraphData: function (gData) {
-            // graph.setEntityGraphSource(gData);
-            graphData = gData;
+            graph.setEntityGraphSource(gData);
+            // graphData = gData;
         },
         getGraphData: function () {
             return graphData;
@@ -2089,7 +2089,7 @@ var PixiRenderer = function (settings) {
 
     function listenToGraphEvents() {
         graph.on('changed', onGraphChanged);
-
+        graph.on('elp-changed', onGraphElpChanged);
     }
 
     function removeNode(node) {
@@ -2186,6 +2186,11 @@ var PixiRenderer = function (settings) {
                 }
             }
         }
+    }
+
+    function onGraphElpChanged(elpData) {
+        graphType.entityTypes = elpData.elpEntities;
+        graphType.linkTypes = elpData.elpLinks;
     }
 
     /**

@@ -311,6 +311,10 @@ export default function Graph(source, options) {
                     self.addLink(link.sourceEntity, link.targetEntity, link);
                 });
             });
+
+            entityGraphSource.on('elp-changed', (elpData) => {
+                graphPart.fire('elp-changed', elpData);
+            });
         },
     };
 
