@@ -37,6 +37,7 @@ class Settings {
 
     updateVisualConfig(visConfig) {
         let lockIconUrl = "/static/32/Lock/lock_state.png";
+        let multiIconUrl = "/static/images/ic_multiple_objects.png";
         if (visConfig) {
             let data = visConfig.icons || [];
             for (let i = 0; i < data.length; i++) {
@@ -45,34 +46,24 @@ class Settings {
                 }
             }
 
-            let graphCollIcons = visConfig.graphCollIcons || [];
-            for (let j = 1; j < 11; j++) {
-                let iconUrl = "/static/32/GraphColl/graph_coll" + j + ".png";
-                let texture = PIXI.Texture.fromImage(iconUrl);
-                graphCollIcons.push(texture);
-            }
-            
-            visConfig.lockIcon = PIXI.Texture.fromImage(lockIconUrl);
-
             this.visualConfig = visConfig;
-            this.visualConfig.graphCollIcons = graphCollIcons;
         } else {
             _.each(visualConfig.icons, function(icon) {
                 icon.texture = PIXI.Texture.fromImage(icon.url);
             });
-
-            let graphCollIcons = visualConfig.graphCollIcons || [];
-            for (let j = 1; j < 11; j++) {
-                let iconUrl = "/static/32/GraphColl/graph_coll" + j + ".png";
-                let texture = PIXI.Texture.fromImage(iconUrl);
-                graphCollIcons.push(texture);
-            }
-
-            visualConfig.lockIcon = PIXI.Texture.fromImage(lockIconUrl);
-
             this.visualConfig = visualConfig;
-            this.visualConfig.graphCollIcons = graphCollIcons;
+
         }
+
+        let graphCollIcons = visualConfig.graphCollIcons || [];
+        for (let j = 1; j < 11; j++) {
+            let iconUrl = "/static/32/GraphColl/graph_coll" + j + ".png";
+            let texture = PIXI.Texture.fromImage(iconUrl);
+            graphCollIcons.push(texture);
+        }
+        this.visualConfig.graphCollIcons = graphCollIcons;
+        this.visualConfig.lockIcon = PIXI.Texture.fromImage(lockIconUrl);
+        this.visualConfig.multiIcon = PIXI.Texture.fromImage(multiIconUrl);
     }
 
 }

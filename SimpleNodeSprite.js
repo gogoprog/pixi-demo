@@ -32,6 +32,9 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         t.anchor.x = 0.5;
         t.scale.set(0.5, 0.5);
         this.ts = t;
+
+        // for merged entity
+        this._multiple = false;
     }
 
     hide() {
@@ -45,6 +48,10 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
 
         if (this.ls) {
             this.ls.visible = false;
+        }
+
+        if (this.ms) {
+            this.ms.visible = false;
         }
 
         if (this.circleBorder) {
@@ -63,6 +70,10 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
 
         if (this.ls) {
             this.ls.visible = true;
+        }
+
+        if (this.ms) {
+            this.ms.visible = true;
         }
 
         if (this.circleBorder) {
@@ -86,14 +97,14 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         if (this.timelineMode) {
             this._updateNodeAttachPosition(p);
 
-            _.each(this.incoming, function(l) {
+            _.each(this.incoming, function (l) {
                 l.setTo({
                     x: l.x2,
                     y: p.y,
                 });
             });
 
-            _.each(this.outgoing, function(l) {
+            _.each(this.outgoing, function (l) {
                 l.setFrom({
                     x: l.x1,
                     y: p.y
@@ -102,11 +113,11 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         } else {
             this._updateNodeAttachPosition(p);
 
-            _.each(this.incoming, function(l) {
+            _.each(this.incoming, function (l) {
                 l.setTo(p);
             });
 
-            _.each(this.outgoing, function(l) {
+            _.each(this.outgoing, function (l) {
                 l.setFrom(p);
             });
         }
@@ -128,6 +139,11 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         if (this.ls) {
             this.ls.position.x = p.x + this.visualConfig.NODE_LOCK_WIDTH * 0.5  * this.scale.x;
             this.ls.position.y = p.y - this.visualConfig.NODE_LOCK_WIDTH * 0.5  * this.scale.y;
+        }
+
+        if (this.ms) {
+            this.ms.position.x = p.x + this.visualConfig.NODE_LOCK_WIDTH * 0.5;
+            this.ms.position.y = p.y + this.visualConfig.NODE_LOCK_WIDTH * 0.4;
         }
 
         if (this.circleBorder) {
@@ -155,6 +171,10 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         this._addIconToNode(collIdArr, nodeContainer);
 
         this.relayoutNodeIcon();
+    }
+
+    updateLabel(str) {
+        this.ts.text = str;
     }
 
 
@@ -231,11 +251,43 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         this.ls = null;
     }
 
+    enableMultipleIcon() {
+        var nodeSprite = this;
+        var iconTexture = this.visualConfig.multiIcon
+        var iconSprite = new PIXI.Sprite(iconTexture);
+        iconSprite.anchor.x = 0.5;
+        iconSprite.anchor.y = 0.5;
+        iconSprite.scale.set(0.5, 0.5);
+        iconSprite.position.x = nodeSprite.position.x + this.visualConfig.NODE_LOCK_WIDTH * 0.5;
+        iconSprite.position.y = nodeSprite.position.y + this.visualConfig.NODE_LOCK_WIDTH * 0.4;
+
+        iconSprite.visible = nodeSprite.visible;
+        this.parent.addChild(iconSprite);
+        nodeSprite.ms = iconSprite;
+    }
+
+    disableMultipleIcon() {
+        this.parent.removeChild(this.ms);
+        this.ms = null;
+    }
+
+    isMultiple() {
+        return this._multiple;
+    }
+
+    setMultiple(value) {
+        if (!this._multiple && value) {
+            this.enableMultipleIcon();
+        } else if (this._multiple && !value) {
+            this.disableMultipleIcon();
+        }
+        this._multiple = value;
+    }
 }
 
-SimpleNodeSprite.prototype.destroy = function(options) {
+SimpleNodeSprite.prototype.destroy = function (options) {
     if (this.ts) {
-        this.ts.destroy({ texture: true, baseTexture: true });
+        this.ts.destroy({texture: true, baseTexture: true});
     }
-    PIXI.Sprite.prototype.destroy.call(this, { texture: false, baseTexture: false });
+    PIXI.Sprite.prototype.destroy.call(this, {texture: false, baseTexture: false});
 };

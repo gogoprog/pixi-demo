@@ -6,7 +6,7 @@ export default function Layout(nodeSprites, nodeContainer) {
     this.nodeSprites = nodeSprites;
     this.nodeContainer = nodeContainer;
     this.thisStep = 0;
-    this.totalStep = 120;
+    this.totalStep = 40;
     this.left = 10000;
     this.right = -10000;
     this.top = 10000;
