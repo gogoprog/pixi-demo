@@ -341,14 +341,7 @@ export default function Graph(source, options) {
                 }
                 self.endUpdate();
             });
-            entityGraphSource.on('init', function () {
-                entityGraphSource.forEachEntity(function (entity) {
-                    self.addNode(entity.id, entity);
-                });
-                entityGraphSource.forEachLink(function (link) {
-                    self.addLink(link.sourceEntity, link.targetEntity, link);
-                });
-            });
+
             entityGraphSource.on('init', () => {
                 console.log('Renderer graph received source init event');
                 self.beginUpdate();
@@ -361,6 +354,11 @@ export default function Graph(source, options) {
                 });
                 self.endUpdate();
                 console.log('Renderer graph finished handling source init event');
+            });
+
+            entityGraphSource.on('elp-changed', (elpData) => {
+                console.log('Base graph ELP model changed, ', elpData);
+                graphPart.fire('elp-changed', elpData);
             });
         },
     };

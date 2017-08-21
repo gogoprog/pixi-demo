@@ -25,7 +25,7 @@ var PixiRenderer = function (settings) {
 
     var isDirty = true;
 
-    var graphType;
+    var graphType = {entityTypes: [], linkTypes: []};
     var graphData;
     var graphEntities = {};
     var graphLinks = {};
@@ -749,7 +749,7 @@ var PixiRenderer = function (settings) {
                 y: viewHeight / 2 - graphCenterInStage.y,
             }
             // console.log("Root transform", rootPositionTransform);
-            console.log("scale.x " + scale + " scale.y " + scale + " position.x " + (root.position.x + rootPositionTransform.x) + " position.y " + (root.position.y + rootPositionTransform.y));
+            // console.log("scale.x " + scale + " scale.y " + scale + " position.x " + (root.position.x + rootPositionTransform.x) + " position.y " + (root.position.y + rootPositionTransform.y));
             return {
                 scale: {
                     x: scale,
@@ -775,6 +775,12 @@ var PixiRenderer = function (settings) {
                     root.scale.y = rootPlacement.scale.y;
                 }
                 if(disableAnimation) {
+                     if (rootPlacement.scale.x > 1 || rootPlacement.scale.y > 1) {
+                        root.scale.x = 1;
+                        root.scale.y = 1;
+                        rootPlacement.position.x = rootPlacement.position.x / rootPlacement.scale.x;
+                        rootPlacement.position.y = rootPlacement.position.y / rootPlacement.scale.y;
+                    }
                     root.position.x = rootPlacement.position.x;
                     root.position.y = rootPlacement.position.y;
                 } else {
@@ -1623,8 +1629,12 @@ var PixiRenderer = function (settings) {
 
         // convert the canvas drawing buffer into base64 encoded image url
         exportImage: function (blobDataReceiver) {
-            if (renderer.gl) {
-                this.canvas(renderer, root, viewWidth, viewHeight).toBlob(blobDataReceiver, 'image/png');
+            if (layoutType === "Network") {
+                if (renderer.gl) {
+                    this.canvas(renderer, root, viewWidth, viewHeight).toBlob(blobDataReceiver, 'image/png');
+                } else {
+                    return canvas.toDataURL();
+                }
             } else {
                 return canvas.toDataURL();
             }
@@ -1715,8 +1725,12 @@ var PixiRenderer = function (settings) {
                         nodeSprite.gcs[i].scale.set(0.5 * zoomValue);
                     }
                 }
+                nodeSprite.relayoutNodeIcon();
+
                 if (nodeSprite.ls) {
                     nodeSprite.ls.scale.set(0.5 * zoomValue);
+                    nodeSprite.ls.position.x = nodeSprite.position.x + visualConfig.NODE_LOCK_WIDTH * 0.5 * zoomValue;
+                    nodeSprite.ls.position.y = nodeSprite.position.y - visualConfig.NODE_LOCK_WIDTH * 0.5 * zoomValue;
                 }
                 if (nodeSprite.circleBorder) {
                     nodeSprite.circleBorder.scale.set(zoomValue);
@@ -1767,7 +1781,6 @@ var PixiRenderer = function (settings) {
             let layoutFreeze = layout.step();
             layoutPositionChanged = !layoutFreeze;
             if(layoutPositionChanged){
-                console.log(layoutType, 'Node position changed');
                 updateNodeSpritesPosition();
             }
         }
@@ -2080,7 +2093,7 @@ var PixiRenderer = function (settings) {
 
     function listenToGraphEvents() {
         graph.on('changed', onGraphChanged);
-
+        graph.on('elp-changed', onGraphElpChanged);
     }
 
     function removeNode(node) {
@@ -2197,6 +2210,11 @@ var PixiRenderer = function (settings) {
                 }
             }
         }
+    }
+
+    function onGraphElpChanged(elpData) {
+        graphType.entityTypes = elpData.elpEntities;
+        graphType.linkTypes = elpData.elpLinks;
     }
 
     /**

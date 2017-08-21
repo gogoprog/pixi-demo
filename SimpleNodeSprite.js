@@ -133,12 +133,12 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         }
 
         if (this.gcs && this.gcs.length > 0) {
-            this._relayoutNodeIcon();
+            this.relayoutNodeIcon();
         }
 
         if (this.ls) {
-            this.ls.position.x = p.x + this.visualConfig.NODE_LOCK_WIDTH * 0.5;
-            this.ls.position.y = p.y - this.visualConfig.NODE_LOCK_WIDTH * 0.5;
+            this.ls.position.x = p.x + this.visualConfig.NODE_LOCK_WIDTH * 0.5  * this.scale.x;
+            this.ls.position.y = p.y - this.visualConfig.NODE_LOCK_WIDTH * 0.5  * this.scale.y;
         }
 
         if (this.ms) {
@@ -170,7 +170,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
 
         this._addIconToNode(collIdArr, nodeContainer);
 
-        this._relayoutNodeIcon();
+        this.relayoutNodeIcon();
     }
 
     updateLabel(str) {
@@ -188,7 +188,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             iconSprite.id = collId;
             iconSprite.anchor.x = 0.5;
             iconSprite.anchor.y = 0.5;
-            iconSprite.scale.set(0.5, 0.5);
+            iconSprite.scale.set(0.5 * nodeSprite.scale.x, 0.5 * nodeSprite.scale.y);
 
             iconSprite.visible = nodeSprite.visible;
             gcsArr.push(iconSprite);
@@ -197,27 +197,36 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         nodeSprite.gcs = gcsArr;
     }
 
-    _relayoutNodeIcon() {
+    relayoutNodeIcon() {
         if (!this.gcs || this.gcs.length == 0) {
             return;
         }
 
+        var nodeSprite = this;
         this.gcs.sort(function (a, b) {
             return a.id - b.id;
         });
         // from the center of first icon to the center of last icon
-        var iconRowWidth = (this.gcs.length - 1) * (this.visualConfig.NODE_ICON_WIDTH + 10) * 0.5;
+        var iconRowWidth = (this.gcs.length - 1) * (this.visualConfig.NODE_ICON_WIDTH + 10) * 0.5 * nodeSprite.scale.x;
         var iconPosY = 0;
 
         this.gcs[0].position.x = this.position.x - iconRowWidth * 0.5;
         if (this.ts) {
-            this.gcs[0].position.y = iconPosY = this.ts.position.y + 20;
+            if (nodeSprite.scale.y > 1) {
+                this.gcs[0].position.y = iconPosY = this.ts.position.y + 20 + this.visualConfig.NODE_LABLE_OFFSET_Y * nodeSprite.scale.y * 0.5;
+            } else {
+                this.gcs[0].position.y = iconPosY = this.ts.position.y + 20 * nodeSprite.scale.y;
+            }
         } else {
-            this.gcs[0].position.y = iconPosY = this.position.y + 20;
+            if (nodeSprite.scale.y > 1) {
+                this.gcs[0].position.y = iconPosY = this.position.y + 20 + this.visualConfig.NODE_LABLE_OFFSET_Y * nodeSprite.scale.y * 0.5;
+            } else {
+                this.gcs[0].position.y = iconPosY = this.position.y + 20 * nodeSprite.scale.y;
+            }
         }
 
         for (var i = 1; i < this.gcs.length; i++) {
-            this.gcs[i].position.x = this.gcs[i - 1].position.x + (this.visualConfig.NODE_ICON_WIDTH + 10) * 0.5;
+            this.gcs[i].position.x = this.gcs[i - 1].position.x + (this.visualConfig.NODE_ICON_WIDTH + 10) * 0.5 * nodeSprite.scale.x;
             this.gcs[i].position.y = iconPosY;
         }
     }
@@ -228,9 +237,9 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         var iconSprite = new PIXI.Sprite(iconTexture);
         iconSprite.anchor.x = 0.5;
         iconSprite.anchor.y = 0.5;
-        iconSprite.scale.set(0.5, 0.5);
-        iconSprite.position.x = nodeSprite.position.x + this.visualConfig.NODE_LOCK_WIDTH * 0.5;
-        iconSprite.position.y = nodeSprite.position.y - this.visualConfig.NODE_LOCK_WIDTH * 0.5;
+        iconSprite.scale.set(0.5 * nodeSprite.scale.x, 0.5 * nodeSprite.scale.y);
+        iconSprite.position.x = nodeSprite.position.x + this.visualConfig.NODE_LOCK_WIDTH * 0.5 * nodeSprite.scale.x;
+        iconSprite.position.y = nodeSprite.position.y - this.visualConfig.NODE_LOCK_WIDTH * 0.5 * nodeSprite.scale.y;
 
         iconSprite.visible = nodeSprite.visible;
         nodeContainer.addChild(iconSprite);
