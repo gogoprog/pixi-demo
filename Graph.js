@@ -302,7 +302,7 @@ export default function Graph(source, options) {
                 for (let i = 0; i < changeList.length; ++i) {
                     const change = changeList[i];
                     console.log('Renderer graph received change event', change);
-                    if (change.changeType === 'add' || change.changeType === 'update') {
+                    if (change.changeType === 'add') {
                         if (change.entity) {
                             self.addNode(change.entity.id, change.entity);
                         }
