@@ -1400,7 +1400,7 @@ var PixiRenderer = function (settings) {
         },
         setGraphData: function (gData) {
             graph.setEntityGraphSource(gData);
-            // graphData = gData;
+            graphData = gData;
         },
         getGraphData: function () {
             return graphData;
