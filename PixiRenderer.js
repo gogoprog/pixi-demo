@@ -786,6 +786,7 @@ var PixiRenderer = function (settings) {
                 } else {
                     animationAgent.move(root, rootPlacement.position);
                 }
+
                 // if (layoutType === 'Network') {
                 //     root.position.x = rootPlacement.position.x;
                 //     root.position.y = rootPlacement.position.y;
@@ -1660,13 +1661,28 @@ var PixiRenderer = function (settings) {
                     layout.pinNode(node, false);
                     node.removeNodeLockIcon(nodeContainer);
                     delete node.data.properties["_$lock"];
+                    // if (node.data["properties"]["_$merged"]) {
+                    //     let mergee = graphData.mergeRelation.entity[node.data.id].getMergee();
+                    //     console.log("mergee length " + Object.keys(mergee).length);
+                    //     for (let eId in mergee) {
+                    //         let originEntity = mergee[eId];
+                    //         delete originEntity.properties["_$lock"];
+                    //     }
+                    // }
                 }
             }
         },
 
        updateLineContainerStyleDirty: function () {
            lineContainer.styleDirty = true;
-       }
+       },
+
+        updateNodeLockIcon: function (node) {
+            let nodeSprite = nodeSprites[node.id];
+            nodeSprite.pinned = true;
+            layout.pinNode(nodeSprite, true);
+            nodeSprite.setNodeLockIcon(nodeContainer);
+        }
 
     };
 
