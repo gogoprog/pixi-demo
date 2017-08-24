@@ -100,6 +100,7 @@ function createForest(nodes, selectNodes, visualConfig) {
                 tree.levelRadius[i] = 0;
             } else if (i > 1 && i < (tree.levelNum.length - 1)) {
                 var defaultRadius = (NODE_WIDTH * 2 * tree.levelNum[i] * 1.5) / (2 * Math.PI);
+               // 根据每层的结点个数自动调整圆形的布局半径
                 tree.levelRadius[i] = tree.levelRadius[i - 1] + Math.ceil(tree.levelNum[i] / 10) * 4 * NODE_WIDTH + Math.ceil(tree.levelNum[i + 1] / 10) * 3 * NODE_WIDTH;
                 if (tree.levelRadius[i] < defaultRadius) {
                     tree.levelRadius[i] = defaultRadius;

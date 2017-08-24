@@ -37,7 +37,9 @@ export default function CircleLayout(nodeSprites, nodeContainer,visualConfig) {
         });
     });
     _.each(forest, function (tree) {
-        that.draw(tree.root);
+        _.each(tree, function (treeNode) {
+            that.draw(treeNode);
+        });
     });
 }
 

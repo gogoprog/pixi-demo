@@ -26,8 +26,10 @@ export default function RadiateLayout(nodeSprites, nodeContainer, visualConfig) 
             that.move(forest[i].root, len);
         }
     }
-    _.each(forest, function (tree) {
-        that.draw(tree.root);
+   _.each(forest, function (tree) {
+        _.each(tree, function (treeNode) {
+            that.draw(treeNode);
+        });
     });
 }
 //组合继承Layout
