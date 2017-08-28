@@ -1501,7 +1501,9 @@ var PixiRenderer = function (settings) {
         modifyNodeLabel: function (nodeLabelsObj) {
             for (let nodeId in nodeLabelsObj) {
                 let nodeSprite = nodeSprites[nodeId];
-                nodeSprite.ts.text = nodeLabelsObj[nodeId];
+                if (nodeSprite) {   //顶点合并后视图变化合并前顶点被合并不存在
+                    nodeSprite.ts.text = nodeLabelsObj[nodeId];
+                }
             }
         },
 
