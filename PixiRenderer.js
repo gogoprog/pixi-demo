@@ -774,8 +774,8 @@ var PixiRenderer = function (settings) {
                     root.scale.x = rootPlacement.scale.x;
                     root.scale.y = rootPlacement.scale.y;
                 }
-                if(disableAnimation) {
-                     if (rootPlacement.scale.x > 1 || rootPlacement.scale.y > 1) {
+                if (disableAnimation) {
+                    if (rootPlacement.scale.x > 1 || rootPlacement.scale.y > 1) {
                         root.scale.x = 1;
                         root.scale.y = 1;
                         rootPlacement.position.x = rootPlacement.position.x / rootPlacement.scale.x;
@@ -1675,9 +1675,9 @@ var PixiRenderer = function (settings) {
             }
         },
 
-       updateLineContainerStyleDirty: function () {
+        updateLineContainerStyleDirty: function () {
            lineContainer.styleDirty = true;
-       },
+        },
 
         updateNodeLockIcon: function (node) {
             let nodeSprite = nodeSprites[node.id];
@@ -1700,16 +1700,35 @@ var PixiRenderer = function (settings) {
     pixiGraphics._mouseDownListener = function (event) {
         pixiGraphics._lastDownTarget = event.target;
     };
+    let collectionKeyCodes = {
+        Digit1: 1,
+        Digit2: 2,
+        Digit3: 3,
+        Digit4: 4,
+        Digit5: 5,
+        Digit6: 6,
+        Digit7: 7,
+        Digit8: 8,
+        Digit9: 9,
+        Digit0: 10
+    };
     pixiGraphics._keyDownListener = function (event) {
         if (pixiGraphics._lastDownTarget == canvas) {
             event.stopPropagation();
             event.preventDefault();
-            if (event.code === "Space") {
+            let keyCode = event.code;
+            if (keyCode === "Space") {
                 pixiGraphics.toggleMode();
-            } else if (event.code === 'Delete') {
-                // this.remo FIXME emit event to let controller delete target.
-            } else if (event.code === 'KeyA' && event.ctrlKey) {
+            } else if (keyCode === 'Delete') {
+                pixiGraphics.fire('delete-selected');
+            } else if (keyCode === 'KeyA' && event.ctrlKey) {
                 pixiGraphics.selectAll();
+            } else if (collectionKeyCodes[keyCode]) {
+                if (event.shiftKey) {
+                    pixiGraphics.fire('append-collection', event, collectionKeyCodes[keyCode]);
+                } else {
+                    pixiGraphics.fire('select-collection', event, collectionKeyCodes[keyCode]);
+                }
             }
         }
     };
@@ -1787,18 +1806,18 @@ var PixiRenderer = function (settings) {
 
         let layoutPositionChanged = false;
         if (layoutType === 'Network') {
-            if(dynamicLayout) {
+            if (dynamicLayout) {
                 layoutPositionChanged = true;
                 layout.step();
                 updateNodeSpritesPosition();
             }
-        } else if (layoutType === 'TimelineScale' ){
+        } else if (layoutType === 'TimelineScale') {
             //
         } else {
             // Circular, Layered, Radiate
             let layoutFreeze = layout.step();
             layoutPositionChanged = !layoutFreeze;
-            if(layoutPositionChanged){
+            if (layoutPositionChanged) {
                 updateNodeSpritesPosition();
             }
         }
@@ -1818,7 +1837,7 @@ var PixiRenderer = function (settings) {
         // }
 
         if (layoutPositionChanged || isDirty || nodeContainer.isDirty || stage.isDirty || lineContainer.isDirty
-                || nodeContainer.positionDirty || lineContainer.styleDirty || animationAgent.needRerender()) {
+            || nodeContainer.positionDirty || lineContainer.styleDirty || animationAgent.needRerender()) {
             drawBorders();
             drawLines();
 
