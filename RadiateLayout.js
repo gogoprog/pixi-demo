@@ -66,7 +66,7 @@ RadiateLayout.prototype.calRadiateAngle = function (tree, treeNode) {
 
     if (treeNode.level > 1) {
         if (length > 1) {
-            treeNode.width = treeNode.child[length - 1].angle - treeNode.child[0].angle + this.NODE_WIDTH * 180 / (Math.PI * tree.levelRadius[treeNode.level + 1]);
+            treeNode.width = treeNode.child[length - 1].angle - treeNode.child[0].angle + this.NODE_WIDTH * 4 * 180 / (Math.PI * tree.levelRadius[treeNode.level + 1]);
         } else {
             treeNode.width = (this.NODE_WIDTH * 4 * 180) / (Math.PI * tree.levelRadius[treeNode.level + 1]);
         }
@@ -74,12 +74,12 @@ RadiateLayout.prototype.calRadiateAngle = function (tree, treeNode) {
 
         let p1 = this.levela[parseInt(treeNode.level)] + treeNode.width / 2;
         let p2 = treeNode.child[0].angle + (treeNode.child[length - 1].angle - treeNode.child[0].angle) / 2;
-        if (treeNode.level === 2 && p1 < (this.levela[parseInt(treeNode.level)] + tree.levelAngle[treeNode.level])) {
-            p1 = this.levela[parseInt(treeNode.level)] + tree.levelAngle[treeNode.level];
+        if (treeNode.level === 2 && p1 < tree.levelAngle[treeNode.level] * treeNode.levelID) {
+            p1 = tree.levelAngle[treeNode.level] * treeNode.levelID;
         }
 
         treeNode.angle = p2;
-        this.moveAngle(treeNode, Math.abs(p1 - p2));
+        this.moveAngle(treeNode, Math.abs(p2 - p1));
         this.levela[treeNode.level] = treeNode.angle;
     } else {
         treeNode.angle = 0;
