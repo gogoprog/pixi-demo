@@ -337,6 +337,20 @@ export default function Graph(source, options) {
                                 self.addLink(l.sourceEntity, l.targetEntity, l);
                             }
                         }
+                    } else if (change.changeType === 'hide') {
+                        if (change.entity) {
+                            self.removeNode(change.entity.id);
+                        }
+                        if (change.link) {
+                            self.removeLink(change.link);
+                        }
+                    } else if (change.changeType === 'show') {
+                        if (change.entity) {
+                            self.addNode(change.entity.id, change.entity);
+                        }
+                        if (change.link) {
+                            self.addLink(change.link.sourceEntity, change.link.targetEntity, change.link);
+                        }
                     }
                 }
                 self.endUpdate();
