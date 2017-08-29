@@ -690,7 +690,7 @@ var PixiRenderer = function (settings) {
             let scaleX = targetRectWidth / rootWidth,
                 scaleY = targetRectHeight / rootHeight;
             // the actuall scale that should be applied to root so that it will fit into the target rectangle
-            let scale = Math.min(scaleX, scaleY, visualConfig.MAX_ADJUST);
+            let scale = Math.min(scaleX, scaleY, 1);
             let graphCenterInStage = {
                 //(graphRect.x1 + rootWidth / 2 ) 是contentRoot坐标系，转换到stage的坐标系时需要进行scale处理， 下同
                 x: (graphRect.x1 + rootWidth / 2) * scale + root.position.x,
