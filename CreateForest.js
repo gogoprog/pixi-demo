@@ -106,7 +106,11 @@ function createForest(nodes, selectNodes, visualConfig) {
                     tree.levelRadius[i] = defaultRadius;
                 }
             } else {
+                var defaultRadius = (NODE_WIDTH * 2 * tree.levelNum[i] * 1.5) / (2 * Math.PI);
                 tree.levelRadius[i] = tree.levelRadius[i - 1] + Math.ceil(tree.levelNum[i] / 10) * 4 * NODE_WIDTH;
+                if (tree.levelRadius[i] < defaultRadius) {
+                    tree.levelRadius[i] = defaultRadius;
+                }
             }
 
             tree.levelAngle[i] = 360 / tree.levelNum[i];
