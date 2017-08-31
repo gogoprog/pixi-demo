@@ -62,19 +62,21 @@ Layout.prototype.getSelectNodes = function () {
 };
 
 Layout.prototype.draw = function (treeNode) {
-    let length = treeNode.child.length;
+    // let length = treeNode.child.length;
     let that = this;
-    for (let i = 0; i < length; i++) {
-        that.draw(treeNode.child[i]);
-    }
+    // for (let i = 0; i < length; i++) {
+    //     that.draw(treeNode.child[i]);
+    // }
 
     let node = that.nodes[treeNode.id];
-    // console.log(treeNode.level,treeNode.levelId);
+    // // console.log(treeNode.level,treeNode.levelId);
     // console.log(node.cluster);
     node.position = {
         x: treeNode.positionx,
         y: treeNode.positiony
     };
+
+    // console.log("node.position.x",node.position.x,"node.position.y",node.position.y);
 
 };
 
@@ -93,11 +95,11 @@ Layout.prototype.finalLayoutAvailable = function () {
 
 Layout.prototype.getGraphRect = function () {
     let that = this;
-    for (let nodeId in this.nodes) {
-        if (nodeId == "notInTreeNum") {
+    for (let nodeId in that.nodes) {
+        if (nodeId === "notInTreeNum") {
             continue;
         }
-        let node = this.nodes[nodeId];
+        let node = that.nodes[nodeId];
         if (node.position.x < that.left) {
             that.left = node.position.x;
         }

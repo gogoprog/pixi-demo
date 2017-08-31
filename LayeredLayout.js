@@ -20,13 +20,16 @@ export default function LayeredLayout(nodeSprites, nodeContainer, visualConfig) 
         tree.levely = [];
         tree.levely[1] = 0;
         for (let i = 2; i < tree.levelNum.length; i++) {
+            // 根据每层节点个数自动调整层高
             tree.levely[i] = tree.levely[i - 1] + Math.ceil(tree.levelNum[i] / 10) * that.NODE_WIDTH * 4;
         }
         that.calTreePosition(tree.levely, tree.root);
     });
 
     _.each(forest, function (tree) {
-        that.draw(tree.root);
+        _.each(tree, function (treeNode) {
+            that.draw(treeNode);
+        });
     });
 }
 
@@ -59,7 +62,9 @@ LayeredLayout.prototype.calTreePosition = function (levely, treeNode) {
     } else {
         treeNode.width = this.NODE_WIDTH * 4;
     }
+    // p1是该节点在该层理论上应该排的位置
     let p1 = this.levelx[parseInt(treeNode.level)] + treeNode.width / 2 - this.NODE_WIDTH * 2;
+    // p2是该节点相对于其子节点的位置
     let p2 = treeNode.child[0].positionx + (treeNode.child[length - 1].positionx - treeNode.child[0].positionx) / 2;
     treeNode.positionx = p2;
     if (p1 > p2) {
