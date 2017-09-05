@@ -81,14 +81,13 @@ export const elpVisualConfig = {
             "color": 0x000000,
             "alpha": 1
         }
-    }
-};
-
-elpVisualConfig.findIcon = function(link) {
-    const data = this.icons;
-    for (var i = 0; i < data.length; i++) {
-        if (data[i].url == link) {
-            return data[i].texture;
+    },
+    findIcon: function(link) {
+        const data = this.icons;
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].url == link) {
+                return data[i].texture;
+            }
         }
     }
 };

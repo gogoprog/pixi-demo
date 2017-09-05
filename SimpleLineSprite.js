@@ -26,9 +26,9 @@ export default class SimpleLineSprite {
         this.coustomSettingAlpha = visualConfig.ui.line.alpha;
         if (hasArrow) {
             if (!arrowStyle) {
-                this.arrow = new PIXI.Sprite(SimpleLineSprite.prototype.getTexture(thickness, color));
+                this.arrow = new PIXI.Sprite(SimpleLineSprite.getTexture(thickness, color));
             } else {
-                this.arrow = new PIXI.Sprite(SimpleLineSprite.prototype.getMultiTexture(thickness, color));
+                this.arrow = new PIXI.Sprite(SimpleLineSprite.getMultiTexture(thickness, color));
             }
             this.arrow.scale.set(0.5, 0.5);
             this.arrow.anchor.x = 0.5;
@@ -52,9 +52,9 @@ export default class SimpleLineSprite {
         this._thickness = value;
         if (this.hasArrow) {
             if (this.arrowStyle) {
-                this.arrow.texture = this.getMultiTexture(this._thickness, this._color);
+                this.arrow.texture = SimpleLineSprite.getMultiTexture(this._thickness, this._color);
             } else {
-                this.arrow.texture = this.getTexture(this._thickness, this._color);
+                this.arrow.texture = SimpleLineSprite.getTexture(this._thickness, this._color);
             }
         }
     };
@@ -62,13 +62,13 @@ export default class SimpleLineSprite {
     get color() {
         return this._color;
     };
-    set function(value) {
+    set color(value) {
         this._color = value;
         if (this.hasArrow) {
             if (this.arrowStyle) {
-                this.arrow.texture = this.getMultiTexture(this._thickness, this._color);
+                this.arrow.texture = SimpleLineSprite.getMultiTexture(this._thickness, this._color);
             } else {
-                this.arrow.texture = this.getTexture(this._thickness, this._color);
+                this.arrow.texture = SimpleLineSprite.getTexture(this._thickness, this._color);
             }
         }
     };
@@ -116,18 +116,6 @@ export default class SimpleLineSprite {
         return lineAttr;
     };
 
-    /**
-     * @param width
-     * @param height
-     * @returns {Element}
-     */
-    getCanvas(width, height) {
-        let canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        return canvas;
-    };
-
     selectionChanged(selected) {
         this.selected = selected;
         if (selected) {
@@ -151,58 +139,6 @@ export default class SimpleLineSprite {
             this.alpha = this.coustomSettingAlpha;
             this.label.style = this.visualConfig.ui.label.font;
         }
-    };
-
-    //FIXME thinkness is not used here!
-    getTexture(thickness, color) {
-        const key = thickness + "-" + color;
-        if (!SimpleLineSprite.textureCache[key]) {
-            console.log("Generating texture: " + key);
-            let arrowW = SimpleLineSprite.ARROW_WIDTH + SimpleLineSprite.THICKNESS_FACTOR * thickness,
-                arrowH = SimpleLineSprite.ARROW_HEIGHT + SimpleLineSprite.THICKNESS_FACTOR * thickness;
-            let canvas = this.getCanvas(arrowW, arrowH);
-            let context = canvas.getContext("2d");
-            context.fillStyle = PIXI.utils.hex2string(color);
-
-            context.beginPath();
-            context.moveTo(0, 0);
-            context.lineTo(arrowW / 2, arrowH);
-            context.lineTo(arrowW, 0);
-
-            context.fill();
-
-            let texture = new PIXI.Texture(new PIXI.BaseTexture(canvas), PIXI.SCALE_MODES.LINEAR);
-            texture.frame = new PIXI.Rectangle(0, 0, arrowW, arrowH);
-            SimpleLineSprite.textureCache[key] = texture;
-        }
-
-        return SimpleLineSprite.textureCache[key];
-    };
-
-    getMultiTexture(thickness, color) {
-        const key = thickness + "-" + color + "-multi";
-        if (!SimpleLineSprite.textureCache[key]) {
-            console.log("Generating texture: " + key);
-            let arrowW = SimpleLineSprite.ARROW_WIDTH + SimpleLineSprite.THICKNESS_FACTOR * thickness,
-                arrowH = SimpleLineSprite.ARROW_HEIGHT + SimpleLineSprite.THICKNESS_FACTOR * thickness;
-            let canvas = this.getCanvas(arrowW, arrowH);
-            let context = canvas.getContext("2d");
-            context.fillStyle = PIXI.utils.hex2string(color);
-            context.beginPath();
-            context.moveTo(0, 0);
-            context.lineTo(arrowW / 2, arrowH / 2);
-            context.lineTo(arrowW, 0);
-            context.moveTo(0, arrowH / 2);
-            context.lineTo(arrowW / 2, arrowH);
-            context.lineTo(arrowW, arrowH / 2);
-
-            context.fill();
-            let texture = new PIXI.Texture(new PIXI.BaseTexture(canvas), PIXI.SCALE_MODES.LINEAR);
-            texture.frame = new PIXI.Rectangle(0, 0, arrowW, arrowH);
-            SimpleLineSprite.textureCache[key] = texture;
-        }
-
-        return SimpleLineSprite.textureCache[key];
     };
 
     setFrom(point) {
@@ -299,5 +235,69 @@ export default class SimpleLineSprite {
         if (this.label) {
             this.label.destroy({texture: true, baseTexture: true});
         }
+    };
+
+    /**
+     * @param width
+     * @param height
+     * @returns {Element}
+     */
+    static getCanvas(width, height) {
+        let canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        return canvas;
+    };
+
+    //FIXME thinkness is not used here!
+    static getTexture(thickness, color) {
+        const key = thickness + "-" + color;
+        if (!SimpleLineSprite.textureCache[key]) {
+            console.log("Generating texture: " + key);
+            let arrowW = SimpleLineSprite.ARROW_WIDTH + SimpleLineSprite.THICKNESS_FACTOR * thickness,
+                arrowH = SimpleLineSprite.ARROW_HEIGHT + SimpleLineSprite.THICKNESS_FACTOR * thickness;
+            let canvas = SimpleLineSprite.getCanvas(arrowW, arrowH);
+            let context = canvas.getContext("2d");
+            context.fillStyle = PIXI.utils.hex2string(color);
+
+            context.beginPath();
+            context.moveTo(0, 0);
+            context.lineTo(arrowW / 2, arrowH);
+            context.lineTo(arrowW, 0);
+
+            context.fill();
+
+            let texture = new PIXI.Texture(new PIXI.BaseTexture(canvas), PIXI.SCALE_MODES.LINEAR);
+            texture.frame = new PIXI.Rectangle(0, 0, arrowW, arrowH);
+            SimpleLineSprite.textureCache[key] = texture;
+        }
+
+        return SimpleLineSprite.textureCache[key];
+    };
+
+    static getMultiTexture(thickness, color) {
+        const key = thickness + "-" + color + "-multi";
+        if (!SimpleLineSprite.textureCache[key]) {
+            console.log("Generating texture: " + key);
+            let arrowW = SimpleLineSprite.ARROW_WIDTH + SimpleLineSprite.THICKNESS_FACTOR * thickness,
+                arrowH = SimpleLineSprite.ARROW_HEIGHT + SimpleLineSprite.THICKNESS_FACTOR * thickness;
+            let canvas = SimpleLineSprite.getCanvas(arrowW, arrowH);
+            let context = canvas.getContext("2d");
+            context.fillStyle = PIXI.utils.hex2string(color);
+            context.beginPath();
+            context.moveTo(0, 0);
+            context.lineTo(arrowW / 2, arrowH / 2);
+            context.lineTo(arrowW, 0);
+            context.moveTo(0, arrowH / 2);
+            context.lineTo(arrowW / 2, arrowH);
+            context.lineTo(arrowW, arrowH / 2);
+
+            context.fill();
+            let texture = new PIXI.Texture(new PIXI.BaseTexture(canvas), PIXI.SCALE_MODES.LINEAR);
+            texture.frame = new PIXI.Rectangle(0, 0, arrowW, arrowH);
+            SimpleLineSprite.textureCache[key] = texture;
+        }
+
+        return SimpleLineSprite.textureCache[key];
     };
 }

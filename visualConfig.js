@@ -1,4 +1,3 @@
-
 export const visualConfig = {
     backgroundColor: 0x152037,
     "NODE_LABLE_OFFSET_Y": 26,
@@ -84,27 +83,28 @@ export const visualConfig = {
             "color": 0x000000,
             "alpha": 1
         }
-    }
-};
-visualConfig.findIcon = function(link) {
-    const data = visualConfig.icons;
-    if (data) {
-        for (var i = 0; i < data.length; i++) {
-            if (data[i].url == link) {
-                return data[i].texture;
+    },
+
+    findIcon: function(link) {
+        const data = visualConfig.icons;
+        if (data) {
+            for (let i = 0; i < data.length; i++) {
+                if (data[i].url == link) {
+                    return data[i].texture;
+                }
             }
         }
+    },
+    
+    visualConfig: function(collId) {
+        const data = visualConfig.graphCollIcons;
+        if (data) {
+            return data[collId-1];
+        }
+    },
+    
+    getLockIcon: function() {
+        const data = visualConfig.lockIcon;
+        return data;
     }
-};
-
-visualConfig.findGraphCollIcon = function(collId) {
-    const data = visualConfig.graphCollIcons;
-    if (data) {
-        return data[collId-1];
-    }
-};
-
-visualConfig.getLockIcon = function() {
-    const data = visualConfig.lockIcon;
-    return data;
 };
