@@ -7,7 +7,7 @@ export default class FPSCounter {
     }
 
     nextFrame() {
-        var now = new Date();
+        let now = new Date();
 
         this.frameCount++;
 

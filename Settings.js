@@ -2,7 +2,7 @@ import Graph from "./Graph.js";
 import createForceLayout from 'ngraph.forcelayout';
 import { visualConfig } from "./visualConfig.js";
 
-class Settings {
+export default class Settings {
     constructor(divId, classId, timelineId, visConfig) {
         let divDoc = document.getElementById(divId);
         let canvasDoc = document.createElement("canvas");
@@ -76,4 +76,3 @@ class Settings {
     }
 
 }
-export default Settings;

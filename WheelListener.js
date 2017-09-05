@@ -1,7 +1,7 @@
 /**
 Begin addWheelListener
 **/
-var prefix = "", _addEventListener, onwheel, support, _removeEventListener;
+let prefix = "", _addEventListener, onwheel, support, _removeEventListener;
 
 // detect event model
 if (window.addEventListener) {
