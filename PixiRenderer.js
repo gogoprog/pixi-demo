@@ -1,13 +1,13 @@
 import createForceLayout from 'ngraph.forcelayout';
 import physicsSimulator from "ngraph.physics.simulator";
 import eventify from "ngraph.events";
-import moment from "moment";
-import vis from "vis";
 
 import CWLayout from './CWLayout.js';
 import LayeredLayout from './LayeredLayout';
 import CircleLayout from './CircleLayout';
 import RadiateLayout from './RadiateLayout';
+import TimelineLayout from './TimelineLayout';
+
 import Graph from "./Graph";
 import {SelectionManager} from "./SelectionManager";
 import {CircleBorderTexture} from "./CircleBorderSprite";
@@ -19,6 +19,7 @@ import "./pixiSpriteAugment";
 import SimpleNodeSprite from "./SimpleNodeSprite";
 import AnimationAgent from "./AnimationAgent";
 import FPSCounter from "./FPSCounter";
+import convertCanvasToImage from "./Utils";
 
 var PixiRenderer = function (settings) {
     "use strict";
@@ -27,10 +28,12 @@ var PixiRenderer = function (settings) {
 
     var graphType;
     var graphData;
+    //TODO: delete following properties
     var graphEntities = {};
     var graphLinks = {};
     var graphLinkTypes = {}; // TODO make a count of each type, instead of just flagging
     var graphEntityTypes = {};
+
     var graph = settings.graph;
     if (!graph) {
         graph = Graph();
@@ -59,7 +62,6 @@ var PixiRenderer = function (settings) {
     var disabledWheel = settings.disabledWheel; //disabled addWheelListener
     var viewWidth = settings.container.clientWidth,
         viewHeight = settings.container.clientHeight;
-    var timeline, timelineWindow, msPerPix, originSpotTime, timelineWidth; // the timeline object.
 
     var renderer = new PIXI.autoDetectRenderer(viewWidth, viewHeight, {
             view: settings.container,
@@ -158,7 +160,6 @@ var PixiRenderer = function (settings) {
 
     };
 
-
     stage.selectAllNodesInRegion = function (x1, y1, x2, y2, flag) {
         isDirty = true;
         var xl;
@@ -228,69 +229,14 @@ var PixiRenderer = function (settings) {
         stage.on('mousedown', stage.downListener);
     }
 
-    var alineTimeline = function (zoomFactor) {
-        if (zoomFactor) {
-            msPerPix /= (1 + zoomFactor);
-        }
-        if (this.isTimelineLayout) {
-            let leftSpan = this.contentRoot.position.x;
-            let leftTimeSpan = leftSpan * msPerPix;
-            var start = originSpotTime - leftTimeSpan;
-            var end = start + msPerPix * timelineWidth;
-            timeline.setWindow(
-                start,
-                end, {animation: false},
-            );
-        }
-        // console.log(stage.contentRoot.position);
-        let pRoot = stage.contentRoot.position;
-        // reposition the nodes;
-        if (pRoot.x > 160) {
-            _.each(nodeSprites, function (ns) {
-                ns.updateNodePosition({x: -40, y: ns.position.y});
-            });
-        } else {
-            let newX = 200 - pRoot.x / stage.contentRoot.scale.x;
-            _.each(nodeSprites, function (ns) {
-                ns.updateNodePosition({x: newX, y: ns.position.y})
-            });
-        }
-        stage.isDirty = true;
-    };
-    stage.contentRootMoved = _.throttle(alineTimeline.bind(stage), 25);
-    var zoomTimelineThrottled = _.throttle(function (config) {
-        timeline.setWindow(
-            config.start,
-            config.end,
-            config.option,
-        );
-        timeline.redraw();
-        // calculate the position of root layer and each lines;
-        let timelineStartMs = config.start,
-            timelineEndMs = config.end;
-        let interval = timelineEndMs - timelineStartMs;
-        msPerPix = Math.floor(interval / timelineWidth);
-        timelineWindow = timeline.getWindow();
-        let rootOriginTimeDiff = originSpotTime - timelineStartMs;
-        root.position.x = rootOriginTimeDiff * timelineWidth / interval;
-        positionLinksByTime(linkSprites, timelineStartMs);
-        let pRoot = stage.contentRoot.position;
-        if (pRoot.x > 160) {
-            _.each(nodeSprites, function (ns) {
-                ns.updateNodePosition({x: -40, y: ns.position.y});
-            });
-        } else {
-            let newX = 200 - pRoot.x / stage.contentRoot.scale.x;
-            _.each(nodeSprites, function (ns) {
-                ns.updateNodePosition({x: newX, y: ns.position.y})
-            });
-        }
-        stage.isDirty = true;
-    }, 200);
+    let timelineLayout = new TimelineLayout(nodeSprites, nodeContainer, linkSprites, lineGraphics, visualConfig, stage, layoutType, settings);
 
     // add animation
     let animationAgent = new AnimationAgent();
 
+    ///////////////////////////////////////////////////////////////////////////////
+    // Public API is begin
+    ///////////////////////////////////////////////////////////////////////////////
     var pixiGraphics = {
 
         /**
@@ -335,7 +281,7 @@ var PixiRenderer = function (settings) {
         addLayoutCycles: function (n) {
             isDirty = true;
             if (stage.isTimelineLayout) {
-                disableTimelineLayout();
+                timelineLayout.disableTimelineLayout();
             }
             layoutType = "Network";
             layoutIterations += n;
@@ -406,6 +352,7 @@ var PixiRenderer = function (settings) {
             // console.log(number + " nodes are hidden!!");
             return number;
         },
+
         /**
          * get the number of hidden lines
          */
@@ -459,9 +406,11 @@ var PixiRenderer = function (settings) {
 
             selectionChanged();
             hiddenStatusChanged();
-
         },
 
+        /**
+         * show all nodes and links
+         */
         showAll: function () {
             isDirty = true;
             _.each(nodeSprites, function (ns) {
@@ -472,6 +421,7 @@ var PixiRenderer = function (settings) {
             });
             hiddenStatusChanged();
         },
+
         /**
          * show nodes by ID
          */
@@ -569,17 +519,12 @@ var PixiRenderer = function (settings) {
                 root.interactive = false;
             }
         },
-
         toggleMode: function () {
             if (this.mode == 'panning') {
                 this.setMode('picking');
             } else {
                 this.setMode('panning');
             }
-        },
-
-        panningMode: function () {
-            this.setMode('panning');
         },
 
         /*
@@ -595,42 +540,53 @@ var PixiRenderer = function (settings) {
          * get selected Links,
          * links of nodeContainer are selected @SelectionManager.js
          **/
-
         getSelectedLinks: function () {
             // return _.values(nodeContainer.selectedLinks);
             return lineContainer.links;
         },
 
+        /**
+         * draw circle layout
+         */
         drawCircleLayout: function (disableAnimation) {
             isDirty = true;
             if (stage.isTimelineLayout) {
-                disableTimelineLayout();
+                timelineLayout.disableTimelineLayout();
             }
             layoutType = "Circular";
             layout = new CircleLayout(nodeSprites, nodeContainer, visualConfig);
             this.setNodesToFullScreen(disableAnimation);
         },
 
+        /**
+         * draw layered layout
+         */
         drawLayeredLayout: function (disableAnimation) {
             isDirty = true;
             layoutType = "Layered";
             layout = new LayeredLayout(nodeSprites, nodeContainer, visualConfig);
             if (stage.isTimelineLayout) {
-                disableTimelineLayout();
+                timelineLayout.disableTimelineLayout();
             }
             this.setNodesToFullScreen(disableAnimation);
         },
 
+        /**
+         * draw radiate layout
+         */
         drawRadiateLayout: function (disableAnimation) {
             isDirty = true;
             layoutType = "Radiate";
             layout = new RadiateLayout(nodeSprites, nodeContainer, visualConfig);
             if (stage.isTimelineLayout) {
-                disableTimelineLayout();
+                timelineLayout.disableTimelineLayout();
             }
             this.setNodesToFullScreen(disableAnimation);
         },
 
+        /**
+         * set actual size of layout
+         */
         setActualSize: function () {
             isDirty = true;
             nodeContainer.positionDirty = true;
@@ -1065,96 +1021,13 @@ var PixiRenderer = function (settings) {
             if (stage.isTimelineLayout) {
                 nodeContainer.positionDirty = true;
                 if (zoomingIn) {
-                    zoomTimeline(-0.1);
+                    timelineLayout.zoomTimeline(-0.1);
                 } else {
-                    zoomTimeline(0.1);
+                    timelineLayout.zoomTimeline(0.1);
                 }
             } else {
                 zoom(x, y, zoomingIn, root, visualConfig);
             }
-        },
-
-        drawTimelineLayout: function (leftSpacing) {
-            isDirty = true;
-            nodeContainer.positionDirty = true;
-            layoutType = "TimelineScale";
-            var timelineItems = [];
-            var now = moment().format('YYYY-MM-DDTHH:mm:ss');
-            _.each(linkSprites, function (l) {
-                if (!l.visible) {
-                    return;
-                }
-                timelineItems.push({
-                    id: l.data.id,
-                    content: l.data.label,
-                    start: l.data.datetime || now,
-                    // type: 'point'
-                });
-            });
-            if (!timeline) {
-                var container = document.getElementById(settings.timelineContainer);
-                if (!container) {
-                    throw "时间标尺容器未指定";
-                }
-                var items = new vis.DataSet(timelineItems);
-                var options = {
-                    height: "100px",
-                    locales: {
-                        "zh-cn": {
-                            current: 'current',
-                            time: 'time',
-                        },
-                    },
-                    stack: false,
-                    locale: 'zh-cn',
-                    zoomMin: 1000 * 60 * 15,
-                    moveable: false,
-                    zoomable: false,
-                    showCurrentTime: false,
-                    // throttleRedraw: 100
-                };
-                // Create a Timeline
-                timeline = new vis.Timeline(container, items, options);
-                timelineWindow = timeline.getWindow();
-                var interval = timelineWindow.end - timelineWindow.start;
-                timelineWidth = $("#" + settings.timelineContainer).width();
-                msPerPix = Math.floor(interval / timelineWidth);
-            }
-
-            root.scale.x = 1;
-            root.scale.y = 1;
-            root.position.x = 0;
-            root.position.y = 120; // 与时间标尺高度保持一致
-            root.scalable = false;
-            var posX = 50, // local position in root;
-                posY = 50; //starting point to layout nodes.
-            var iconSize = visualConfig.NODE_WIDTH,
-                marginY = 30;
-            _.each(nodeSprites, function (ns) {
-                ns.updateNodePosition({
-                    x: posX,
-                    y: posY,
-                });
-                ns.timelineMode = true;
-                // layout.setNodePosition(ns.id, posX, posY);
-                posY += (iconSize + marginY);
-            });
-            // var sortedLinkSprites = sortLinksByDateTime();
-            var timelineStartMs = timelineWindow.start.valueOf();
-            originSpotTime = timelineStartMs;
-            var minX = 10000;
-            positionLinksByTime(linkSprites, timelineStartMs);
-            var nodeX = -40;
-            _.each(nodeSprites, function (ns) {
-                ns.updateNodePosition({
-                    x: nodeX,
-                    y: ns.position.y,
-                });
-            });
-            // if nodeX is too much left, try to move it to center
-            stage.isTimelineLayout = true;
-            root.position.x = leftSpacing || visualConfig.timelineLayout['margin-left'] + 60;
-            stage.contentRootMoved();
         },
 
         destroy: function () {
@@ -1294,7 +1167,7 @@ var PixiRenderer = function (settings) {
             disableLayout = disableAnimation;
             if (layoutType == 'Network') {
                 if (stage.isTimelineLayout) {
-                    disableTimelineLayout();
+                    timelineLayout.disableTimelineLayout();
                 }
 
                 if (!dynamicLayout) {
@@ -1331,7 +1204,7 @@ var PixiRenderer = function (settings) {
             } else if (layoutType === 'Radiate') {
                 this.drawRadiateLayout(disableAnimation);
             } else if (layoutType === 'TimelineScale') {
-                this.drawTimelineLayout();
+                timelineLayout.drawTimelineLayout();
             } else {
                 return false;
             }
@@ -1522,122 +1395,11 @@ var PixiRenderer = function (settings) {
             }
         },
 
-        /**
-         * export the target object onto a canvas for saving as image.
-         * Copied from PIXI WebGLExtract.canvas method.
-         * #1 the origin WebGLExtract.canvas method allows us to export the whole pixi content as image instead of
-         * just the area displayed on canvas.
-         * #2 we have to copy and modify the below code to solve the transparent background issue. Our content
-         * root container is actually transparent.
-         * @param myRenderer
-         * @param target
-         */
-        canvas(myRenderer, target, originViewWidth, originViewHeight) {
-            const TEMP_RECT = new PIXI.Rectangle();
-            const BYTES_PER_PIXEL = 4;
-            let textureBuffer;
-            let resolution;
-            let frame;
-            let flipY = false;
-            let renderTexture;
-
-            if (target) {
-                if (target instanceof PIXI.RenderTexture) {
-                    renderTexture = target;
-                } else {
-                    renderTexture = myRenderer.generateTexture(target);
-                }
-            }
-
-            if (renderTexture) {
-                textureBuffer = renderTexture.baseTexture._glRenderTargets[myRenderer.CONTEXT_UID];
-                resolution = textureBuffer.resolution;
-                frame = renderTexture.frame;
-                flipY = false;
-            } else {
-                textureBuffer = myRenderer.rootRenderTarget;
-                resolution = textureBuffer.resolution;
-                flipY = true;
-
-                frame = TEMP_RECT;
-                frame.width = textureBuffer.size.width;
-                frame.height = textureBuffer.size.height;
-            }
-
-            let width = frame.width * resolution;
-            let height = frame.height * resolution;
-
-            if (width === 0 || height === 0) {
-                width = originViewWidth;
-                height = originViewHeight;
-            }
-
-            let canvasWidth = width;
-            let canvasHeight = height;
-
-            let diffWidth = 0;
-            let diffHeight = 0;
-            if (width < originViewWidth) {
-                diffWidth = originViewWidth - width;
-                width = originViewWidth;
-            }
-
-            if (height < originViewHeight) {
-                diffHeight = originViewHeight - height;
-                height = originViewHeight;
-            }
-
-            const canvasBuffer = new PIXI.CanvasRenderTarget(canvasWidth, canvasHeight);
-            // background is an additional canvas to server as background plate.
-            const background = new PIXI.CanvasRenderTarget(width, height);
-
-            if (textureBuffer) {
-                // bind the buffer
-                renderer.bindRenderTarget(textureBuffer);
-
-                // set up an array of pixels
-                const webglPixels = new Uint8Array(BYTES_PER_PIXEL * canvasWidth * canvasHeight);   //
-
-                // read pixels to the array
-                const gl = myRenderer.gl;
-                //
-                gl.readPixels(
-                    frame.x * resolution,
-                    frame.y * resolution,
-                    canvasWidth,
-                    canvasHeight,
-                    gl.RGBA,
-                    gl.UNSIGNED_BYTE,
-                    webglPixels,
-                );
-
-                // canvasBuffer.context.fillStyle = 'blue';
-                background.context.fillStyle = `#${visConfig.backgroundColor.toString(16)}`;
-                background.context.fillRect(0, 0, width, height);
-
-                // add the pixels to the canvas
-                const canvasData = canvasBuffer.context.getImageData(0, 0, canvasWidth, canvasHeight);  //
-
-                canvasData.data.set(webglPixels);
-                // canvasBuffer.context.drawImage(canvasData.data, 0, 0);
-                canvasBuffer.context.putImageData(canvasData, 0, 0);
-                background.context.drawImage(canvasBuffer.canvas, diffWidth / 2, diffHeight / 2, canvasWidth, canvasHeight);
-                // pulling pixels
-                if (flipY) {
-                    background.context.scale(1, -1);
-                    background.context.drawImage(background.canvas, 0, -height);
-                }
-            }
-
-            // send the canvas back..
-            return background.canvas;
-        },
-
         // convert the canvas drawing buffer into base64 encoded image url
         exportImage: function (blobDataReceiver) {
             if (layoutType === "Network") {
                 if (renderer.gl) {
-                    this.canvas(renderer, root, viewWidth, viewHeight).toBlob(blobDataReceiver, 'image/png');
+                    convertCanvasToImage(renderer, root, viewWidth, viewHeight, visConfig).toBlob(blobDataReceiver, 'image/png');
                 } else {
                     return canvas.toDataURL();
                 }
@@ -1733,10 +1495,10 @@ var PixiRenderer = function (settings) {
 
     eventify(pixiGraphics);
     return pixiGraphics;
-
     ///////////////////////////////////////////////////////////////////////////////
     // Public API is over
     ///////////////////////////////////////////////////////////////////////////////
+
     function zoomNodesById(nodeIDArray, zoomValue) {
         isDirty = true;
         _.each(nodeIDArray, function (nodeID) {
@@ -1814,20 +1576,6 @@ var PixiRenderer = function (settings) {
             }
         }
 
-
-        // if (dynamicLayout && layoutType === 'Network') {
-        //     layout.step();
-        //     updateNodeSpritesPosition();
-        // } else {
-        //     if (isDirty || nodeContainer.isDirty || stage.isDirty || lineContainer.isDirty
-        //         || nodeContainer.positionDirty || lineContainer.styleDirty || animationAgent.needRerender()) {
-        //         if ((!settings.analytic || layoutType !== 'Network') && layoutType !== 'TimelineScale') {
-        //             layout.step();
-        //             updateNodeSpritesPosition();
-        //         }
-        //     }
-        // }
-
         if (layoutPositionChanged || isDirty || nodeContainer.isDirty || stage.isDirty || lineContainer.isDirty
             || nodeContainer.positionDirty || lineContainer.styleDirty || animationAgent.needRerender()) {
             drawBorders();
@@ -1839,7 +1587,7 @@ var PixiRenderer = function (settings) {
             }
 
             if (stage.isTimelineLayout) {
-                drawNodeTimelines();
+                timelineLayout.drawNodeTimelines();
             }
 
             renderer.render(stage);
@@ -1928,36 +1676,6 @@ var PixiRenderer = function (settings) {
         });
     }
 
-    function drawNodeTimelines() {
-        var nodeTimelineStyle = visualConfig.ui.timeline;
-        let endX = (timelineWidth - root.position.x) / root.scale.x + 200;
-        lineGraphics.lineStyle(nodeTimelineStyle.width, nodeTimelineStyle.color, 1);
-        _.each(nodeSprites, function (ns) {
-            if (ns.visible) {
-                lineGraphics.beginFill(nodeTimelineStyle.color, 1);
-                lineGraphics.drawCircle(-100, ns.position.y, 5);
-                lineGraphics.endFill();
-                lineGraphics.moveTo(-100, ns.position.y);
-                lineGraphics.lineTo(endX, ns.position.y);
-                lineGraphics.beginFill(nodeTimelineStyle.color, 1);
-                lineGraphics.drawCircle(endX, ns.position.y, 5);
-                lineGraphics.endFill();
-            }
-        });
-    }
-
-    function disableTimelineLayout() {
-        timeline.destroy();
-        timeline = null;
-        stage.isTimelineLayout = false;
-        _.each(nodeSprites, function (ns) {
-            ns.timelineMode = false;
-        });
-        _.each(linkSprites, function (ls) {
-            ls.forceStraightLine = false;
-        });
-    }
-
     function initNode(p) {
         let semanticType = pixiGraphics.getEntitySemanticType(p.data.type);
         var texture = visualConfig.findIcon(semanticType);
@@ -1998,7 +1716,6 @@ var PixiRenderer = function (settings) {
             nodeSprite.setNodeIcon(collIdArr, nodeContainer);
         }
     }
-
 
     function adjustControlOffsets(linkSpriteArray, arrangeOnBothSides, avoidZero) {
         var linkCount = linkSpriteArray.length,
@@ -2118,7 +1835,6 @@ var PixiRenderer = function (settings) {
 
     function listenToGraphEvents() {
         graph.on('changed', onGraphChanged);
-
     }
 
     function removeNode(node) {
@@ -2243,7 +1959,6 @@ var PixiRenderer = function (settings) {
         }
     }
 
-
     function drawSelectionRegion() {
         if (stage.selectRegion) {
             var frameCfg = visualConfig.ui.frame;
@@ -2265,58 +1980,6 @@ var PixiRenderer = function (settings) {
             }
         }
     }
-
-
-    function moveTimeline(percentage) {
-        var range = timeline.getWindow();
-        var interval = range.end - range.start;
-
-        timeline.setWindow({
-            start: range.start.valueOf() - interval * percentage,
-            end: range.end.valueOf() - interval * percentage,
-        });
-    }
-
-    function positionLinksByTime(linkSprites, screenStartTime) {
-        _.each(linkSprites, function (ls) {
-            if (!ls.visible) {
-                return;
-            }
-            var linkDatetime = ls.data.datetime;
-            var ms = moment(linkDatetime).valueOf();
-            let viewX = Math.floor((ms - screenStartTime) / msPerPix);
-            let x = (viewX - root.position.x) / root.scale.x; // FIXME, assuming root is not scaled.
-            // console.log(linkDatetime + "@ " + x + "(" + viewX + ")");
-            var srcNodeSprite = nodeSprites[ls.data.sourceEntity];
-            var tgtNodeSprite = nodeSprites[ls.data.targetEntity];
-            var fromX = x,
-                fromY = srcNodeSprite.position.y;
-            var toX = x,
-                toY = tgtNodeSprite.position.y;
-            ls.forceStraightLine = true;
-            ls.setFrom({
-                x: fromX,
-                y: fromY,
-            });
-            ls.setTo({
-                x: toX,
-                y: toY,
-            });
-        });
-    }
-
-    function zoomTimeline(percentage) {
-        var range = timeline.getWindow();
-        var interval = range.end - range.start;
-        zoomTimelineThrottled({
-            start: range.start.valueOf() - interval * percentage,
-            end: range.end.valueOf() + interval * percentage,
-            option: {
-                animation: false,
-            },
-        })
-    }
-
 
 };
 
