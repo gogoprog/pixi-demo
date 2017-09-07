@@ -5,7 +5,7 @@
  **/
 // import { visualConfig } from "./visualConfig.js";
 
-var getGraphCoordinates = (function () {
+let getGraphCoordinates = (function () {
     var ctx = {
         global: {x: 0, y: 0} // store it inside closure to avoid GC pressure
     };
@@ -22,16 +22,16 @@ export const zoom = function (x, y, isZoomIn, contentRoot, visualConfig) {
     //     return;
     // }
     let direction = isZoomIn ? 1 : -1;
-    var factor = (1 + direction * 0.1);
+    let factor = (1 + direction * 0.1);
     contentRoot.scale.x *= factor;
     contentRoot.scale.y *= factor;
     // Technically code below is not required, but helps to zoom on mouse
     // cursor, instead center of graphGraphics coordinates
-    var beforeTransform = getGraphCoordinates(x, y, contentRoot);
+    let beforeTransform = getGraphCoordinates(x, y, contentRoot);
     // console.log('After zooming ' + (isZoomIn ? 'in' : 'out') +
     //  ' @ViewPort(' + vpX + ',' + vpY + ') and Graph: ' + JSON.stringify(beforeTransform));
     contentRoot.updateTransform();
-    var afterTransform = getGraphCoordinates(x, y, contentRoot);
+    let afterTransform = getGraphCoordinates(x, y, contentRoot);
     // console.log('After zooming ' + (isZoomIn ? 'in' : 'out') +
     //  ' @ViewPort(' + vpX + ',' + vpY + ') and Graph: ' + JSON.stringify(afterTransform));
 
@@ -43,7 +43,7 @@ export const zoom = function (x, y, isZoomIn, contentRoot, visualConfig) {
     }
 };
 
-var setupWheelListener = function (domElement, stage) {
+let setupWheelListener = function (domElement, stage) {
     addWheelListener(domElement, function (e) {
         zoom(e.offsetX, e.offsetY, e.deltaY < 0, stage);
     }, true);
@@ -82,7 +82,7 @@ export const rootCaptureHandler = function (e) {
     }
 };
 
-var rootReleaseHandler = function (e) {
+let rootReleaseHandler = function (e) {
     this.off('mousemove', this.moveListener);
     this.off('mouseup', this.upListener);
     this.data = null;
@@ -97,14 +97,14 @@ var rootReleaseHandler = function (e) {
     this.isDirty = true;
 };
 
-var rootMoveHandler = function (e) {
+let rootMoveHandler = function (e) {
     //throttle 限制回调函数被调用次数的方式
-    var oldPosition = this.mouseLocation;
-    var newPosition = e.data.global;
-    var dx = newPosition.x - oldPosition.x;
-    var dy = newPosition.y - oldPosition.y;
+    let oldPosition = this.mouseLocation;
+    let newPosition = e.data.global;
+    let dx = newPosition.x - oldPosition.x;
+    let dy = newPosition.y - oldPosition.y;
     if (this.dragging) {
-        var r = this.contentRoot.getBounds();
+        let r = this.contentRoot.getBounds();
         // console.log('Root move event (' + dx + ', ' + dy + ')@('+this.contentRoot.position.x+
         // ','+this.contentRoot.position.y+') of root rect:'+ "Rectange[" + r.x + "," + r.y + ";" + r.width + "," + r.height + "]");
         this.mouseLocation = {
@@ -131,8 +131,8 @@ var rootMoveHandler = function (e) {
                 // ix: oldPosition.x-this.contentRoot.position.x,
                 // iy: oldPosition.y-this.contentRoot.position.y
             };
-            var op = {};
-            var np = {};
+            let op = {};
+            let np = {};
             op.global = {};
             np.global = {};
 
@@ -141,23 +141,61 @@ var rootMoveHandler = function (e) {
             np.global.x = newPosition.x;
             np.global.y = newPosition.y;
 
-            var top = new PIXI.Point();
-            var tnp = new PIXI.Point();
+            let top = new PIXI.Point();
+            let tnp = new PIXI.Point();
             top = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(op, this.contentRoot);
             tnp = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(np, this.contentRoot);
             //console.log(top.x+" "+top.y+" "+tnp.x+" "+tnp.y);
-            var me = e.data.originalEvent;
+            let me = e.data.originalEvent;
             //console.log("e",e);
-            var flag = true;
+            let flag = true;
             if (me.ctrlKey || me.shiftKey) {
                 flag = false;
             }
-            this.selectAllNodesInRegion(top.x, top.y, tnp.x, tnp.y, flag);
+            selectAllNodesInRegion.call(this, top.x, top.y, tnp.x, tnp.y, flag);
         }
     }
 
 };
 
+let selectAllNodesInRegion = function (x1, y1, x2, y2, flag) {
+    console.log("selectAllNodesInRegion begin");
+    this.isDirty = true;
+    let xl;
+    let xr;
+    let yt;
+    let yb;
+    if (x1 > x2) {
+        xl = x2;
+        xr = x1;
+    } else {
+        xr = x2;
+        xl = x1;
+    }
+
+    if (y1 > y2) {
+        yt = y2;
+        yb = y1;
+    } else {
+        yt = y1;
+        yb = y2;
+    }
+    if (flag) {
+        this.contentRoot.deselectAll();
+    }
+    
+    const stage = this;
+    _.each(this.nodeSprites, function (n) {
+        //console.log(n.position.x+" "+n.position.y);
+        if (!n.visible) {
+            return;
+        }
+        if ((n.position.x <= xr) && (n.position.x >= xl) && (n.position.y >= yt) && (n.position.y <= yb)) {
+            //console.log("here i come!!");
+            stage.nodeContainer.selectNode(n);
+        }
+    });
+};
 
 export const nodeCaptureListener = function (e) {
     // console.log('Mouse down on node ' + JSON.stringify(this.position));
@@ -180,7 +218,7 @@ export const nodeCaptureListener = function (e) {
     }
 };
 
-var nodeReleaseListener = function (e) {
+let nodeReleaseListener = function (e) {
     this.off('mousemove', this.moveListener);
     this.alpha = 1;
     this.dragging = false;
@@ -195,14 +233,14 @@ var nodeReleaseListener = function (e) {
     this.releaseListener = null;
 };
 
-var newPosition = new PIXI.Point();
-var nodeMoveListener = function (e) {
+let newPosition = new PIXI.Point();
+let nodeMoveListener = function (e) {
     // console.log('node mouse move fired');
     this.parent.dragJustNow = false;
     this.parent.setPositionDirty(false);
     newPosition.copy(this.interactionData.getLocalPosition(this.parent));
     if (this.timelineMode) {
-        var dx = Math.abs(newPosition.x - this.position.x);
+        let dx = Math.abs(newPosition.x - this.position.x);
         newPosition.x = this.position.x; // disable movement in x;
         if (dx > (this.visualConfig.NODE_WIDTH / 2 + 5)) { // when mouse move horizontally two far away from node, just release it.
             // console.log("Dx " + dx);
@@ -212,11 +250,11 @@ var nodeMoveListener = function (e) {
     if (this.dragging && this.selected) {
         //newPosition=null;
         //this.updateNodePosition(newPosition);
-        var dx = newPosition.x - this.position.x;
-        var dy = newPosition.y - this.position.y;
+        let dx = newPosition.x - this.position.x;
+        let dy = newPosition.y - this.position.y;
         let container = this.parent;
         _.each(this.parent.nodes, function (n) {
-            var np = new PIXI.Point();
+            let np = new PIXI.Point();
             np.x = n.position.x + dx;
             np.y = n.position.y + dy;
             n.updateNodePosition(np);
@@ -226,7 +264,7 @@ var nodeMoveListener = function (e) {
         this.parent.dragJustNow = true;
         this.parent.setPositionDirty(true);
     } else if (!this.selected) {
-        var mouseEvent = e.data.originalEvent;
+        let mouseEvent = e.data.originalEvent;
         if (!mouseEvent.ctrlKey && !mouseEvent.shiftKey) {
             this.parent.parent.deselectAll();
         }
@@ -241,7 +279,7 @@ var nodeMoveListener = function (e) {
 export const linkCaptureListener = function (e) {
     this.interactionData = e.data;
     if (!this.selected) {
-        var mouseEvent = e.data.originalEvent;
+        let mouseEvent = e.data.originalEvent;
         if (!mouseEvent.ctrlKey && !mouseEvent.shiftKey) {
             this.parent.parent.deselectAll();
         }
@@ -253,18 +291,9 @@ export const linkCaptureListener = function (e) {
     }
 };
 
-var linkReleaseListener = function (e) {
+let linkReleaseListener = function (e) {
     this.interactionData = null;
     this.off('mouseup', this.releaseListener);
     this.releaseListener = null;
     this.parent.isDirty = true;
 };
-
-
-
-
-
-// export {
-//   zoom
-// //   rootCaptureHandler
-// }
