@@ -145,13 +145,19 @@ Layout.prototype.step = function () {
 };
 
 Layout.prototype.getNodePosition = function (nodeId) {
-    return this.currentPosition[nodeId];
+    let pos = this.currentPosition[nodeId];
+    if (!pos || Object.keys(pos).length == 0) {
+        return this.nodeSprites[nodeId];
+    } else {
+        return pos;
+    }
 };
 
 Layout.prototype.setNodePosition = function (id, x, y) {
     if (id !== "notInTreeNum") {
         this.nodeSprites[id].position.x = x;
         this.nodeSprites[id].position.y = y;
+        this.currentPosition[id]= this.nodeSprites[id].position;
     }
 };
 
