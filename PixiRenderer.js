@@ -219,6 +219,7 @@ var PixiRenderer = function (settings) {
     var layoutIterations = 0;
     var counter = new FPSCounter();
     var dynamicLayout = false;
+    var disableLayout = false;
 
     listenToGraphEvents();
     stage.interactive = true;
@@ -690,7 +691,7 @@ var PixiRenderer = function (settings) {
             let scaleX = targetRectWidth / rootWidth,
                 scaleY = targetRectHeight / rootHeight;
             // the actuall scale that should be applied to root so that it will fit into the target rectangle
-            let scale = Math.min(scaleX, scaleY, visualConfig.MAX_ADJUST);
+            let scale = Math.min(scaleX, scaleY, 1);
             let graphCenterInStage = {
                 //(graphRect.x1 + rootWidth / 2 ) 是contentRoot坐标系，转换到stage的坐标系时需要进行scale处理， 下同
                 x: (graphRect.x1 + rootWidth / 2) * scale + root.position.x,
@@ -1290,17 +1291,22 @@ var PixiRenderer = function (settings) {
         },
 
         performLayout: function (disableAnimation) {
+            disableLayout = disableAnimation;
             if (layoutType == 'Network') {
                 if (stage.isTimelineLayout) {
                     disableTimelineLayout();
                 }
 
                 if (!dynamicLayout) {
-                    layoutIterations = 1500;
-
-                    while (layoutIterations > 0) {
+                    if (disableAnimation) {
                         layout.step();
-                        layoutIterations -= 1;
+                        layoutIterations = 0;
+                    } else {
+                        layoutIterations = 1500;
+                        while (layoutIterations > 0) {
+                            layout.step();
+                            layoutIterations -= 1;
+                        }
                     }
 
                     if (layoutIterations == 0) {
@@ -1797,9 +1803,13 @@ var PixiRenderer = function (settings) {
             //
         } else {
             // Circular, Layered, Radiate
-            let layoutFreeze = layout.step();
-            layoutPositionChanged = !layoutFreeze;
-            if (layoutPositionChanged) {
+            if (!disableLayout) {
+                let layoutFreeze = layout.step();
+                layoutPositionChanged = !layoutFreeze;
+                if (layoutPositionChanged) {
+                    updateNodeSpritesPosition();
+                }
+            } else {
                 updateNodeSpritesPosition();
             }
         }
