@@ -35,10 +35,7 @@ export default class PixiRenderer {
         let graphLinkTypes = {}; // TODO make a count of each type, instead of just flagging
         let graphEntityTypes = {};
     
-        let graph = settings.graph;
-        if (!graph) {
-            graph = Graph();
-        }
+        let graph = Graph();
     
         let mode = settings.mode;
         // Where do we render our graph?
@@ -46,16 +43,13 @@ export default class PixiRenderer {
             settings.container = document.body;
         }
     
-        // If client does not need custom layout algorithm, let's create default one:
-        let layout = settings.layout;
-        let networkLayout = layout;
-        if (!layout) {
-            layout = createForceLayout(graph, physicsSimulator(settings.physics));
-            networkLayout = layout;
-        }
         let visualConfig = settings.visualConfig;
-    
+
+        // If client does not need custom layout algorithm, let's create default one:
+        let networkLayout = createForceLayout(graph, visualConfig.forceLayout);
+        let layout = networkLayout;
         let layoutType = "Network";
+
         let canvas = settings.container;
         let disabledWheel = settings.disabledWheel; //disabled addWheelListener
         let viewWidth = settings.container.clientWidth,

@@ -1,5 +1,3 @@
-import Graph from "./Graph.js";
-import createForceLayout from 'ngraph.forcelayout';
 import { visualConfig } from "./visualConfig.js";
 
 export default class Settings {
@@ -17,11 +15,8 @@ export default class Settings {
         canvasDoc.width = w;
         canvasDoc.height = h;
         this.container = canvasDoc;
-        let ngraph = Graph();
-        this.graph = ngraph;
 
         this.updateVisualConfig(visConfig);
-        this.layout = createForceLayout(ngraph, this.visualConfig.forceLayout);
 
         this.timelineContainer = timelineId;
         this.mode = "picking";

@@ -3,8 +3,6 @@ import { linkCaptureListener } from "./customizedEventHandling";
 export default class SimpleLineSprite {
     static textureCache = {};
 
-    //static get MAX_WIDTH() { return 100;}
-    //static get MAX_COLORS() { return 1000; }
     static get MULTI_OFFSET() { return 30; } //10 px between each line.
     static get ARROW_HEIGHT() { return 24; }
     static get ARROW_WIDTH() { return 16; }
@@ -80,13 +78,6 @@ export default class SimpleLineSprite {
         this._controlOffsetIndex = value;
         this.updatePosition();
     };
-
-    // initCanvas() {
-    //     SimpleLineSprite.canvas = document.createElement("canvas");
-    //     SimpleLineSprite.canvas.width = SimpleLineSprite.MAX_WIDTH;
-    //     SimpleLineSprite.canvas.height = SimpleLineSprite.MAX_COLORS;
-    //     SimpleLineSprite.baseTexture = new PIXI.BaseTexture(SimpleLineSprite.canvas);
-    // };
 
     /**
      * set the attribute of the line (color, width, alpha)
