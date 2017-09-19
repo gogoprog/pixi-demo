@@ -22,15 +22,15 @@ import eventify from 'ngraph.events';
 function indexOfElementInArray(element, array) {
     if (!array) return -1;
 
-    if (array.indexOf) {
-        return array.indexOf(element);
-    }
+    // if (array.indexOf) {
+    //     return array.indexOf(element);
+    // }
 
     var len = array.length,
         i;
 
     for (i = 0; i < len; i += 1) {
-        if (array[i] === element) {
+        if (array[i].id === element.id) {
             return i;
         }
     }
@@ -549,8 +549,17 @@ export default function Graph(source, options) {
 
         links.splice(idx, 1);
 
-        var fromNode = getNode(link.fromId);
-        var toNode = getNode(link.toId);
+        let fromId = link.fromId;
+        let toId = link.toId;
+        if (!fromId) {
+            fromId = link.sourceEntity;
+        }
+        if (!toId) {
+            toId = link.targetEntity;
+        }
+
+        var fromNode = getNode(fromId);
+        var toNode = getNode(toId);
 
         if (fromNode) {
             idx = indexOfElementInArray(link, fromNode.links);

@@ -2174,7 +2174,7 @@ var PixiRenderer = function (settings) {
 
     function removeLink(link) {
         isDirty = true;
-        var l = linkSprites[link.data.id];
+        var l = linkSprites[link.id];
         if (l) {
             if (l.selected) {
                 lineContainer.deselectLink(l);
