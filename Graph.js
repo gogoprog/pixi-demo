@@ -22,15 +22,15 @@ import eventify from 'ngraph.events';
 function indexOfElementInArray(element, array) {
     if (!array) return -1;
 
-    if (array.indexOf) {
-        return array.indexOf(element);
-    }
+    // if (array.indexOf) {
+    //     return array.indexOf(element);
+    // }
 
     var len = array.length,
         i;
 
     for (i = 0; i < len; i += 1) {
-        if (array[i] === element) {
+        if (array[i].id === element.id) {
             return i;
         }
     }
@@ -277,6 +277,23 @@ export default function Graph(source, options) {
          */
         getLink: getLink,
 
+        getLinkById: (srcNodeId, tgtNodeId, linkId) => {
+            var node = getNode(srcNodeId),
+                i;
+            if (!node || !node.links) {
+                return null;
+            }
+
+            for (i = 0; i < node.links.length; ++i) {
+                var link = node.links[i];
+                if (link.fromId === srcNodeId && link.toId === tgtNodeId && link.id === linkId) {
+                    return link;
+                }
+            }
+
+            return null;
+        },
+
         setEntityGraphSource(entityGraphSource){
             let self = this;
             self.source = entityGraphSource;
@@ -285,7 +302,7 @@ export default function Graph(source, options) {
                 for (let i = 0; i < changeList.length; ++i) {
                     const change = changeList[i];
                     console.log('Renderer graph received change event', change);
-                    if (change.changeType === 'add' || change.changeType === 'update') {
+                    if (change.changeType === 'add') {
                         if (change.entity) {
                             self.addNode(change.entity.id, change.entity);
                         }
@@ -299,17 +316,63 @@ export default function Graph(source, options) {
                         if (change.link) {
                             self.removeLink(change.link);
                         }
+                    } else if (change.changeType === 'update') {
+                        if (change.entity) {
+                            let node = self.getNode(change.entity.id);
+                            if (node) {
+                                node.data = change.entity;
+                                recordNodeChange(node, 'update');
+                            } else {
+                                console.warn('Node added through update event, ', change);
+                                self.addNode(change.entity.id, change.entity);
+                            }
+                        }
+                        if (change.link) {
+                            let l = change.link;
+                            let link = self.getLinkById(l.sourceEntity, l.targetEntity, l.id);
+                            if (link) {
+                                link.data = l;
+                                recordLinkChange(link, 'update');
+                            } else {
+                                self.addLink(l.sourceEntity, l.targetEntity, l);
+                            }
+                        }
+                    } else if (change.changeType === 'hide') {
+                        if (change.entity) {
+                            self.removeNode(change.entity.id);
+                        }
+                        if (change.link) {
+                            self.removeLink(change.link);
+                        }
+                    } else if (change.changeType === 'show') {
+                        if (change.entity) {
+                            self.addNode(change.entity.id, change.entity);
+                        }
+                        if (change.link) {
+                            self.addLink(change.link.sourceEntity, change.link.targetEntity, change.link);
+                        }
                     }
                 }
                 self.endUpdate();
             });
-            entityGraphSource.on('init', function () {
-                entityGraphSource.forEachEntity(function (entity) {
-                    self.addNode(entity.id, entity);
+
+            entityGraphSource.on('init', () => {
+                console.log('Renderer graph received source init event');
+                self.beginUpdate();
+
+                self.source.forEachEntity((e) => {
+                    self.addNode(e.id, e);
                 });
-                entityGraphSource.forEachLink(function (link) {
-                    self.addLink(link.sourceEntity, link.targetEntity, link);
+                self.source.forEachLink((l) => {
+                    self.addLink(l.sourceEntity, l.targetEntity, l);
                 });
+                self.endUpdate();
+                console.log('Renderer graph finished handling source init event');
+            });
+
+            entityGraphSource.on('elp-changed', (elpData) => {
+                console.log('Base graph ELP model changed, ', elpData);
+                graphPart.fire('elp-changed', elpData);
             });
         },
     };
@@ -486,8 +549,17 @@ export default function Graph(source, options) {
 
         links.splice(idx, 1);
 
-        var fromNode = getNode(link.fromId);
-        var toNode = getNode(link.toId);
+        let fromId = link.fromId;
+        let toId = link.toId;
+        if (!fromId) {
+            fromId = link.sourceEntity;
+        }
+        if (!toId) {
+            toId = link.targetEntity;
+        }
+
+        var fromNode = getNode(fromId);
+        var toNode = getNode(toId);
 
         if (fromNode) {
             idx = indexOfElementInArray(link, fromNode.links);

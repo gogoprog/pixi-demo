@@ -107,6 +107,10 @@ export default class SimpleLineSprite {
         return lineAttr;
     };
 
+    updateLabel(str) {
+        this.label.text = str;
+    }
+
     selectionChanged(selected) {
         this.selected = selected;
         if (selected) {

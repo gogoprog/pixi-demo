@@ -9,11 +9,11 @@ import RadiateLayout from './RadiateLayout';
 import TimelineLayout from './TimelineLayout';
 
 import Graph from "./Graph";
-import {SelectionManager} from "./SelectionManager";
-import {CircleBorderTexture} from "./CircleBorderSprite";
+import { SelectionManager } from "./SelectionManager";
+import { CircleBorderTexture } from "./CircleBorderSprite";
 import "pixi.js";
-import {addWheelListener, removeWheelListener} from "./WheelListener";
-import {zoom, rootCaptureHandler, nodeCaptureListener} from "./customizedEventHandling";
+import { addWheelListener, removeWheelListener } from "./WheelListener";
+import { zoom, rootCaptureHandler, nodeCaptureListener } from "./customizedEventHandling";
 import SimpleLineSprite from "./SimpleLineSprite";
 import "./pixiSpriteAugment";
 import SimpleNodeSprite from "./SimpleNodeSprite";
@@ -24,25 +24,25 @@ import convertCanvasToImage from "./Utils";
 export default class PixiRenderer {
     constructor(settings) {
         "use strict";
-    
+
         let isDirty = true;
-    
-        let graphType;
+
+        let graphType = { entityTypes: [], linkTypes: [] };
         let graphData;
-    
+
         let graphEntities = {};
         let graphLinks = {};
         let graphLinkTypes = {}; // TODO make a count of each type, instead of just flagging
         let graphEntityTypes = {};
-    
+
         let graph = Graph();
-    
+
         let mode = settings.mode;
         // Where do we render our graph?
         if (typeof settings.container === 'undefined') {
             settings.container = document.body;
         }
-    
+
         let visualConfig = settings.visualConfig;
 
         // If client does not need custom layout algorithm, let's create default one:
@@ -54,19 +54,19 @@ export default class PixiRenderer {
         let disabledWheel = settings.disabledWheel; //disabled addWheelListener
         let viewWidth = settings.container.clientWidth,
             viewHeight = settings.container.clientHeight;
-    
+
         let renderer = new PIXI.autoDetectRenderer(viewWidth, viewHeight, {
-                view: settings.container,
-                transparent: false,
-                autoResize: true,
-                antialias: true,
-                forceFXAA: false,
-                preserveDrawingBuffer: true,
-            }),
+            view: settings.container,
+            transparent: false,
+            autoResize: true,
+            antialias: true,
+            forceFXAA: false,
+            preserveDrawingBuffer: true,
+        }),
             stage = new PIXI.Container(),   // the view port, same size as canvas, used to capture mouse action
             root = new PIXI.Container(),    // the content root
             nodeContainer = new PIXI.Container();
-    
+
         // let lineContainer = new PIXI.ParticleContainer(5000, { scale: true, position: true, rotation: true, uvs: false, alpha: true });
         let lineContainer = new PIXI.Container();
         let textContainer = new PIXI.Container();
@@ -74,50 +74,50 @@ export default class PixiRenderer {
         let selectRegionGraphics = new PIXI.Graphics();
         let lineGraphics = new PIXI.Graphics();
         let destroyed = false;
-    
+
         //set the subTreeCenter
         let subTree = {};
-    
+
         root.width = viewWidth;
         root.height = viewHeight;
         root.parent = stage;
         stage.addChild(root);
-    
+
         lineGraphics.zIndex = 6;
         boarderGraphics.zIndex = 10;
         selectRegionGraphics.zIndex = 11;
         textContainer.zIndex = 15;
         lineContainer.zIndex = 18;
         nodeContainer.zIndex = 20;
-    
+
         root.addChild(lineGraphics);
         root.addChild(boarderGraphics);
         stage.addChild(selectRegionGraphics);
         root.addChild(textContainer);
         root.addChild(lineContainer);
         root.addChild(nodeContainer);
-    
+
         stage.contentRoot = root;
-    
+
         stage.hitArea = new PIXI.Rectangle(0, 0, viewWidth, viewHeight);
         stage.width = viewWidth;
         stage.height = viewHeight;
-    
+
         //TODO here set the canvas as 20000*20000
         root.hitArea = new PIXI.Rectangle(-10000, -10000, 20000, 20000);
         root.interactive = true;
-    
+
         // renderer.backgroundColor = 0xFFFFFF;
         renderer.backgroundColor = visualConfig.backgroundColor;
-    
+
         SelectionManager.call(root, nodeContainer, lineContainer);
-    
+
         root.on('mouseup', function (e) {
             isDirty = true;
             root.handleMouseUp(e);
             selectionChanged();
         });
-    
+
         nodeContainer.nodeCaptured = function (node) {
             stage.hasNodeCaptured = true;
             if (layoutType == "Network" && dynamicLayout) {
@@ -126,11 +126,11 @@ export default class PixiRenderer {
                 }
             }
         };
-    
+
         nodeContainer.nodeMoved = function (node) {
             layout.setNodePosition(node.id, node.position.x, node.position.y);
         };
-    
+
         nodeContainer.nodeReleased = function (node) {
             stage.hasNodeCaptured = false;
             if (layoutType == "Network" && dynamicLayout) {
@@ -142,16 +142,16 @@ export default class PixiRenderer {
                 }
             }
         };
-    
+
         //layout 相关,把移动位置同步到layout内部
         nodeContainer.selectedNodesPosChanged = function () {
             isDirty = true;
             _.each(nodeContainer.nodes, function (node) {
                 let pos = layout.setNodePosition(node.id, node.position.x, node.position.y);
             });
-    
+
         };
-    
+
         /**
          * Very Very Important Variables
          * nodeSprites is for all of the nodes, their attribute can be found in initNode;
@@ -159,10 +159,10 @@ export default class PixiRenderer {
          */
         let nodeSprites = {};
         let linkSprites = {};
-    
+
         //let bfsQueue = [];
-    
-    
+
+
         /**
          * now we vindicate a map for nodes to draw boundary.
          * this map has two part:
@@ -170,7 +170,7 @@ export default class PixiRenderer {
          *  the other is for the nodes that given by IDArray.
          */
         let nodeNeedBoundary = {};
-    
+
         graph.forEachNode(initNode);
         graph.forEachLink(initLink);
         // setupWheelListener(canvas, root); // wheel listener 现在在外部模板内设置，通过zoom接口来调用renderer的缩放方法。
@@ -178,29 +178,29 @@ export default class PixiRenderer {
         let counter = new FPSCounter();
         let dynamicLayout = false;
         let disableLayout = false;
-    
+
         listenToGraphEvents();
         stage.interactive = true;
         if (!stage.downListener) {
             stage.downListener = rootCaptureHandler.bind(stage);
             stage.on('mousedown', stage.downListener);
         }
-    
+
         let timelineLayout = new TimelineLayout(nodeSprites, nodeContainer, linkSprites, lineGraphics, visualConfig, stage, layoutType, settings);
-    
+
         // add animation
         let animationAgent = new AnimationAgent();
-    
+
         ///////////////////////////////////////////////////////////////////////////////
         // Public API is begin
         ///////////////////////////////////////////////////////////////////////////////
         let pixiGraphics = {
-    
+
             /**
              * Allows client to start animation loop, without worrying about RAF stuff.
              */
             run: animationLoop,
-    
+
             /**
              * Cancel global Interactive
              */
@@ -209,7 +209,7 @@ export default class PixiRenderer {
                 root.interactive = false;
                 root.interactiveChildren = false;
             },
-    
+
             /**
              * recover global Interactive
              */
@@ -223,14 +223,14 @@ export default class PixiRenderer {
                     root.interactiveChildren = false;
                 }
             },
-    
+
             /**
              * adjust the initial display location to center of the scene
              */
             adjustInitialDisplayLocation: function () {
                 this.performLayout(true);
             },
-    
+
             /*
              * For the forcelayout Algorithm do not have the fixed cycles.
              * To arrange the nodes quickly, we need add the cycles manually.
@@ -243,12 +243,12 @@ export default class PixiRenderer {
                 layoutType = "Network";
                 layoutIterations += n;
             },
-    
+
             /**
              * zoom in and zoom out for the node
              */
             nodeZoomByID: zoomNodesById,
-    
+
             /**
              * change the boundary style of the nodes by ID
              **/
@@ -258,7 +258,7 @@ export default class PixiRenderer {
                     nodeSprites[nodeID].boundaryAttr = boundAttr;
                 });
             },
-    
+
             /**
              * change the style of the link by ID
              */
@@ -280,7 +280,7 @@ export default class PixiRenderer {
                     linkSprites[linkID].setLineAttr(linkAttr);
                 });
             },
-    
+
             /**
              * reset the style of the link by ID
              */
@@ -295,7 +295,7 @@ export default class PixiRenderer {
                     styleResetLink.setLineAttr(linkAttr);
                 });
             },
-    
+
             /**
              * get the number of hidden nodes
              */
@@ -309,7 +309,7 @@ export default class PixiRenderer {
                 // console.log(number + " nodes are hidden!!");
                 return number;
             },
-    
+
             /**
              * get the number of hidden lines
              */
@@ -323,7 +323,7 @@ export default class PixiRenderer {
                 // console.log(number + " lines are hidden!!");
                 return number;
             },
-    
+
             /**
              * hide nodes by ID
              */
@@ -334,16 +334,16 @@ export default class PixiRenderer {
                     if (hiddenNode.selected) {
                         nodeContainer.deselectNode(hiddenNode);
                     }
-    
+
                     hiddenNode.hide();
-    
+
                     //when we hide the nodes we should also hide the texture, arrow and the link.
                     _.each(hiddenNode.outgoing, function (olink) {
                         if (olink.selected) {
                             lineContainer.deselectLink(olink);
                         }
                         olink.hide();
-    
+
                     });
                     _.each(hiddenNode.incoming, function (ilink) {
                         if (ilink.selected) {
@@ -352,7 +352,7 @@ export default class PixiRenderer {
                         ilink.hide();
                     });
                 });
-    
+
                 _.each(linkIdArray, function (linkId) {
                     let linkToHide = linkSprites[linkId];
                     if (linkToHide.selected) {
@@ -360,11 +360,11 @@ export default class PixiRenderer {
                     }
                     linkToHide.hide();
                 });
-    
+
                 selectionChanged();
                 hiddenStatusChanged();
             },
-    
+
             /**
              * show all nodes and links
              */
@@ -378,7 +378,7 @@ export default class PixiRenderer {
                 });
                 hiddenStatusChanged();
             },
-    
+
             /**
              * show nodes by ID
              */
@@ -387,18 +387,18 @@ export default class PixiRenderer {
                 _.each(idArray, function (node) {
                     let showNode = nodeSprites[node];
                     showNode.show();
-    
+
                     /**when we hide the nodes, we also hide the texture, arrow and the link.
                      * Now we should set them visible
                      */
                     //console.log(showNode.outgoing.targetEntity);
-    
+
                     _.each(showNode.outgoing, function (link) {
                         if (!link.visible && nodeSprites[link.data.targetEntity].visible) {
                             link.show();
                         }
                     });
-    
+
                     _.each(showNode.incoming, function (link) {
                         if (!link.visible && nodeSprites[link.data.sourceEntity].visible) {
                             link.show();
@@ -406,7 +406,7 @@ export default class PixiRenderer {
                     });
                 });
             },
-    
+
             /**
              * set which node need boundary.
              * when call this function, you should give me a group of ID and the attribute for this group
@@ -434,7 +434,7 @@ export default class PixiRenderer {
                     }
                 });
             },
-    
+
             /**
              * delete the nodes don't need boundary.
              * when call this function, you should give me a group of ID
@@ -452,7 +452,7 @@ export default class PixiRenderer {
                     }
                 });
             },
-    
+
             /**
              * Allow switching between picking and panning modes;
              */
@@ -483,7 +483,7 @@ export default class PixiRenderer {
                     this.setMode('panning');
                 }
             },
-    
+
             /*
              * get selected nodes,
              * nodes of nodeContainer are selected @SelectionManager.js
@@ -492,7 +492,7 @@ export default class PixiRenderer {
                 // return _.values(nodeContainer.selectedNodes);
                 return nodeContainer.nodes;
             },
-    
+
             /*
              * get selected Links,
              * links of nodeContainer are selected @SelectionManager.js
@@ -501,7 +501,7 @@ export default class PixiRenderer {
                 // return _.values(nodeContainer.selectedLinks);
                 return lineContainer.links;
             },
-    
+
             /**
              * draw circle layout
              */
@@ -514,7 +514,7 @@ export default class PixiRenderer {
                 layout = new CircleLayout(nodeSprites, nodeContainer, visualConfig);
                 this.setNodesToFullScreen(disableAnimation);
             },
-    
+
             /**
              * draw layered layout
              */
@@ -527,7 +527,7 @@ export default class PixiRenderer {
                 }
                 this.setNodesToFullScreen(disableAnimation);
             },
-    
+
             /**
              * draw radiate layout
              */
@@ -540,7 +540,7 @@ export default class PixiRenderer {
                 }
                 this.setNodesToFullScreen(disableAnimation);
             },
-    
+
             /**
              * set actual size of layout
              */
@@ -579,9 +579,9 @@ export default class PixiRenderer {
                         console.error("Center graph action not supported in current layout.");
                     }
                 }
-    
+
             },
-    
+
             calculateRootPositionToCenterGraphLayout: function () {
                 isDirty = true;
                 let root = this.root;
@@ -635,7 +635,7 @@ export default class PixiRenderer {
                     },
                 }
             },
-    
+
             calculateRootPositionToCenterForActualSize: function () {
                 isDirty = true;
                 let root = this.root;
@@ -657,7 +657,7 @@ export default class PixiRenderer {
                     x: (graphRect.x1 + rootWidth / 2) * 1 + root.position.x,
                     y: (graphRect.y1 + rootHeight / 2) * 1 + root.position.y,
                 };
-    
+
                 let rootPositionTransform = {
                     x: viewWidth / 2 - graphCenterInStage.x,
                     y: viewHeight / 2 - graphCenterInStage.y,
@@ -675,7 +675,7 @@ export default class PixiRenderer {
                     },
                 }
             },
-    
+
             setNodesToFullScreen: function (disableAnimation) {
                 let rootPlacement = this.calculateRootPositionToCenterGraphLayout();
                 if (rootPlacement) {
@@ -711,7 +711,7 @@ export default class PixiRenderer {
                     console.error("Center graph action not supported in current layout.");
                 }
             },
-    
+
             setSelectedNodesToFullScreen: function () {
                 isDirty = true;
                 nodeContainer.positionDirty = true;
@@ -745,7 +745,7 @@ export default class PixiRenderer {
                         }
                     }
                 });
-    
+
                 if (count != 0) {
                     sumx = sumx / count;
                     sumy = sumy / count;
@@ -760,7 +760,7 @@ export default class PixiRenderer {
                 xScale = visualConfig.MAX_ADJUST;
                 yScale = visualConfig.MAX_ADJUST;
                 if (rootHeight != 0) {
-    
+
                     let border;
                     if (viewHeight / rootHeight > 10) {
                         border = 500;
@@ -778,7 +778,7 @@ export default class PixiRenderer {
                     }
                     xScale = (viewWidth - border0) / rootWidth;
                 }
-    
+
                 if (xScale > yScale && yScale < visualConfig.MAX_ADJUST) {
                     root.scale.x = yScale * 0.8;
                     root.scale.y = yScale * 0.8;
@@ -788,12 +788,12 @@ export default class PixiRenderer {
                 } else {
                     root.scale.x = visualConfig.MAX_ADJUST * 0.8;
                     root.scale.y = visualConfig.MAX_ADJUST * 0.8;
-    
+
                 }
-    
+
                 root.position.x = viewWidth / 2;
                 root.position.y = viewHeight / 2;
-    
+
                 _.each(nodeSprites, function (n) {
                     n.position.x = n.position.x - sumx;
                     n.position.y = n.position.y - sumy;
@@ -801,7 +801,7 @@ export default class PixiRenderer {
                     layout.setNodePosition(n.id, n.position.x, n.position.y);
                 });
             },
-    
+
             /**
              * [Read only] Current layout algorithm. If you want to pass custom layout
              * algorithm, do it via `settings` argument of ngraph.pixi.
@@ -814,7 +814,7 @@ export default class PixiRenderer {
             stage: stage,
             mode: mode,
             counter: counter,
-    
+
             unSelectSubGraph: function (nodeIdArray, linkIdArray) {
                 isDirty = true;
                 if (nodeIdArray) {
@@ -834,7 +834,7 @@ export default class PixiRenderer {
                     });
                 }
             },
-    
+
             selectSubGraph: function (nodeIdArray, linkIdArray) {
                 isDirty = true;
                 if (nodeIdArray) {
@@ -858,12 +858,12 @@ export default class PixiRenderer {
                 });
                 selectionChanged();
             },
-    
+
             clearSelection: function () {
                 root.deselectAll();
                 selectionChanged();
             },
-    
+
             selectLinks: function (linkIdArray) {
                 isDirty = true;
                 // _.each(linkSprites, function(linkSprite,lid){
@@ -873,7 +873,7 @@ export default class PixiRenderer {
                 //     }
                 // });
             },
-    
+
             selectLinksFromNodes: function (startingNodes, direction, alsoSelectNodes) {
                 isDirty = true;
                 _.each(startingNodes, function (n) {
@@ -900,7 +900,7 @@ export default class PixiRenderer {
                 });
                 selectionChanged();
             },
-    
+
             selectNodesOfLinks: function (selectedLinks) {
                 isDirty = true;
                 _.each(selectedLinks, function (l) {
@@ -916,7 +916,7 @@ export default class PixiRenderer {
                 });
                 selectionChanged();
             },
-    
+
             selectAll: function () {
                 isDirty = true;
                 _.each(linkSprites, function (l) {
@@ -931,7 +931,7 @@ export default class PixiRenderer {
                 });
                 selectionChanged();
             },
-    
+
             selectReverseSelection: function () {
                 isDirty = true;
                 _.each(linkSprites, function (l) {
@@ -940,7 +940,7 @@ export default class PixiRenderer {
                     } else {
                         lineContainer.selectLink(l);
                     }
-    
+
                 });
                 _.each(nodeSprites, function (n) {
                     if (n.selected || n.visible == false) {
@@ -951,28 +951,28 @@ export default class PixiRenderer {
                 });
                 selectionChanged();
             },
-    
+
             hideSelectedLinks: function () {
                 isDirty = true;
                 _.each(lineContainer.links, function (link) {
                     link.hide();
                 });
             },
-    
+
             zoomIn: function () {
                 isDirty = true;
                 let x = viewWidth / 2;
                 let y = viewHeight / 2;
                 zoom(x, y, true, root, visualConfig);
             },
-    
+
             zoomOut: function () {
                 isDirty = true;
                 let x = viewWidth / 2;
                 let y = viewHeight / 2;
                 zoom(x, y, false, root, visualConfig);
             },
-    
+
             zoom: function (x, y, zoomingIn) {
                 isDirty = true;
                 if (stage.isTimelineLayout) {
@@ -986,7 +986,7 @@ export default class PixiRenderer {
                     zoom(x, y, zoomingIn, root, visualConfig);
                 }
             },
-    
+
             destroy: function () {
                 destroyed = true;
                 isDirty = false;
@@ -1013,7 +1013,7 @@ export default class PixiRenderer {
                 graphLinkTypes = null;
                 graphEntities = null;
                 graphLinks = null;
-    
+
                 boarderGraphics.destroy(false);
                 selectRegionGraphics.destroy(false);
                 lineGraphics.destroy(false);
@@ -1024,7 +1024,7 @@ export default class PixiRenderer {
                 stage.destroy(false);   // false to not let pixi containers destroy sprites.
                 renderer.destroy(true); // true for removing the underlying view(canvas)
             },
-    
+
             removeAllLinks: function () {
                 isDirty = true;
                 _.each(nodeSprites, function (n) {
@@ -1044,7 +1044,7 @@ export default class PixiRenderer {
                     delete linkSprites[l.id];
                 });
             },
-    
+
             resetStyle: function (entities, links) {
                 isDirty = true;
                 if (!entities && !links) {
@@ -1062,7 +1062,7 @@ export default class PixiRenderer {
                         }
                     }
                 });
-    
+
                 _.each(links, function (link) {
                     let linkSprite = linkSprites[link] || linkSprites[link.id];
                     if (linkSprite) {
@@ -1070,14 +1070,14 @@ export default class PixiRenderer {
                         linkSprite.color = visualConfig.ui.line.color;
                     }
                 });
-    
+
                 pixiGraphics.updateLineContainerStyleDirty();
             },
-    
+
             setLayoutType: function (layoutTypeStr) {
                 console.info('Setting layout type to ', layoutTypeStr);
                 layoutType = layoutTypeStr || 'Network';
-    
+
                 if (layoutType !== 'Network'
                     && layoutType !== 'Circular'
                     && layoutType !== 'Layered'
@@ -1099,9 +1099,9 @@ export default class PixiRenderer {
                         }
                     });
                 }
-    
+
             },
-    
+
             setTwoNodeLayoutInXDireaction: function (nodeIDArray) {
                 if (nodeSprites.length === 0) {
                     return;
@@ -1115,18 +1115,18 @@ export default class PixiRenderer {
                     currentX += nodeMarginX;
                 });
             },
-    
+
             updateDynamicLayout: function (dynamic) {
                 dynamicLayout = dynamic;
             },
-    
+
             performLayout: function (disableAnimation) {
                 disableLayout = disableAnimation;
                 if (layoutType == 'Network') {
                     if (stage.isTimelineLayout) {
                         timelineLayout.disableTimelineLayout();
                     }
-    
+
                     if (!dynamicLayout) {
                         if (disableAnimation) {
                             layout.step();
@@ -1143,16 +1143,16 @@ export default class PixiRenderer {
                             _.each(nodeSprites, function (nodeSprite, nodeId) { //大开销计算
                                 nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
                             });
-    
+
                             drawBorders();
                             drawLines();
-    
+
                             renderer.render(stage);
                             counter.nextFrame();
                         }
-    
+
                     }
-    
+
                     this.setNodesToFullScreen(disableAnimation);
                 } else if (layoutType === 'Circular') {
                     this.drawCircleLayout(disableAnimation);
@@ -1165,14 +1165,14 @@ export default class PixiRenderer {
                 } else {
                     return false;
                 }
-    
+
                 isDirty = true;
             },
-    
+
             getGraph: function () {
                 return graph;
             },
-    
+
             getLayout: function () {
                 return layout;
             },
@@ -1217,11 +1217,11 @@ export default class PixiRenderer {
                 graph.clear();
                 graph.endUpdate();
             },
-    
+
             disposeLayout: function () {
                 layout.dispose();
             },
-    
+
             setNodePosition: function (nodeId, x, y, z) {
                 layout.setNodePosition(nodeId, x, y, z);
             },
@@ -1235,7 +1235,7 @@ export default class PixiRenderer {
                 return graphType;
             },
             setGraphData: function (gData) {
-                // graph.setEntityGraphSource(gData);
+                graph.setEntityGraphSource(gData);
                 graphData = gData;
             },
             getGraphData: function () {
@@ -1259,14 +1259,14 @@ export default class PixiRenderer {
             getGraphEntityTypes: function () {
                 return graphEntityTypes;
             },
-    
+
             fillGraphData: function (gData) {
                 if (!graphType) {
                     console.log("please call setGraphType");
                 }
-    
+
                 graph.beginUpdate();
-    
+
                 _.each(gData.entities, function (p) {
                     if (!_.has(graphEntities, p.id)) {
                         graph.addNode(p.id, p);
@@ -1281,10 +1281,10 @@ export default class PixiRenderer {
                         graphLinkTypes[f.type] = 1;
                     }
                 });
-    
+
                 graph.endUpdate();
             },
-    
+
             getEntitySemanticType: function (nodeUuid) {
                 let type;
                 _.each(graphType.entityTypes, function (f) {
@@ -1294,7 +1294,7 @@ export default class PixiRenderer {
                 });
                 return type;
             },
-    
+
             getLinkSemanticType: function (linkUuid) {
                 let type;
                 _.each(graphType.linkTypes, function (f) {
@@ -1304,7 +1304,7 @@ export default class PixiRenderer {
                 });
                 return type;
             },
-    
+
             getEntityType: function (nodeUuid) {
                 let type;
                 _.each(graphType.entityTypes, function (f) {
@@ -1314,7 +1314,7 @@ export default class PixiRenderer {
                 });
                 return type;
             },
-    
+
             getLinkType: function (linkUuid) {
                 let type;
                 _.each(graphType.linkTypes, function (f) {
@@ -1324,34 +1324,34 @@ export default class PixiRenderer {
                 });
                 return type;
             },
-    
+
             onGraphChanged: function (func) {
                 graph.on('changed', func);
             },
-    
+
             addCanvasEventListener: function (eventName, func, state) {
                 canvas.addEventListener(eventName, func, state);
             },
-    
+
             modifyNodeLabel: function (nodeLabelsObj) {
                 for (let nodeId in nodeLabelsObj) {
                     let nodeSprite = nodeSprites[nodeId];
                     nodeSprite.ts.text = nodeLabelsObj[nodeId];
                 }
             },
-    
+
             removeNodes: function (nodeIds) {
                 for (let nodeId of nodeIds) {
                     graph.removeNode(nodeId);
                 }
             },
-    
+
             removeLinks: function (links) {
                 for (let link of links) {
                     graph.removeLink(link);
                 }
             },
-    
+
             // convert the canvas drawing buffer into base64 encoded image url
             exportImage: function (blobDataReceiver) {
                 if (layoutType === "Network") {
@@ -1364,7 +1364,7 @@ export default class PixiRenderer {
                     return canvas.toDataURL();
                 }
             },
-    
+
             lock: function (nodes) {
                 isDirty = true;
                 for (let node of nodes) {
@@ -1376,7 +1376,7 @@ export default class PixiRenderer {
                     }
                 }
             },
-    
+
             unlock: function (nodes) {
                 isDirty = true;
                 for (let node of nodes) {
@@ -1388,21 +1388,28 @@ export default class PixiRenderer {
                     }
                 }
             },
-    
+
             updateLineContainerStyleDirty: function () {
                 lineContainer.styleDirty = true;
+            },
+
+            updateNodeLockIcon: function (node) {
+                let nodeSprite = nodeSprites[node.id];
+                nodeSprite.pinned = true;
+                layout.pinNode(nodeSprite, true);
+                nodeSprite.setNodeLockIcon(nodeContainer);
             }
-    
+
         };
-    
+
         pixiGraphics._zoomActionListener = _.throttle(function (e) {
             pixiGraphics.zoom(e.offsetX || (e.originalEvent ? e.originalEvent.offsetX : null), e.offsetY || (e.originalEvent ? e.originalEvent.offsetY : null), e.deltaY < 0);
         }, 100);
-    
+
         if (!disabledWheel) {
             addWheelListener(canvas, pixiGraphics._zoomActionListener);
         }
-    
+
         pixiGraphics._lastDownTarget = null;
         pixiGraphics._mouseDownListener = function (event) {
             pixiGraphics._lastDownTarget = event.target;
@@ -1441,21 +1448,21 @@ export default class PixiRenderer {
         };
         document.addEventListener('mousedown', pixiGraphics._mouseDownListener);
         document.addEventListener('keydown', pixiGraphics._keyDownListener);
-    
+
         pixiGraphics._contextmenuHandler = function (event) {
             event.preventDefault();
             event.stopPropagation();
             return false;
         }
-    
+
         pixiGraphics.addCanvasEventListener('contextmenu', pixiGraphics._contextmenuHandler, false);
-    
+
         eventify(pixiGraphics);
         return pixiGraphics;
         ///////////////////////////////////////////////////////////////////////////////
         // Public API is over
         ///////////////////////////////////////////////////////////////////////////////
-    
+
         function zoomNodesById(nodeIDArray, zoomValue) {
             isDirty = true;
             _.each(nodeIDArray, function (nodeID) {
@@ -1470,7 +1477,7 @@ export default class PixiRenderer {
                         }
                     }
                     nodeSprite.relayoutNodeIcon();
-    
+
                     if (nodeSprite.ls) {
                         nodeSprite.ls.scale.set(0.5 * zoomValue);
                         nodeSprite.ls.position.x = nodeSprite.position.x + visualConfig.NODE_LOCK_WIDTH * 0.5 * zoomValue;
@@ -1482,35 +1489,35 @@ export default class PixiRenderer {
                 }
             });
         }
-    
+
         function selectionChanged() {
             isDirty = true;
             pixiGraphics.fire('selectionChanged');
             drawBorders();
             drawChangeLines();
         }
-    
+
         function hiddenStatusChanged() {
             isDirty = true;
             pixiGraphics.fire('hiddenStatusChanged');
         }
-    
+
         function contextmenuListener(e) {
             isDirty = true;
             pixiGraphics.fire('contextmenu', e);
         }
-    
-    
+
+
         function animationLoop() {
             if (destroyed) {
                 console.info("Renderer destroyed, exiting animation loop");
                 return;
             }
-    
+
             requestAnimationFrame(animationLoop);
-    
+
             animationAgent.step();
-    
+
             let layoutPositionChanged = false;
             if (layoutType === 'Network') {
                 if (dynamicLayout) {
@@ -1532,24 +1539,24 @@ export default class PixiRenderer {
                     updateNodeSpritesPosition();
                 }
             }
-    
+
             if (layoutPositionChanged || isDirty || nodeContainer.isDirty || stage.isDirty || lineContainer.isDirty
                 || nodeContainer.positionDirty || lineContainer.styleDirty || animationAgent.needRerender()) {
                 drawBorders();
                 drawLines();
-    
+
                 selectRegionGraphics.clear();
                 if (stage.selectRegion && stage.selectingArea) {
                     drawSelectionRegion();
                 }
-    
+
                 if (stage.isTimelineLayout) {
                     timelineLayout.drawNodeTimelines();
                 }
-    
+
                 renderer.render(stage);
                 counter.nextFrame();
-    
+
                 isDirty = false;
                 nodeContainer.isDirty = false;
                 stage.isDirty = false;
@@ -1558,7 +1565,7 @@ export default class PixiRenderer {
                 lineContainer.styleDirty = false;
             }
         }
-    
+
         function updateNodeSpritesPosition() {
             _.each(nodeSprites, function (nodeSprite, nodeId) { //大开销计算
                 nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
@@ -1568,21 +1575,21 @@ export default class PixiRenderer {
                 }
             });
         }
-    
+
         function rendererLoading() {
             let _dom = document.getElementById('sys-loading1');
             if (_dom) {
                 _dom.style.display = 'block';
             }
         }
-    
+
         function removeRendererLoading() {
             let _dom = document.getElementById('sys-loading1');
             if (_dom) {
                 _dom.style.display = 'none';
             }
         }
-    
+
         //TODO 画边框,查看drawRoudedRect性能
         function drawBorders() {
             let keys = Object.keys(nodeContainer.selectedNodes);
@@ -1599,7 +1606,7 @@ export default class PixiRenderer {
                 boarderGraphics.endFill();
             }
         }
-    
+
         function drawLines() {
             lineGraphics.clear();
             _.each(linkSprites, function (link) {
@@ -1608,7 +1615,7 @@ export default class PixiRenderer {
                 }
             });
         }
-    
+
         function drawShowLines() {
             lineGraphics.clear();
             _.each(linkSprites, function (link) {
@@ -1618,27 +1625,27 @@ export default class PixiRenderer {
                 }
             });
         }
-    
+
         function drawChangeLines() {
             _.each(lineContainer.selectedLinks, function (link) {
                 if (link.visible) {
                     link.renderLine(lineGraphics);
                 }
             });
-    
+
             _.each(lineContainer.unSelectedLinks, function (link) {
                 if (link.visible) {
                     link.renderLine(lineGraphics);
                 }
             });
         }
-    
+
         function initNode(p) {
             let semanticType = pixiGraphics.getEntitySemanticType(p.data.type);
             let texture = visualConfig.findIcon(semanticType);
-    
+
             let nodeSprite = new SimpleNodeSprite(texture, p, visualConfig);
-    
+
             if (p.data.properties && p.data.properties._$hidden) {
                 nodeSprite.hide();
             } else {
@@ -1649,13 +1656,17 @@ export default class PixiRenderer {
                 let collIdArr = graphData.getNodeCollId(p);
                 nodeSprite.setNodeIcon(collIdArr, nodeContainer);
             }
-    
+
             if (p.data.properties["_$lock"]) {
                 nodeSprite.pinned = true;
                 layout.pinNode(nodeSprite, true);
                 nodeSprite.setNodeLockIcon(nodeContainer);
             }
-    
+
+            if (p.data.properties['_$merged']) {
+                nodeSprite.setMultiple(true);
+            }
+
             textContainer.addChild(nodeSprite.ts);
             nodeContainer.addChild(nodeSprite);
             nodeSprites[p.id] = nodeSprite;
@@ -1665,7 +1676,7 @@ export default class PixiRenderer {
             nodeSprite.on('mousedown', nodeCaptureListener);
             nodeSprite.on('rightup', contextmenuListener);
         }
-    
+
         function updateNodeIcon(node) {
             if (graphData) {
                 let nodeSprite = nodeSprites[node.id];
@@ -1673,12 +1684,12 @@ export default class PixiRenderer {
                 nodeSprite.setNodeIcon(collIdArr, nodeContainer);
             }
         }
-    
+
         function adjustControlOffsets(linkSpriteArray, arrangeOnBothSides, avoidZero) {
             let linkCount = linkSpriteArray.length,
                 start = 0,
                 end = linkCount + start;
-    
+
             if (arrangeOnBothSides) {
                 start = -Math.floor(linkCount / 2);
                 end = linkCount + start;
@@ -1695,7 +1706,7 @@ export default class PixiRenderer {
                 l.controlOffsetIndex = controlOffsets[i];
             }
         }
-    
+
         function initLink(f) {
             let srcNodeSprite = nodeSprites[f.fromId];
             let tgtNodeSprite = nodeSprites[f.toId];
@@ -1713,13 +1724,13 @@ export default class PixiRenderer {
             });
             let positionOffset = 0;
             //f.data.isMultiple,f.data.isDirected,
-    
+
             let l = new SimpleLineSprite(
                 (f.data.label ? f.data.label : ""), visualConfig.ui.line.width, visualConfig.ui.line.color, f.data.isMultiple, f.data.isDirected,
                 srcNodeSprite.position.x, srcNodeSprite.position.y,
                 tgtNodeSprite.position.x, tgtNodeSprite.position.y,
                 positionOffset, visualConfig.ui.label.font, visualConfig);
-    
+
             if (sameTgtLink.length > 0 && reverseLink.length === 0) {
                 sameTgtLink.push(l);
                 adjustControlOffsets(sameTgtLink, true);
@@ -1732,17 +1743,17 @@ export default class PixiRenderer {
                 sameTgtLink.push(l);
                 adjustControlOffsets(sameTgtLink, false, true);
             }
-    
+
             l.data = f.data;
             l.id = f.data.id;
             l.ngLink = f;
-    
+
             if (f.data.properties && f.data.properties._$hidden) {
                 l.hide();
             } else {
                 l.show();
             }
-    
+
             srcNodeSprite.outgoing.push(l);
             tgtNodeSprite.incoming.push(l);
             linkSprites[l.id] = l;
@@ -1755,21 +1766,21 @@ export default class PixiRenderer {
                 lineContainer.addChild(l.arrow);
             }
         }
-    
+
         function defaultNodeRenderer(node) {
             let x = node.pos.x - NODE_WIDTH / 2,
                 y = node.pos.y - NODE_WIDTH / 2;
-    
+
             graphics.beginFill(0xFF3300);
             graphics.drawRect(x, y, NODE_WIDTH, NODE_WIDTH);
         }
-    
+
         function defaultLinkRenderer(link) {
             graphics.lineStyle(1, 0xcccccc, 1);
             graphics.moveTo(link.from.x, link.from.y);
             graphics.lineTo(link.to.x, link.to.y);
         }
-    
+
         function getNodeAt(x, y) {
             let half = NODE_WIDTH / 2;
             // currently it's a linear search, but nothing stops us from refactoring
@@ -1782,21 +1793,22 @@ export default class PixiRenderer {
                     half = width / 2;
                     let insideNode = pos.x - half < x && x < pos.x + half &&
                         pos.y - half < y && y < pos.y + half;
-    
+
                     if (insideNode) {
                         return graph.getNode(nodeId);
                     }
                 }
             }
         }
-    
+
         function listenToGraphEvents() {
             graph.on('changed', onGraphChanged);
+            graph.on('elp-changed', onGraphElpChanged);
         }
-    
+
         function removeNode(node) {
             isDirty = true;
-            let nodeSprite = nodeSprites[node.id];
+            var nodeSprite = nodeSprites[node.id];
             if (nodeSprite) {
                 if (_.has(nodeNeedBoundary, node.id)) {
                     delete nodeNeedBoundary[node.id];
@@ -1811,14 +1823,18 @@ export default class PixiRenderer {
                     textContainer.removeChild(nodeSprite.ts);
                 }
                 if (nodeSprite.gcs) {
-                    for (let i = 0; i < nodeSprite.gcs.length; i++) {
+                    for (var i = 0; i < nodeSprite.gcs.length; i++) {
                         nodeContainer.removeChild(nodeSprite.gcs[i]);
                     }
                 }
                 if (nodeSprite.ls) {
                     nodeContainer.removeChild(nodeSprite.ls);
                 }
-    
+
+                if (nodeSprite.ms) {
+                    nodeContainer.removeChild(nodeSprite.ms);
+                }
+
                 nodeContainer.removeChild(nodeSprite);
                 delete nodeSprites[node.id];
                 delete graphEntities[node.data.id];
@@ -1827,11 +1843,11 @@ export default class PixiRenderer {
                 console.log("Could not find node sprite: " + node.id);
             }
         }
-    
-    
+
+
         function removeLink(link) {
             isDirty = true;
-            let l = linkSprites[link.data.id];
+            var l = linkSprites[link.id];
             if (l) {
                 if (l.selected) {
                     lineContainer.deselectLink(l);
@@ -1862,11 +1878,28 @@ export default class PixiRenderer {
                 console.log("Could not find link sprite: " + link.id);
             }
         }
-    
+
+        function updateNode(node) {
+            var nodeSprite = nodeSprites[node.id];
+            nodeSprite.updateLabel(node.data.label);
+            nodeSprite.data = node.data;
+        }
+
+        function updateLink(link) {
+            var linkSprite = linkSprites[link.id];
+            linkSprite.updateLabel(link.data.label);
+            linkSprite.data = link.data;
+        }
+
+        function onGraphElpChanged(elpData) {
+            graphType.entityTypes = elpData.elpEntities;
+            graphType.linkTypes = elpData.elpLinks;
+        }
+
         function onGraphChanged(changes) {
             isDirty = true;
-            for (let i = 0; i < changes.length; ++i) {
-                let change = changes[i];
+            for (var i = 0; i < changes.length; ++i) {
+                var change = changes[i];
                 if (change.changeType === 'add') {
                     if (change.node) {
                         initNode(change.node);
@@ -1884,22 +1917,28 @@ export default class PixiRenderer {
                     }
                 } else if (change.changeType === 'update') {
                     if (change.node) {
+                        console.log('Node updated: ', change.node);
                         updateNodeIcon(change.node);
+                        updateNode(change.node);
+                    }
+                    if (change.link) {
+                        console.log('Link updated: ', change.link);
+                        updateLink(change.link);
                     }
                 }
             }
         }
-    
+
         /**
          * function: find the subtree recursively
          * @param node
          * @param tid
          */
         function findSubGraph(node, tid) {
-    
+
             if (!node.treeID) {
                 node.treeID = tid;
-    
+
                 _.each(node.incoming, function (link) {
                     if (!nodeSprites[link.data.sourceEntity].treeID) {
                         findSubGraph(nodeSprites[link.data.sourceEntity], tid);
@@ -1912,10 +1951,10 @@ export default class PixiRenderer {
                 });
             } else {
                 return;
-    
+
             }
         }
-    
+
         function drawSelectionRegion() {
             if (stage.selectRegion) {
                 let frameCfg = visualConfig.ui.frame;
@@ -1929,7 +1968,7 @@ export default class PixiRenderer {
                 // let y = stage.selectRegion.y1-stage.contentRoot.position.y;
                 //selectRegionGraphics.drawRect(stage.selectRegion.x1, stage.selectRegion.y1, width, height);
                 selectRegionGraphics.drawRect(x, y, width, height);
-    
+
                 if (layoutType === 'TimelineScale') {
                     selectRegionGraphics.isDirty = true;
                 } else {
@@ -1937,6 +1976,6 @@ export default class PixiRenderer {
                 }
             }
         }
-    
+
     };
 }
