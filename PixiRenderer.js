@@ -1068,6 +1068,7 @@ export default class PixiRenderer {
                     if (linkSprite) {
                         linkSprite.thickness = visualConfig.ui.line.width;
                         linkSprite.color = visualConfig.ui.line.color;
+                        linkSprite.coustomSettingColor = visualConfig.ui.line.color;
                     }
                 });
 
