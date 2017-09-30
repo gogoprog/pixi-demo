@@ -41,7 +41,7 @@ export const visualConfig = {
             "alpha": 1,
             "width": 2,
             "highlight": {
-                "color": 0x0086E3,
+                "color":  0x2dcc70,
                 "width": 2,
                 "alpha": 1,
             }

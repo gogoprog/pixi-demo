@@ -476,12 +476,21 @@ export default class PixiRenderer {
                     root.interactive = false;
                 }
             },
+            
             toggleMode: function () {
                 if (this.mode == 'panning') {
                     this.setMode('picking');
                 } else {
                     this.setMode('panning');
                 }
+            },
+
+            pickingMode: function () {
+                this.setMode('picking');
+            },
+
+            panningMode: function () {
+                this.setMode('panning');
             },
 
             /*
