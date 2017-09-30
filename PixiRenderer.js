@@ -35,6 +35,8 @@ export default class PixiRenderer {
         let graphLinkTypes = {}; // TODO make a count of each type, instead of just flagging
         let graphEntityTypes = {};
 
+        let rightStack = [];
+
         let graph = Graph();
 
         let mode = settings.mode;
@@ -476,7 +478,7 @@ export default class PixiRenderer {
                     root.interactive = false;
                 }
             },
-            
+
             toggleMode: function () {
                 if (this.mode == 'panning') {
                     this.setMode('picking');
@@ -1462,6 +1464,7 @@ export default class PixiRenderer {
         pixiGraphics._contextmenuHandler = function (event) {
             event.preventDefault();
             event.stopPropagation();
+            contextmenuListener(event);
             return false;
         }
 
@@ -1513,10 +1516,67 @@ export default class PixiRenderer {
         }
 
         function contextmenuListener(e) {
-            isDirty = true;
-            pixiGraphics.fire('contextmenu', e);
+            let nodeFlag = false;
+            let linkFlag = false;
+            const selectedNodes = pixiGraphics.getSelectedNodes();
+            const selectedLinks = pixiGraphics.getSelectedLinks();
+            if (!selectedNodes.length && !selectedLinks.length) {
+                rightStack.length = 0;
+                console.log('blank right up');
+                const event = {type: 'blank', original: e};
+                fireContextmenu(event);
+            }
+
+            for (const nodeSprite of selectedNodes) {
+                if (nodeSprite === e.target) {
+                    nodeFlag = true;
+                    break;
+                }
+            }
+
+            if (nodeFlag) {
+                console.log('node right up');
+                const event = {type: 'node', original: e};
+                fireContextmenu(event);
+            }
+
+            if (!nodeFlag) {
+                for (const linkSprite of selectedLinks) {
+                    if (linkSprite.arrow === e.target || linkSprite.label === e.target) {
+                        linkFlag = true;
+                        break;
+                    }
+                }
+    
+                if (linkFlag) {
+                    console.log('link right up');
+                    const event = {type: 'link', original: e};
+                    fireContextmenu(event);
+                }
+            }
+
+            if (rightStack.length  > 0) {
+                const lastObj = rightStack.pop();  //stack 最上层
+                if (lastObj) {
+                    if (e.type === 'contextmenu' && lastObj.type === 'contextmenu') {
+                        console.log('blank right up with select nodes or links');
+                        const event = {type: 'blank', original: e};
+                        fireContextmenu(event);
+                    } else if (e.type === 'rightup') {
+                        const penultimateObj = rightStack.pop();   // stack 第二层
+                        rightStack.push(lastObj);
+                    }
+                }
+            }
+            
+            const obj = {type: e.type,}
+            rightStack.push(obj);
         }
 
+        function fireContextmenu(event) {
+            isDirty = true;
+            pixiGraphics.fire('contextmenu', event);
+        }
 
         function animationLoop() {
             if (destroyed) {
@@ -1775,6 +1835,9 @@ export default class PixiRenderer {
                 l.arrow.buttonMode = true;
                 lineContainer.addChild(l.arrow);
             }
+
+            l.arrow.on('rightup', contextmenuListener);
+            l.label.on("rightup", contextmenuListener);
         }
 
         function defaultNodeRenderer(node) {
