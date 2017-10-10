@@ -23,6 +23,7 @@ export default function createChineseWhisper(nodeSprites) {
 
     return api;
 
+    // 迭代过程
     function step() {
         classChangesCount = 0;
         iterator.forEach(assignHighestClass);
@@ -38,10 +39,13 @@ export default function createChineseWhisper(nodeSprites) {
     }
 
     function initInternalStructures() {
+        // 对每个节点进行类别初始化
         _.each(nodeSprites,function(node){
+            // 以该节点id在nodeIds这个数组中的索引位置+1作为初始类别编号
             classMap.set(node.id, nodeIds.length);
             nodeIds.push(node.id);
         });
+        // 数组的随机索引iterator
         iterator = createRandomIterator(nodeIds, random);
     }
 
@@ -54,6 +58,7 @@ export default function createChineseWhisper(nodeSprites) {
         }
     }
 
+    // 获取该节点的邻居中出现最多的类别 
     function getHighestClassInTheNeighborhoodOf(nodeId) {
         var seenClasses = new Map();
         var maxClassValue = 0;

@@ -92,7 +92,37 @@ export default class Layout {
     finalLayoutAvailable() {
         return true;
     };
-    
+
+    draw2(tree) {
+        let that = this;
+        for (var level of tree.getLevels().values()){
+            for (var childTree of level.getChildTreeMap().values()){
+                var nodeMap = childTree.getNodeMap()
+                var sortIdList = childTree.getSortIdList()
+                for (var treeNodeId of sortIdList){
+                    var treeNode = nodeMap.get(treeNodeId)
+                    let node = that.nodes[treeNodeId];
+                    node.position = {
+                        x: treeNode.positionx,
+                        y: treeNode.positiony
+                    };
+                    if (treeNode.positionx < this.left) {
+                        this.left = treeNode.positionx;
+                    }
+                    if (treeNode.positionx > this.right) {
+                        this.right = treeNode.positionx;
+                    }
+                    if (treeNode.positiony < this.top) {
+                        this.top = treeNode.positiony;
+                    }
+                    if (treeNode.positiony > this.bottom) {
+                        this.bottom = treeNode.positiony;
+                    }
+                }
+            }
+        }   
+    };
+   
     getGraphRect() {
         let that = this;
         for (let nodeId in that.nodes) {
