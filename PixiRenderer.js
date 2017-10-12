@@ -1410,8 +1410,11 @@ export default class PixiRenderer {
                 nodeSprite.pinned = true;
                 layout.pinNode(nodeSprite, true);
                 nodeSprite.setNodeLockIcon(nodeContainer);
-            }
-
+            },
+            resize(width, height) {
+                renderer.resize(width, height);
+                isDirty = true;
+            },
         };
 
         pixiGraphics._zoomActionListener = _.throttle(function (e) {
