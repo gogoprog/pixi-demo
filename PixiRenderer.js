@@ -1390,7 +1390,7 @@ export default class PixiRenderer {
             },
 
             unlock: function (nodes) {
-                isDirty = true;
+                
                 for (let node of nodes) {
                     if (node.pinned) {
                         node.pinned = false;
@@ -1412,9 +1412,10 @@ export default class PixiRenderer {
                 nodeSprite.setNodeLockIcon(nodeContainer);
             },
             resize(width, height) {
-                renderer.resize(width, height);
                 isDirty = true;
+                renderer.resize(width, height);
             },
+
         };
 
         pixiGraphics._zoomActionListener = _.throttle(function (e) {
