@@ -72,6 +72,8 @@ export default class PixiRenderer {
         // let lineContainer = new PIXI.ParticleContainer(5000, { scale: true, position: true, rotation: true, uvs: false, alpha: true });
         let lineContainer = new PIXI.Container();
         let textContainer = new PIXI.Container();
+        let emptyTextContainer = new PIXI.Container();
+        const emptyText = new PIXI.Text('分析结果为空',{fontFamily : 'Arial', fontSize: 24, fill : 0x1469a8, align : 'center'});
         let boarderGraphics = new PIXI.Graphics();
         let selectRegionGraphics = new PIXI.Graphics();
         let lineGraphics = new PIXI.Graphics();
@@ -89,6 +91,7 @@ export default class PixiRenderer {
         boarderGraphics.zIndex = 10;
         selectRegionGraphics.zIndex = 11;
         textContainer.zIndex = 15;
+        emptyTextContainer.zIndex = 22;
         lineContainer.zIndex = 18;
         nodeContainer.zIndex = 20;
 
@@ -96,6 +99,7 @@ export default class PixiRenderer {
         root.addChild(boarderGraphics);
         stage.addChild(selectRegionGraphics);
         root.addChild(textContainer);
+        root.addChild(emptyTextContainer);
         root.addChild(lineContainer);
         root.addChild(nodeContainer);
 
@@ -1415,7 +1419,13 @@ export default class PixiRenderer {
                 isDirty = true;
                 renderer.resize(width, height);
             },
-
+            showEmptyText(isEmpty) {
+                if (isEmpty) {
+                    emptyTextContainer.addChild(emptyText);
+                } else {
+                    emptyTextContainer.removeChild(emptyText);
+                }
+            }
         };
 
         pixiGraphics._zoomActionListener = _.throttle(function (e) {
