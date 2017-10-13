@@ -59,7 +59,7 @@ export const visualConfig = {
         },
         "label": {
             "font": { "fontFamily": 'Microsoft YaHei,Tahoma', "fill": '#FFFFFF', "align": 'center', "fontSize": '20px' },
-            "fontHighlight": { "fontFamily": 'Microsoft YaHei,Tahoma', "fill": 0x0086E3, "align": 'center', "fontSize": '24px' },
+            "fontHighlight": { "fontFamily": 'Microsoft YaHei,Tahoma', "fill": 0x2dcc70, "align": 'center', "fontSize": '24px' },
         },
         "timeline": {
             "color": 0xFFFFFF,
@@ -96,7 +96,7 @@ export const visualConfig = {
         }
     },
     
-    visualConfig: function(collId) {
+    findGraphCollIcon: function(collId) {
         const data = visualConfig.graphCollIcons;
         if (data) {
             return data[collId-1];
