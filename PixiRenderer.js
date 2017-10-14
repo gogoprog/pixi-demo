@@ -10,7 +10,7 @@ import TimelineLayout from './TimelineLayout';
 
 import Graph from "./Graph";
 import { SelectionManager } from "./SelectionManager";
-import { CircleBorderTexture } from "./CircleBorderSprite";
+import CircleBorderTexture from "./CircleBorderSprite";
 import "pixi.js";
 import { addWheelListener, removeWheelListener } from "./WheelListener";
 import { zoom, rootCaptureHandler, nodeCaptureListener } from "./customizedEventHandling";
@@ -156,6 +156,44 @@ export default class PixiRenderer {
                 let pos = layout.setNodePosition(node.id, node.position.x, node.position.y);
             });
 
+        };
+
+        stage.selectAllNodesInRegion = function (x1, y1, x2, y2, flag) {
+            console.log("selectAllNodesInRegion begin");
+            isDirty = true;
+            let xl;
+            let xr;
+            let yt;
+            let yb;
+            if (x1 > x2) {
+                xl = x2;
+                xr = x1;
+            } else {
+                xr = x2;
+                xl = x1;
+            }
+        
+            if (y1 > y2) {
+                yt = y2;
+                yb = y1;
+            } else {
+                yt = y1;
+                yb = y2;
+            }
+            if (flag) {
+                root.deselectAll();
+            }
+            
+            _.each(nodeSprites, function (n) {
+                //console.log(n.position.x+" "+n.position.y);
+                if (!n.visible) {
+                    return;
+                }
+                if ((n.position.x <= xr) && (n.position.x >= xl) && (n.position.y >= yt) && (n.position.y <= yb)) {
+                    //console.log("here i come!!");
+                    nodeContainer.selectNode(n);
+                }
+            });
         };
 
         /**
