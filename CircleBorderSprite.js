@@ -27,7 +27,7 @@ export default class CircleBorderTexture extends PIXI.Sprite{
     get color() {
         return this._color;
     };
-    set function (value) {
+    set color(value) {
         this._color = value;
         this.texture = CircleBorderTexture.getTexture(this._thickness, this._color,this._borderAlpha,this._fillColor,this._fillAlpha,this._radius);
     };
