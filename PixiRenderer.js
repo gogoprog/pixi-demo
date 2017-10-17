@@ -1886,9 +1886,9 @@ export default class PixiRenderer {
                 l.arrow.interactive = true;
                 l.arrow.buttonMode = true;
                 lineContainer.addChild(l.arrow);
+                l.arrow.on('rightup', contextmenuListener);
             }
 
-            l.arrow.on('rightup', contextmenuListener);
             l.label.on("rightup", contextmenuListener);
         }
 
