@@ -271,8 +271,8 @@ export default class PixiRenderer {
             /**
              * adjust the initial display location to center of the scene
              */
-            adjustInitialDisplayLocation: function () {
-                this.performLayout(true);
+            adjustInitialDisplayLocation: function (disableAnimation) {
+                this.performLayout(disableAnimation);
             },
 
             /*
