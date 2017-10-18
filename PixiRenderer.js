@@ -1432,7 +1432,7 @@ export default class PixiRenderer {
             },
 
             unlock: function (nodes) {
-                
+                isDirty = true;
                 for (let node of nodes) {
                     if (node.pinned) {
                         node.pinned = false;
