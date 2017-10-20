@@ -82,6 +82,7 @@ export const elpVisualConfig = {
             "alpha": 1
         }
     },
+    "icons": localStorage.tldwImg?JSON.parse(localStorage.tldwImg):[],
     findIcon: function(link) {
         const data = this.icons;
         for (var i = 0; i < data.length; i++) {

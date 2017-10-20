@@ -84,9 +84,10 @@ export const visualConfig = {
             "alpha": 1
         }
     },
+    "icons": localStorage.tldwImg?JSON.parse(localStorage.tldwImg):[],
 
     findIcon: function(link) {
-        const data = visualConfig.icons;
+        const data = this.icons;
         if (data) {
             for (let i = 0; i < data.length; i++) {
                 if (data[i].url == link) {
