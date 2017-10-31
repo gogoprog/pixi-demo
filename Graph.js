@@ -301,7 +301,7 @@ export default function Graph(source, options) {
                 self.beginUpdate();
                 for (let i = 0; i < changeList.length; ++i) {
                     const change = changeList[i];
-                    console.log('Renderer graph received change event', change);
+                    // console.log('Renderer graph received change event', change);
                     if (change.changeType === 'add') {
                         if (change.entity) {
                             self.addNode(change.entity.id, change.entity);
@@ -323,7 +323,7 @@ export default function Graph(source, options) {
                                 node.data = change.entity;
                                 recordNodeChange(node, 'update');
                             } else {
-                                console.warn('Node added through update event, ', change);
+                                // console.warn('Node added through update event, ', change);
                                 self.addNode(change.entity.id, change.entity);
                             }
                         }
@@ -357,7 +357,7 @@ export default function Graph(source, options) {
             });
 
             entityGraphSource.on('init', () => {
-                console.log('Renderer graph received source init event');
+                // console.log('Renderer graph received source init event');
                 self.beginUpdate();
 
                 self.source.forEachEntity((e) => {
@@ -367,11 +367,11 @@ export default function Graph(source, options) {
                     self.addLink(l.sourceEntity, l.targetEntity, l);
                 });
                 self.endUpdate();
-                console.log('Renderer graph finished handling source init event');
+                // console.log('Renderer graph finished handling source init event');
             });
 
             entityGraphSource.on('elp-changed', (elpData) => {
-                console.log('Base graph ELP model changed, ', elpData);
+                // console.log('Base graph ELP model changed, ', elpData);
                 graphPart.fire('elp-changed', elpData);
             });
         },

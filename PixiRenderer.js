@@ -1143,7 +1143,7 @@ export default class PixiRenderer {
                     if (!dynamicLayout && layoutTypeStr !== 'Network') {
                         layoutIterations = 0;
                     } else {
-                        layoutIterations = 1500;
+                        layoutIterations = 150;
                     }
                     layout = networkLayout;
                     _.each(nodeSprites, function (nodeSprite, nodeId) {
@@ -1186,7 +1186,7 @@ export default class PixiRenderer {
                             layout.step();
                             layoutIterations = 0;
                         } else {
-                            layoutIterations = 1500;
+                            layoutIterations = 150;
                             while (layoutIterations > 0) {
                                 layout.step();
                                 layoutIterations -= 1;
