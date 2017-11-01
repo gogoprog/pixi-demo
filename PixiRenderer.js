@@ -172,7 +172,7 @@ export default class PixiRenderer {
                 xr = x2;
                 xl = x1;
             }
-        
+
             if (y1 > y2) {
                 yt = y2;
                 yb = y1;
@@ -183,7 +183,7 @@ export default class PixiRenderer {
             if (flag) {
                 root.deselectAll();
             }
-            
+
             _.each(nodeSprites, function (n) {
                 //console.log(n.position.x+" "+n.position.y);
                 if (!n.visible) {
@@ -1407,16 +1407,27 @@ export default class PixiRenderer {
             },
 
             // convert the canvas drawing buffer into base64 encoded image url
-            exportImage: function (blobDataReceiver) {
-                if (layoutType === "Network") {
-                    if (renderer.gl) {
-                        convertCanvasToImage(renderer, root, viewWidth, viewHeight, visualConfig).toBlob(blobDataReceiver, 'image/png');
+            exportImage: function () {
+                return new Promise((resolve, reject) => {
+                    if (layoutType === "Network" && renderer.gl) {
+                        convertCanvasToImage(renderer, root, viewWidth, viewHeight, visualConfig).toBlob((blob) => {
+                            if (blob) {
+                                const reader = new FileReader();
+                                reader.readAsDataURL(blob);
+                                reader.onload = () => {
+                                    resolve(reader.result); // base64data
+                                };
+                                reader.onerror = () => {
+                                    reject('图表缩略图获取失败！');
+                                };
+                            } else {
+                                reject('图表缩略图获取失败！');
+                            }
+                        }, 'image/png');
                     } else {
-                        return canvas.toDataURL();
+                        resolve(canvas.toDataURL());
                     }
-                } else {
-                    return canvas.toDataURL();
-                }
+                });
             },
 
             lock: function (nodes) {
@@ -1599,7 +1610,7 @@ export default class PixiRenderer {
                         break;
                     }
                 }
-    
+
                 if (linkFlag) {
                     console.log('link right up');
                     const event = {type: 'link', original: e};
@@ -1620,7 +1631,7 @@ export default class PixiRenderer {
                     }
                 }
             }
-            
+
             const obj = {type: e.type,}
             rightStack.push(obj);
         }
