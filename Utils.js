@@ -42,8 +42,8 @@ export default function convertCanvasToImage(myRenderer, target, originViewWidth
         width = originViewWidth;
         height = originViewHeight;
     }
-    let canvasWidth = width;
-    let canvasHeight = height;
+    const canvasWidth = width;
+    const canvasHeight = height;
     let diffWidth = 0;
     let diffHeight = 0;
     if (width < originViewWidth) {
@@ -91,4 +91,4 @@ export default function convertCanvasToImage(myRenderer, target, originViewWidth
     }
     // send the canvas back..
     return background.canvas;
-};
+}

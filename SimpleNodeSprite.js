@@ -27,7 +27,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         this.visualConfig = visualConfig;
         this.interactive = true;
         this.buttonMode = true;
-        let t = new PIXI.Text((node.data.label ? node.data.label : ""), visualConfig.ui.label.font);
+        const t = new PIXI.Text((node.data.label ? node.data.label : ''), visualConfig.ui.label.font);
         t.position.set(node.data.x, node.data.y + visualConfig.NODE_LABLE_OFFSET_Y);
         t.anchor.x = 0.5;
         t.scale.set(0.5, 0.5);
@@ -96,14 +96,12 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     updateNodePosition(p) {
         if (this.timelineMode) {
             this._updateNodeAttachPosition(p);
-
             _.each(this.incoming, function (l) {
                 l.setTo({
                     x: l.x2,
                     y: p.y,
                 });
             });
-
             _.each(this.outgoing, function (l) {
                 l.setFrom({
                     x: l.x1,
@@ -112,11 +110,9 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             });
         } else {
             this._updateNodeAttachPosition(p);
-
             _.each(this.incoming, function (l) {
                 l.setTo(p);
             });
-
             _.each(this.outgoing, function (l) {
                 l.setFrom(p);
             });
@@ -155,8 +151,8 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         if (this.gcs) {
             let gcsLen = this.gcs.length;
             while (gcsLen--) {
-                let iconSprite = this.gcs[gcsLen];
-                let index = collIdArr.indexOf(iconSprite.id);
+                const iconSprite = this.gcs[gcsLen];
+                const index = collIdArr.indexOf(iconSprite.id);
                 if (index < 0) {
                     nodeContainer.removeChild(iconSprite);
                     this.gcs.splice(gcsLen, 1);
@@ -176,12 +172,12 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     }
 
     _addIconToNode(collIdArr, nodeContainer) {
-        let nodeSprite = this;
-        let gcsArr = nodeSprite.gcs || [];
+        const nodeSprite = this;
+        const gcsArr = nodeSprite.gcs || [];
 
-        for (let collId of collIdArr) { //添加集合
-            let iconTexture = this.visualConfig.findGraphCollIcon(collId);
-            let iconSprite = new PIXI.Sprite(iconTexture);
+        for (const collId of collIdArr) { // 添加集合
+            const iconTexture = this.visualConfig.findGraphCollIcon(collId);
+            const iconSprite = new PIXI.Sprite(iconTexture);
             iconSprite.id = collId;
             iconSprite.anchor.x = 0.5;
             iconSprite.anchor.y = 0.5;
@@ -195,18 +191,16 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     }
 
     relayoutNodeIcon() {
-        if (!this.gcs || this.gcs.length == 0) {
+        if (!this.gcs || this.gcs.length === 0) {
             return;
         }
-
-        let nodeSprite = this;
-        this.gcs.sort(function (a, b) {
+        const nodeSprite = this;
+        this.gcs.sort((a, b) => {
             return a.id - b.id;
         });
         // from the center of first icon to the center of last icon
-        let iconRowWidth = (this.gcs.length - 1) * (this.visualConfig.NODE_ICON_WIDTH + 10) * 0.5 * nodeSprite.scale.x;
+        const iconRowWidth = (this.gcs.length - 1) * (this.visualConfig.NODE_ICON_WIDTH + 10) * 0.5 * nodeSprite.scale.x;
         let iconPosY = 0;
-
         this.gcs[0].position.x = this.position.x - iconRowWidth * 0.5;
         if (this.ts) {
             if (nodeSprite.scale.y > 1) {
@@ -221,7 +215,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
                 this.gcs[0].position.y = iconPosY = this.position.y + 20 * nodeSprite.scale.y;
             }
         }
-
         for (let i = 1; i < this.gcs.length; i++) {
             this.gcs[i].position.x = this.gcs[i - 1].position.x + (this.visualConfig.NODE_ICON_WIDTH + 10) * 0.5 * nodeSprite.scale.x;
             this.gcs[i].position.y = iconPosY;
@@ -229,9 +222,9 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     }
 
     setNodeLockIcon(nodeContainer) {
-        let nodeSprite = this;
-        let iconTexture = this.visualConfig.getLockIcon();
-        let iconSprite = new PIXI.Sprite(iconTexture);
+        const nodeSprite = this;
+        const iconTexture = this.visualConfig.getLockIcon();
+        const iconSprite = new PIXI.Sprite(iconTexture);
         iconSprite.anchor.x = 0.5;
         iconSprite.anchor.y = 0.5;
         iconSprite.scale.set(0.5 * nodeSprite.scale.x, 0.5 * nodeSprite.scale.y);
@@ -248,7 +241,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         this.ls = null;
     }
 
-    destroy(options) {
+    destroy() {
         if (this.ts) {
             this.ts.destroy({ texture: true, baseTexture: true });
         }
@@ -256,29 +249,25 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     }
 
     enableMultipleIcon() {
-        var nodeSprite = this;
-        var iconTexture = this.visualConfig.multiIcon
-        var iconSprite = new PIXI.Sprite(iconTexture);
+        const nodeSprite = this;
+        const iconTexture = this.visualConfig.multiIcon;
+        const iconSprite = new PIXI.Sprite(iconTexture);
         iconSprite.anchor.x = 0.5;
         iconSprite.anchor.y = 0.5;
         iconSprite.scale.set(0.5, 0.5);
         iconSprite.position.x = nodeSprite.position.x + this.visualConfig.NODE_LOCK_WIDTH * 0.5;
         iconSprite.position.y = nodeSprite.position.y + this.visualConfig.NODE_LOCK_WIDTH * 0.4;
-    
         iconSprite.visible = nodeSprite.visible;
         this.parent.addChild(iconSprite);
         nodeSprite.ms = iconSprite;
     }
-    
     disableMultipleIcon() {
         this.parent.removeChild(this.ms);
         this.ms = null;
     }
-    
     isMultiple() {
         return this._multiple;
     }
-    
     setMultiple(value) {
         if (!this._multiple && value) {
             this.enableMultipleIcon();

@@ -1,64 +1,37 @@
-import { visualConfig } from "./visualConfig.js";
+import visualConfig from './visualConfig';
 
 export default class Settings {
-    constructor(divId, classId, timelineId, visConfig) {
-        let divDoc = document.getElementById(divId);
-        let canvasDoc = document.createElement("canvas");
-        canvasDoc.setAttribute("id", "visPixijs");
-        canvasDoc.setAttribute("style", "border-width: 0;");
-        canvasDoc.setAttribute("tabindex", '1');
-
-        divDoc.appendChild(canvasDoc);
-
-        let w = $(classId).width();
-        let h = $(classId).height();
-        canvasDoc.width = w;
-        canvasDoc.height = h;
-        this.container = canvasDoc;
-
+    constructor(divId, timelineId, visConfig) {
+        const canvasContainer = document.getElementById(divId);
+        const canvas = document.createElement('canvas');
+        canvas.setAttribute('id', 'visPixijs');
+        canvas.setAttribute('style', 'border-width: 0;');
+        canvas.setAttribute('tabindex', '1');
+        canvasContainer.appendChild(canvas);
+        canvas.width = canvasContainer.offsetWidth;
+        canvas.height = canvasContainer.offsetHeight;
+        this.container = canvas;
         this.updateVisualConfig(visConfig);
-
         this.timelineContainer = timelineId;
-        this.mode = "picking";
-        this.physics = {
-            springLength: 30,
-            springCoeff: 0.0008,
-            dragCoeff: 0.01,
-            gravity: -1.2,
-            theta: 1
-        };
-
+        this.mode = 'picking';
     }
-
     updateVisualConfig(visConfig) {
-        let lockIconUrl = "/static/32/Lock/lock_state.png";
-        let multiIconUrl = "/static/images/ic_multiple_objects.png";
-        if (visConfig) {
-            let data = visConfig.icons || [];
-            for (let i = 0; i < data.length; i++) {
-                if (!data[i].texture) {
-                    data[i].texture = PIXI.Texture.fromImage(data[i].url);
-                }
-            }
-
-            this.visualConfig = visConfig;
-        } else {
-            _.each(visualConfig.icons, function(icon) {
-                icon.texture = PIXI.Texture.fromImage(icon.url);
-            });
-            this.visualConfig = visualConfig;
-
+        const lockIconUrl = '/static/32/Lock/lock_state.png';
+        const multiIconUrl = '/static/images/ic_multiple_objects.png';
+        const images = visConfig.icons || [];
+        for (const image of images) {
+            image.texture = PIXI.Texture.fromImage(image.url);
         }
-
-        let graphCollIcons = visualConfig.graphCollIcons || [];
-        for (let j = 1; j < 11; j++) {
-            let iconUrl = "/static/32/GraphColl/graph_coll" + j + ".png";
-            let texture = PIXI.Texture.fromImage(iconUrl);
+        this.visualConfig = visConfig;
+        const graphCollIcons = visualConfig.graphCollIcons || [];
+        for (let i = 0; i < 10; i++) {
+            const iconUrl = `/static/32/GraphColl/graph_coll${i + 1}.png`;
+            const texture = PIXI.Texture.fromImage(iconUrl);
             graphCollIcons.push(texture);
         }
+
         this.visualConfig.graphCollIcons = graphCollIcons;
         this.visualConfig.lockIcon = PIXI.Texture.fromImage(lockIconUrl);
         this.visualConfig.multiIcon = PIXI.Texture.fromImage(multiIconUrl);
     }
-
 }

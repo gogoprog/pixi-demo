@@ -3,11 +3,10 @@
  * later we could add modifier key to change the behavior like zoom when ctrl is pressed
  * scroll to move up/down and shift+scroll to move side ways.
  **/
-// import { visualConfig } from "./visualConfig.js";
 
-let getGraphCoordinates = (function () {
-    var ctx = {
-        global: {x: 0, y: 0} // store it inside closure to avoid GC pressure
+const getGraphCoordinates = (function () {
+    const ctx = {
+        global: { x: 0, y: 0 }, // store it inside closure to avoid GC pressure
     };
 
     return function (x, y, stage) {
@@ -17,21 +16,18 @@ let getGraphCoordinates = (function () {
     };
 }());
 
-export const zoom = function (x, y, isZoomIn, contentRoot, visualConfig) {
-    // if ((isZoomIn && contentRoot.scale.x > visualConfig.MAX_SCALE) || (!isZoomIn && contentRoot.scale.x < visualConfig.MIN_SCALE)) {
-    //     return;
-    // }
-    let direction = isZoomIn ? 1 : -1;
-    let factor = (1 + direction * 0.1);
+export const zoom = function (x, y, isZoomIn, contentRoot) {
+    const direction = isZoomIn ? 1 : -1;
+    const factor = (1 + direction * 0.1);
     contentRoot.scale.x *= factor;
     contentRoot.scale.y *= factor;
     // Technically code below is not required, but helps to zoom on mouse
     // cursor, instead center of graphGraphics coordinates
-    let beforeTransform = getGraphCoordinates(x, y, contentRoot);
+    const beforeTransform = getGraphCoordinates(x, y, contentRoot);
     // console.log('After zooming ' + (isZoomIn ? 'in' : 'out') +
     //  ' @ViewPort(' + vpX + ',' + vpY + ') and Graph: ' + JSON.stringify(beforeTransform));
     contentRoot.updateTransform();
-    let afterTransform = getGraphCoordinates(x, y, contentRoot);
+    const afterTransform = getGraphCoordinates(x, y, contentRoot);
     // console.log('After zooming ' + (isZoomIn ? 'in' : 'out') +
     //  ' @ViewPort(' + vpX + ',' + vpY + ') and Graph: ' + JSON.stringify(afterTransform));
 
@@ -43,31 +39,25 @@ export const zoom = function (x, y, isZoomIn, contentRoot, visualConfig) {
     }
 };
 
-let setupWheelListener = function (domElement, stage) {
-    addWheelListener(domElement, function (e) {
-        zoom(e.offsetX, e.offsetY, e.deltaY < 0, stage);
-    }, true);
-};
-
+// 被调用时this被绑定到stage
 export const rootCaptureHandler = function (e) {
     if (!this.interactive || this.hasNodeCaptured) {
         return;
     }
-
     this.isDirty = true;
     this.data = e.data;
 
-    if (this.mode === "panning") {
+    if (this.mode === 'panning') {
         this.mouseLocation = {
             x: e.data.global.x,
-            y: e.data.global.y
+            y: e.data.global.y,
         };
         // console.log('Root captured @' + JSON.stringify(this.mouseLocation));
         this.dragging = true;
     } else {
         this.mouseLocation = {
             x: e.data.global.x,
-            y: e.data.global.y
+            y: e.data.global.y,
         };
         this.selectingArea = true;
         // console.log('Root captured @' + JSON.stringify(this.mouseLocation));
@@ -82,7 +72,8 @@ export const rootCaptureHandler = function (e) {
     }
 };
 
-let rootReleaseHandler = function (e) {
+// rootCaptureHandler的帮助函数
+const rootReleaseHandler = function (e) {
     this.off('mousemove', this.moveListener);
     this.off('mouseup', this.upListener);
     this.data = null;
@@ -97,19 +88,17 @@ let rootReleaseHandler = function (e) {
     this.isDirty = true;
 };
 
-let rootMoveHandler = function (e) {
-    //throttle 限制回调函数被调用次数的方式
-    let oldPosition = this.mouseLocation;
-    let newPosition = e.data.global;
-    let dx = newPosition.x - oldPosition.x;
-    let dy = newPosition.y - oldPosition.y;
+// rootCaptureHandler的帮助函数
+const rootMoveHandler = function (e) {
+    // throttle 限制回调函数被调用次数的方式
+    const oldPosition = this.mouseLocation;
+    const newPosition = e.data.global;
+    const dx = newPosition.x - oldPosition.x;
+    const dy = newPosition.y - oldPosition.y;
     if (this.dragging) {
-        let r = this.contentRoot.getBounds();
-        // console.log('Root move event (' + dx + ', ' + dy + ')@('+this.contentRoot.position.x+
-        // ','+this.contentRoot.position.y+') of root rect:'+ "Rectange[" + r.x + "," + r.y + ";" + r.width + "," + r.height + "]");
         this.mouseLocation = {
             x: e.data.global.x,
-            y: e.data.global.y
+            y: e.data.global.y,
         };
         this.contentRoot.position.x += dx;
         this.contentRoot.position.y += dy;
@@ -120,19 +109,13 @@ let rootMoveHandler = function (e) {
     } else if (this.selectingArea) {
         if (Math.abs(dx) > 5 && Math.abs(dy) > 5) {
             this.selectRegion = {
-                // x1: oldPosition.x-this.contentRoot.position.x,
-                // y1: oldPosition.y-this.contentRoot.position.y,
-                // x2: newPosition.x-this.contentRoot.position.x,
-                // y2: newPosition.y-this.contentRoot.position.y
                 x1: oldPosition.x,
                 y1: oldPosition.y,
                 x2: newPosition.x,
                 y2: newPosition.y,
-                // ix: oldPosition.x-this.contentRoot.position.x,
-                // iy: oldPosition.y-this.contentRoot.position.y
             };
-            let op = {};
-            let np = {};
+            const op = {};
+            const np = {};
             op.global = {};
             np.global = {};
 
@@ -145,9 +128,7 @@ let rootMoveHandler = function (e) {
             let tnp = new PIXI.Point();
             top = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(op, this.contentRoot);
             tnp = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(np, this.contentRoot);
-            //console.log(top.x+" "+top.y+" "+tnp.x+" "+tnp.y);
-            let me = e.data.originalEvent;
-            //console.log("e",e);
+            const me = e.data.originalEvent;
             let flag = true;
             if (me.ctrlKey || me.shiftKey) {
                 flag = false;
@@ -155,9 +136,10 @@ let rootMoveHandler = function (e) {
             this.selectAllNodesInRegion(top.x, top.y, tnp.x, tnp.y, flag);
         }
     }
-
 };
 
+const newPosition = new PIXI.Point();
+// this绑定到SimpleNodeSprite, this.parent是nodeContainer
 export const nodeCaptureListener = function (e) {
     // console.log('Mouse down on node ' + JSON.stringify(this.position));
     this.interactionData = e.data;
@@ -179,12 +161,12 @@ export const nodeCaptureListener = function (e) {
     }
 };
 
-let nodeReleaseListener = function (e) {
+// 选中节点处理
+const nodeReleaseListener = function (e) {
     this.off('mousemove', this.moveListener);
     this.alpha = 1;
     this.dragging = false;
     this.parent.nodeReleased(this);
-    //newPosition.copy(this.interactionData.getLocalPosition(this.parent));
     this.parent.isDirty = true;
     this.interactionData = null;
     this.parent.selectedNodesPosChanged();
@@ -194,14 +176,14 @@ let nodeReleaseListener = function (e) {
     this.releaseListener = null;
 };
 
-let newPosition = new PIXI.Point();
-let nodeMoveListener = function (e) {
+//  移动节点处理
+const nodeMoveListener = function (e) {
     // console.log('node mouse move fired');
     this.parent.dragJustNow = false;
     this.parent.setPositionDirty(false);
     newPosition.copy(this.interactionData.getLocalPosition(this.parent));
     if (this.timelineMode) {
-        let dx = Math.abs(newPosition.x - this.position.x);
+        const dx = Math.abs(newPosition.x - this.position.x);
         newPosition.x = this.position.x; // disable movement in x;
         if (dx > (this.visualConfig.NODE_WIDTH / 2 + 5)) { // when mouse move horizontally two far away from node, just release it.
             // console.log("Dx " + dx);
@@ -209,13 +191,13 @@ let nodeMoveListener = function (e) {
         }
     }
     if (this.dragging && this.selected) {
-        //newPosition=null;
-        //this.updateNodePosition(newPosition);
-        let dx = newPosition.x - this.position.x;
-        let dy = newPosition.y - this.position.y;
-        let container = this.parent;
-        _.each(this.parent.nodes, function (n) {
-            let np = new PIXI.Point();
+        // newPosition=null;
+        // this.updateNodePosition(newPosition);
+        const dx = newPosition.x - this.position.x;
+        const dy = newPosition.y - this.position.y;
+        const container = this.parent;
+        _.each(this.parent.nodes, (n) => {
+            const np = new PIXI.Point();
             np.x = n.position.x + dx;
             np.y = n.position.y + dy;
             n.updateNodePosition(np);
@@ -225,22 +207,23 @@ let nodeMoveListener = function (e) {
         this.parent.dragJustNow = true;
         this.parent.setPositionDirty(true);
     } else if (!this.selected) {
-        let mouseEvent = e.data.originalEvent;
+        const mouseEvent = e.data.originalEvent;
         if (!mouseEvent.ctrlKey && !mouseEvent.shiftKey) {
             this.parent.parent.deselectAll();
         }
         this.parent.selectNode(this);
-        //newPosition=null;
+        // newPosition=null;
         this.updateNodePosition(newPosition);
         this.parent.nodeMoved(this);
         this.parent.setPositionDirty(true);
     }
 };
 
+// this绑定到SimpleLineSprite, this.parent是lineContainer
 export const linkCaptureListener = function (e) {
     this.interactionData = e.data;
     if (!this.selected) {
-        let mouseEvent = e.data.originalEvent;
+        const mouseEvent = e.data.originalEvent;
         if (!mouseEvent.ctrlKey && !mouseEvent.shiftKey) {
             this.parent.parent.deselectAll();
         }
@@ -252,7 +235,7 @@ export const linkCaptureListener = function (e) {
     }
 };
 
-let linkReleaseListener = function (e) {
+const linkReleaseListener = function (e) {
     this.interactionData = null;
     this.off('mouseup', this.releaseListener);
     this.releaseListener = null;

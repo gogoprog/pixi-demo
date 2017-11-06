@@ -1,9 +1,9 @@
-import { linkCaptureListener } from "./customizedEventHandling";
+import { linkCaptureListener } from './customizedEventHandling';
 
 export default class SimpleLineSprite {
     static textureCache = {};
 
-    static get MULTI_OFFSET() { return 30; } //10 px between each line.
+    static get MULTI_OFFSET() { return 30; } // 10 px between each line.
     static get ARROW_HEIGHT() { return 24; }
     static get ARROW_WIDTH() { return 16; }
     static get THICKNESS_FACTOR() { return 4; }
@@ -18,7 +18,6 @@ export default class SimpleLineSprite {
         this.y2 = y2;
         this.visualConfig = visualConfig;
         this._controlOffsetIndex = controlOffsetIndex || 0;
-    
         this.coustomSettingThickness = visualConfig.ui.line.width;
         this.coustomSettingColor = visualConfig.ui.line.color;
         this.coustomSettingAlpha = visualConfig.ui.line.alpha;
@@ -31,22 +30,20 @@ export default class SimpleLineSprite {
             this.arrow.scale.set(0.5, 0.5);
             this.arrow.anchor.x = 0.5;
             this.arrow.lineSprite = this;
-    
             this.arrow.on('mouseup', linkCaptureListener);
         }
-    
         this.label = new PIXI.Text(label, fontConfig);
         this.label.scale.set(0.5, 0.5);
         this.label.anchor.x = 0.5;
         this.label.lineSprite = this;
-        this.label.on("mousedown", linkCaptureListener);
+        this.label.on('mousedown', linkCaptureListener);
         this.updatePosition();
     }
 
     get thickness() {
         return this._thickness;
-    };
-    set thickness (value) {
+    }
+    set thickness(value) {
         this._thickness = value;
         if (this.hasArrow) {
             if (this.arrowStyle) {
@@ -55,11 +52,11 @@ export default class SimpleLineSprite {
                 this.arrow.texture = SimpleLineSprite.getTexture(this._thickness, this._color);
             }
         }
-    };
+    }
 
     get color() {
         return this._color;
-    };
+    }
     set color(value) {
         this._color = value;
         if (this.hasArrow) {
@@ -69,15 +66,15 @@ export default class SimpleLineSprite {
                 this.arrow.texture = SimpleLineSprite.getTexture(this._thickness, this._color);
             }
         }
-    };
+    }
 
     get controlOffsetIndex() {
         return this._controlOffsetIndex;
-    };
+    }
     set controlOffsetIndex(value) {
         this._controlOffsetIndex = value;
         this.updatePosition();
-    };
+    }
 
     /**
      * set the attribute of the line (color, width, alpha)
@@ -92,20 +89,18 @@ export default class SimpleLineSprite {
         this.color = this.coustomSettingColor;
         this.thickness = this.coustomSettingThickness;
         this.label.alpha = this.coustomSettingAlpha;
-
-    };
+    }
 
     /**
      * get the attribute of the line (LinkAttr: color, width, alpha)
      */
     getLineAttr() {
-        let lineAttr = {};
+        const lineAttr = {};
         lineAttr.width = this.coustomSettingThickness;
         lineAttr.color = this.coustomSettingColor;
         lineAttr.alpha = this.coustomSettingAlpha;
-
         return lineAttr;
-    };
+    }
 
     updateLabel(str) {
         this.label.text = str;
@@ -114,61 +109,47 @@ export default class SimpleLineSprite {
     selectionChanged(selected) {
         this.selected = selected;
         if (selected) {
-            //console.log("+++++++++++++++++++++++");
-            // this.arrow.scale.set(0.8, 0.8);
-            // this.label.alpha = visualConfig.ui.line.highlight.alpha;
-            // console.log(visualConfig.ui.line.highlight.width);
-            // console.log(visualConfig.ui.line.highlight.color);
-            // console.log(visualConfig.ui.line.highlight.alpha);
-            // this.thickness = visualConfig.ui.line.highlight.width;
             this.color = this.visualConfig.ui.line.highlight.color;
             this.alpha = this.visualConfig.ui.line.highlight.alpha;
             this.label.style = this.visualConfig.ui.label.fontHighlight;
-
-            //console.log("\n ================"+this.color);
         } else {
-            // this.arrow.scale.set(0.5, 0.5);
             this.label.alpha = this.coustomSettingAlpha;
-            // this.thickness = this.coustomSettingThickness;
             this.color = this.coustomSettingColor;
             this.alpha = this.coustomSettingAlpha;
             this.label.style = this.visualConfig.ui.label.font;
         }
-    };
+    }
 
     setFrom(point) {
         this.x1 = point.x;
         this.y1 = point.y;
         this.updatePosition();
-    };
+    }
 
     setTo(point) {
         this.x2 = point.x;
         this.y2 = point.y;
         this.updatePosition();
-    };
+    }
 
     renderLine(lineGraphics) {
         lineGraphics.lineStyle(this.thickness, this.color, this.alpha);
-
-        if (this.x1 != this.x2 || this.y1 != this.y2) {
+        if (this.x1 !== this.x2 || this.y1 !== this.y2) {
             lineGraphics.moveTo(this.x1, this.y1);
-            if (this._controlOffsetIndex == 0 || this.forceStraightLine) {
+            if (this._controlOffsetIndex === 0 || this.forceStraightLine) {
                 lineGraphics.lineTo(this.x2, this.y2);
             } else {
                 lineGraphics.quadraticCurveTo(this.cx, this.cy, this.x2, this.y2);
             }
         } else {
-            let tempx = this.dx || 0;
-            let tempy = this.dy || 0;
+            const tempx = this.dx || 0;
+            const tempy = this.dy || 0;
             lineGraphics.drawEllipse(this.x1, this.y1 + this.visualConfig.ELLIPSE_HIEGHT + tempy, this.visualConfig.ELLIPSE_WIDTH + tempx, this.visualConfig.ELLIPSE_HIEGHT + tempy);
         }
-
-    };
+    }
 
     updatePosition() {
-        if (this.x1 != this.x2 || this.y1 != this.y2) {
-
+        if (this.x1 !== this.x2 || this.y1 !== this.y2) {
             if (this.forceStraightLine) {
                 if (this.hasArrow) {
                     this.arrow.position.x = (this.x2 + this.x1) / 2;
@@ -178,10 +159,9 @@ export default class SimpleLineSprite {
                 this.label.position.x = (this.x2 + this.x1) / 2;
                 this.label.position.y = (this.y2 + this.y1) / 2 + 5;
             } else {
-                let angle = Math.atan2(this.y2 - this.y1, this.x2 - this.x1);
-                let dxCtl = this._controlOffsetIndex * SimpleLineSprite.MULTI_OFFSET * Math.sin(angle),
-                    dyCtl = this._controlOffsetIndex * SimpleLineSprite.MULTI_OFFSET * Math.cos(angle);
-
+                const angle = Math.atan2(this.y2 - this.y1, this.x2 - this.x1);
+                const dxCtl = this._controlOffsetIndex * SimpleLineSprite.MULTI_OFFSET * Math.sin(angle);
+                const dyCtl = this._controlOffsetIndex * SimpleLineSprite.MULTI_OFFSET * Math.cos(angle);
                 this.cx = (this.x2 + this.x1) / 2 + dxCtl;
                 this.cy = (this.y2 + this.y1) / 2 - dyCtl;
                 if (this.hasArrow) {
@@ -193,8 +173,8 @@ export default class SimpleLineSprite {
                 this.label.position.y = (this.y2 + this.y1) / 2 - dyCtl / 2 + 5;
             }
         } else {
-            let dyCtl = this._controlOffsetIndex * this.visualConfig.ELLIPSE_Y_OFFSET,
-                dxCtl = this._controlOffsetIndex * this.visualConfig.ELLIPSE_X_OFFSET;
+            const dyCtl = this._controlOffsetIndex * this.visualConfig.ELLIPSE_Y_OFFSET;
+            const dxCtl = this._controlOffsetIndex * this.visualConfig.ELLIPSE_X_OFFSET;
             this.dy = dyCtl;
             this.dx = dxCtl;
             if (this.hasArrow) {
@@ -205,7 +185,7 @@ export default class SimpleLineSprite {
             this.label.position.x = this.x1;
             this.label.position.y = this.y1 + this.visualConfig.ELLIPSE_HIEGHT * 2 + dyCtl * 2 + 6;
         }
-    };
+    }
 
     hide() {
         this.visible = false;
@@ -213,7 +193,7 @@ export default class SimpleLineSprite {
             this.arrow.visible = false;
         }
         this.label.visible = false;
-    };
+    }
 
     show() {
         this.visible = true;
@@ -221,16 +201,16 @@ export default class SimpleLineSprite {
             this.arrow.visible = true;
         }
         this.label.visible = true;
-    };
+    }
 
-    destroy(options) {
+    destroy() {
         if (this.arrow) {
-            this.arrow.destroy({texture: false, baseTexture: false});
+            this.arrow.destroy({ texture: false, baseTexture: false });
         }
         if (this.label) {
-            this.label.destroy({texture: true, baseTexture: true});
+            this.label.destroy({ texture: true, baseTexture: true });
         }
-    };
+    }
 
     /**
      * @param width
@@ -238,21 +218,21 @@ export default class SimpleLineSprite {
      * @returns {Element}
      */
     static getCanvas(width, height) {
-        let canvas = document.createElement("canvas");
+        const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
         return canvas;
-    };
+    }
 
-    //FIXME thinkness is not used here!
+    // FIXME thinkness is not used here!
     static getTexture(thickness, color) {
-        const key = thickness + "-" + color;
+        const key = `${thickness}-${color}`;
         if (!SimpleLineSprite.textureCache[key]) {
-            console.log("Generating texture: " + key);
-            let arrowW = SimpleLineSprite.ARROW_WIDTH + SimpleLineSprite.THICKNESS_FACTOR * thickness,
-                arrowH = SimpleLineSprite.ARROW_HEIGHT + SimpleLineSprite.THICKNESS_FACTOR * thickness;
-            let canvas = SimpleLineSprite.getCanvas(arrowW, arrowH);
-            let context = canvas.getContext("2d");
+            console.log(`Generating texture: ${key}`);
+            const arrowW = SimpleLineSprite.ARROW_WIDTH + SimpleLineSprite.THICKNESS_FACTOR * thickness;
+            const arrowH = SimpleLineSprite.ARROW_HEIGHT + SimpleLineSprite.THICKNESS_FACTOR * thickness;
+            const canvas = SimpleLineSprite.getCanvas(arrowW, arrowH);
+            const context = canvas.getContext('2d');
             context.fillStyle = PIXI.utils.hex2string(color);
 
             context.beginPath();
@@ -262,22 +242,21 @@ export default class SimpleLineSprite {
 
             context.fill();
 
-            let texture = new PIXI.Texture(new PIXI.BaseTexture(canvas), PIXI.SCALE_MODES.LINEAR);
+            const texture = new PIXI.Texture(new PIXI.BaseTexture(canvas), PIXI.SCALE_MODES.LINEAR);
             texture.frame = new PIXI.Rectangle(0, 0, arrowW, arrowH);
             SimpleLineSprite.textureCache[key] = texture;
         }
-
         return SimpleLineSprite.textureCache[key];
-    };
+    }
 
     static getMultiTexture(thickness, color) {
-        const key = thickness + "-" + color + "-multi";
+        const key = `${thickness}-${color}-multi`;
         if (!SimpleLineSprite.textureCache[key]) {
-            console.log("Generating texture: " + key);
-            let arrowW = SimpleLineSprite.ARROW_WIDTH + SimpleLineSprite.THICKNESS_FACTOR * thickness,
-                arrowH = SimpleLineSprite.ARROW_HEIGHT + SimpleLineSprite.THICKNESS_FACTOR * thickness;
-            let canvas = SimpleLineSprite.getCanvas(arrowW, arrowH);
-            let context = canvas.getContext("2d");
+            console.log(`Generating texture: ${key}`);
+            const arrowW = SimpleLineSprite.ARROW_WIDTH + SimpleLineSprite.THICKNESS_FACTOR * thickness;
+            const arrowH = SimpleLineSprite.ARROW_HEIGHT + SimpleLineSprite.THICKNESS_FACTOR * thickness;
+            const canvas = SimpleLineSprite.getCanvas(arrowW, arrowH);
+            const context = canvas.getContext('2d');
             context.fillStyle = PIXI.utils.hex2string(color);
             context.beginPath();
             context.moveTo(0, 0);
@@ -288,11 +267,10 @@ export default class SimpleLineSprite {
             context.lineTo(arrowW, arrowH / 2);
 
             context.fill();
-            let texture = new PIXI.Texture(new PIXI.BaseTexture(canvas), PIXI.SCALE_MODES.LINEAR);
+            const texture = new PIXI.Texture(new PIXI.BaseTexture(canvas), PIXI.SCALE_MODES.LINEAR);
             texture.frame = new PIXI.Rectangle(0, 0, arrowW, arrowH);
             SimpleLineSprite.textureCache[key] = texture;
         }
-
         return SimpleLineSprite.textureCache[key];
-    };
+    }
 }

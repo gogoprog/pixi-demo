@@ -1,26 +1,27 @@
-export const SelectionManager = function(nodeContainer, lineContainer) {
+// 在PixiRenderer中的调用方式： SelectionManager.call(root, nodeContainer, lineContainer);
+export default function SelectionManager(nodeContainer, lineContainer) {
     this.nodeContainer = nodeContainer;
     this.lineContainer = lineContainer;
+    // root中有isDirty
     this.isDirty = false;
 
     NodeSelectionManager.call(nodeContainer);
     LinkSelectionManager.call(lineContainer);
-    
-    this.deselectAll = function() {
+    this.deselectAll = function () {
         this.nodeContainer.deselectAllNodes();
         this.lineContainer.deselectAllLinks();
     };
 
     this.handleMouseUp = function (e) {
         this.isDirty = true;
-        var mouseEvent = e.data.originalEvent;
+        const mouseEvent = e.data.originalEvent;
         if (this.nodeContainer.recentlySelected) {
-            var n = this.nodeContainer.recentlySelected; 
+            const node = this.nodeContainer.recentlySelected;
             if (mouseEvent.ctrlKey || mouseEvent.shiftKey) {
-                if (n.selected) {   // multi-selecting
-                    this.nodeContainer.deselectNode(n);
+                if (node.selected) {   // multi-selecting
+                    this.nodeContainer.deselectNode(node);
                 } else {
-                    this.nodeContainer.selectNode(n);
+                    this.nodeContainer.selectNode(node);
                 }
             } else {
                 if (!this.dragJustNow) {
@@ -28,35 +29,38 @@ export const SelectionManager = function(nodeContainer, lineContainer) {
                 } else {
                     this.dragJustNow = false;
                 }
-                this.nodeContainer.selectNode(n);
+                this.nodeContainer.selectNode(node);
             }
             this.nodeContainer.recentlySelected = null;
         } else if (this.lineContainer.recentlySelected) {
-            var n = this.lineContainer.recentlySelected; 
+            const line = this.lineContainer.recentlySelected;
             if (mouseEvent.ctrlKey || mouseEvent.shiftKey) {
-                if (n.selected) {   // multi-selecting
-                    this.lineContainer.deselectLink(n);
+                if (line.selected) {   // multi-selecting
+                    this.lineContainer.deselectLink(line);
                 } else {
-                    this.lineContainer.selectLink(n);
+                    this.lineContainer.selectLink(line);
                 }
             } else {
                 this.deselectAll();
-                this.lineContainer.selectLink(n);
+                this.lineContainer.selectLink(line);
             }
             this.lineContainer.recentlySelected = null;
         } else {
+            // ?
             if (!this.parent.selectRegion) {
                 this.deselectAll();
             }
         }
     };
-    
-};
+}
 
 const NodeSelectionManager = function () {
+    // 将选中的节点以数组保存 [node1, node2, ...]
     this.nodes = [];
+    // 将选中的节点以对象保存 { node.id1: node1, node.id2: node2, ... }
     this.selectedNodes = {};
     this.recentlySelected = null;
+    // nodeContainer中有isDirty
     this.isDirty = false;
     this.positionDirty = false;
 
@@ -79,20 +83,21 @@ const NodeSelectionManager = function () {
     this.deselectNode = function (node) {
         if (node.selected) {
             this.isDirty = true;
-            var index = this.nodes.indexOf(this.selectedNodes[node.id]);
+            const index = this.nodes.indexOf(this.selectedNodes[node.id]);
             if (index > -1) {
                 this.nodes.splice(index, 1);
             }
+            // 更新下节点样式
             node.selectionChanged(false);
             delete this.selectedNodes[node.id];
         }
     };
 
     this.deselectAllNodes = function () {
-        let keys = Object.keys(this.selectedNodes);
+        const keys = Object.keys(this.selectedNodes);
         if (keys.length > 0) {
             this.isDirty = true;
-            _.each(this.selectedNodes, function (node, id) {
+            _.each(this.selectedNodes, (node) => {
                 node.selectionChanged(false);
             });
             this.selectedNodes = {};
@@ -103,14 +108,17 @@ const NodeSelectionManager = function () {
     this.setPositionDirty = function (posDirty) {
         this.positionDirty = posDirty;
     };
-
 };
 
 const LinkSelectionManager = function () {
+    // 将选中的链接以数组保存 [lin1, link2, ...]
     this.links = [];
+    // 将选中的链接以对象保存 { link.id1: link1, link.id2: link2... }
     this.selectedLinks = {};
     this.recentlySelected = null;
+    // lineContainer中有isDirty
     this.isDirty = false;
+    // 将未选中的链接以对象保存
     this.unSelectedLinks = {};
     this.styleDirty = false;
 
@@ -125,6 +133,7 @@ const LinkSelectionManager = function () {
             if (!_.has(this.selectedLinks, link.id)) {
                 this.selectedLinks[link.id] = link;
                 this.links.push(link);
+                // 这个方法是在哪里定义的
                 link.selectionChanged(true);
             }
         }
@@ -133,7 +142,7 @@ const LinkSelectionManager = function () {
     this.deselectLink = function (link) {
         if (link.selected) {
             this.isDirty = true;
-            var index = this.links.indexOf(this.selectedLinks[link.id]);
+            const index = this.links.indexOf(this.selectedLinks[link.id]);
             if (index > -1) {
                 this.links.splice(index, 1);
             }
@@ -144,19 +153,15 @@ const LinkSelectionManager = function () {
     };
 
     this.deselectAllLinks = function () {
-        var self = this;
-        let keys = Object.keys(this.selectedLinks);
+        const keys = Object.keys(this.selectedLinks);
         if (keys.length > 0) {
             this.isDirty = true;
-            _.each(this.selectedLinks, function (link, id) {
+            _.each(this.selectedLinks, (link, id) => {
                 link.selectionChanged(false);
-                self.unSelectedLinks[id] = link;
+                this.unSelectedLinks[id] = link;
             });
             this.selectedLinks = {};
             this.links = [];
         }
     };
-    
 };
-
-
