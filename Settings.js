@@ -1,4 +1,4 @@
-import visualConfig from './visualConfig';
+import { visualConfig } from './visualConfig';
 
 export default class Settings {
     constructor(divId, timelineId, visConfig) {

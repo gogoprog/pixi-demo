@@ -1,4 +1,4 @@
-export default {
+export const visualConfig = {
     backgroundColor: 0x152037,
     NODE_LABLE_OFFSET_Y: 26,
     LINK_LABLE_OFFSET_Y: 10,
