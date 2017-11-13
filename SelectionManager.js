@@ -18,9 +18,9 @@ export const SelectionManager = function(nodeContainer, lineContainer) {
             var n = this.nodeContainer.recentlySelected; 
             if (mouseEvent.ctrlKey || mouseEvent.shiftKey) {
                 if (n.selected) {   // multi-selecting
-                    this.nodeContainer.deselectNode(n);
-                } else {
                     this.nodeContainer.selectNode(n);
+                } else {
+                    this.nodeContainer.deselectNode(n);
                 }
             } else {
                 if (!this.dragJustNow) {
