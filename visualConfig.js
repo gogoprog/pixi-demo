@@ -1,5 +1,5 @@
 export const visualConfig = {
-    backgroundColor: 0x152037,
+    backgroundColor: 0xf7f7f7,
     NODE_LABLE_OFFSET_Y: 26,
     LINK_LABLE_OFFSET_Y: 10,
     MAX_SCALE: 10,
@@ -27,7 +27,7 @@ export const visualConfig = {
         background: 0x101010,
         frame: {
             border: {
-                color: 0x0077b3,
+                color: 0x2dcc70,
                 width: 2,
                 alpha: 0.8,
             },
@@ -37,7 +37,7 @@ export const visualConfig = {
             },
         },
         line: {
-            color: 0xFFFFFF,
+            color: 0x2962cb,
             alpha: 1,
             width: 2,
             highlight: {
@@ -58,11 +58,11 @@ export const visualConfig = {
             },
         },
         label: {
-            font: { fontFamily: 'Microsoft YaHei,Tahoma', fill: '#FFFFFF', align: 'center', fontSize: '20px' },
+            font: { fontFamily: 'Microsoft YaHei,Tahoma', fill: '#333', align: 'center', fontSize: '20px', },
             fontHighlight: { fontFamily: 'Microsoft YaHei,Tahoma', fill: 0x2dcc70, align: 'center', fontSize: '24px' },
         },
         timeline: {
-            color: 0xFFFFFF,
+            color: 0x2962cb,
             width: 3,
         },
     },
