@@ -1,4 +1,4 @@
-import { linkCaptureListener } from './customizedEventHandling';
+import { linkCaptureListener } from '../customizedEventHandling';
 
 export default class SimpleLineSprite {
     static textureCache = {};
