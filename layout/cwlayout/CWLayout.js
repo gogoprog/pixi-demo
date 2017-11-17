@@ -2,17 +2,17 @@
  * Created by xuhe on 2017/6/8.
  */
 import createChineseWhisper from './createChineseWhisper.js'
-import Layout from './Layout.js';
+import Layout from '../Layout.js';
 
 export default class CWLayout extends Layout  {
     constructor(nodeSprites, nodeContainer, visualConfig) {
         super(nodeSprites, nodeContainer);
         this.NODE_WIDTH = visualConfig.NODE_WIDTH;
-    
+
         // initialize!
         let nodes = this.getNodes();
         let that = this;
-    
+
         // 将nodeSprites划分聚类
         let whisper = createChineseWhisper(nodeSprites);
         let changeRate = whisper.getChangeRate();
@@ -20,14 +20,14 @@ export default class CWLayout extends Layout  {
             whisper.step();
             changeRate = whisper.getChangeRate();
         }
-    
+
         // 存储聚类集合
         let clusters = CWLayout.createCluster(nodes, whisper, this.NODE_WIDTH);
         // 存储所有聚类集合中节点数目最多的集合的索引
         let maxIndex = CWLayout.getMaxIndex(clusters);
         // 计算坐标
         that.calCWPosition(nodes, clusters, maxIndex, this.NODE_WIDTH);
-    
+
         for (let i = 0; i < clusters.length; i++) {
             for (let j = 0; j < clusters[i].child.length; j++) {
                 that.draw(clusters[i].child[j]);
@@ -72,7 +72,7 @@ export default class CWLayout extends Layout  {
                             }else {
                                 c = c.parent;
                             }
-                        }    
+                        }
                         if (!isParent && maxRelationNum < relationNum[i][j]) {
                                 maxRelationNum = relationNum[i][j];
                                 maxNeighbour = j;
@@ -118,7 +118,7 @@ export default class CWLayout extends Layout  {
                     c.treeNo = c.parent.treeNo;
                 }
                 if (c.treeChild) {
-                    let lId = 0; 
+                    let lId = 0;
                     for (let j = 0; j < c.treeChild.length; j++) {
                         clusters[c.treeChild[j]].levelId = lId;
                         lId++;
@@ -352,7 +352,7 @@ export default class CWLayout extends Layout  {
 
     static createCluster(nodes, whisper, NODE_WIDTH) {
         let clusters = [];
-    
+
         for (let nodeId in nodes) {
             let cluster = [];
             if (nodeId === "notInTreeNum") {
@@ -373,9 +373,9 @@ export default class CWLayout extends Layout  {
                 clusters.push(cluster);
                 continue;
             }
-    
+
             for (i = 0; i < clusters.length; i++) {
-    
+
                 if (clusters[i].child[0].clusterId === clusterId) {
                     let clusterNode = {
                         clusterId: clusterId,
@@ -386,7 +386,7 @@ export default class CWLayout extends Layout  {
                     break;
                 }
             }
-    
+
             if (i === clusters.length) {
                 let clusterNode = {
                     clusterId: clusterId,
@@ -397,9 +397,9 @@ export default class CWLayout extends Layout  {
                 cluster.id = clusterId;
                 clusters.push(cluster);
             }
-    
+
         }
-    
+
         for (let i = 0; i < clusters.length; i++) {
             //计算每个聚类的半径和平均角度
             clusters[i].radius = (NODE_WIDTH * 2 * clusters[i].child.length * 1.5) / (2 * Math.PI);
@@ -408,7 +408,7 @@ export default class CWLayout extends Layout  {
         }
         return clusters;
     };
-    
+
     //获取包含节点最多的那个聚类集合的集合索引
     static getMaxIndex(clusters) {
         let maxNumClusterId = 0;
