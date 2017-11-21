@@ -1,7 +1,7 @@
 /**
 Begin addWheelListener
 */
-let prefix;
+let prefix = '';
 let _addEventListener;
 let _removeEventListener;
 
