@@ -1,7 +1,8 @@
 import createLayout from './ForceLayoutInNGraph.js';
 import PhysicsSimulator from './ngraphPhysicsSimulator.js';
 import Graph from "../../Graph";
-import * as d3 from '../../../d3/d3';
+import * as d3 from "d3-force"; 
+// import * as d3 from '../../../d3/d3';
 
 var eventify = require('ngraph.events');
 
