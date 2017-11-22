@@ -541,6 +541,7 @@ export default function Graph(source, options) {
             return false;
         }
         var idx = indexOfElementInArray(link, links);
+        var linkTmp = links[idx];
         if (idx < 0) {
             return false;
         }
@@ -575,7 +576,7 @@ export default function Graph(source, options) {
             }
         }
 
-        recordLinkChange(link, 'remove');
+        recordLinkChange(linkTmp, 'remove');
 
         exitModification();
 

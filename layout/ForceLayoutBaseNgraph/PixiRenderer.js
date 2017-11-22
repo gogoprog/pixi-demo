@@ -2,22 +2,20 @@ import createForceLayout from 'ngraph.forcelayout';
 import eventify from 'ngraph.events';
 import 'pixi.js';
 
-import LayeredLayout from './layout/LayeredLayout';
-import CircleLayout from './layout/CircleLayout';
-import RadiateLayout from './layout/RadiateLayout';
-import TimelineLayout from './layout/TimelineLayout';
-import forceLayoutBaseNgraph from "./layout/ForceLayoutBaseNgraph/ForceLayout"
+import LayeredLayout from './LayeredLayout';
+import CircleLayout from './CircleLayout';
+import RadiateLayout from './RadiateLayout';
+import TimelineLayout from './TimelineLayout';
+import forceLayoutBaseNgraph from "./ForceLayoutBaseNgraph/ForceLayout"
+
 
 import Graph from './Graph';
-
 import SelectionManager from './SelectionManager';
+import CircleBorderTexture from './CircleBorderSprite';
 import { addWheelListener, removeWheelListener } from './WheelListener';
 import { zoom, rootCaptureHandler, nodeCaptureListener } from './customizedEventHandling';
-
-import CircleBorderTexture from './sprite/CircleBorderSprite';
-import SimpleLineSprite from './sprite/SimpleLineSprite';
-import SimpleNodeSprite from './sprite/SimpleNodeSprite';
-
+import SimpleLineSprite from './SimpleLineSprite';
+import SimpleNodeSprite from './SimpleNodeSprite';
 import AnimationAgent from './AnimationAgent';
 import FPSCounter from './FPSCounter';
 import convertCanvasToImage from './Utils';
@@ -47,7 +45,7 @@ export default class PixiRenderer {
         // If client does not need custom layout algorithm, let's create default one:
         // let networkLayout = createForceLayout(graph, visualConfig.forceLayout);
         let networkLayout = forceLayoutBaseNgraph(graph, visualConfig.forceLayout);
-        
+
         let layout = networkLayout;
         let layoutType = 'Network';
 
@@ -620,6 +618,46 @@ export default class PixiRenderer {
                     },
                 };
             },
+
+            /*calculateRootPositionToCenterForActualSize() {
+                isDirty = true;
+                let root = this.root;
+                let graphRect = layout.getGraphRect();
+                if (!graphRect) {
+                    console.error("No valid graph rectangle available from layout algorithm");
+                    return null;
+                }
+                let targetRectWidth = viewWidth * 0.8,
+                    targetRectHeight = viewHeight * 0.65;
+                let rootWidth = Math.abs(graphRect.x2 - graphRect.x1),
+                    rootHeight = Math.abs(graphRect.y1 - graphRect.y2);
+                let scaleX = targetRectWidth / rootWidth,
+                    scaleY = targetRectHeight / rootHeight;
+                // the actuall scale that should be applied to root so that it will fit into the target rectangle
+                let scale = Math.min(scaleX, scaleY, visualConfig.MAX_ADJUST);
+                let graphCenterInStage = {
+                    //(graphRect.x1 + rootWidth / 2 ) 是contentRoot坐标系，转换到stage的坐标系时需要进行scale处理， 下同
+                    x: (graphRect.x1 + rootWidth / 2) * 1 + root.position.x,
+                    y: (graphRect.y1 + rootHeight / 2) * 1 + root.position.y,
+                };
+
+                let rootPositionTransform = {
+                    x: viewWidth / 2 - graphCenterInStage.x,
+                    y: viewHeight / 2 - graphCenterInStage.y,
+                }
+                // console.log("Root transform", rootPositionTransform);
+                console.log("scale.x " + scale + " scale.y " + scale + " position.x " + (root.position.x + rootPositionTransform.x) + " position.y " + (root.position.y + rootPositionTransform.y));
+                return {
+                    scale: {
+                        x: scale,
+                        y: scale,
+                    },
+                    position: {
+                        x: root.position.x + rootPositionTransform.x,
+                        y: root.position.y + rootPositionTransform.y,
+                    },
+                };
+            },*/
 
             setNodesToFullScreen(disableAnimation) {
                 const rootPlacement = this.calculateRootPosition(1);
@@ -1382,9 +1420,9 @@ export default class PixiRenderer {
             if (layoutType === 'Network') {
                 if (dynamicLayout) {
                     layoutPositionChanged = true;
-                    // for (var tmp = 0; tmp < 5; tmp++){
+                    for (var tmp = 0; tmp < 5; tmp++){
                         layout.step();
-                    // }
+                    }
                     updateNodeSpritesPosition();
                 }
             } else if (layoutType === 'TimelineScale') {
