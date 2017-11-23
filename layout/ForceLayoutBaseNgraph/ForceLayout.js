@@ -2,11 +2,10 @@ import createLayout from './ForceLayoutInNGraph.js';
 import PhysicsSimulator from './ngraphPhysicsSimulator.js';
 import Graph from "../../Graph";
 import * as d3 from "d3-force"; 
-// import * as d3 from '../../../d3/d3';
 
 var eventify = require('ngraph.events');
 
-export default function forceLayoutBaseNgraph(graph, physicsSettings) {
+export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
 
     if (!graph) {
         throw new Error('Graph structure cannot be undefined');
@@ -180,10 +179,12 @@ export default function forceLayoutBaseNgraph(graph, physicsSettings) {
         }
         // 每个子图视为一个不可压缩的圆，进行碰撞布局
         var simulation = d3.forceSimulation(graphTmp)
-          .velocityDecay(0.2)
+          .alphaMin(1)
+          .alpha(0.8)
+          .velocityDecay(0.4)
           .force("x", d3.forceX().strength(0.002))
           .force("y", d3.forceY().strength(0.002))
-          .force("collide", d3.forceCollide().radius(function(d) { return d.r + 0.5; }).iterations(1))
+          .force("collide", d3.forceCollide().radius(function(d) { return d.r; }).iterations(1))
         simulation.tick();
 
         // 根据圆心到预期位置的差距，整体平移各个子图
@@ -198,6 +199,7 @@ export default function forceLayoutBaseNgraph(graph, physicsSettings) {
             var deltaY = expectY - centerY;
             var expectX = subGraph.x;
             var deltaX = expectX - centerX
+            if (deltaY*deltaY + deltaX*deltaX > 1){
             if (deltaY*deltaY + deltaX*deltaX > 2500 || subGraph.layout.bodiesCount < 200){
                 for (var nodeBodyId in nodeBodiesInSubGraph) {
                     if (!nodeBodies[nodeBodyId].isPinned){
@@ -220,6 +222,7 @@ export default function forceLayoutBaseNgraph(graph, physicsSettings) {
                     boundsTotal.y2 = expectY+r;
                 } 
             }
+        }
         }
     }
 
