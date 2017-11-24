@@ -647,20 +647,20 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
             // 将子图加入子图集合中
             subGraphsTmp.set(subGraph.id, subGraph);
             indexOfSubGraph += 1;
-            // 每个独立的子节点是一个独立的子图
-            if (insularNodes.size){
-                for (var [nodeId, node] of insularNodes.entries()){
-                    var insularNodeGraph = new Graph();
-                    var layout = createLayout(insularNodeGraph, physicsSettings);
-                    insularNodeGraph.layout = layout;
-                    insularNodeGraph.id = indexOfSubGraph;
-                    insularNodeGraph.beginUpdate();
-                    insularNodeGraph.addNode(nodeId, node.data);
-                    insularNodeGraph.endUpdate();
-                    nodeIndex.set(nodeId, insularNodeGraph.id);
-                    subGraphsTmp.set(insularNodeGraph.id, insularNodeGraph);
-                    indexOfSubGraph += 1;
-                }
+        }
+         // 每个独立的子节点是一个独立的子图
+        if (insularNodes.size){
+            for (var [nodeId, node] of insularNodes.entries()){
+                var insularNodeGraph = new Graph();
+                var layout = createLayout(insularNodeGraph, physicsSettings);
+                insularNodeGraph.layout = layout;
+                insularNodeGraph.id = indexOfSubGraph;
+                insularNodeGraph.beginUpdate();
+                insularNodeGraph.addNode(nodeId, node.data);
+                insularNodeGraph.endUpdate();
+                nodeIndex.set(nodeId, insularNodeGraph.id);
+                subGraphsTmp.set(insularNodeGraph.id, insularNodeGraph);
+                indexOfSubGraph += 1;
             }
         }
         return subGraphsTmp;
