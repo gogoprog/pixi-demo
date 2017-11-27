@@ -332,7 +332,7 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
                             emptyData.links = new Set();
                             needAddData.set(fromNodeSubGraphId, emptyData);
                         }
-                        var data = needAddData.get(subGraphId);
+                        var data = needAddData.get(fromNodeSubGraphId);
                         data.links.add(link);
                         aleardyAddedLink.add(linkId);
                     } else {
