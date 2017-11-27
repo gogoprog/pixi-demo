@@ -1,5 +1,5 @@
 export default function PhysicsSimulator(settings) {
-  var Spring = require('./lib/spring');
+  var Spring = require('./spring');
   var expose = require('ngraph.expose');
   var merge = require('ngraph.merge');
   var eventify = require('ngraph.events');
@@ -43,11 +43,11 @@ export default function PhysicsSimulator(settings) {
 
   // We allow clients to override basic factory methods:
   var createQuadTree = settings.createQuadTree || require('ngraph.quadtreebh');
-  var createBounds = settings.createBounds || require('./lib/bounds');
-  var createDragForce = settings.createDragForce || require('./lib/dragForce');
-  var createSpringForce = settings.createSpringForce || require('./lib/springForce');
-  var integrate = settings.integrator || require('./lib/eulerIntegrator');
-  var createBody = settings.createBody || require('./lib/createBody');
+  var createBounds = settings.createBounds || require('./bounds');
+  var createDragForce = settings.createDragForce || require('./dragForce');
+  var createSpringForce = settings.createSpringForce || require('./springForce');
+  var integrate = settings.integrator || require('./eulerIntegrator');
+  var createBody = settings.createBody || require('./createBody');
 
   var bodies = [], // Bodies in this simulation.
       springs = [], // Springs in this simulation.
@@ -70,6 +70,10 @@ export default function PhysicsSimulator(settings) {
     quadTree: quadTree,
 
     bounds: bounds,
+
+    updateBounds: function(){
+      bounds.update();
+    },
 
     /**
      * Array of springs, registered with current simulator
