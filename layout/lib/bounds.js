@@ -31,6 +31,8 @@ module.exports = function (bodies, settings) {
       }
 
       var springLength = settings.springLength;
+      springLength = springLength + 2 * (bodies.length);
+
       return {
         x: baseX + random.next(springLength) - springLength / 2,
         y: baseY + random.next(springLength) - springLength / 2

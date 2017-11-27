@@ -971,6 +971,7 @@ export default class PixiRenderer {
                     && layoutType !== 'TimelineScale') {
                     layoutType = 'Network';
                 }
+                networkLayout.setLayoutType(layoutType)
                 if (layoutType === 'Network') {
                     if (!dynamicLayout && layoutTypeStr !== 'Network') {
                         layoutIterations = 0;
@@ -1510,9 +1511,9 @@ export default class PixiRenderer {
             textContainer.addChild(nodeSprite.ts);
             nodeContainer.addChild(nodeSprite);
             nodeSprites[p.id] = nodeSprite;
-            if (layout) {
-                layout.setNodePosition(nodeSprite.id, nodeSprite.position.x, nodeSprite.position.y);
-            }
+            // if (layout) {
+            //     layout.setNodePosition(nodeSprite.id, nodeSprite.position.x, nodeSprite.position.y);
+            // }
             nodeSprite.on('mousedown', nodeCaptureListener);
             nodeSprite.on('rightup', contextmenuListener);
         }
