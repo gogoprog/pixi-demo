@@ -17,6 +17,8 @@ export default function createLayout(graph, physicsSettings) {
       throw new Error('Graph structure cannot be undefined');
     }
 
+    var layoutType = "netWork"
+
     var physicsSimulator = PhysicsSimulator(physicsSettings);
 
     var nodeBodies = Object.create(null);
@@ -150,6 +152,9 @@ export default function createLayout(graph, physicsSettings) {
             api.fire('disposed');
         },
 
+        setLayoutType: function (newLayoutType) {
+            layoutType = newLayoutType;
+        },
         /**
          * Gets physical body for a given node id. If node is not found undefined
          * value is returned.
@@ -361,11 +366,16 @@ export default function createLayout(graph, physicsSettings) {
             }
 
             var pos = {x:node.data.properties["_$x"], y:node.data.properties["_$y"]}
-            if (!(node.data.properties._$x && node.data.properties._$y)) {
-                var neighbors = getNeighborBodies(node);
-                pos = physicsSimulator.getBestNewBodyPosition(neighbors);
-                node.data.properties["_$x"] = pos.x
-                node.data.properties["_$y"] = pos.y
+            var hasPos = node.data.properties._$x && node.data.properties._$y;
+            if ( !hasPos || layoutType !== "netWork" ) {
+                var locked = node.data.properties["_$lock"];
+                var usePos = hasPos && locked;
+                if (!usePos){
+                    var neighbors = getNeighborBodies(node);
+                    pos = physicsSimulator.getBestNewBodyPosition(neighbors);
+                    // node.data.properties["_$x"] = pos.x
+                    // node.data.properties["_$y"] = pos.y
+                }
             }
 
             body = physicsSimulator.addBodyAt(pos);

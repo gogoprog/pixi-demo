@@ -257,7 +257,8 @@ export default function createLayout(graph, physicsSettings) {
             }
 
             var pos = {x:node.data.properties["_$x"], y:node.data.properties["_$y"]}
-            if (!(node.data.properties._$x && node.data.properties._$y)) {
+            var hasPos = node.data.properties._$x && node.data.properties._$y;
+            if ( !hasPos ) {
                 var neighbors = getNeighborBodies(node);
                 pos = physicsSimulator.getBestNewBodyPosition(neighbors);
                 node.data.properties["_$x"] = pos.x

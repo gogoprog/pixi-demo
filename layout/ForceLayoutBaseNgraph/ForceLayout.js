@@ -11,6 +11,8 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
         throw new Error('Graph structure cannot be undefined');
     }
 
+    var layoutType = "netWork"
+
     var physicsSimulator = PhysicsSimulator(physicsSettings);
 
     var nodeBodies = Object.create(null);
@@ -125,6 +127,13 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
             dynamicLayout = newDynamicLayout;
             for (var [graphId, subGraph] of subGraphs.entries()){
                 subGraph.layout.updateDynamicLayout(newDynamicLayout);
+            }
+        },
+
+        setLayoutType: function (newLayoutTpe) {
+            layoutType = newLayoutTpe;
+            for (var [graphId, subGraph] of subGraphs.entries()){
+                subGraph.layout.setLayoutType(layoutType);
             }
         },
         /**
@@ -602,6 +611,7 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
             var subGraph = new Graph();
             var layout = createLayout(subGraph, physicsSettings);
             subGraph.layout = layout;
+            subGraph.layout.setLayoutType(layoutType);
             subGraph.id = indexOfSubGraph;
             var linksInSubGraph = [];
             var nodesInSubGraph = new Map()
@@ -726,11 +736,17 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
             }
 
             var pos = {x:node.data.properties["_$x"], y:node.data.properties["_$y"]};
-            if (!(node.data.properties._$x && node.data.properties._$y)) {
-                var neighbors = getNeighborBodies(node);
-                pos = physicsSimulator.getBestNewBodyPosition(neighbors);
-                node.data.properties["_$x"] = pos.x
-                node.data.properties["_$y"] = pos.y
+            var hasPos = node.data.properties._$x && node.data.properties._$y;
+            if ( !hasPos || layoutType !== "netWork" ) {
+                var locked = node.data.properties["_$lock"];
+                var usePos = hasPos && locked;
+                if (!usePos){
+                // if (!(hasPos && node.data.properties._$lock)){
+                    var neighbors = getNeighborBodies(node);
+                    pos = physicsSimulator.getBestNewBodyPosition(neighbors);
+                    // node.data.properties["_$x"] = pos.x
+                    // node.data.properties["_$y"] = pos.y
+                }
             }
 
             body = physicsSimulator.addBodyAt(pos);
