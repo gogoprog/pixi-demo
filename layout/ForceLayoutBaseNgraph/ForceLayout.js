@@ -1,5 +1,5 @@
 import createLayout from './ForceLayoutInNGraph.js';
-import PhysicsSimulator from './ngraphPhysicsSimulator.js';
+import PhysicsSimulator from '../lib/ngraphPhysicsSimulator.js';
 import Graph from "../../Graph";
 import * as d3 from "d3-force"; 
 
