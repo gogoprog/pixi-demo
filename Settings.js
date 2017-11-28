@@ -8,8 +8,8 @@ export default class Settings {
         canvas.setAttribute('style', 'border-width: 0;');
         canvas.setAttribute('tabindex', '1');
         canvasContainer.appendChild(canvas);
-        canvas.width = canvasContainer.offsetWidth;
-        canvas.height = canvasContainer.offsetHeight;
+        canvas.width = canvasContainer.offsetWidth - 2;
+        canvas.height = canvasContainer.offsetHeight - 2;
         this.container = canvas;
         this.updateVisualConfig(visConfig);
         this.timelineContainer = timelineId;
