@@ -171,9 +171,6 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
             var dx = centerX - bounds.x1;
             var dy = centerY - bounds.y1;
             var r = Math.sqrt(dx * dx + dy * dy);
-            if (r < 50){
-                r = 50
-            }
             subGraph.r = r;
             subGraph.x = centerX;
             subGraph.y = centerY;
@@ -193,7 +190,7 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
           .velocityDecay(0.4)
           .force("x", d3.forceX().strength(0.002))
           .force("y", d3.forceY().strength(0.002))
-          .force("collide", d3.forceCollide().radius(function(d) { return d.r; }).iterations(1))
+          .force("collide", d3.forceCollide().radius(function(d) { return d.r + 50; }).iterations(1))
         simulation.tick();
 
         // 根据圆心到预期位置的差距，整体平移各个子图
