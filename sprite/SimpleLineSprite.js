@@ -79,11 +79,21 @@ export default class SimpleLineSprite {
     /**
      * set the attribute of the line (color, width, alpha)
      */
-    setLineAttr(linkAttr) {
-        this.coustomSettingAlpha = linkAttr.alpha;
-        this.coustomSettingColor = linkAttr.color;
-        this.coustomSettingThickness = linkAttr.thickness;
-        this.label.alpha = linkAttr.alpha;
+    setLineAttr() {
+        if (this.data.properties._$color){
+            let colorHex = this.data.properties._$color;
+            if (typeof colorHex === 'string' && colorHex.startsWith('#')) {
+                colorHex = parseInt('0x' + colorHex.substring(1), 16);
+            }
+            this.coustomSettingColor = colorHex;
+        }
+        if (this.data.properties._$alpha){
+            this.coustomSettingAlpha = this.data.properties._$alpha;
+            this.label.alpha = this.data.properties._$alpha;
+        }
+        if (this.data.properties._$thickness){
+            this.coustomSettingThickness = this.data.properties._$thickness;
+        }
 
         this.alpha = this.coustomSettingAlpha;
         this.color = this.coustomSettingColor;
@@ -102,8 +112,8 @@ export default class SimpleLineSprite {
         return lineAttr;
     }
 
-    updateLabel(str) {
-        this.label.text = str;
+    updateLabel() {
+        this.label.text = this.data.label;
     }
 
     selectionChanged(selected) {
