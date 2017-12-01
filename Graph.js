@@ -303,10 +303,11 @@ export default function Graph(source, options) {
                     const change = changeList[i];
                     // console.log('Renderer graph received change event', change);
                     if (change.changeType === 'add') {
-                        if (change.entity) {
+                        if (change.entity && !change.entity.properties._$hidden){
                             self.addNode(change.entity.id, change.entity);
                         }
-                        if (change.link) {
+
+                        if (change.link && !change.link.properties._$hidden) {
                             self.addLink(change.link.sourceEntity, change.link.targetEntity, change.link);
                         }
                     } else if (change.changeType === 'remove') {
@@ -316,7 +317,7 @@ export default function Graph(source, options) {
                         if (change.link) {
                             self.removeLink(change.link);
                         }
-                    } else if (change.changeType === 'update') {
+                    } else if (change.changeType === 'update' || change.changeType === 'link-color'  || change.changeType === 'link-width') {
                         if (change.entity) {
                             let node = self.getNode(change.entity.id);
                             if (node) {

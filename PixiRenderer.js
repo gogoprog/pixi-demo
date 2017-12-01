@@ -48,7 +48,7 @@ export default class PixiRenderer {
         // If client does not need custom layout algorithm, let's create default one:
         // let networkLayout = createForceLayout(graph, visualConfig.forceLayout);
         let networkLayout = ForceLayoutBaseNgraph(graph, visualConfig.forceLayout);
-        
+
         let layout = networkLayout;
         let layoutType = 'Network';
 
@@ -285,161 +285,8 @@ export default class PixiRenderer {
             },
 
             /**
-             * zoom in and zoom out for the node
-             */
-            nodeZoomByID: zoomNodesById,
-
-            /**
-             * change the style of the link by ID
-             */
-            changeLinkStyleByID(linkIDArray, linkAttr) {
-                isDirty = true;
-                _.each(linkIDArray, (linkID) => {
-                    //console.log(linkID);
-                    if (!linkAttr.color) {
-                        linkAttr.color = linkSprites[linkID].coustomSettingColor;
-                    }
-                    if (!linkAttr.alpha) {
-                        linkAttr.alpha = linkSprites[linkID].coustomSettingAlpha;
-                    }
-                    if (!linkAttr.thickness) {
-                        linkAttr.thickness = linkSprites[linkID].coustomSettingThickness;
-                    } else {
-                        linkAttr.thickness = Math.round(linkAttr.thickness); // Make sure its integer;
-                    }
-                    linkSprites[linkID].setLineAttr(linkAttr);
-                });
-            },
-
-            /**
-             * hide nodes by ID
-             */
-            hideSubGraph(nodeIdArray, linkIdArray) {
-                isDirty = true;
-                _.each(nodeIdArray, (node) => {
-                    const hiddenNode = nodeSprites[node];
-                    if (hiddenNode.selected) {
-                        nodeContainer.deselectNode(hiddenNode);
-                    }
-
-                    hiddenNode.hide();
-
-                    // when we hide the nodes we should also hide the texture, arrow and the link.
-                    _.each(hiddenNode.outgoing, (olink) => {
-                        if (olink.selected) {
-                            lineContainer.deselectLink(olink);
-                        }
-                        olink.hide();
-                    });
-                    _.each(hiddenNode.incoming, (ilink) => {
-                        if (ilink.selected) {
-                            lineContainer.deselectLink(ilink);
-                        }
-                        ilink.hide();
-                    });
-                });
-
-                _.each(linkIdArray, (linkId) => {
-                    const linkToHide = linkSprites[linkId];
-                    if (linkToHide.selected) {
-                        lineContainer.deselectLink(linkToHide);
-                    }
-                    linkToHide.hide();
-                });
-                selectionChanged();
-                hiddenStatusChanged();
-            },
-
-            /**
-             * show all nodes and links
-             */
-            showAll() {
-                isDirty = true;
-                _.each(nodeSprites, (ns) => {
-                    ns.show();
-                });
-                _.each(linkSprites, (ls) => {
-                    ls.show();
-                });
-                hiddenStatusChanged();
-            },
-
-            /**
-             * show nodes by ID
-             */
-            showNodesByID(idArray) {
-                isDirty = true;
-                _.each(idArray, (node) => {
-                    const showNode = nodeSprites[node];
-                    showNode.show();
-
-                    /**when we hide the nodes, we also hide the texture, arrow and the link.
-                     * Now we should set them visible
-                     */
-                    //console.log(showNode.outgoing.targetEntity);
-                    _.each(showNode.outgoing, (link) => {
-                        if (!link.visible && nodeSprites[link.data.targetEntity].visible) {
-                            link.show();
-                        }
-                    });
-                    _.each(showNode.incoming, (link) => {
-                        if (!link.visible && nodeSprites[link.data.sourceEntity].visible) {
-                            link.show();
-                        }
-                    });
-                });
-            },
-
-            /**
-             * set which node need boundary.
-             * when call this function, you should give me a group of ID and the attribute for this group
-             */
-            setBoundaryNeededNodes(idArray, boundaryAttr) {
-                isDirty = true;
-                // this part is for performance test
-                _.each(idArray, (node) => {
-                    // nodeNeedBoundary[node] = nodeSprites[node];
-                    // nodeNeedBoundary[node].boundaryAttr = boundaryAttr;
-                    const nodeSprite = nodeSprites[node];
-                    nodeSprite.boundaryAttr = boundaryAttr;
-                    if (!nodeSprite.circleBorder) {
-                        nodeSprite.circleBorder = new CircleBorderTexture(nodeSprite.boundaryAttr, visualConfig.NODE_WIDTH * 1.4 / 2);
-                        nodeSprite.circleBorder.scale.x = nodeSprite.scale.x;
-                        nodeSprite.circleBorder.scale.y = nodeSprite.scale.y;
-                        nodeSprite.circleBorder.anchor.x = 0.5;
-                        nodeSprite.circleBorder.anchor.y = 0.5;
-                        nodeSprite.circleBorder.position.x = nodeSprite.position.x;
-                        nodeSprite.circleBorder.position.y = nodeSprite.position.y;
-                        nodeSprite.circleBorder.visible = nodeSprite.visible;
-                        textContainer.addChild(nodeSprite.circleBorder);
-                    } else {
-                        nodeSprite.circleBorder.setNewStyle(nodeSprite.boundaryAttr, visualConfig.NODE_WIDTH * 1.4 / 2);
-                    }
-                });
-            },
-
-            /**
-             * delete the nodes don't need boundary.
-             * when call this function, you should give me a group of ID
-             */
-            deleteBoundaryOfNodes(idArray) {
-                isDirty = true;
-                _.each(idArray, (id) => {
-                    const nodeSprite = nodeSprites[id];
-                    if (nodeSprite) {
-                        if (nodeSprite.circleBorder) {
-                            textContainer.removeChild(nodeSprite.circleBorder);
-                            nodeSprite.circleBorder = null;
-                            nodeSprite.boundaryAttr = null;
-                        }
-                    }
-                });
-            },
-
-            /**
              * Allow switching between picking and panning modes;
              */
-            // 这是个帮助函数吧
             setMode(newMode) {
                 if (this.mode === newMode) {
                     return;
@@ -449,11 +296,9 @@ export default class PixiRenderer {
                     stage.mode = this.mode;
                     root.interactive = true;
                     root.interactiveChildren = true;
-                    // stage.interactive = false;
                     stage.buttonMode = false;
                 } else {
                     this.mode = 'panning';
-                    // stage.interactive = true;
                     stage.buttonMode = true;
                     stage.mode = this.mode;
                     root.interactiveChildren = false;
@@ -477,21 +322,19 @@ export default class PixiRenderer {
                 this.setMode('panning');
             },
 
-            /*
+            /**
              * get selected nodes,
              * nodes of nodeContainer are selected @SelectionManager.js
-             **/
+             */
             getSelectedNodes() {
-                // return _.values(nodeContainer.selectedNodes);
                 return nodeContainer.nodes;
             },
 
-            /*
+            /**
              * get selected Links,
              * links of nodeContainer are selected @SelectionManager.js
-             **/
+             */
             getSelectedLinks() {
-                // return _.values(nodeContainer.selectedLinks);
                 return lineContainer.links;
             },
 
@@ -931,36 +774,6 @@ export default class PixiRenderer {
                 renderer.destroy(true); // true for removing the underlying view(canvas)
             },
 
-            resetStyle(entities, links) {
-                isDirty = true;
-                if (!entities && !links) {
-                    entities = nodeSprites;
-                    links = linkSprites;
-                }
-                _.each(entities, (entity) => {
-                    const nodeSprite = nodeSprites[entity] || nodeSprites[entity.id];
-                    if (nodeSprite) {
-                        zoomNodesById([nodeSprite.id], 1);
-                        if (nodeSprite.circleBorder) {
-                            textContainer.removeChild(nodeSprite.circleBorder);
-                            nodeSprite.circleBorder = null;
-                            nodeSprite.boundaryAttr = null;
-                        }
-                    }
-                });
-
-                _.each(links, function (link) {
-                    let linkSprite = linkSprites[link] || linkSprites[link.id];
-                    if (linkSprite) {
-                        linkSprite.thickness = visualConfig.ui.line.width;
-                        linkSprite.color = visualConfig.ui.line.color;
-                        linkSprite.coustomSettingColor = visualConfig.ui.line.color;
-                    }
-                });
-
-                pixiGraphics.updateLineContainerStyleDirty();
-            },
-
             setLayoutType(layoutTypeStr) {
                 console.info(`Setting layout type to ${layoutTypeStr}`);
                 layoutType = layoutTypeStr || 'Network';
@@ -1274,33 +1087,6 @@ export default class PixiRenderer {
         // Public API is over
         ///////////////////////////////////////////////////////////////////////////////
 
-        function zoomNodesById(nodeIDArray, zoomValue) {
-            isDirty = true;
-            _.each(nodeIDArray, (nodeID) => {
-                const nodeSprite = nodeSprites[nodeID];
-                if (nodeSprite) {
-                    nodeSprite.scale.set(zoomValue);
-                    nodeSprite.ts.scale.set(0.5 * zoomValue);
-                    nodeSprite.ts.position.set(nodeSprites[nodeID].position.x, nodeSprites[nodeID].position.y + visualConfig.NODE_LABLE_OFFSET_Y * zoomValue);
-                    if (nodeSprite.gcs) {
-                        for (let i = 0; i < nodeSprite.gcs.length; i++) {
-                            nodeSprite.gcs[i].scale.set(0.5 * zoomValue);
-                        }
-                    }
-                    nodeSprite.relayoutNodeIcon();
-
-                    if (nodeSprite.ls) {
-                        nodeSprite.ls.scale.set(0.5 * zoomValue);
-                        nodeSprite.ls.position.x = nodeSprite.position.x + visualConfig.NODE_LOCK_WIDTH * 0.5 * zoomValue;
-                        nodeSprite.ls.position.y = nodeSprite.position.y - visualConfig.NODE_LOCK_WIDTH * 0.5 * zoomValue;
-                    }
-                    if (nodeSprite.circleBorder) {
-                        nodeSprite.circleBorder.scale.set(zoomValue);
-                    }
-                }
-            });
-        }
-
         function selectionChanged() {
             isDirty = true;
             pixiGraphics.fire('selectionChanged');
@@ -1487,11 +1273,12 @@ export default class PixiRenderer {
 
             const nodeSprite = new SimpleNodeSprite(texture, p, visualConfig);
 
-            if (p.data.properties && p.data.properties._$hidden) {
-                nodeSprite.hide();
-            } else {
-                nodeSprite.show();
-            }
+            // if (p.data.properties && p.data.properties._$hidden) {
+            //     nodeSprite.hide();
+            // } else {
+            //     nodeSprite.show();
+            // }
+
             nodeSprite.parent = nodeContainer;
             if (graphData) {
                 const collIdArr = graphData.getNodeCollId(p);
@@ -1504,8 +1291,16 @@ export default class PixiRenderer {
                 nodeSprite.setNodeLockIcon(nodeContainer);
             }
 
+            // 更新缩放
+            nodeSprite.updateScale();
+
             if (p.data.properties._$merged) {
                 nodeSprite.setMultiple(true);
+            }
+
+            //添加边框
+            if(p.data.properties._$showBorder) {
+                nodeSprite.updateBorder(textContainer);
             }
 
             textContainer.addChild(nodeSprite.ts);
@@ -1516,14 +1311,6 @@ export default class PixiRenderer {
             // }
             nodeSprite.on('mousedown', nodeCaptureListener);
             nodeSprite.on('rightup', contextmenuListener);
-        }
-
-        function updateNodeIcon(node) {
-            if (graphData) {
-                const nodeSprite = nodeSprites[node.id];
-                const collIdArr = graphData.getNodeCollId(node);
-                nodeSprite.setNodeIcon(collIdArr, nodeContainer);
-            }
         }
 
         function adjustControlOffsets(linkSpriteArray, arrangeOnBothSides, avoidZero) {
@@ -1594,6 +1381,8 @@ export default class PixiRenderer {
                 l.show();
             }
 
+            l.setLineAttr();
+
             srcNodeSprite.outgoing.push(l);
             tgtNodeSprite.incoming.push(l);
             linkSprites[l.id] = l;
@@ -1653,7 +1442,6 @@ export default class PixiRenderer {
             }
         }
 
-
         function removeLink(link) {
             isDirty = true;
             const l = linkSprites[link.id];
@@ -1690,14 +1478,24 @@ export default class PixiRenderer {
 
         function updateNode(node) {
             const nodeSprite = nodeSprites[node.id];
-            nodeSprite.updateLabel(node.data.label);
             nodeSprite.data = node.data;
+            nodeSprite.updateLabel();
+            nodeSprite.updateScale();
+
+            nodeSprite.updateBorder(textContainer);
+
+            if (graphData) {
+                const nodeSprite = nodeSprites[node.id];
+                const collIdArr = graphData.getNodeCollId(node);
+                nodeSprite.setNodeIcon(collIdArr, nodeContainer);
+            }
         }
 
         function updateLink(link) {
             const linkSprite = linkSprites[link.id];
-            linkSprite.updateLabel(link.data.label);
             linkSprite.data = link.data;
+            linkSprite.setLineAttr();
+            linkSprite.updateLabel();
         }
 
         function onGraphElpChanged(elpData) {
@@ -1727,7 +1525,7 @@ export default class PixiRenderer {
                 } else if (change.changeType === 'update') {
                     if (change.node) {
                         console.log('Node updated: ', change.node);
-                        updateNodeIcon(change.node);
+                        // updateNodeIcon(change.node);
                         updateNode(change.node);
                     }
                     if (change.link) {

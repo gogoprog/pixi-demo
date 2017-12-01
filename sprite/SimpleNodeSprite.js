@@ -1,3 +1,6 @@
+import { visualConfig } from '../visualConfig';
+import CircleBorderTexture from './CircleBorderSprite';
+
 export default class SimpleNodeSprite extends PIXI.Sprite {
     constructor(texture, node, visualConfig) {
         super(texture);
@@ -37,47 +40,39 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         this._multiple = false;
     }
 
+    /**
+     * 隐藏图表
+     */
     hide() {
-        this.visible = false;
-        this.ts.visible = false;
-        if (this.gcs) {
-            for (let i = 0; i < this.gcs.length; i++) {
-                this.gcs[i].visible = false;
-            }
-        }
-
-        if (this.ls) {
-            this.ls.visible = false;
-        }
-
-        if (this.ms) {
-            this.ms.visible = false;
-        }
-
-        if (this.circleBorder) {
-            this.circleBorder.visible = false;
-        }
+        this.toggleDisplay(false);
     }
 
+    /**
+     * 显示图表
+     */
     show() {
-        this.visible = true;
-        this.ts.visible = true;
+        this.toggleDisplay(true);
+    }
+
+    toggleDisplay(isShow){
+        this.visible = isShow;
+        this.ts.visible = isShow;
         if (this.gcs) {
             for (let i = 0; i < this.gcs.length; i++) {
-                this.gcs[i].visible = true;
+                this.gcs[i].visible = isShow;
             }
         }
 
         if (this.ls) {
-            this.ls.visible = true;
+            this.ls.visible = isShow;
         }
 
         if (this.ms) {
-            this.ms.visible = true;
+            this.ms.visible = isShow;
         }
 
         if (this.circleBorder) {
-            this.circleBorder.visible = true;
+            this.circleBorder.visible = isShow;
         }
     }
 
@@ -87,6 +82,77 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             this.ts.style = this.visualConfig.ui.label.fontHighlight;
         } else {
             this.ts.style = this.visualConfig.ui.label.font;
+        }
+    }
+
+    /**
+     * 更新顶点的缩放
+     */
+    updateScale() {
+        if (this.data.properties._$scale){
+            const zoomValue = this.data.properties._$scale;
+            this.scale.set(zoomValue);
+            this.ts.scale.set(0.5 * zoomValue);
+            this.ts.position.set(this.position.x, this.position.y + visualConfig.NODE_LABLE_OFFSET_Y * zoomValue);
+
+            if (this.gcs) {
+                for (let i = 0; i < this.gcs.length; i++) {
+                    this.gcs[i].scale.set(0.5 * zoomValue);
+                }
+            }
+            this.relayoutNodeIcon();
+
+            if (this.ls) {
+                this.ls.scale.set(0.5 * zoomValue);
+                this.ls.position.x = this.position.x + visualConfig.NODE_LOCK_WIDTH * 0.5 * zoomValue;
+                this.ls.position.y = this.position.y - visualConfig.NODE_LOCK_WIDTH * 0.5 * zoomValue;
+            }
+            if (this.circleBorder) {
+                this.circleBorder.scale.set(zoomValue);
+            }
+        }
+    }
+
+    /**
+     * 更新circleBorder
+     */
+    updateBorder(textContainer) {
+        if(this.data.properties._$showBorder){
+            const borderColor = this.data.properties._$borderColor;
+            const defaultStyle = visualConfig.formatting.nodeBorder;
+            let colorHex = borderColor;
+            if (typeof borderColor === 'string' && borderColor.startsWith('#')) {
+                colorHex = parseInt('0x' + borderColor.substring(1), 16);
+            }
+            this.boundaryAttr = {
+                border: {
+                    color: colorHex,
+                    width: defaultStyle.border.width,
+                    alpha: defaultStyle.border.alpha,
+                },
+                fill: {
+                    color: colorHex,
+                    alpha: 0.3,
+                },
+            };
+
+            if (!this.circleBorder) {
+                this.circleBorder = new CircleBorderTexture(this.boundaryAttr, visualConfig.NODE_WIDTH * 1.4 / 2);
+                this.circleBorder.scale.x = this.scale.x;
+                this.circleBorder.scale.y = this.scale.y;
+                this.circleBorder.anchor.x = 0.5;
+                this.circleBorder.anchor.y = 0.5;
+                this.circleBorder.position.x = this.position.x;
+                this.circleBorder.position.y = this.position.y;
+                this.circleBorder.visible = this.visible;
+                textContainer.addChild(this.circleBorder);
+            } else {
+                this.circleBorder.setNewStyle(this.boundaryAttr, visualConfig.NODE_WIDTH * 1.4 / 2);
+            }
+        } else if (this.circleBorder){
+            textContainer.removeChild(this.circleBorder);
+            this.circleBorder = null;
+            this.boundaryAttr = null;
         }
     }
 
@@ -167,8 +233,8 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         this.relayoutNodeIcon();
     }
 
-    updateLabel(str) {
-        this.ts.text = str;
+    updateLabel() {
+        this.ts.text = this.data.label;
     }
 
     _addIconToNode(collIdArr, nodeContainer) {
