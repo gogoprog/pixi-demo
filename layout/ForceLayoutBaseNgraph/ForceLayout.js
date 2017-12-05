@@ -206,29 +206,31 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
             var expectX = subGraph.x;
             var deltaX = expectX - centerX
             if (deltaY*deltaY + deltaX*deltaX > 1){
-            if (deltaY*deltaY + deltaX*deltaX > 2500 || subGraph.layout.bodiesCount < 200){
-                for (var nodeBodyId in nodeBodiesInSubGraph) {
-                    if (!nodeBodies[nodeBodyId].isPinned){
-                        var pos = subGraph.layout.getNodePosition(nodeBodyId);
-                        subGraph.layout.setNodePosition(nodeBodyId, pos.x + deltaX, pos.y + deltaY);
-                        nodeBodies[nodeBodyId] = nodeBodiesInSubGraph[nodeBodyId];
+                if (deltaY*deltaY + deltaX*deltaX > 2500 || subGraph.layout.bodiesCount < 200){
+                    for (var nodeBodyId in nodeBodiesInSubGraph) {
+                        if (!nodeBodies[nodeBodyId].isPinned){
+                            var pos = subGraph.layout.getNodePosition(nodeBodyId);
+                            subGraph.layout.setNodePosition(nodeBodyId, pos.x + deltaX, pos.y + deltaY);
+                        }
                     }
+                    // 更新整体布局的边界
+                    if (boundsTotal.x1 > expectX-r) {
+                        boundsTotal.x1 = expectX-r;
+                    }
+                    if (boundsTotal.x2 < expectX+r) {
+                        boundsTotal.x2 = expectX+r;
+                    }
+                    if (boundsTotal.y1 > expectY-r) {
+                        boundsTotal.y1 = expectY-r;
+                    }
+                    if (boundsTotal.y2 < expectY+r) {
+                        boundsTotal.y2 = expectY+r;
+                    } 
                 }
-                // 更新整体布局的边界
-                if (boundsTotal.x1 > expectX-r) {
-                    boundsTotal.x1 = expectX-r;
-                }
-                if (boundsTotal.x2 < expectX+r) {
-                    boundsTotal.x2 = expectX+r;
-                }
-                if (boundsTotal.y1 > expectY-r) {
-                    boundsTotal.y1 = expectY-r;
-                }
-                if (boundsTotal.y2 < expectY+r) {
-                    boundsTotal.y2 = expectY+r;
-                } 
             }
-        }
+            for (var nodeBodyId in nodeBodiesInSubGraph) {
+                nodeBodies[nodeBodyId] = nodeBodiesInSubGraph[nodeBodyId];
+            }
         }
     }
 
