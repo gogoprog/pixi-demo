@@ -607,6 +607,7 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
         while (nodes.size) {
             var subGraph = new Graph();
             var layout = createLayout(subGraph, physicsSettings);
+            layout.updateDynamicLayout(dynamicLayout);
             subGraph.layout = layout;
             subGraph.layout.setLayoutType(layoutType);
             subGraph.id = indexOfSubGraph;
