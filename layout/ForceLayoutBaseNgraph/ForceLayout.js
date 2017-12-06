@@ -162,6 +162,7 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
     return api;
 
     function subGraphLayoutBaseD3(){
+        var boundsTotalTmp = {x1 : Number.MAX_VALUE, x2 : Number.MIN_VALUE, y1 : Number.MAX_VALUE, y2 : Number.MIN_VALUE}
         var graphTmp = []
         // 计算各个子图的半径
         for (var [graphId, subGraph] of subGraphs.entries()){
@@ -170,7 +171,7 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
             var centerY = (bounds.y2 + bounds.y1) / 2;
             var dx = centerX - bounds.x1;
             var dy = centerY - bounds.y1;
-            var r = Math.sqrt(dx * dx + dy * dy);
+            var r = Math.sqrt(dx * dx + dy * dy) + 50;
             subGraph.r = r;
             subGraph.x = centerX;
             subGraph.y = centerY;
@@ -190,7 +191,7 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
           .velocityDecay(0.4)
           .force("x", d3.forceX().strength(0.002))
           .force("y", d3.forceY().strength(0.002))
-          .force("collide", d3.forceCollide().radius(function(d) { return d.r + 50; }).iterations(1))
+          .force("collide", d3.forceCollide().radius(function(d) { return d.r; }).iterations(1))
         simulation.tick();
 
         // 根据圆心到预期位置的差距，整体平移各个子图
@@ -205,7 +206,7 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
             var deltaY = expectY - centerY;
             var expectX = subGraph.x;
             var deltaX = expectX - centerX
-            if (deltaY*deltaY + deltaX*deltaX > 1){
+            if (deltaY*deltaY + deltaX*deltaX > 0.01){
                 if (deltaY*deltaY + deltaX*deltaX > 2500 || subGraph.layout.bodiesCount < 200){
                     for (var nodeBodyId in nodeBodiesInSubGraph) {
                         if (!nodeBodies[nodeBodyId].isPinned){
@@ -213,25 +214,39 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
                             subGraph.layout.setNodePosition(nodeBodyId, pos.x + deltaX, pos.y + deltaY);
                         }
                     }
-                    // 更新整体布局的边界
-                    if (boundsTotal.x1 > expectX-r) {
-                        boundsTotal.x1 = expectX-r;
-                    }
-                    if (boundsTotal.x2 < expectX+r) {
-                        boundsTotal.x2 = expectX+r;
-                    }
-                    if (boundsTotal.y1 > expectY-r) {
-                        boundsTotal.y1 = expectY-r;
-                    }
-                    if (boundsTotal.y2 < expectY+r) {
-                        boundsTotal.y2 = expectY+r;
-                    } 
+                    
                 }
             }
+            // 更新整体布局的边界
+            if (boundsTotalTmp.x1 > expectX-subGraph.r) {
+                boundsTotalTmp.x1 = expectX-subGraph.r;
+            }
+            if (boundsTotalTmp.x2 < expectX+subGraph.r) {
+                boundsTotalTmp.x2 = expectX+subGraph.r;
+            }
+            if (boundsTotalTmp.y1 > expectY-subGraph.r) {
+                boundsTotalTmp.y1 = expectY-subGraph.r;
+            }
+            if (boundsTotalTmp.y2 < expectY+subGraph.r) {
+                boundsTotalTmp.y2 = expectY+subGraph.r;
+            } 
             for (var nodeBodyId in nodeBodiesInSubGraph) {
                 nodeBodies[nodeBodyId] = nodeBodiesInSubGraph[nodeBodyId];
+                // if (boundsTotalTmp.x1 > nodeBodies[nodeBodyId].pos.x) {
+                //     boundsTotalTmp.x1 = nodeBodies[nodeBodyId].pos.x;
+                // }
+                // if (boundsTotalTmp.x2 < nodeBodies[nodeBodyId].pos.x) {
+                //     boundsTotalTmp.x2 = nodeBodies[nodeBodyId].pos.x;
+                // }
+                // if (boundsTotalTmp.y1 > nodeBodies[nodeBodyId].pos.y) {
+                //     boundsTotalTmp.y1 = nodeBodies[nodeBodyId].pos.y;
+                // }
+                // if (boundsTotalTmp.y2 < nodeBodies[nodeBodyId].pos.y) {
+                //     boundsTotalTmp.y2 = nodeBodies[nodeBodyId].pos.y;
+                // } 
             }
         }
+        boundsTotal = boundsTotalTmp;
     }
 
     function getSpring(fromId, toId) {
