@@ -162,7 +162,7 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
     return api;
 
     function subGraphLayoutBaseD3(){
-        var boundsTotalTmp = {x1 : Number.MAX_VALUE, x2 : Number.MIN_VALUE, y1 : Number.MAX_VALUE, y2 : Number.MIN_VALUE}
+        var boundsTotalTmp = {x1 : Number.MAX_SAFE_INTEGER, x2 : Number.MIN_SAFE_INTEGER, y1 : Number.MAX_SAFE_INTEGER, y2 : Number.MIN_SAFE_INTEGER}
         var graphTmp = []
         // 计算各个子图的半径
         for (var [graphId, subGraph] of subGraphs.entries()){
@@ -232,21 +232,9 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
             } 
             for (var nodeBodyId in nodeBodiesInSubGraph) {
                 nodeBodies[nodeBodyId] = nodeBodiesInSubGraph[nodeBodyId];
-                // if (boundsTotalTmp.x1 > nodeBodies[nodeBodyId].pos.x) {
-                //     boundsTotalTmp.x1 = nodeBodies[nodeBodyId].pos.x;
-                // }
-                // if (boundsTotalTmp.x2 < nodeBodies[nodeBodyId].pos.x) {
-                //     boundsTotalTmp.x2 = nodeBodies[nodeBodyId].pos.x;
-                // }
-                // if (boundsTotalTmp.y1 > nodeBodies[nodeBodyId].pos.y) {
-                //     boundsTotalTmp.y1 = nodeBodies[nodeBodyId].pos.y;
-                // }
-                // if (boundsTotalTmp.y2 < nodeBodies[nodeBodyId].pos.y) {
-                //     boundsTotalTmp.y2 = nodeBodies[nodeBodyId].pos.y;
-                // } 
             }
         }
-        boundsTotal = boundsTotalTmp;
+        boundsTotal = boundsTotalTmp;            
     }
 
     function getSpring(fromId, toId) {
