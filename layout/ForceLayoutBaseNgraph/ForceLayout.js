@@ -234,7 +234,9 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
                 nodeBodies[nodeBodyId] = nodeBodiesInSubGraph[nodeBodyId];
             }
         }
-        boundsTotal = boundsTotalTmp;            
+        if (subGraphs.size > 0){
+            boundsTotal = boundsTotalTmp;
+        }            
     }
 
     function getSpring(fromId, toId) {
