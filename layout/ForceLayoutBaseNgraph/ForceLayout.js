@@ -316,12 +316,12 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
             }
         }
 
+        if (needDelData.size > 0){
+            delData(needDelData);
+        }
         if (needAddLinks.size > 0 || needAddNodes.size > 0){
             // divideSubGraphBaseAllData();
             addData(needAddNodes, needAddLinks);
-        }
-        if (needDelData.size > 0){
-            delData(needDelData);
         }
     }
 
