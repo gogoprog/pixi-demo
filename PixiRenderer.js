@@ -347,11 +347,19 @@ export default class PixiRenderer {
                     timelineLayout.disableTimelineLayout();
                 }
                 layoutType = 'Circular';
-                // layout = new CircleLayout(nodeSprites, nodeContainer, visualConfig);
-                layout = new StructuralLayout(nodeSprites, nodeContainer, visualConfig);
+                layout = new CircleLayout(nodeSprites, nodeContainer, visualConfig);
                 this.setNodesToFullScreen(disableAnimation);
             },
 
+            drawStructuralLayout(disableAnimation) {
+                isDirty = true;
+                if (stage.isTimelineLayout) {
+                    timelineLayout.disableTimelineLayout();
+                }
+                layoutType = 'Structural';
+                layout = new StructuralLayout(nodeSprites, nodeContainer, visualConfig);
+                this.setNodesToFullScreen(disableAnimation);
+            },
             /**
              * draw layered layout
              */
@@ -779,6 +787,7 @@ export default class PixiRenderer {
                 layoutType = layoutTypeStr || 'Network';
                 if (layoutType !== 'Network'
                     && layoutType !== 'Circular'
+                    && layoutType !== 'Structural'
                     && layoutType !== 'Layered'
                     && layoutType !== 'Radiate'
                     && layoutType !== 'TimelineScale') {
@@ -854,6 +863,8 @@ export default class PixiRenderer {
                     this.setNodesToFullScreen(disableAnimation);
                 } else if (layoutType === 'Circular') {
                     this.drawCircleLayout(disableAnimation);
+                } else if (layoutType === 'Structural') {
+                    this.drawStructuralLayout(disableAnimation);
                 } else if (layoutType === 'Layered') {
                     this.drawLayeredLayout(disableAnimation);
                 } else if (layoutType === 'Radiate') {
