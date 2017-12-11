@@ -837,16 +837,16 @@ export default class PixiRenderer {
                     }
 
                     if (!dynamicLayout) {
-                        if (disableAnimation) {
-                            layout.step();
+                        // if (disableAnimation) {
+                            // layout.step();
                             layoutIterations = 0;
-                        } else {
-                            layoutIterations = 150;
-                            while (layoutIterations > 0) {
-                                layout.step();
-                                layoutIterations -= 1;
-                            }
-                        }
+                        // } else {
+                        //     layoutIterations = 150;
+                        //     while (layoutIterations > 0) {
+                        //         layout.step();
+                        //         layoutIterations -= 1;
+                        //     }
+                        // }
 
                         if (layoutIterations === 0) {
                             _.each(nodeSprites, (nodeSprite, nodeId) => { //大开销计算

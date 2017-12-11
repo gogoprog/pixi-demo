@@ -49,7 +49,7 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
             }
             // var endOfSubGraph = new Date().getTime();
             // var startOfTotal = new Date().getTime();
-            subGraphLayoutBaseD3();
+            subGraphLayoutBaseD3(1);
             // var endOfTotal = new Date().getTime();
             // console.log("subGraph layout time :" + (endOfSubGraph - startOfSubGraph))
             // console.log("Total layout time :" + (endOfTotal - startOfTotal))
@@ -161,7 +161,7 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
 
     return api;
 
-    function subGraphLayoutBaseD3(){
+    function subGraphLayoutBaseD3(iter){
         var boundsTotalTmp = {x1 : Number.MAX_SAFE_INTEGER, x2 : Number.MIN_SAFE_INTEGER, y1 : Number.MAX_SAFE_INTEGER, y2 : Number.MIN_SAFE_INTEGER}
         var graphTmp = []
         // 计算各个子图的半径
@@ -184,6 +184,7 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
             }
             graphTmp.push(subGraph)  
         }
+        
         // 每个子图视为一个不可压缩的圆，进行碰撞布局
         var simulation = d3.forceSimulation(graphTmp)
           .alphaMin(1)
@@ -192,7 +193,10 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
           .force("x", d3.forceX().strength(0.002))
           .force("y", d3.forceY().strength(0.002))
           .force("collide", d3.forceCollide().radius(function(d) { return d.r; }).iterations(1))
-        simulation.tick();
+        for (var i = 0; i < iter; i++){
+            simulation.alpha(0.8)
+            simulation.tick();
+        }
 
         // 根据圆心到预期位置的差距，整体平移各个子图
         for (var subGraph of graphTmp) {
@@ -269,6 +273,11 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
     function onGraphChanged(changes) {
         incrementDivideSubGraph(changes);
         bodiesCount = graph.getNodesCount();
+        for (var [graphId, subGraph] of subGraphs.entries()){
+            subGraph.layout.updateBounds();
+        }
+        subGraphLayoutBaseD3(1500);
+        
     }
 
     function incrementDivideSubGraph(changes){
@@ -320,14 +329,13 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
             delData(needDelData);
         }
         if (needAddLinks.size > 0 || needAddNodes.size > 0){
-            // divideSubGraphBaseAllData();
             addData(needAddNodes, needAddLinks);
         }
     }
 
     function addData(needAddNodes, needAddLinks){
         var needAddLinksNum = -1;
-        var needAddData = new Map();// 
+        var needAddData = new Map();
         while(needAddLinksNum !== needAddLinks.size){
             needAddLinksNum = needAddLinks.size
             var aleardyAddedLink = new Set();
@@ -501,26 +509,6 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
             var subGraphsTmp = doDivide(nodes, insularNodes);
             subGraphs.delete(subGraphId);
             for (var [subGraphId, subGraph] of subGraphsTmp.entries()) {
-                // subGraph.layout.updateBounds();
-                // var bounds = subGraph.layout.getGraphRect();
-                // var centerX = (bounds.x2 + bounds.x1) / 2;
-                // var centerY = (bounds.y2 + bounds.y1) / 2;
-                // var dx = centerX - bounds.x1;
-                // var dy = centerY - bounds.y1;
-                // var r = Math.sqrt(dx * dx + dy * dy);
-                // if (r < 50){
-                //     r = 50
-                // }
-                // subGraph.r = r;
-                // subGraph.x = centerX;
-                // subGraph.y = centerY;
-                // if (subGraph.isPinned){
-                //     subGraph.fx = centerX;
-                //     subGraph.fy = centerY;
-                // } else {
-                //     subGraph.fx = null;
-                //     subGraph.fy = null;
-                // }
                 subGraphs.set(subGraphId, subGraph);
             } 
         } 
@@ -566,7 +554,6 @@ export default function ForceLayoutBaseNgraph(graph, physicsSettings) {
         // 初始化子图相关参数
         subGraphs = new Map(); // 子图的id和子图的映射 
         nodeIndex = new Map(); // 用于指示每个node处于哪个子图中
-        // boundsTotal = {x1 : 0, x2 : 0, y1 : 0, y2 : 0}
         indexOfSubGraph = 1;
         // 分割子图
         var subGraphsTmp = doDivide(nodes, insularNodes);
