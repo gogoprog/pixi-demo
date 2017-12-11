@@ -7,7 +7,8 @@ import CircleLayout from './layout/CircleLayout';
 import StructuralLayout from './layout/StructuralLayout/StructuralLayout';
 import RadiateLayout from './layout/RadiateLayout';
 import TimelineLayout from './layout/TimelineLayout';
-import ForceLayoutBaseNgraph from "./layout/ForceLayoutBaseNgraph/ForceLayout"
+// import ForceLayoutBaseNgraph from "./layout/ForceLayoutBaseNgraph/ForceLayout"
+import createLayout from "./layout/ForceLayoutBaseNgraph/ForceLayoutInNGraph"
 
 import Graph from './Graph';
 
@@ -47,7 +48,9 @@ export default class PixiRenderer {
 
         // If client does not need custom layout algorithm, let's create default one:
         // let networkLayout = createForceLayout(graph, visualConfig.forceLayout);
-        let networkLayout = ForceLayoutBaseNgraph(graph, visualConfig.forceLayout);
+        // let networkLayout = ForceLayoutBaseNgraph(graph, visualConfig.forceLayout);
+        let networkLayout = createLayout(graph, visualConfig.forceLayout);
+        
 
         let layout = networkLayout;
         let layoutType = 'Network';
@@ -1182,7 +1185,7 @@ export default class PixiRenderer {
             if (layoutType === 'Network') {
                 if (dynamicLayout) {
                     layoutPositionChanged = true;
-                    // for (var tmp = 0; tmp < 5; tmp++){
+                    // for (var tmp = 0; tmp < 20; tmp++){
                         layout.step();
                     // }
                     updateNodeSpritesPosition();

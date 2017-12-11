@@ -334,6 +334,21 @@ export default function createLayout(graph, physicsSettings) {
             }
         }
         needUpdateNode.clear();
+        let isStable = false;
+        let i = 0;
+        let n = 2000;
+        if (bodiesCount < 100){
+            n = 50000;
+        } else if (bodiesCount < 300){
+            n = 10000;
+        } else if (bodiesCount < 700){
+            n = 5000;
+        }
+        while(!isStable && i < n){
+            isStable = api.step();
+            i++;
+        } 
+       
     }
 
     function checkLeafNode(nodeId){
