@@ -1179,16 +1179,24 @@ export default class PixiRenderer {
                 console.info('Renderer destroyed, exiting animation loop');
                 return;
             }
+            let n = 2;
+            if (graph.getNodesCount() < 100){
+                n = 20;
+            } else if (graph.getNodesCount() < 300){
+                n = 10;
+            } else if (graph.getNodesCount() < 700){
+                n = 5;
+            }
             requestAnimationFrame(animationLoop);
             animationAgent.step();
             let layoutPositionChanged = false;
             if (layoutType === 'Network') {
                 if (dynamicLayout) {
                     layoutPositionChanged = true;
-                    // for (var tmp = 0; tmp < 20; tmp++){
+                    for (var tmp = 0; tmp < n; tmp++){
                         layout.step();
-                    // }
-                    updateNodeSpritesPosition();
+                        updateNodeSpritesPosition();
+                    }
                 }
             } else if (layoutType === 'TimelineScale') {
                 //
