@@ -24,7 +24,7 @@ export default function createLayout(graph, physicsSettings) {
     var nodeBodies = Object.create(null);
     var springs = {};
     var bodiesCount = 0;
-    var adjoin = new Map(); // 邻接关系Map<String, Set<String>>>
+    var adjoin = new Map(); // 邻接关系Map<String, Map<String, Set<String>>> => entityId, anotherId, linkIdSet between them 
     var needUpdateNode = new Set(); // 更新过程中收到影响的实体id集合
     var leafNodeIdSet = new Set() // 叶子节点id结合
 
@@ -252,7 +252,7 @@ export default function createLayout(graph, physicsSettings) {
                     var nodeId = change.node.id;
                     initBody(nodeId);
                     if (!adjoin.has(nodeId)){
-                        adjoin.set(nodeId, new Set());    
+                        adjoin.set(nodeId, new Map());    
                     }
                 }
                 if (change.link) {
@@ -261,8 +261,10 @@ export default function createLayout(graph, physicsSettings) {
 
             } else if (change.changeType === 'remove') {
                 if (change.node) {
+                    var nodeId = change.node.id;
                     releaseNode(change.node);
-                    adjoin.delete(nodeId, new Set());
+                    adjoin.delete(nodeId);
+                    needUpdateNode.delete(nodeId);
                 }
                 if (change.link) {
                     releaseLink(change.link);
@@ -354,11 +356,12 @@ export default function createLayout(graph, physicsSettings) {
     function checkLeafNode(nodeId){
         var neighbor = adjoin.get(nodeId); 
         if (neighbor.size === 1){
-            var anotherNodeId = neighbor[Symbol.iterator]().next().value;
-            var anotherNodeNeighbor = adjoin.get(anotherNodeId);
-            if (anotherNodeNeighbor.size > 1){
-                return true;
-            }
+            for (var [anotherNodeId, linkIdSet] of neighbor){
+                var anotherNodeNeighbor = adjoin.get(anotherNodeId);
+                if (anotherNodeNeighbor.size > 1){
+                    return true;
+                }
+            }           
         }
         return false;
     }
@@ -422,10 +425,19 @@ export default function createLayout(graph, physicsSettings) {
         updateBodyMass(fromId);
         updateBodyMass(toId);
 
-        var fromNodeNeigbor = adjoin.get(fromId)  // Set<String>
-        var toNodeNeigbor = adjoin.get(toId)  // Set<String>
-        fromNodeNeigbor.add(toId);
-        toNodeNeigbor.add(fromId);
+        var fromNodeNeigbor = adjoin.get(fromId)  // Map<Stirng,Set<String>>
+        var toNodeNeigbor = adjoin.get(toId)  // Map<String,Set<String>>
+        if (!fromNodeNeigbor.has(toId)){
+            fromNodeNeigbor.set(toId, new Set());    
+        }
+        if (!toNodeNeigbor.has(fromId)){
+            toNodeNeigbor.set(fromId, new Set());    
+        }
+        var fromNode2ToNodeLinkIdSet = fromNodeNeigbor.get(toId);
+        var toNode2FromNodeLinkIdSet = toNodeNeigbor.get(fromId);
+        fromNode2ToNodeLinkIdSet.add(link.id);
+        toNode2FromNodeLinkIdSet.add(link.id);
+
         needUpdateNode.add(toId);
         needUpdateNode.add(fromId);
 
@@ -474,10 +486,20 @@ export default function createLayout(graph, physicsSettings) {
             needUpdateNode.add(toId);
             needUpdateNode.add(fromId);
             if (adjoin.has(toId)){
-                adjoin.get(toId).delete(fromId);
+                var toNodeNeighbor = adjoin.get(toId);
+                var toNode2FromNodeLinkIdSet = toNodeNeighbor.get(fromId);
+                toNode2FromNodeLinkIdSet.delete(link.id);
+                if (toNode2FromNodeLinkIdSet.size === 0){
+                    toNodeNeighbor.delete(fromId);
+                }
             }
             if (adjoin.has(fromId)){
-                adjoin.get(fromId).delete(toId);
+                var fromNodeNeighbor = adjoin.get(fromId);
+                var fromNode2ToNodeLinkIdSet = fromNodeNeighbor.get(toId);
+                fromNode2ToNodeLinkIdSet.delete(link.id);
+                if (fromNode2ToNodeLinkIdSet.size === 0){
+                    fromNodeNeighbor.delete(toId);
+                }
             }
             var from = graph.getNode(fromId),
                 to = graph.getNode(toId);
