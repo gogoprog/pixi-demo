@@ -317,7 +317,8 @@ export default function Graph(source, options) {
                         if (change.link) {
                             self.removeLink(change.link);
                         }
-                    } else if (change.changeType === 'update' || change.changeType === 'link-color'  || change.changeType === 'link-width' || change.changeType === 'collection') {
+                    } else if (change.changeType === 'update' || change.changeType === 'link-color'  || change.changeType === 'link-width' || change.changeType === 'collection'
+                                || change.changeType === 'entity-border' || change.changeType === 'entity-scale') {
                         if (change.entity) {
                             let node = self.getNode(change.entity.id);
                             if (node) {
