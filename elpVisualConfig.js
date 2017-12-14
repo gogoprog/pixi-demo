@@ -12,7 +12,7 @@ export const elpVisualConfig = {
     ELLIPSE_X_OFFSET: 0.15 * 32,
     LAYOUT_ANIMATION: true,
     forceLayout: {
-        springLength: 150,
+        springLength: 350,
         springCoeff: 0.00008,
         dragCoeff: 0.08,
         gravity: -1.2,
