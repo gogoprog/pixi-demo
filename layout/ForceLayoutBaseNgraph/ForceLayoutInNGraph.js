@@ -445,18 +445,6 @@ export default function createLayout(graph, physicsSettings) {
             toBody  = nodeBodies[toId],
             tmp1 = getSpringCoeff(link),
             springLength = physicsSimulator.settings.springLength;
-        // if (bodiesCount > 100){
-        //     springLength = springLength*bodiesCount/20
-        // }
-
-        // var fromNode = graph.getNode(link.fromId)
-        // var toNode = graph.getNode(link.toId)
-        // var fromNodeType = fromNode.data.properties["_Type"]
-        // var toNodeType = toNode.data.properties["_Type"]
-        // if((toNodeType && fromNodeType) && (toNodeType === fromNodeType)){
-        //     springLength = springLength/2
-        // }
-
         var spring = physicsSimulator.addSpring(fromBody, toBody, springLength, 1, physicsSimulator.settings.springCoeff / tmp1);
 
         springTransform(link, spring);
@@ -488,17 +476,21 @@ export default function createLayout(graph, physicsSettings) {
             if (adjoin.has(toId)){
                 var toNodeNeighbor = adjoin.get(toId);
                 var toNode2FromNodeLinkIdSet = toNodeNeighbor.get(fromId);
-                toNode2FromNodeLinkIdSet.delete(link.id);
-                if (toNode2FromNodeLinkIdSet.size === 0){
-                    toNodeNeighbor.delete(fromId);
+                if (toNode2FromNodeLinkIdSet){
+                    toNode2FromNodeLinkIdSet.delete(link.id);                    
+                    if (toNode2FromNodeLinkIdSet.size === 0){
+                        toNodeNeighbor.delete(fromId);
+                    }
                 }
             }
             if (adjoin.has(fromId)){
                 var fromNodeNeighbor = adjoin.get(fromId);
                 var fromNode2ToNodeLinkIdSet = fromNodeNeighbor.get(toId);
-                fromNode2ToNodeLinkIdSet.delete(link.id);
-                if (fromNode2ToNodeLinkIdSet.size === 0){
-                    fromNodeNeighbor.delete(toId);
+                if (fromNode2ToNodeLinkIdSet){
+                    fromNode2ToNodeLinkIdSet.delete(link.id);                    
+                    if (fromNode2ToNodeLinkIdSet.size === 0){
+                        fromNodeNeighbor.delete(toId);
+                    }
                 }
             }
             var from = graph.getNode(fromId),
