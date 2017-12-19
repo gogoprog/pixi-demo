@@ -1558,12 +1558,9 @@ export default function (settings) {
                 }
             } else if (change.changeType === 'update') {
                 if (change.node) {
-                    console.log('Node updated: ', change.node);
-                    // updateNodeIcon(change.node);
                     updateNode(change.node);
                 }
                 if (change.link) {
-                    console.log('Link updated: ', change.link);
                     updateLink(change.link);
                 }
             }

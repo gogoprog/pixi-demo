@@ -238,7 +238,6 @@ export default class SimpleLineSprite {
     static getTexture(thickness, color) {
         const key = `${thickness}-${color}`;
         if (!SimpleLineSprite.textureCache[key]) {
-            console.log(`Generating texture: ${key}`);
             const arrowW = SimpleLineSprite.ARROW_WIDTH + SimpleLineSprite.THICKNESS_FACTOR * thickness;
             const arrowH = SimpleLineSprite.ARROW_HEIGHT + SimpleLineSprite.THICKNESS_FACTOR * thickness;
             const canvas = SimpleLineSprite.getCanvas(arrowW, arrowH);
@@ -262,7 +261,6 @@ export default class SimpleLineSprite {
     static getMultiTexture(thickness, color) {
         const key = `${thickness}-${color}-multi`;
         if (!SimpleLineSprite.textureCache[key]) {
-            console.log(`Generating texture: ${key}`);
             const arrowW = SimpleLineSprite.ARROW_WIDTH + SimpleLineSprite.THICKNESS_FACTOR * thickness;
             const arrowH = SimpleLineSprite.ARROW_HEIGHT + SimpleLineSprite.THICKNESS_FACTOR * thickness;
             const canvas = SimpleLineSprite.getCanvas(arrowW, arrowH);

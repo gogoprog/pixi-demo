@@ -75,7 +75,6 @@ export default class CircleBorderTexture extends PIXI.Sprite {
     static getTexture(thickness, color, borderAlpha, fillColor, fillAlpha, radius) {
         const key = `${thickness}-${color}-${borderAlpha}-${fillColor}-${fillAlpha}-${radius}`;
         if (!CircleBorderTexture.textureCache[key]) {
-            console.log(`Generating texture: ${key}`);
             const canvas = CircleBorderTexture.getCanvas((radius + thickness) * 2);
             const context = canvas.getContext('2d');
             context.fillStyle = PIXI.utils.hex2string(fillColor);
