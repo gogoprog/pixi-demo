@@ -170,6 +170,7 @@ const nodeReleaseListener = function (e) {
     this.parent.isDirty = true;
     this.interactionData = null;
     this.parent.selectedNodesPosChanged();
+    this.parent.selectNode(this);
     this.parent.nodeSelected(this);
     this.moveListener = null;
     this.off('mouseup', this.releaseListener);
@@ -212,6 +213,7 @@ const nodeMoveListener = function (e) {
             this.parent.parent.deselectAll();
         }
         this.parent.selectNode(this);
+        this.parent.nodeSelected(this);
         // newPosition=null;
         this.updateNodePosition(newPosition);
         this.parent.nodeMoved(this);
