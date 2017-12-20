@@ -48,7 +48,11 @@ export default function (settings) {
     // let networkLayout = createForceLayout(graph, visualConfig.forceLayout);
     // let networkLayout = ForceLayoutBaseNgraph(graph, visualConfig.forceLayout);
     let networkLayout = createLayout(graph, visualConfig.forceLayout);
-
+    networkLayout.on('stable', (isStable) => {
+        if(isStable) {
+            layoutStabilized();
+        }
+    });
 
     let layout = networkLayout;
     let layoutType = 'Network';
@@ -838,28 +842,16 @@ export default function (settings) {
                 }
 
                 if (!dynamicLayout) {
-                    // if (disableAnimation) {
-                        // layout.step();
-                        layoutIterations = 0;
-                    // } else {
-                    //     layoutIterations = 150;
-                    //     while (layoutIterations > 0) {
-                    //         layout.step();
-                    //         layoutIterations -= 1;
-                    //     }
-                    // }
+                    layout.step();
 
-                    if (layoutIterations === 0) {
-                        _.each(nodeSprites, (nodeSprite, nodeId) => { //大开销计算
-                            nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
-                        });
+                    _.each(nodeSprites, (nodeSprite, nodeId) => { //大开销计算
+                        nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+                    });
 
-                        drawBorders();
-                        drawLines();
+                    drawBorders();
+                    drawLines();
 
-                        renderer.render(stage);
-                        counter.nextFrame();
-                    }
+                    renderer.render(stage);
                 }
                 this.setNodesToFullScreen(disableAnimation);
             } else if (layoutType === 'Circular') {
@@ -1098,6 +1090,9 @@ export default function (settings) {
     ///////////////////////////////////////////////////////////////////////////////
     // Public API is over
     ///////////////////////////////////////////////////////////////////////////////
+    function layoutStabilized() {
+        pixiGraphics.fire('layout-stable');
+    }
 
     function selectionChanged() {
         isDirty = true;

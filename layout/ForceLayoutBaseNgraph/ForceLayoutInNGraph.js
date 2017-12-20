@@ -24,7 +24,7 @@ export default function createLayout(graph, physicsSettings) {
     var nodeBodies = Object.create(null);
     var springs = {};
     var bodiesCount = 0;
-    var adjoin = new Map(); // 邻接关系Map<String, Map<String, Set<String>>> => entityId, anotherId, linkIdSet between them 
+    var adjoin = new Map(); // 邻接关系Map<String, Map<String, Set<String>>> => entityId, anotherId, linkIdSet between them
     var needUpdateNode = new Set(); // 更新过程中收到影响的实体id集合
     var leafNodeIdSet = new Set() // 叶子节点id结合
 
@@ -47,7 +47,7 @@ export default function createLayout(graph, physicsSettings) {
         */
         springs: springs,
 
-        nodeBodies: nodeBodies, 
+        nodeBodies: nodeBodies,
 
         step: function() {
             if (bodiesCount === 0) return true; // TODO: This will never fire 'stable'
@@ -64,8 +64,11 @@ export default function createLayout(graph, physicsSettings) {
             var ratio = lastMove/bodiesCount;
             var isStableNow = ratio <= 0.01; // TODO: The number is somewhat arbitrary...
 
-            if (wasStable !== isStableNow) {
-                wasStable = isStableNow;
+            // if (wasStable !== isStableNow) {
+            //     wasStable = isStableNow;
+            //     onStableChanged(isStableNow);
+            // }
+            if (isStableNow){
                 onStableChanged(isStableNow);
             }
 
@@ -224,7 +227,7 @@ export default function createLayout(graph, physicsSettings) {
 
     function listenToEvents() {
         graph.on('changed', onGraphChanged);
-    } 
+    }
 
     function onStableChanged(isStable) {
         api.fire('stable', isStable);
@@ -252,7 +255,7 @@ export default function createLayout(graph, physicsSettings) {
                     var nodeId = change.node.id;
                     initBody(nodeId);
                     if (!adjoin.has(nodeId)){
-                        adjoin.set(nodeId, new Map());    
+                        adjoin.set(nodeId, new Map());
                     }
                 }
                 if (change.link) {
@@ -275,8 +278,19 @@ export default function createLayout(graph, physicsSettings) {
         updateSpringLength();
         if (!dynamic){
             if (addData){
-                for(var i = 0; i < 10; i++){
-                    physicsSimulator.step();
+                let isStable = false;
+                let i = 0;
+                let n = 2000;
+                if (bodiesCount < 100){
+                    n = 50000;
+                } else if (bodiesCount < 300){
+                    n = 10000;
+                } else if (bodiesCount < 700){
+                    n = 5000;
+                }
+                while(!isStable && i < n){
+                    isStable = api.step();
+                    i++;
                 }
             }
             for (var bodyId in nodeBodies){
@@ -296,7 +310,7 @@ export default function createLayout(graph, physicsSettings) {
         var nodeWithLeaves = new Set()
         var leafNodes = new Set()
         for (var nodeId of needUpdateNode){
-            if (checkLeafNode(nodeId)){ 
+            if (checkLeafNode(nodeId)){
                 leafNodeIdSet.add(nodeId);
                 leafNodes.add(nodeId);
             } else {
@@ -336,32 +350,17 @@ export default function createLayout(graph, physicsSettings) {
             }
         }
         needUpdateNode.clear();
-        let isStable = false;
-        let i = 0;
-        let n = 2000;
-        if (bodiesCount < 100){
-            n = 50000;
-        } else if (bodiesCount < 300){
-            n = 10000;
-        } else if (bodiesCount < 700){
-            n = 5000;
-        }
-        while(!isStable && i < n){
-            isStable = api.step();
-            i++;
-        } 
-       
     }
 
     function checkLeafNode(nodeId){
-        var neighbor = adjoin.get(nodeId); 
+        var neighbor = adjoin.get(nodeId);
         if (neighbor.size === 1){
             for (var [anotherNodeId, linkIdSet] of neighbor){
                 var anotherNodeNeighbor = adjoin.get(anotherNodeId);
                 if (anotherNodeNeighbor.size > 1){
                     return true;
                 }
-            }           
+            }
         }
         return false;
     }
@@ -428,10 +427,10 @@ export default function createLayout(graph, physicsSettings) {
         var fromNodeNeigbor = adjoin.get(fromId)  // Map<Stirng,Set<String>>
         var toNodeNeigbor = adjoin.get(toId)  // Map<String,Set<String>>
         if (!fromNodeNeigbor.has(toId)){
-            fromNodeNeigbor.set(toId, new Set());    
+            fromNodeNeigbor.set(toId, new Set());
         }
         if (!toNodeNeigbor.has(fromId)){
-            toNodeNeigbor.set(fromId, new Set());    
+            toNodeNeigbor.set(fromId, new Set());
         }
         var fromNode2ToNodeLinkIdSet = fromNodeNeigbor.get(toId);
         var toNode2FromNodeLinkIdSet = toNodeNeigbor.get(fromId);
@@ -477,7 +476,7 @@ export default function createLayout(graph, physicsSettings) {
                 var toNodeNeighbor = adjoin.get(toId);
                 var toNode2FromNodeLinkIdSet = toNodeNeighbor.get(fromId);
                 if (toNode2FromNodeLinkIdSet){
-                    toNode2FromNodeLinkIdSet.delete(link.id);                    
+                    toNode2FromNodeLinkIdSet.delete(link.id);
                     if (toNode2FromNodeLinkIdSet.size === 0){
                         toNodeNeighbor.delete(fromId);
                     }
@@ -487,7 +486,7 @@ export default function createLayout(graph, physicsSettings) {
                 var fromNodeNeighbor = adjoin.get(fromId);
                 var fromNode2ToNodeLinkIdSet = fromNodeNeighbor.get(toId);
                 if (fromNode2ToNodeLinkIdSet){
-                    fromNode2ToNodeLinkIdSet.delete(link.id);                    
+                    fromNode2ToNodeLinkIdSet.delete(link.id);
                     if (fromNode2ToNodeLinkIdSet.size === 0){
                         fromNodeNeighbor.delete(toId);
                     }
