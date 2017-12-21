@@ -21,7 +21,7 @@ import SimpleNodeSprite from './sprite/SimpleNodeSprite';
 
 import AnimationAgent from './AnimationAgent';
 import FPSCounter from './FPSCounter';
-import convertCanvasToImage from './Utils';
+import { convertCanvasToImage } from './Utils';
 
 export default function (settings) {
     let isDirty = true;
@@ -248,7 +248,6 @@ export default function (settings) {
         root,
         stage,
         mode,
-        counter,
 
         getLayoutType() {
             return layoutType;
@@ -775,6 +774,7 @@ export default function (settings) {
             // graphLinkTypes = null;
             graphEntities = null;
             graphLinks = null;
+            counter.destroy();
 
             boarderGraphics.destroy(false);
             selectRegionGraphics.destroy(false);
@@ -1221,7 +1221,6 @@ export default function (settings) {
             }
 
             renderer.render(stage);
-            counter.nextFrame();
 
             isDirty = false;
             nodeContainer.isDirty = false;
@@ -1230,6 +1229,7 @@ export default function (settings) {
             nodeContainer.positionDirty = false;
             lineContainer.styleDirty = false;
         }
+        counter.nextFrame();
     }
 
     function updateNodeSpritesPosition() {

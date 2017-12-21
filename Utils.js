@@ -1,4 +1,13 @@
 /**
+ * verify if it's in debug mode
+ * @returns if we are in debug mode
+ */
+export function isDebugMode() {
+    return process && process.env && process.env.NODE_ENV && process.env.NODE_ENV === 'development';
+}
+
+
+/**
  * export the target object onto a canvas for saving as image.
  * Copied from PIXI WebGLExtract.canvas method.
  * #1 the origin WebGLExtract.canvas method allows us to export the whole pixi content as image instead of
@@ -8,7 +17,7 @@
  * @param myRenderer
  * @param target
  */
-export default function convertCanvasToImage(myRenderer, target, originViewWidth, originViewHeight, visConfig) {
+export function convertCanvasToImage(myRenderer, target, originViewWidth, originViewHeight, visConfig) {
     const TEMP_RECT = new PIXI.Rectangle();
     const BYTES_PER_PIXEL = 4;
     let textureBuffer;
