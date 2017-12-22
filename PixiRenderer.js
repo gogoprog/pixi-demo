@@ -47,7 +47,13 @@ export default function (settings) {
     // If client does not need custom layout algorithm, let's create default one:
     // let networkLayout = createForceLayout(graph, visualConfig.forceLayout);
     // let networkLayout = ForceLayoutBaseNgraph(graph, visualConfig.forceLayout);
-    let networkLayout = createLayout(graph, visualConfig.forceLayout);
+    let networkLayout = null;
+    if (visualConfig.ORIGINAL_FORCE_LAYOUT) {
+        networkLayout = createForceLayout(graph, visualConfig.forceLayout);
+    } else {
+        networkLayout = createLayout(graph, visualConfig.forceLayout);
+    }
+
     networkLayout.on('stable', (isStable) => {
         if(isStable) {
             layoutStabilized();
@@ -798,7 +804,9 @@ export default function (settings) {
                 && layoutType !== 'TimelineScale') {
                 layoutType = 'Network';
             }
-            networkLayout.setLayoutType(layoutType)
+            if (!visualConfig.ORIGINAL_FORCE_LAYOUT) {
+                networkLayout.setLayoutType(layoutType)
+            }
             if (layoutType === 'Network') {
                 if (!dynamicLayout && layoutTypeStr !== 'Network') {
                     layoutIterations = 0;
@@ -1424,6 +1432,7 @@ export default function (settings) {
     function listenToGraphEvents() {
         graph.on('changed', onGraphChanged);
         graph.on('elp-changed', onGraphElpChanged);
+        graph.on('init', onGraphInit);
     }
 
     function removeNode(node) {
@@ -1533,15 +1542,19 @@ export default function (settings) {
     }
 
     function onGraphChanged(changes) {
+        const nodeIdArray = [];
+        const linkIdArray = [];
         isDirty = true;
         for (let i = 0; i < changes.length; ++i) {
             const change = changes[i];
             if (change.changeType === 'add') {
                 if (change.node) {
                     initNode(change.node);
+                    nodeIdArray.push(change.node.id);
                 }
                 if (change.link) {
                     initLink(change.link);
+                    linkIdArray.push(change.link.id);
                 }
             } else if (change.changeType === 'remove') {
                 if (change.node) {
@@ -1557,6 +1570,24 @@ export default function (settings) {
                 }
                 if (change.link) {
                     updateLink(change.link);
+                }
+            }
+        }
+
+        pixiGraphics.clearSelection();
+        pixiGraphics.selectSubGraph(nodeIdArray, linkIdArray);
+    }
+
+    function onGraphInit(changes) {
+        isDirty = true;
+        for (let i = 0; i < changes.length; ++i) {
+            const change = changes[i];
+            if (change.changeType === 'add') {
+                if (change.node) {
+                    initNode(change.node);
+                }
+                if (change.link) {
+                    initLink(change.link);
                 }
             }
         }

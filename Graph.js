@@ -252,6 +252,10 @@ export default function Graph(source, options) {
          */
         endUpdate: exitModification,
 
+        beginInitUpdate: beginInitUpdate,
+
+        endInitUpdate: endInitUpdate,
+
         /**
          * Removes all nodes and links from the graph.
          */
@@ -360,7 +364,7 @@ export default function Graph(source, options) {
 
             entityGraphSource.on('init', () => {
                 // console.log('Renderer graph received source init event');
-                self.beginUpdate();
+                self.beginInitUpdate();
 
                 self.source.forEachEntity((e) => {
                     self.addNode(e.id, e);
@@ -368,7 +372,7 @@ export default function Graph(source, options) {
                 self.source.forEachLink((l) => {
                     self.addLink(l.sourceEntity, l.targetEntity, l);
                 });
-                self.endUpdate();
+                self.endInitUpdate();
                 // console.log('Renderer graph finished handling source init event');
             });
 
@@ -399,6 +403,8 @@ export default function Graph(source, options) {
             graphPart.endUpdate = exitModification = exitModificationReal;
             recordLinkChange = recordLinkChangeReal;
             recordNodeChange = recordNodeChangeReal;
+            graphPart.beginInitUpdate = beginInitUpdate;
+            graphPart.endInitUpdate = endInitUpdate;
 
             // this will replace current `on` method with real pub/sub from `eventify`.
             graphPart.on = realOn;
@@ -672,6 +678,18 @@ export default function Graph(source, options) {
         suspendEvents -= 1;
         if (suspendEvents === 0 && changes.length > 0) {
             graphPart.fire('changed', changes);
+            changes.length = 0;
+        }
+    }
+
+    function beginInitUpdate() {
+        suspendEvents += 1;
+    }
+
+    function endInitUpdate() {
+        suspendEvents -= 1;
+        if (suspendEvents === 0 && changes.length > 0) {
+            graphPart.fire('init', changes);
             changes.length = 0;
         }
     }

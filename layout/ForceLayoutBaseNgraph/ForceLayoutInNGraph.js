@@ -17,7 +17,7 @@ export default function createLayout(graph, physicsSettings) {
       throw new Error('Graph structure cannot be undefined');
     }
 
-    var layoutType = "netWork"
+    var layoutType = "Network"
 
     var physicsSimulator = PhysicsSimulator(physicsSettings);
 
@@ -227,6 +227,7 @@ export default function createLayout(graph, physicsSettings) {
 
     function listenToEvents() {
         graph.on('changed', onGraphChanged);
+        graph.on('init', onGraphChanged);
     }
 
     function onStableChanged(isStable) {
@@ -384,7 +385,7 @@ export default function createLayout(graph, physicsSettings) {
 
             var pos = {x:node.data.properties["_$x"], y:node.data.properties["_$y"]}
             var hasPos = node.data.properties._$x && node.data.properties._$y;
-            if ( !hasPos || layoutType !== "netWork" ) {
+            if ( !hasPos || layoutType !== "Network" ) {
                 var locked = node.data.properties["_$lock"];
                 var usePos = hasPos && locked;
                 if (!usePos){
