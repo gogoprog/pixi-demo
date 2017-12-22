@@ -1599,6 +1599,7 @@ export default function (settings) {
         }
 
         if (nodeIdArray.length > 0 || linkIdArray.length > 0) {
+            pixiGraphics.performLayout();
             pixiGraphics.clearSelection();
             pixiGraphics.selectSubGraph(nodeIdArray, linkIdArray);
         }
