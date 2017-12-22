@@ -349,6 +349,30 @@ export default function (settings) {
         },
 
         /**
+         * get selected nodes data,
+         * nodes of nodeContainer are selected @SelectionManager.js
+         */
+        getSelectedNodesData() {
+            const selectedNodes = [];
+            _.each(nodeContainer.nodes, (ns) => {
+                selectedNodes.push(Object.assign({}, ns.data));
+            });
+            return selectedNodes;
+        },
+
+        /**
+         * get selected Links,
+         * links of nodeContainer are selected @SelectionManager.js
+         */
+        getSelectedLinksData() {
+            const selectedLinks = [];
+            _.each(lineContainer.links, (ls) => {
+                selectedLinks.push(Object.assign({}, ls.data));
+            });
+            return selectedLinks;
+        },
+
+        /**
          * draw circle layout
          */
         drawCircleLayout(disableAnimation) {
@@ -1194,7 +1218,7 @@ export default function (settings) {
         if (layoutType === 'Network') {
             if (dynamicLayout) {
                 layoutPositionChanged = true;
-                for (var tmp = 0; tmp < n; tmp++){
+                for (let tmp = 0; tmp < n; tmp++){
                     layout.step();
                     updateNodeSpritesPosition();
                 }
@@ -1574,8 +1598,10 @@ export default function (settings) {
             }
         }
 
-        pixiGraphics.clearSelection();
-        pixiGraphics.selectSubGraph(nodeIdArray, linkIdArray);
+        if (nodeIdArray.length > 0 || linkIdArray.length > 0) {
+            pixiGraphics.clearSelection();
+            pixiGraphics.selectSubGraph(nodeIdArray, linkIdArray);
+        }
     }
 
     function onGraphInit(changes) {
