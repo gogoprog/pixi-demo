@@ -460,6 +460,28 @@ export default function (settings) {
             }
         },
 
+        // This method is to move the graph scene center to the specified postion
+        alignContentCenterToCanvasPosition(canvasX, canvasY) {
+            // actually I prefer refresh manually
+            // isDirty = true;
+            const rect = root.getBounds();
+            const graphCenterInStage = {
+                x: rect.x + rect.width / 2,
+                y: rect.y + rect.height / 2,
+            };
+            const rootPositionTransform = {
+                x: canvasX - graphCenterInStage.x,
+                y: canvasY - graphCenterInStage.y,
+            };
+            // sometimes you may need a smooth move 
+            // animationAgent.move(root, {
+            //     x: root.position.x + rootPositionTransform.x,
+            //     y: root.position.y + rootPositionTransform.y,
+            // });
+            root.position.x += rootPositionTransform.x;
+            root.position.y += rootPositionTransform.y;
+        },
+
         calculateRootPosition(scaleFactor) {
             isDirty = true;
             const root = this.root;
@@ -1020,6 +1042,10 @@ export default function (settings) {
             });
         },
 
+        getStageCanvas() {
+            return renderer.plugins.extract.canvas(root);
+        },
+
         lock(nodes) {
             isDirty = true;
             for (const node of nodes) {
@@ -1105,6 +1131,7 @@ export default function (settings) {
             }
         }
     };
+
     document.addEventListener('mousedown', pixiGraphics._mouseDownListener);
     document.addEventListener('keydown', pixiGraphics._keyDownListener);
 
@@ -1251,9 +1278,11 @@ export default function (settings) {
             if (stage.isTimelineLayout) {
                 timelineLayout.drawNodeTimelines();
             }
-
             renderer.render(stage);
-
+            if (root.width) {
+                pixiGraphics.fire('adjust-bird-view', event);
+            }
+    
             isDirty = false;
             nodeContainer.isDirty = false;
             stage.isDirty = false;
@@ -1637,5 +1666,42 @@ export default function (settings) {
                 selectRegionGraphics.isDirty = false;
             }
         }
+
+        /**
+         * The following code is to draw guidelines for debug
+         * selectRegionGraphics is a child of stage, a sibling of root, that's why we are here 
+         */
+
+        // mark the root position in the stage
+        // selectRegionGraphics.beginFill(0x000000);
+        // selectRegionGraphics.lineStyle(2, 0xffffff);
+        // selectRegionGraphics.arc(root.position.x, root.position.y, 10, 0, 2 * Math.PI); // cx, cy, radius, startAngle, endAngle
+        // selectRegionGraphics.endFill();
+
+        // draw the bounds of root with pixi.js in blue
+        // const rootRectInStage = root.getBounds();
+        // selectRegionGraphics.lineStyle(2, 0x0000ff);
+        // selectRegionGraphics.drawRect(rootRectInStage.x, rootRectInStage.y, rootRectInStage.width, rootRectInStage.height);
+
+        // draw the bounds of root with layout in green
+        // const rootRectInStageByLayout = layout.getGraphRect();
+        // const rootRectInStageByLayoutWidth = Math.abs(rootRectInStageByLayout.x2 - rootRectInStageByLayout.x1);
+        // const rootRectInStageByLayoutHeight = Math.abs(rootRectInStageByLayout.y2 - rootRectInStageByLayout.y1);
+        // const scale = root.scale.x;
+        // selectRegionGraphics.lineStyle(2, 0x00ff00);
+        // selectRegionGraphics.drawRect(
+        //     rootRectInStageByLayout.x1 * scale + root.position.x,
+        //     rootRectInStageByLayout.y1 * scale + root.position.y,
+        //     rootRectInStageByLayoutWidth * scale,
+        //     rootRectInStageByLayoutHeight * scale,
+        // );
+
+        // draw the X in stage canvas
+        // selectRegionGraphics.lineStyle(2, 0xff0000);
+        // selectRegionGraphics.moveTo(0, 0);
+        // selectRegionGraphics.lineTo(viewWidth, viewHeight);
+        // selectRegionGraphics.moveTo(0, viewHeight);
+        // selectRegionGraphics.lineTo(viewWidth, 0);
+
     }
 }
