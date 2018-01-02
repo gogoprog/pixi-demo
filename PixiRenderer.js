@@ -1003,6 +1003,10 @@ export default function (settings) {
             return type;
         },
 
+        onGraphInit(func) {
+            graph.on('init', func);
+        },
+
         onGraphChanged(func) {
             graph.on('changed', func);
         },
