@@ -1332,15 +1332,14 @@ export default function (settings) {
 
         nodeSprite.parent = nodeContainer;
         if (graphData) {
-            // const collIdArr = graphData.getNodeCollId(p);
-            // nodeSprite.setNodeIcon(collIdArr, nodeContainer);
-            const nodeCollTask = graphData.getNodeCollId(p);
-            nodeCollTask.then((result) => {
-                nodeSprite.setNodeIcon(result, nodeContainer);
-            }).catch((reason) => {
-                console.warn(`获取实体集合异常 ${reason}`);
-                reject(reason);
-            });
+            const collIdArr = graphData.getNodeCollId(p);
+            nodeSprite.setNodeIcon(collIdArr, nodeContainer);
+            // const nodeCollTask = graphData.getNodeCollId(p);
+            // nodeCollTask.then((result) => {
+            //     nodeSprite.setNodeIcon(result, nodeContainer);
+            // }).catch((reason) => {
+            //     console.warn(`获取实体集合异常 ${reason}`);
+            // });
         }
 
         if (p.data.properties._$lock) {
@@ -1545,15 +1544,14 @@ export default function (settings) {
 
         if (graphData) {
             const nodeSprite = nodeSprites[node.id];
-            // const collIdArr = graphData.getNodeCollId(node);
-            // nodeSprite.setNodeIcon(collIdArr, nodeContainer);
-            const nodeCollTask = graphData.getNodeCollId(node);
-            nodeCollTask.then((result) => {
-                nodeSprite.setNodeIcon(result, nodeContainer);
-            }).catch((reason) => {
-                console.warn(`获取实体集合异常 ${reason}`);
-                reject(reason);
-            });
+            const collIdArr = graphData.getNodeCollId(node);
+            nodeSprite.setNodeIcon(collIdArr, nodeContainer);
+            // const nodeCollTask = graphData.getNodeCollId(node);
+            // nodeCollTask.then((result) => {
+            //     nodeSprite.setNodeIcon(result, nodeContainer);
+            // }).catch((reason) => {
+            //     console.warn(`获取实体集合异常 ${reason}`);
+            // });
         }
     }
 
