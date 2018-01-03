@@ -16,25 +16,26 @@ export default class Settings {
         this.mode = 'picking';
     }
     updateVisualConfig(visConfig) {
-        this.visualConfig = Object.assign({}, visConfig);
-
-        const images = visualConfig.icons || [];
+        const images = visConfig.icons || [];
         for (const image of images) {
             image.texture = PIXI.Texture.fromImage(image.url);
         }
-        this.visualConfig.icons = images;
+        visConfig.icons = images;
 
-        const graphCollIcons = visualConfig.graphCollIcons || [];
+        const graphCollIcons = visConfig.graphCollIcons || [];
         for (let i = 0; i < 10; i++) {
             const iconUrl = `/static/32/GraphColl/graph_coll${i + 1}.png`;
             const texture = PIXI.Texture.fromImage(iconUrl);
             graphCollIcons.push(texture);
         }
-        this.visualConfig.graphCollIcons = graphCollIcons;
+        visConfig.graphCollIcons = graphCollIcons;
 
         const lockIconUrl = '/static/32/Lock/lock_state.png';
         const multiIconUrl = '/static/images/ic_multiple_objects.png';
-        this.visualConfig.lockIcon = PIXI.Texture.fromImage(lockIconUrl);
-        this.visualConfig.multiIcon = PIXI.Texture.fromImage(multiIconUrl);
+        visConfig.lockIcon = PIXI.Texture.fromImage(lockIconUrl);
+        visConfig.multiIcon = PIXI.Texture.fromImage(multiIconUrl);
+
+        visConfig = Object.assign({}, visConfig);
+        this.visualConfig = visConfig;
     }
 }
