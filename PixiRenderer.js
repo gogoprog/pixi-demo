@@ -1001,10 +1001,10 @@ export default function (settings) {
         },
 
         // convert the canvas drawing buffer into base64 encoded image url
-        exportImage: function () {
+        exportImage(width, height) {
             return new Promise((resolve, reject) => {
-                if (layoutType === "Network" && renderer.gl) {
-                    convertCanvasToImage(renderer, root, viewWidth, viewHeight, visualConfig).toBlob((blob) => {
+                if (renderer.gl) {
+                    convertCanvasToImage(renderer, root, width, height, visualConfig).toBlob((blob) => {
                         if (blob) {
                             const reader = new FileReader();
                             reader.readAsDataURL(blob);
@@ -1018,9 +1018,7 @@ export default function (settings) {
                             reject('图表缩略图获取失败！');
                         }
                     }, 'image/png');
-                } else {
-                    resolve(canvas.toDataURL());
-                }
+                } 
             });
         },
 
@@ -1641,5 +1639,41 @@ export default function (settings) {
                 selectRegionGraphics.isDirty = false;
             }
         }
+
+         /**
+         * The following code is to draw guidelines for debug
+         * selectRegionGraphics is a child of stage, a sibling of root, that's why we are here 
+         */
+
+         // mark the root position in the stage
+        // selectRegionGraphics.beginFill(0x000000);
+        // selectRegionGraphics.lineStyle(2, 0xffffff);
+        // selectRegionGraphics.arc(root.position.x, root.position.y, 10, 0, 2 * Math.PI); // cx, cy, radius, startAngle, endAngle
+        // selectRegionGraphics.endFill();
+
+        // draw the bounds of root with pixi.js in blue
+        // const rootRectInStage = root.getBounds();
+        // selectRegionGraphics.lineStyle(2, 0x0000ff);
+        // selectRegionGraphics.drawRect(rootRectInStage.x, rootRectInStage.y, rootRectInStage.width, rootRectInStage.height);
+
+        // draw the bounds of root with layout in green
+        // const rootRectInStageByLayout = layout.getGraphRect();
+        // const rootRectInStageByLayoutWidth = Math.abs(rootRectInStageByLayout.x2 - rootRectInStageByLayout.x1);
+        // const rootRectInStageByLayoutHeight = Math.abs(rootRectInStageByLayout.y2 - rootRectInStageByLayout.y1);
+        // const scale = root.scale.x;
+        // selectRegionGraphics.lineStyle(2, 0x00ff00);
+        // selectRegionGraphics.drawRect(
+        //     rootRectInStageByLayout.x1 * scale + root.position.x,
+        //     rootRectInStageByLayout.y1 * scale + root.position.y,
+        //     rootRectInStageByLayoutWidth * scale,
+        //     rootRectInStageByLayoutHeight * scale,
+        // );
+
+        // draw the X in stage canvas
+        // selectRegionGraphics.lineStyle(2, 0xff0000);
+        // selectRegionGraphics.moveTo(0, 0);
+        // selectRegionGraphics.lineTo(viewWidth, viewHeight);
+        // selectRegionGraphics.moveTo(0, viewHeight);
+        // selectRegionGraphics.lineTo(viewWidth, 0);
     }
 }
