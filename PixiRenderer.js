@@ -1044,8 +1044,9 @@ export default function (settings) {
             });
         },
 
-        getStageCanvas() {
-            return renderer.plugins.extract.canvas(root);
+        // the default parameter is double size of bird view
+        getBirdViewCanvas(width = 340, height = 260) {
+            return convertCanvasToImage(renderer, root, width, height, visualConfig);
         },
 
         lock(nodes) {
@@ -1684,6 +1685,11 @@ export default function (settings) {
         // const rootRectInStage = root.getBounds();
         // selectRegionGraphics.lineStyle(2, 0x0000ff);
         // selectRegionGraphics.drawRect(rootRectInStage.x, rootRectInStage.y, rootRectInStage.width, rootRectInStage.height);
+
+        // draw the local bounds of root 
+        // const rootLocalRect = root.getLocalBounds();
+        // selectRegionGraphics.lineStyle(2, 0x00ff00);
+        // selectRegionGraphics.drawRect(rootLocalRect.x, rootLocalRect.y, rootLocalRect.width, rootLocalRect.height);
 
         // draw the bounds of root with layout in green
         // const rootRectInStageByLayout = layout.getGraphRect();
