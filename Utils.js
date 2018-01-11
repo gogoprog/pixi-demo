@@ -105,13 +105,15 @@ export function convertCanvasToImage(myRenderer, target, originViewWidth, origin
             background.context.drawImage(background.canvas, 0, -height);
         }
     }
-    
+
     // restore the scale and position of target
     target.scale.x = tempScale;
     target.scale.y = tempScale;
     target.position.x = tempPositionX;
     target.position.y = tempPositionY;
 
+    // although we set target transform, but its children not, so set the transform to all its children
+    target.updateTransform();
     // send the canvas back..
     return background.canvas;
 }
