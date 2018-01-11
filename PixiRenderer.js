@@ -1023,10 +1023,10 @@ export default function (settings) {
         },
 
         // convert the canvas drawing buffer into base64 encoded image url
-        exportImage: function () {
+        exportImage(width, height) {
             return new Promise((resolve, reject) => {
-                if (layoutType === "Network" && renderer.gl) {
-                    convertCanvasToImage(renderer, root, viewWidth, viewHeight, visualConfig).toBlob((blob) => {
+                if (renderer.gl) {
+                    convertCanvasToImage(renderer, root, width, height, visualConfig).toBlob((blob) => {
                         if (blob) {
                             const reader = new FileReader();
                             reader.readAsDataURL(blob);
@@ -1040,9 +1040,7 @@ export default function (settings) {
                             reject('图表缩略图获取失败！');
                         }
                     }, 'image/png');
-                } else {
-                    resolve(canvas.toDataURL());
-                }
+                } 
             });
         },
 
@@ -1671,12 +1669,12 @@ export default function (settings) {
             }
         }
 
-        /**
+         /**
          * The following code is to draw guidelines for debug
          * selectRegionGraphics is a child of stage, a sibling of root, that's why we are here 
          */
 
-        // mark the root position in the stage
+         // mark the root position in the stage
         // selectRegionGraphics.beginFill(0x000000);
         // selectRegionGraphics.lineStyle(2, 0xffffff);
         // selectRegionGraphics.arc(root.position.x, root.position.y, 10, 0, 2 * Math.PI); // cx, cy, radius, startAngle, endAngle
@@ -1706,6 +1704,5 @@ export default function (settings) {
         // selectRegionGraphics.lineTo(viewWidth, viewHeight);
         // selectRegionGraphics.moveTo(0, viewHeight);
         // selectRegionGraphics.lineTo(viewWidth, 0);
-
     }
 }
