@@ -31,16 +31,19 @@ export function convertCanvasToImage(myRenderer, target, originViewWidth, origin
     const tempPositionY = target.position.y;
 
     // calc the new scale for web gl export
-    const originalTexture = myRenderer.generateTexture(target);
-    const hRatio = originViewWidth / originalTexture.width;
-    const vRatio = originViewHeight / originalTexture.height;
+    // const originalTexture = myRenderer.generateTexture(target);
+    const originRect = target.getLocalBounds();
+    const hRatio = originViewWidth / originRect.width;
+    const vRatio = originViewHeight / originRect.height;
     const ratio = Math.min(hRatio, vRatio);
 
     // set the proper scale and position
     target.scale.x = ratio;
     target.scale.y = ratio;
-    target.position.x = Math.abs(target.getLocalBounds().x) * ratio;
-    target.position.y = Math.abs(target.getLocalBounds().y) * ratio;
+    // target.position.x = Math.abs(target.getLocalBounds().x) * ratio;
+    // target.position.y = Math.abs(target.getLocalBounds().y) * ratio;
+    target.position.x = (0 - target.getLocalBounds().x) * ratio;
+    target.position.y = (0 - target.getLocalBounds().y) * ratio;
 
     // create a new render texture for web gl
     const baseRenderTexture = new PIXI.BaseRenderTexture(originViewWidth, originViewHeight);
