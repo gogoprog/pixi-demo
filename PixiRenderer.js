@@ -21,7 +21,8 @@ import SimpleNodeSprite from './sprite/SimpleNodeSprite';
 
 import AnimationAgent from './AnimationAgent';
 import FPSCounter from './FPSCounter';
-import { convertCanvasToImage } from './Utils';
+import { getMyBounds } from './boundsHelper';
+import extract from './extract';
 
 export default function (settings) {
     let isDirty = true;
@@ -464,7 +465,7 @@ export default function (settings) {
         alignContentCenterToCanvasPosition(canvasX, canvasY) {
             // actually I prefer refresh manually
             // isDirty = true;
-            const rect = root.getBounds();
+            const rect = getMyBounds.call(root);
             const graphCenterInStage = {
                 x: rect.x + rect.width / 2,
                 y: rect.y + rect.height / 2,
@@ -480,6 +481,10 @@ export default function (settings) {
             // });
             root.position.x += rootPositionTransform.x;
             root.position.y += rootPositionTransform.y;
+        },
+
+        getMyBoundsWrap() {
+            return getMyBounds.call(root);
         },
 
         calculateRootPosition(scaleFactor) {
@@ -1025,28 +1030,31 @@ export default function (settings) {
         // convert the canvas drawing buffer into base64 encoded image url
         exportImage(width, height) {
             return new Promise((resolve, reject) => {
+                let imageCanvas;
                 if (renderer.gl) {
-                    convertCanvasToImage(renderer, root, width, height, visualConfig).toBlob((blob) => {
-                        if (blob) {
-                            const reader = new FileReader();
-                            reader.readAsDataURL(blob);
-                            reader.onload = () => {
-                                resolve(reader.result); // base64data
-                            };
-                            reader.onerror = () => {
-                                reject('图表缩略图获取失败！');
-                            };
-                        } else {
-                            reject('图表缩略图获取失败！');
-                        }
-                    }, 'image/png');
-                } 
+                    imageCanvas = extract.webglExport(renderer, root, width, height);
+                } else {
+                    // todo
+                    // imageCanvas = extract.canvasExport(renderer, root, width, height);
+                }
+                const displayCanvas = new PIXI.CanvasRenderTarget(width, height);
+                const hRatio = width / imageCanvas.width;
+                const vRatio = height / imageCanvas.height;
+                const ratio = Math.min(hRatio, vRatio);
+                const shiftX = (width - imageCanvas.width * ratio) / 2;
+                const shiftY = (height - imageCanvas.height * ratio) / 2;
+
+                displayCanvas.context.fillStyle = `#${visualConfig.backgroundColor.toString(16)}`;
+                displayCanvas.context.fillRect(0, 0, width, height);
+                displayCanvas.context.drawImage(imageCanvas, 0, 0, imageCanvas.width, imageCanvas.height, shiftX, shiftY, imageCanvas.width * ratio, imageCanvas.height * ratio);
+
+                resolve(displayCanvas.canvas.toDataURL());
             });
         },
 
         // the default parameter is double size of bird view
         getBirdViewCanvas(width = 340, height = 260) {
-            return convertCanvasToImage(renderer, root, width, height, visualConfig);
+            return extract.webglExport(renderer, root, width, height);
         },
 
         lock(nodes) {
@@ -1675,7 +1683,7 @@ export default function (settings) {
          * selectRegionGraphics is a child of stage, a sibling of root, that's why we are here 
          */
 
-         // mark the root position in the stage
+        // mark the root position in the stage
         // selectRegionGraphics.beginFill(0x000000);
         // selectRegionGraphics.lineStyle(2, 0xffffff);
         // selectRegionGraphics.arc(root.position.x, root.position.y, 10, 0, 2 * Math.PI); // cx, cy, radius, startAngle, endAngle
@@ -1691,12 +1699,16 @@ export default function (settings) {
         // selectRegionGraphics.lineStyle(2, 0x00ff00);
         // selectRegionGraphics.drawRect(rootLocalRect.x, rootLocalRect.y, rootLocalRect.width, rootLocalRect.height);
 
+        // const myBoundsRect = getMyBounds.call(root);
+        // selectRegionGraphics.lineStyle(2, 0x000000);
+        // selectRegionGraphics.drawRect(myBoundsRect.x, myBoundsRect.y, myBoundsRect.width, myBoundsRect.height);
+
         // draw the bounds of root with layout in green
         // const rootRectInStageByLayout = layout.getGraphRect();
         // const rootRectInStageByLayoutWidth = Math.abs(rootRectInStageByLayout.x2 - rootRectInStageByLayout.x1);
         // const rootRectInStageByLayoutHeight = Math.abs(rootRectInStageByLayout.y2 - rootRectInStageByLayout.y1);
         // const scale = root.scale.x;
-        // selectRegionGraphics.lineStyle(2, 0x00ff00);
+        // selectRegionGraphics.lineStyle(2, 0xeeee00);
         // selectRegionGraphics.drawRect(
         //     rootRectInStageByLayout.x1 * scale + root.position.x,
         //     rootRectInStageByLayout.y1 * scale + root.position.y,
