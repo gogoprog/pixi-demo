@@ -3,6 +3,7 @@ import eventify from 'ngraph.events';
 import 'pixi.js';
 
 import LayeredLayout from './layout/LayeredLayout';
+import LayeredLayoutNew from './layout/newLayeredLayout/LayeredLayoutNew';
 import CircleLayout from './layout/CircleLayout';
 import StructuralLayout from './layout/StructuralLayout/StructuralLayout';
 import RadiateLayout from './layout/RadiateLayout';
@@ -401,7 +402,7 @@ export default function (settings) {
         drawLayeredLayout(disableAnimation) {
             isDirty = true;
             layoutType = 'Layered';
-            layout = new LayeredLayout(nodeSprites, nodeContainer, visualConfig);
+            layout = new LayeredLayoutNew(nodeSprites, nodeContainer, visualConfig);
             if (stage.isTimelineLayout) {
                 timelineLayout.disableTimelineLayout();
             }
