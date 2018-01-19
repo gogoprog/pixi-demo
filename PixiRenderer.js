@@ -64,6 +64,7 @@ export default function (settings) {
 
     let layout = networkLayout;
     let layoutType = 'Network';
+    let showDebugMarkup = true;
 
     const canvas = settings.container;
     // 下一行好像是多余的
@@ -475,7 +476,7 @@ export default function (settings) {
                 x: canvasX - graphCenterInStage.x,
                 y: canvasY - graphCenterInStage.y,
             };
-            // sometimes you may need a smooth move 
+            // sometimes you may need a smooth move
             // animationAgent.move(root, {
             //     x: root.position.x + rootPositionTransform.x,
             //     y: root.position.y + rootPositionTransform.y,
@@ -1154,6 +1155,10 @@ export default function (settings) {
         return false;
     };
 
+    pixiGraphics.fireBirdViewChangeEvent = _.throttle(()=>{
+        pixiGraphics.fire('adjust-bird-view');
+    }, 100);
+
     pixiGraphics.addCanvasEventListener('contextmenu', pixiGraphics._contextmenuHandler, false);
 
     eventify(pixiGraphics);
@@ -1287,14 +1292,19 @@ export default function (settings) {
                 drawSelectionRegion();
             }
 
+            if(showDebugMarkup) {
+                drawDebugMarkup();
+            }
+
             if (stage.isTimelineLayout) {
                 timelineLayout.drawNodeTimelines();
             }
             renderer.render(stage);
-            if (root.width) {
-                pixiGraphics.fire('adjust-bird-view', event);
+
+            // trigger bird view update
+            if (root.getBounds().width > 0) {
+                pixiGraphics.fireBirdViewChangeEvent();
             }
-    
             isDirty = false;
             nodeContainer.isDirty = false;
             stage.isDirty = false;
@@ -1662,66 +1672,63 @@ export default function (settings) {
     }
 
     function drawSelectionRegion() {
-        if (stage.selectRegion) {
-            const frameCfg = visualConfig.ui.frame;
-            selectRegionGraphics.lineStyle(frameCfg.border.width, frameCfg.border.color, frameCfg.border.alpha);
-            selectRegionGraphics.beginFill(frameCfg.fill.color, frameCfg.fill.alpha);
-            const width = stage.selectRegion.x2 - stage.selectRegion.x1;
-            const height = stage.selectRegion.y2 - stage.selectRegion.y1;
-            const x = stage.selectRegion.x1;
-            const y = stage.selectRegion.y1;
-            selectRegionGraphics.drawRect(x, y, width, height);
+        const frameCfg = visualConfig.ui.frame;
+        selectRegionGraphics.lineStyle(frameCfg.border.width, frameCfg.border.color, frameCfg.border.alpha);
+        selectRegionGraphics.beginFill(frameCfg.fill.color, frameCfg.fill.alpha);
+        const width = stage.selectRegion.x2 - stage.selectRegion.x1;
+        const height = stage.selectRegion.y2 - stage.selectRegion.y1;
+        const x = stage.selectRegion.x1;
+        const y = stage.selectRegion.y1;
+        selectRegionGraphics.drawRect(x, y, width, height);
 
-            if (layoutType === 'TimelineScale') {
-                selectRegionGraphics.isDirty = true;
-            } else {
-                selectRegionGraphics.isDirty = false;
-            }
+        if (layoutType === 'TimelineScale') {
+            selectRegionGraphics.isDirty = true;
+        } else {
+            selectRegionGraphics.isDirty = false;
         }
+    }
 
-         /**
+    function drawDebugMarkup(){
+
+        /**
          * The following code is to draw guidelines for debug
-         * selectRegionGraphics is a child of stage, a sibling of root, that's why we are here 
+         * selectRegionGraphics is a child of stage, a sibling of root, that's why we are here
          */
 
         // mark the root position in the stage
-        // selectRegionGraphics.beginFill(0x000000);
-        // selectRegionGraphics.lineStyle(2, 0xffffff);
-        // selectRegionGraphics.arc(root.position.x, root.position.y, 10, 0, 2 * Math.PI); // cx, cy, radius, startAngle, endAngle
-        // selectRegionGraphics.endFill();
+        selectRegionGraphics.beginFill(0x000000);
+        selectRegionGraphics.lineStyle(1, 0xffffff);
+        selectRegionGraphics.arc(root.position.x, root.position.y, 10, 0, 2 * Math.PI); // cx, cy, radius, startAngle, endAngle
+        selectRegionGraphics.endFill();
 
         // draw the bounds of root with pixi.js in blue
-        // const rootRectInStage = root.getBounds();
-        // selectRegionGraphics.lineStyle(2, 0x0000ff);
-        // selectRegionGraphics.drawRect(rootRectInStage.x, rootRectInStage.y, rootRectInStage.width, rootRectInStage.height);
+        const rootRectInStage = root.getBounds();
+        selectRegionGraphics.lineStyle(1, 0x0000ff);
+        selectRegionGraphics.drawRect(rootRectInStage.x, rootRectInStage.y, rootRectInStage.width, rootRectInStage.height);
 
-        // draw the local bounds of root 
-        // const rootLocalRect = root.getLocalBounds();
-        // selectRegionGraphics.lineStyle(2, 0x00ff00);
-        // selectRegionGraphics.drawRect(rootLocalRect.x, rootLocalRect.y, rootLocalRect.width, rootLocalRect.height);
-
-        // const myBoundsRect = getMyBounds.call(root);
-        // selectRegionGraphics.lineStyle(2, 0x000000);
-        // selectRegionGraphics.drawRect(myBoundsRect.x, myBoundsRect.y, myBoundsRect.width, myBoundsRect.height);
+        // draw the local bounds of root
+        const myBoundsRect = getMyBounds.call(root);
+        selectRegionGraphics.lineStyle(1, 0x000000);
+        selectRegionGraphics.drawRect(myBoundsRect.x, myBoundsRect.y, myBoundsRect.width, myBoundsRect.height);
 
         // draw the bounds of root with layout in green
-        // const rootRectInStageByLayout = layout.getGraphRect();
-        // const rootRectInStageByLayoutWidth = Math.abs(rootRectInStageByLayout.x2 - rootRectInStageByLayout.x1);
-        // const rootRectInStageByLayoutHeight = Math.abs(rootRectInStageByLayout.y2 - rootRectInStageByLayout.y1);
-        // const scale = root.scale.x;
-        // selectRegionGraphics.lineStyle(2, 0xeeee00);
-        // selectRegionGraphics.drawRect(
-        //     rootRectInStageByLayout.x1 * scale + root.position.x,
-        //     rootRectInStageByLayout.y1 * scale + root.position.y,
-        //     rootRectInStageByLayoutWidth * scale,
-        //     rootRectInStageByLayoutHeight * scale,
-        // );
+        const rootRectInStageByLayout = layout.getGraphRect();
+        const rootRectInStageByLayoutWidth = Math.abs(rootRectInStageByLayout.x2 - rootRectInStageByLayout.x1);
+        const rootRectInStageByLayoutHeight = Math.abs(rootRectInStageByLayout.y2 - rootRectInStageByLayout.y1);
+        const scale = root.scale.x;
+        selectRegionGraphics.lineStyle(1, 0xeeee00);
+        selectRegionGraphics.drawRect(
+            rootRectInStageByLayout.x1 * scale + root.position.x,
+            rootRectInStageByLayout.y1 * scale + root.position.y,
+            rootRectInStageByLayoutWidth * scale,
+            rootRectInStageByLayoutHeight * scale,
+        );
 
         // draw the X in stage canvas
-        // selectRegionGraphics.lineStyle(2, 0xff0000);
-        // selectRegionGraphics.moveTo(0, 0);
-        // selectRegionGraphics.lineTo(viewWidth, viewHeight);
-        // selectRegionGraphics.moveTo(0, viewHeight);
-        // selectRegionGraphics.lineTo(viewWidth, 0);
+        selectRegionGraphics.lineStyle(1, 0xff0000);
+        selectRegionGraphics.moveTo(0, 0);
+        selectRegionGraphics.lineTo(viewWidth, viewHeight);
+        selectRegionGraphics.moveTo(0, viewHeight);
+        selectRegionGraphics.lineTo(viewWidth, 0);
     }
 }
