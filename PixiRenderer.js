@@ -64,7 +64,7 @@ export default function (settings) {
 
     let layout = networkLayout;
     let layoutType = 'Network';
-    let showDebugMarkup = true;
+    const showDebugMarkup = false;
 
     const canvas = settings.container;
     // 下一行好像是多余的

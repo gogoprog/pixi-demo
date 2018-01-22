@@ -1,5 +1,40 @@
 import { getMyLocalBounds } from './boundsHelper';
 
+const getRenderTexture = function getRenderTexture(renderer, target, eWidth, eHeight) {
+    // store the scale and position of target
+    const tempScale = target.scale.x;
+    const tempPositionX = target.position.x;
+    const tempPositionY = target.position.y;
+
+    // calc the new scale for web gl export
+    const originRect = getMyLocalBounds.call(target);
+    const hRatio = eWidth / originRect.width;
+    const vRatio = eHeight / originRect.height;
+    const ratio = Math.min(hRatio, vRatio);
+
+    // set the proper scale and position
+    target.scale.x = ratio;
+    target.scale.y = ratio;
+    target.position.x = (0 - originRect.x) * ratio;
+    target.position.y = (0 - originRect.y) * ratio;
+
+    // create a new render texture for web gl
+    const baseRenderTexture = new PIXI.BaseRenderTexture(originRect.width * ratio, originRect.height * ratio);
+    const renderTexture = new PIXI.RenderTexture(baseRenderTexture);
+    renderer.render(target, renderTexture);
+
+    // restore the scale and position of target after texture generated
+    target.scale.x = tempScale;
+    target.scale.y = tempScale;
+    target.position.x = tempPositionX;
+    target.position.y = tempPositionY;
+
+    // although we set target transform, but its children not, so set the transform to all its children
+    target.updateTransform();
+
+    return renderTexture;
+};
+
 export default {
     /**
      * Creates a Canvas element, renders this target to it and then returns it.
@@ -16,27 +51,7 @@ export default {
         let frame;
         let flipY = false;
 
-        // store the scale and position of target
-        const tempScale = target.scale.x;
-        const tempPositionX = target.position.x;
-        const tempPositionY = target.position.y;
-
-        // calc the new scale for web gl export
-        const originRect = getMyLocalBounds.call(target);
-        const hRatio = eWidth / originRect.width;
-        const vRatio = eHeight / originRect.height;
-        const ratio = Math.min(hRatio, vRatio);
-
-        // set the proper scale and position
-        target.scale.x = ratio;
-        target.scale.y = ratio;
-        target.position.x = (0 - originRect.x) * ratio;
-        target.position.y = (0 - originRect.y) * ratio;
-
-        // create a new render texture for web gl
-        const baseRenderTexture = new PIXI.BaseRenderTexture(originRect.width * ratio, originRect.height * ratio);
-        const renderTexture = new PIXI.RenderTexture(baseRenderTexture);
-        renderer.render(target, renderTexture);
+        const renderTexture = getRenderTexture(renderer, target, eWidth, eHeight);
 
         if (renderTexture) {
             textureBuffer = renderTexture.baseTexture._glRenderTargets[renderer.CONTEXT_UID];
@@ -81,15 +96,6 @@ export default {
             }
         }
 
-        // restore the scale and position of target
-        target.scale.x = tempScale;
-        target.scale.y = tempScale;
-        target.position.x = tempPositionX;
-        target.position.y = tempPositionY;
-
-        // although we set target transform, but its children not, so set the transform to all its children
-        target.updateTransform();
-
         // send the canvas back..
         return canvasBuffer.canvas;
     },
@@ -106,27 +112,7 @@ export default {
         let resolution;
         let frame;
 
-        // store the scale and position of target
-        const tempScale = target.scale.x;
-        const tempPositionX = target.position.x;
-        const tempPositionY = target.position.y;
-
-        // calc the new scale for web gl export
-        const originRect = getMyLocalBounds.call(target);
-        const hRatio = eWidth / originRect.width;
-        const vRatio = eHeight / originRect.height;
-        const ratio = Math.min(hRatio, vRatio);
-
-        // set the proper scale and position
-        target.scale.x = ratio;
-        target.scale.y = ratio;
-        target.position.x = (0 - originRect.x) * ratio;
-        target.position.y = (0 - originRect.y) * ratio;
-
-        // create a new render texture for web gl
-        const baseRenderTexture = new PIXI.BaseRenderTexture(originRect.width * ratio, originRect.height * ratio);
-        const renderTexture = new PIXI.RenderTexture(baseRenderTexture);
-        renderer.render(target, renderTexture);
+        const renderTexture = getRenderTexture(renderer, target, eWidth, eHeight);
 
         if (renderTexture) {
             context = renderTexture.baseTexture._canvasRenderTarget.context;
@@ -144,15 +130,8 @@ export default {
         const canvasData = context.getImageData(frame.x * resolution, frame.y * resolution, width, height);
         canvasBuffer.context.putImageData(canvasData, 0, 0);
 
-        // restore the scale and position of target
-        target.scale.x = tempScale;
-        target.scale.y = tempScale;
-        target.position.x = tempPositionX;
-        target.position.y = tempPositionY;
-
-        // although we set target transform, but its children not, so set the transform to all its children
-        target.updateTransform();
         // send the canvas back..
         return canvasBuffer.canvas;
     },
 };
+
