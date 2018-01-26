@@ -64,7 +64,7 @@ export default function (settings) {
 
     let layout = networkLayout;
     let layoutType = 'Network';
-    let showDebugMarkup = false;
+    const showDebugMarkup = false;
 
     const canvas = settings.container;
     // 下一行好像是多余的
@@ -1036,8 +1036,7 @@ export default function (settings) {
                 if (renderer.gl) {
                     imageCanvas = extract.webglExport(renderer, root, width, height);
                 } else {
-                    // todo
-                    // imageCanvas = extract.canvasExport(renderer, root, width, height);
+                    imageCanvas = extract.canvasExport(renderer, root, width, height);
                 }
                 const displayCanvas = new PIXI.CanvasRenderTarget(width, height);
                 const hRatio = width / imageCanvas.width;
@@ -1056,7 +1055,7 @@ export default function (settings) {
 
         // the default parameter is double size of bird view
         getBirdViewCanvas(width = 340, height = 260) {
-            return extract.webglExport(renderer, root, width, height);
+            return renderer.gl ? extract.webglExport(renderer, root, width, height) : extract.canvasExport(renderer, root, width, height);
         },
 
         lock(nodes) {
