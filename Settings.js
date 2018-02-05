@@ -21,6 +21,11 @@ export default class Settings {
             image.texture = PIXI.Texture.fromImage(image.url);
         }
         visConfig.icons = images;
+        const textAnalysisIconUrl = '/static/32/TextAnalysis/TextAnalysis.png';
+        const text = {name: '文本', url: textAnalysisIconUrl};
+        const textAnalysisTexture = PIXI.Texture.fromImage(textAnalysisIconUrl);
+        text.texture = textAnalysisTexture;
+        visConfig.icons.push(text);
 
         const graphCollIcons = visConfig.graphCollIcons || [];
         for (let i = 0; i < 10; i++) {
