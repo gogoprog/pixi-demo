@@ -398,6 +398,9 @@ export default function createLayout(graph, physicsSettings) {
 
             body = physicsSimulator.addBodyAt(pos);
             body.id = nodeId;
+            if (hasPos){
+                body.isPinned = true;
+            }
             nodeBodies[nodeId] = body;
             updateBodyMass(nodeId);
 
