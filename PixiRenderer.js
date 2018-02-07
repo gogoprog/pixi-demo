@@ -10,6 +10,7 @@ import RadiateLayout from './layout/RadiateLayout';
 import TimelineLayout from './layout/TimelineLayout';
 // import ForceLayoutBaseNgraph from "./layout/ForceLayoutBaseNgraph/ForceLayout"
 import createLayout from "./layout/ForceLayoutBaseNgraph/ForceLayoutInNGraph"
+import GraphLevelForceLayout from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayout"
 
 import Graph from './Graph';
 
@@ -394,7 +395,8 @@ export default function (settings) {
                 timelineLayout.disableTimelineLayout();
             }
             layoutType = 'Structural';
-            layout = new StructuralLayout(nodeSprites, nodeContainer, visualConfig);
+            // layout = new StructuralLayout(nodeSprites, nodeContainer, visualConfig);
+            layout = new GraphLevelForceLayout(nodeSprites, nodeContainer, visualConfig);;
             this.setNodesToFullScreen(disableAnimation);
         },
         /**
