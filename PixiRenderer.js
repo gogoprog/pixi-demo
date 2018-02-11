@@ -1336,7 +1336,7 @@ export default function (settings) {
                 // if the node is invisible, we don't need draw is boundary
                 // TODO here we should consider the performance.
                 if (n2.visible) {
-                    boarderGraphics.drawRect(n2.position.x - 24 * n2.scale.x / visualConfig.factor, n2.position.y - 24 * n2.scale.y / visualConfig.factor, 48 * n2.scale.x / visualConfig.factor, (60) * n2.scale.y / visualConfig.factor);
+                    boarderGraphics.drawRect(n2.position.x - 24 * n2.scale.x, n2.position.y - 24 * n2.scale.y, 48 * n2.scale.x, (60) * n2.scale.y);
                 }
             });
             boarderGraphics.endFill();
