@@ -1,4 +1,5 @@
 export const visualConfig = {
+    factor: 0.125,
     backgroundColor: 0xf7f7f7,
     NODE_LABLE_OFFSET_Y: 26,
     LINK_LABLE_OFFSET_Y: 10,
@@ -28,7 +29,9 @@ export const visualConfig = {
         background: 0x101010,
         frame: {
             border: {
-                color: 0x2dcc70,
+                // 选中状态边框颜色
+                // color: 0x2dcc70,
+                color: 0x3284ff,
                 width: 2,
                 alpha: 0.8,
             },
@@ -38,11 +41,13 @@ export const visualConfig = {
             },
         },
         line: {
-            color: 0x2962cb,
+            // 链接的颜色
+            // color: 0x2962cb,
+            color: 0x333333,
             alpha: 1,
             width: 2,
             highlight: {
-                color: 0x2dcc70,
+                color: 0x328eff,
                 width: 2,
                 alpha: 1,
             },
@@ -60,7 +65,7 @@ export const visualConfig = {
         },
         label: {
             font: { fontFamily: 'Microsoft YaHei,Tahoma', fill: '#333', align: 'center', fontSize: '20px', },
-            fontHighlight: { fontFamily: 'Microsoft YaHei,Tahoma', fill: 0x2dcc70, align: 'center', fontSize: '24px' },
+            fontHighlight: { fontFamily: 'Microsoft YaHei,Tahoma', fill: 0x3284ff, align: 'center', fontSize: '24px' },
         },
         timeline: {
             color: 0x2962cb,

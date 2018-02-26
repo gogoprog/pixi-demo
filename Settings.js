@@ -21,7 +21,7 @@ export default class Settings {
             image.texture = PIXI.Texture.fromImage(image.url);
         }
         visConfig.icons = images;
-        const textAnalysisIconUrl = '/static/32/TextAnalysis/TextAnalysis.png';
+        const textAnalysisIconUrl = '/static/256/TextAnalysis/TextAnalysis.png';
         const text = {name: '文本', url: textAnalysisIconUrl};
         const textAnalysisTexture = PIXI.Texture.fromImage(textAnalysisIconUrl);
         text.texture = textAnalysisTexture;
@@ -29,13 +29,13 @@ export default class Settings {
 
         const graphCollIcons = visConfig.graphCollIcons || [];
         for (let i = 0; i < 10; i++) {
-            const iconUrl = `/static/32/GraphColl/graph_coll${i + 1}.png`;
+            const iconUrl = `/static/256/GraphColl/graph_coll${i + 1}.png`;
             const texture = PIXI.Texture.fromImage(iconUrl);
             graphCollIcons.push(texture);
         }
         visConfig.graphCollIcons = graphCollIcons;
 
-        const lockIconUrl = '/static/32/Lock/lock_state.png';
+        const lockIconUrl = '/static/256/Lock/lock_state.png';
         const multiIconUrl = '/static/images/ic_multiple_objects.png';
         visConfig.lockIcon = PIXI.Texture.fromImage(lockIconUrl);
         visConfig.multiIcon = PIXI.Texture.fromImage(multiIconUrl);
