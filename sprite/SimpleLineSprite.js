@@ -149,18 +149,21 @@ export default class SimpleLineSprite {
             if (this._controlOffsetIndex === 0 || this.forceStraightLine) {
                 lineGraphics.lineTo(this.x2, this.y2);
             } else {
-                lineGraphics.quadraticCurveTo(this.cx, this.cy, this.x2, this.y2);
+                lineGraphics.lineTo(this.fx, this.fy);
+                lineGraphics.lineTo(this.tx, this.ty);
+                lineGraphics.lineTo(this.x2, this.y2);
             }
         } else {
-            const tempx = this.dx || 0;
-            const tempy = this.dy || 0;
-            lineGraphics.drawEllipse(this.x1, this.y1 + this.visualConfig.ELLIPSE_HIEGHT + tempy, this.visualConfig.ELLIPSE_WIDTH + tempx, this.visualConfig.ELLIPSE_HIEGHT + tempy);
+            lineGraphics.moveTo(this.x1, this.y1);
+            lineGraphics.lineTo(this.fx, this.fy);
+            lineGraphics.lineTo(this.tx, this.ty);
+            lineGraphics.lineTo(this.x2, this.y2);
         }
     }
 
     updatePosition() {
         if (this.x1 !== this.x2 || this.y1 !== this.y2) {
-            if (this.forceStraightLine) {
+            if (this._controlOffsetIndex === 0 || this.forceStraightLine) {
                 if (this.hasArrow) {
                     this.arrow.position.x = (this.x2 + this.x1) / 2;
                     this.arrow.position.y = (this.y2 + this.y1) / 2;
@@ -170,30 +173,50 @@ export default class SimpleLineSprite {
                 this.label.position.y = (this.y2 + this.y1) / 2 + 5;
             } else {
                 const angle = Math.atan2(this.y2 - this.y1, this.x2 - this.x1);
-                const dxCtl = this._controlOffsetIndex * SimpleLineSprite.MULTI_OFFSET * Math.sin(angle);
-                const dyCtl = this._controlOffsetIndex * SimpleLineSprite.MULTI_OFFSET * Math.cos(angle);
-                this.cx = (this.x2 + this.x1) / 2 + dxCtl;
-                this.cy = (this.y2 + this.y1) / 2 - dyCtl;
+                let dxCtl = SimpleLineSprite.MULTI_OFFSET;  // AC
+                let dyCtl = this._controlOffsetIndex * SimpleLineSprite.MULTI_OFFSET;;  // CD
+
+                const x = this.x2 - this.x1;
+                const y = this.y2 - this.y1;
+                const bevel = Math.sqrt(x * x + y * y);
+                this.fx = (x / bevel) * dxCtl - (y / bevel) * dyCtl + this.x1;
+                this.fy = (y / bevel) * dxCtl + (x / bevel) * dyCtl + this.y1;
+
+                const ex = this.x1 - this.x2;
+                const ey = this.y1 - this.y2;
+                this.tx = (ex / bevel) * dxCtl + (ey / bevel) * dyCtl + this.x2;
+                this.ty = (ey / bevel) * dxCtl - (ex / bevel) * dyCtl + this.y2;
+
                 if (this.hasArrow) {
-                    this.arrow.position.x = (this.x2 + this.x1) / 2 + dxCtl / 2;
-                    this.arrow.position.y = (this.y2 + this.y1) / 2 - dyCtl / 2;
+                    this.arrow.position.x = (this.fx + this.tx) / 2;
+                    this.arrow.position.y = (this.fy + this.ty) / 2;
                     this.arrow.rotation = angle - Math.PI / 2;
                 }
-                this.label.position.x = (this.x2 + this.x1) / 2 + dxCtl / 2;
-                this.label.position.y = (this.y2 + this.y1) / 2 - dyCtl / 2 + 5;
+                this.label.position.x = (this.fx + this.tx) / 2;
+                this.label.position.y = (this.fy + this.ty) / 2 + 5;
             }
         } else {
-            const dyCtl = this._controlOffsetIndex * this.visualConfig.ELLIPSE_Y_OFFSET;
-            const dxCtl = this._controlOffsetIndex * this.visualConfig.ELLIPSE_X_OFFSET;
-            this.dy = dyCtl;
-            this.dx = dxCtl;
-            if (this.hasArrow) {
-                this.arrow.position.x = this.x1 - 5;
-                this.arrow.position.y = this.y1 + this.visualConfig.ELLIPSE_HIEGHT * 2 + dyCtl * 2;
-                this.arrow.rotation = Math.PI * 1.5;
+            const angle = Math.atan2(this.y2 - this.y1, this.x2 - this.x1);
+            let dxCtl = SimpleLineSprite.MULTI_OFFSET;  // AC
+            let dyCtl = SimpleLineSprite.MULTI_OFFSET;  // CD
+            if (this._controlOffsetIndex !== 0) {
+                dxCtl = SimpleLineSprite.MULTI_OFFSET;
+                dyCtl = Math.abs(this._controlOffsetIndex * SimpleLineSprite.MULTI_OFFSET);
             }
-            this.label.position.x = this.x1;
-            this.label.position.y = this.y1 + this.visualConfig.ELLIPSE_HIEGHT * 2 + dyCtl * 2 + 6;
+
+            this.fx = this.x1 - dxCtl / 2;
+            this.fy = this.y1 - dyCtl;
+
+            this.tx = this.x1 + dxCtl / 2;
+            this.ty = this.y1 - dyCtl;
+
+            if (this.hasArrow) {
+                this.arrow.position.x = (this.fx + this.tx) / 2;
+                this.arrow.position.y = (this.fy + this.ty) / 2;
+                this.arrow.rotation = angle - Math.PI / 2;
+            }
+            this.label.position.x = (this.fx + this.tx) / 2;
+            this.label.position.y = (this.fy + this.ty) / 2 + 5;
         }
     }
 

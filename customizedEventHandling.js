@@ -114,6 +114,9 @@ const rootMoveHandler = function (e) {
                 x2: newPosition.x,
                 y2: newPosition.y,
             };
+
+            console.log('rootMoveHandler selectRegion ' + ' oldPosition.x ' +  oldPosition.x + ' oldPosition.y ' + oldPosition.y + ' newPosition.x '+ newPosition.x + ' newPosition.y' + newPosition.y);
+
             const op = {};
             const np = {};
             op.global = {};
@@ -126,14 +129,21 @@ const rootMoveHandler = function (e) {
 
             let top = new PIXI.Point();
             let tnp = new PIXI.Point();
-            top = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(op, this.contentRoot);
-            tnp = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(np, this.contentRoot);
+            // top = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(op, this.contentRoot);
+            // tnp = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(np, this.contentRoot);
+            top = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(op, this.contentRoot.children[5]);
+            tnp = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(np, this.contentRoot.children[5]);
             const me = e.data.originalEvent;
             let flag = true;
-            if (me.ctrlKey || me.shiftKey) {
+            if (me.ctrlKey) {
                 flag = false;
             }
-            this.selectAllNodesInRegion(top.x, top.y, tnp.x, tnp.y, flag);
+            let onlyNodeFlag = false;
+            if (me.shiftKey) {
+                onlyNodeFlag = true;
+            }
+            console.log('rootMoveHandler ' + ' top.x ' +  top.x + ' top.y ' + top.y + ' tnp.x '+ tnp.x + ' tnp.y' + tnp.y);
+            this.selectAllNodesInRegion(top.x, top.y, tnp.x, tnp.y, flag, onlyNodeFlag);
         }
     }
 };
@@ -209,7 +219,7 @@ const nodeMoveListener = function (e) {
         this.parent.setPositionDirty(true);
     } else if (!this.selected) {
         const mouseEvent = e.data.originalEvent;
-        if (!mouseEvent.ctrlKey && !mouseEvent.shiftKey) {
+        if (!mouseEvent.ctrlKey) {
             this.parent.parent.deselectAll();
         }
         this.parent.selectNode(this);
@@ -226,7 +236,7 @@ export const linkCaptureListener = function (e) {
     this.interactionData = e.data;
     if (!this.selected) {
         const mouseEvent = e.data.originalEvent;
-        if (!mouseEvent.ctrlKey && !mouseEvent.shiftKey) {
+        if (!mouseEvent.ctrlKey) {
             this.parent.parent.deselectAll();
         }
         this.parent.linkSelected(this.lineSprite);

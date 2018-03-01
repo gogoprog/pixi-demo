@@ -171,7 +171,7 @@ export default function (settings) {
         });
     };
 
-    stage.selectAllNodesInRegion = function (x1, y1, x2, y2, flag) {
+    stage.selectAllNodesInRegion = function (x1, y1, x2, y2, flag, onlyNodeFlag) {
         console.log('selectAllNodesInRegion begin');
         isDirty = true;
         let xl;
@@ -203,6 +203,171 @@ export default function (settings) {
             if ((n.position.x <= xr) && (n.position.x >= xl) && (n.position.y >= yt) && (n.position.y <= yb)) {
                 // console.log("here i come!!");
                 nodeContainer.selectNode(n);
+            }
+        });
+
+        if (onlyNodeFlag) {
+            return;
+        }
+
+        _.each(linkSprites, (link) => {
+            if (!link.visible) {
+                return;
+            }
+
+            console.log("link.fx  " + link.fx + " = " + link._controlOffsetIndex);
+
+            if (link._controlOffsetIndex === 0) { // straight line,  cannot use link.fx
+                let linkXl;
+                let linkXr;
+                let linkYt;
+                let linkYb;
+                if (link.x1 > link.x2) {
+                    linkXl = link.x2;
+                    linkXr = link.x1;
+                } else {
+                    linkXl = link.x1;
+                    linkXr = link.x2;
+                }
+                if (link.y1 > link.y2) {
+                    linkYt = link.y2;
+                    linkYb = link.y1;
+                } else {
+                    linkYt = link.y1;
+                    linkYb = link.y2;
+                }
+
+                if (linkXl <= xr && linkXr >= xl && linkYt <= yb && linkYb >= yt) { // 矩形碰撞检测  https://silentmatt.com/rectangle-intersection/
+                    // const x = linkXr - linkXl;
+                    // const y = linkYb - linkYt;
+
+                    // const rectLeft = Math.max(linkXl, xl);
+                    // const rectRight = Math.min(linkXr, xr);
+                    // const rectLeftY = (rectLeft - linkXl) * y / x;
+                    // const rectRightY = (rectRight - linkXl) * y / x;
+                    // const rectBottom = linkYb - Math.min(rectLeftY, rectRightY);
+                    // const rectTop = linkYb - Math.max(rectLeftY, rectRightY);
+
+                    const x = link.x2 - link.x1;
+                    const y = link.y2 - link.y1;
+                    const rectLeft = Math.max(linkXl, xl);
+                    const rectRight = Math.min(linkXr, xr);
+                    const rectLeftY = link.y1 + (rectLeft - link.x1) * y / x;
+                    const rectRightY = link.y1 + (rectRight - link.x1) * y / x;
+                    const rectBottom = Math.max(rectLeftY, rectRightY);
+                    const rectTop =  Math.min(rectLeftY, rectRightY);
+
+                    if (rectLeft <= xr && rectRight >= xl && rectTop <= yb && rectBottom >= yt) {
+                        lineContainer.selectLink(link);
+                    }
+
+                    // console.log("链接 坐标 link.x1" + link.x1 + ' link.y1 ' + link.y1 + ' link.x2 ' + link.x2 + ' link.y2 ' + link.y2);
+                    // console.log("交点 没有交集 框选坐标 xl" + xl + ' xr ' + xr + ' yt ' + yt + ' yb ' + yb);
+                    // console.log("交点 没有交集 链接坐标 linkXl" + linkXl + ' linkXr ' + linkXr + ' linkYt ' + linkYt + ' linkYb ' + linkYb);
+                }
+            } else {    // polyline
+                let detectFlag = false;
+                let linkXl;
+                let linkXr;
+                let linkYt;
+                let linkYb;
+                if (link.x1 > link.fx) {
+                    linkXl = link.fx;
+                    linkXr = link.x1;
+                } else {
+                    linkXl = link.x1;
+                    linkXr = link.fx;
+                }
+                if (link.y1 > link.fy) {
+                    linkYt = link.fy;
+                    linkYb = link.y1;
+                } else {
+                    linkYt = link.y1;
+                    linkYb = link.fy;
+                }
+
+                if (linkXl <= xr && linkXr >= xl && linkYt <= yb && linkYb >= yt) { // 矩形碰撞检测
+                    const x = link.fx - link.x1;
+                    const y = link.fy - link.y1;
+                    const rectLeft = Math.max(linkXl, xl);
+                    const rectRight = Math.min(linkXr, xr);
+                    const rectLeftY = link.y1 + (rectLeft - link.x1) * y / x;
+                    const rectRightY = link.y1 + (rectRight - link.x1) * y / x;
+                    const rectBottom = Math.max(rectLeftY, rectRightY);
+                    const rectTop =  Math.min(rectLeftY, rectRightY);
+
+                    if (rectLeft <= xr && rectRight >= xl && rectTop <= yb && rectBottom >= yt) {
+                        lineContainer.selectLink(link);
+                        detectFlag = true;
+                    }
+                }
+
+                if (!detectFlag) {
+                    if (link.fx > link.tx) {
+                        linkXl = link.tx;
+                        linkXr = link.fx;
+                    } else {
+                        linkXl = link.fx;
+                        linkXr = link.tx;
+                    }
+                    if (link.fy > link.ty) {
+                        linkYt = link.ty;
+                        linkYb = link.fy;
+                    } else {
+                        linkYt = link.fy;
+                        linkYb = link.ty;
+                    }
+
+                    if (linkXl <= xr && linkXr >= xl && linkYt <= yb && linkYb >= yt) { // 矩形碰撞检测
+                        const x = link.tx - link.fx;
+                        const y = link.ty - link.fy;
+                        const rectLeft = Math.max(linkXl, xl);
+                        const rectRight = Math.min(linkXr, xr);
+                        const rectLeftY = link.fy + (rectLeft - link.fx) * y / x;
+                        const rectRightY = link.fy + (rectRight - link.fx) * y / x;
+                        const rectBottom = Math.max(rectLeftY, rectRightY);
+                        const rectTop =  Math.min(rectLeftY, rectRightY);
+
+                        if (rectLeft <= xr && rectRight >= xl && rectTop <= yb && rectBottom >= yt) {
+                            lineContainer.selectLink(link);
+                            detectFlag = true;
+                        }
+                    }
+                }
+
+                if (!detectFlag) {
+                    if (link.tx > link.x2) {
+                        linkXl = link.x2;
+                        linkXr = link.tx;
+                    } else {
+                        linkXl = link.tx;
+                        linkXr = link.x2;
+                    }
+                    if (link.ty > link.y2) {
+                        linkYt = link.y2;
+                        linkYb = link.ty;
+                    } else {
+                        linkYt = link.ty;
+                        linkYb = link.y2;
+                    }
+
+                    if (linkXl <= xr && linkXr >= xl && linkYt <= yb && linkYb >= yt) { // 矩形碰撞检测
+                        const x = link.x2 - link.tx;
+                        const y = link.y2 - link.ty;
+                        const rectLeft = Math.max(linkXl, xl);
+                        const rectRight = Math.min(linkXr, xr);
+                        const rectLeftY = link.ty + (rectLeft - link.tx) * y / x;
+                        const rectRightY = link.ty + (rectRight - link.tx) * y / x;
+                        const rectBottom = Math.max(rectLeftY, rectRightY);
+                        const rectTop =  Math.min(rectLeftY, rectRightY);
+
+                        if (rectLeft <= xr && rectRight >= xl && rectTop <= yb && rectBottom >= yt) {
+                            lineContainer.selectLink(link);
+                            // detectFlag = true;
+                        }
+                    }
+                }
+
             }
         });
     };
@@ -1681,6 +1846,7 @@ export default function (settings) {
         const x = stage.selectRegion.x1;
         const y = stage.selectRegion.y1;
         selectRegionGraphics.drawRect(x, y, width, height);
+        // console.log('drawSelectionRegion ' + ' x ' +  x + ' y ' + y + ' width '+ width + ' height' + height);
 
         if (layoutType === 'TimelineScale') {
             selectRegionGraphics.isDirty = true;
@@ -1732,4 +1898,5 @@ export default function (settings) {
         selectRegionGraphics.moveTo(0, viewHeight);
         selectRegionGraphics.lineTo(viewWidth, 0);
     }
+
 }

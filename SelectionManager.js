@@ -17,7 +17,7 @@ export default function SelectionManager(nodeContainer, lineContainer) {
         const mouseEvent = e.data.originalEvent;
         if (this.nodeContainer.recentlySelected) {
             const node = this.nodeContainer.recentlySelected;
-            if (mouseEvent.ctrlKey || mouseEvent.shiftKey) {
+            if (mouseEvent.ctrlKey) {
                 if (node.selected) {   // multi-selecting
                     this.nodeContainer.selectNode(node);
                 } else {
@@ -34,7 +34,7 @@ export default function SelectionManager(nodeContainer, lineContainer) {
             this.nodeContainer.recentlySelected = null;
         } else if (this.lineContainer.recentlySelected) {
             const line = this.lineContainer.recentlySelected;
-            if (mouseEvent.ctrlKey || mouseEvent.shiftKey) {
+            if (mouseEvent.ctrlKey) {
                 if (line.selected) {   // multi-selecting
                     this.lineContainer.deselectLink(line);
                 } else {
