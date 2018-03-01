@@ -215,8 +215,6 @@ export default function (settings) {
                 return;
             }
 
-            console.log("link.fx  " + link.fx + " = " + link._controlOffsetIndex);
-
             if (link._controlOffsetIndex === 0) { // straight line,  cannot use link.fx
                 let linkXl;
                 let linkXr;

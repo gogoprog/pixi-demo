@@ -115,8 +115,6 @@ const rootMoveHandler = function (e) {
                 y2: newPosition.y,
             };
 
-            console.log('rootMoveHandler selectRegion ' + ' oldPosition.x ' +  oldPosition.x + ' oldPosition.y ' + oldPosition.y + ' newPosition.x '+ newPosition.x + ' newPosition.y' + newPosition.y);
-
             const op = {};
             const np = {};
             op.global = {};
@@ -142,7 +140,6 @@ const rootMoveHandler = function (e) {
             if (me.shiftKey) {
                 onlyNodeFlag = true;
             }
-            console.log('rootMoveHandler ' + ' top.x ' +  top.x + ' top.y ' + top.y + ' tnp.x '+ tnp.x + ' tnp.y' + tnp.y);
             this.selectAllNodesInRegion(top.x, top.y, tnp.x, tnp.y, flag, onlyNodeFlag);
         }
     }
