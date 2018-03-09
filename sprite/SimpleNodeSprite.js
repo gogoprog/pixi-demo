@@ -326,9 +326,9 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         const iconSprite = new PIXI.Sprite(iconTexture);
         iconSprite.anchor.x = 0.5;
         iconSprite.anchor.y = 0.5;
-        iconSprite.scale.set(0.5 * nodeSprite.scale.x, 0.5 * nodeSprite.scale.y);
-        iconSprite.position.x = nodeSprite.position.x + this.visualConfig.NODE_LOCK_WIDTH * 0.6 * nodeSprite.scale.x;
-        iconSprite.position.y = nodeSprite.position.y + this.visualConfig.NODE_LOCK_WIDTH * 0.4 * nodeSprite.scale.y;
+        iconSprite.scale.set(0.5 * nodeSprite.scale.x / visualConfig.factor, 0.5 * nodeSprite.scale.y / visualConfig.factor);
+        iconSprite.position.x = nodeSprite.position.x + this.visualConfig.NODE_LOCK_WIDTH * 0.6 * nodeSprite.scale.x / visualConfig.factor;
+        iconSprite.position.y = nodeSprite.position.y + this.visualConfig.NODE_LOCK_WIDTH * 0.4 * nodeSprite.scale.y / visualConfig.factor;
 
         iconSprite.visible = nodeSprite.visible;
         this.parent.addChild(iconSprite);
