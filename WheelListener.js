@@ -60,6 +60,7 @@ const _addWheelListener = function (elem, eventName, callback, useCapture) {
 
         // calculate deltaY (and deltaX) according to the event
         if (support === 'mousewheel') {
+            originalEvent.preventDefault();
             event.deltaY = -1 / 40 * originalEvent.wheelDelta;
             // Webkit also support wheelDeltaX
             originalEvent.wheelDeltaX && (event.deltaX = -1 / 40 * originalEvent.wheelDeltaX);
