@@ -11,6 +11,7 @@ import TimelineLayout from './layout/TimelineLayout';
 // import ForceLayoutBaseNgraph from "./layout/ForceLayoutBaseNgraph/ForceLayout"
 import createLayout from "./layout/ForceLayoutBaseNgraph/ForceLayoutInNGraph"
 import GraphLevelForceLayout from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayout"
+import elpForceLayout from "./layout/elpLayout/ForceLayout"
 
 import Graph from './Graph';
 
@@ -52,7 +53,7 @@ export default function (settings) {
     // let networkLayout = ForceLayoutBaseNgraph(graph, visualConfig.forceLayout);
     let networkLayout = null;
     if (visualConfig.ORIGINAL_FORCE_LAYOUT) {
-        networkLayout = createForceLayout(graph, visualConfig.forceLayout);
+        networkLayout = elpForceLayout(graph, visualConfig.forceLayout);
     } else {
         networkLayout = createLayout(graph, visualConfig.forceLayout);
     }
