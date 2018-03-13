@@ -977,7 +977,6 @@ export default function (settings) {
             destroyed = true;
             isDirty = false;
             document.removeEventListener('mousedown', this._mouseDownListener);
-            document.removeEventListener('keydown', this._keyDownListener);
             removeWheelListener(canvas, this._zoomActionListener);
             graph.off('changed', onGraphChanged);
             animationAgent.destroy();
@@ -1277,41 +1276,8 @@ export default function (settings) {
     pixiGraphics._mouseDownListener = function (event) {
         pixiGraphics._lastDownTarget = event.target;
     };
-    const collectionKeyCodes = {
-        Digit1: 1,
-        Digit2: 2,
-        Digit3: 3,
-        Digit4: 4,
-        Digit5: 5,
-        Digit6: 6,
-        Digit7: 7,
-        Digit8: 8,
-        Digit9: 9,
-        Digit0: 10,
-    };
-    pixiGraphics._keyDownListener = function (event) {
-        if (pixiGraphics._lastDownTarget === canvas) {
-            event.stopPropagation();
-            event.preventDefault();
-            const keyCode = event.code;
-            if (keyCode === 'Space') {
-                pixiGraphics.toggleMode();
-            } else if (keyCode === 'Delete') {
-                pixiGraphics.fire('delete-selected');
-            } else if (keyCode === 'KeyA' && event.ctrlKey) {
-                pixiGraphics.selectAll();
-            } else if (collectionKeyCodes[keyCode]) {
-                if (event.shiftKey) {
-                    pixiGraphics.fire('append-collection', event, collectionKeyCodes[keyCode]);
-                } else {
-                    pixiGraphics.fire('select-collection', event, collectionKeyCodes[keyCode]);
-                }
-            }
-        }
-    };
 
     document.addEventListener('mousedown', pixiGraphics._mouseDownListener);
-    document.addEventListener('keydown', pixiGraphics._keyDownListener);
 
     pixiGraphics._contextmenuHandler = function (event) {
         event.preventDefault();
