@@ -87,7 +87,7 @@ export default function (settings) {
     const root = new PIXI.Container();   // the content root
     const nodeContainer = new PIXI.Container();
 
-    // let lineContainer = new PIXI.ParticleContainer(5000, { scale: true, position: true, rotation: true, uvs: false, alpha: true });
+    // let lineParticleContainer= new PIXI.ParticleContainer(5000, { scale: true, position: true, rotation: true, uvs: false, alpha: true }, 16384,true);
     const lineContainer = new PIXI.Container();
     const textContainer = new PIXI.Container();
     const emptyTextContainer = new PIXI.Container();
@@ -111,6 +111,7 @@ export default function (settings) {
     emptyTextContainer.zIndex = 22;
 
     root.addChild(lineGraphics);
+    // root.addChild(lineParticleContainer);
     root.addChild(boarderGraphics);
     stage.addChild(selectRegionGraphics);
     root.addChild(textContainer);
@@ -1288,7 +1289,7 @@ export default function (settings) {
 
     pixiGraphics.fireBirdViewChangeEvent = _.throttle(()=>{
         pixiGraphics.fire('adjust-bird-view');
-    }, 100);
+    }, 1000);
 
     pixiGraphics.addCanvasEventListener('contextmenu', pixiGraphics._contextmenuHandler, false);
 
@@ -1433,7 +1434,8 @@ export default function (settings) {
             renderer.render(stage);
 
             // trigger bird view update
-            if (root.getBounds().width > 0) {
+            // if (root.getBounds().width > 0) { // the getBounds method is too heavy;
+            if (nodeSprites.length > 0) {
                 pixiGraphics.fireBirdViewChangeEvent();
             }
             isDirty = false;
