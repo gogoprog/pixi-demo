@@ -1388,7 +1388,7 @@ export default function (settings) {
         } else if (graph.getNodesCount() < 700){
             n = 5;
         }
-        requestAnimationFrame(animationLoop);
+
         animationAgent.step();
         let layoutPositionChanged = false;
         if (layoutType === 'Network') {
@@ -1435,7 +1435,7 @@ export default function (settings) {
 
             // trigger bird view update
             // if (root.getBounds().width > 0) { // the getBounds method is too heavy;
-            if (nodeSprites.length > 0) {
+            if (graph.getNodesCount() > 0) {
                 pixiGraphics.fireBirdViewChangeEvent();
             }
             isDirty = false;
@@ -1446,6 +1446,7 @@ export default function (settings) {
             lineContainer.styleDirty = false;
         }
         counter.nextFrame();
+        requestAnimationFrame(animationLoop);
     }
 
     function updateNodeSpritesPosition() {
