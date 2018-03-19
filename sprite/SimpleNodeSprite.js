@@ -165,7 +165,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     /**
      * 更新顶点及其相关元素的位置.
      */
-    updateNodePosition(p) {
+    updateNodePosition(p, forceLinkUpdate = false) {
         if (this.timelineMode) {
             this._updateNodeAttachPosition(p);
             _.each(this.incoming, function (l) {
@@ -173,20 +173,32 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
                     x: l.x2,
                     y: p.y,
                 });
+                if(forceLinkUpdate) {
+                    l.updatePosition();
+                }
             });
             _.each(this.outgoing, function (l) {
                 l.setFrom({
                     x: l.x1,
                     y: p.y
                 });
+                if(forceLinkUpdate) {
+                    l.updatePosition();
+                }
             });
         } else {
             this._updateNodeAttachPosition(p);
             _.each(this.incoming, function (l) {
                 l.setTo(p);
+                if(forceLinkUpdate) {
+                    l.updatePosition();
+                }
             });
             _.each(this.outgoing, function (l) {
                 l.setFrom(p);
+                if(forceLinkUpdate) {
+                    l.updatePosition();
+                }
             });
         }
     }

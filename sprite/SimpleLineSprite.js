@@ -133,13 +133,13 @@ export default class SimpleLineSprite {
     setFrom(point) {
         this.x1 = point.x;
         this.y1 = point.y;
-        this.updatePosition();
+        // this.updatePosition();
     }
 
     setTo(point) {
         this.x2 = point.x;
         this.y2 = point.y;
-        this.updatePosition();
+        // this.updatePosition();
     }
 
     renderLine(lineGraphics) {

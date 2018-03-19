@@ -83,10 +83,10 @@ export default class TimelineLayout {
 
         this.zoomTimelineThrottled = _.throttle(zoomTimeFunction.bind(this), 200);
     }
-    
+
     /**
      * draw timline layout
-     * @param {*} leftSpacing 
+     * @param {*} leftSpacing
      */
     drawTimelineLayout(leftSpacing) {
         this.stage.isDirty = true;
@@ -134,7 +134,7 @@ export default class TimelineLayout {
             this.timelineWidth = $("#" + this.settings.timelineContainer).width();
             this.msPerPix = Math.floor(interval / this.timelineWidth);
         }
-    
+
         this.stage.contentRoot.scale.x = 1;
         this.stage.contentRoot.scale.y = 1;
         this.stage.contentRoot.position.x = 0;
@@ -170,7 +170,7 @@ export default class TimelineLayout {
         this.stage.contentRoot.position.x = leftSpacing || this.visualConfig.timelineLayout['margin-left'] + 60;
         this.stage.contentRootMoved();
     };
-    
+
     /**
      * draw lines between nodes
      */
@@ -192,7 +192,7 @@ export default class TimelineLayout {
             }
         });
     }
-    
+
     /**
      * disable timeline layout
      */
@@ -207,10 +207,10 @@ export default class TimelineLayout {
             ls.forceStraightLine = false;
         });
     }
-    
+
     /**
      * zoom timeline layout
-     * @param {*} percentage 
+     * @param {*} percentage
      */
     zoomTimeline(percentage) {
         let range = this.timeline.getWindow();
@@ -223,7 +223,7 @@ export default class TimelineLayout {
             },
         })
     }
-    
+
     positionLinksByTime(linkSprites, screenStartTime) {
         const layout = this;
         _.each(linkSprites, function (ls) {
@@ -251,6 +251,10 @@ export default class TimelineLayout {
                 x: toX,
                 y: toY,
             });
+        });
+
+        _.each(linkSprites, function (ls) {
+           ls.updatePosition();
         });
     }
 }

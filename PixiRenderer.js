@@ -620,6 +620,9 @@ export default function (settings) {
                     n.updateNodePosition(n.position);
                     layout.setNodePosition(n.id, n.position.x, n.position.y);
                 });
+                _.each(linkSprites, (l) => {
+                    l.updatePosition();
+                });
             } else {
                 const rootPlacement = this.calculateRootPosition(visualConfig.MAX_ADJUST);
                 if (rootPlacement) {
@@ -734,6 +737,9 @@ export default function (settings) {
             }
         },
 
+        /**
+         * FIXME, performance issue, updating all nodes, which is not necessary
+         */
         setSelectedNodesToFullScreen() {
             isDirty = true;
             nodeContainer.positionDirty = true;
@@ -821,6 +827,9 @@ export default function (settings) {
                 n.position.y -= sumy;
                 n.updateNodePosition(n.position);
                 layout.setNodePosition(n.id, n.position.x, n.position.y);
+            });
+            _.each(linkSprites, (l) => {
+                l.updatePosition();
             });
         },
 
@@ -1051,7 +1060,7 @@ export default function (settings) {
             let currentX = 0;
             _.each(nodeSprites, (nodeSprite, nodeId) => {
                 renderer.setNodePosition(nodeId, currentX, 0);
-                nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+                nodeSprite.updateNodePosition(layout.getNodePosition(nodeId), true);
                 currentX += nodeMarginX;
             });
         },
@@ -1073,6 +1082,9 @@ export default function (settings) {
 
                     _.each(nodeSprites, (nodeSprite, nodeId) => { //大开销计算
                         nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+                    });
+                    _.each(linkSprites, (l) => {
+                        l.updatePosition();
                     });
 
                     drawBorders();
@@ -1382,10 +1394,10 @@ export default function (settings) {
         }
         let n = 2;
         if (graph.getNodesCount() < 100){
-            n = 20;
-        } else if (graph.getNodesCount() < 300){
             n = 10;
-        } else if (graph.getNodesCount() < 700){
+        } else if (graph.getNodesCount() < 500){
+            n = 8;
+        } else if (graph.getNodesCount() < 1000){
             n = 5;
         }
 
@@ -1396,8 +1408,8 @@ export default function (settings) {
                 layoutPositionChanged = true;
                 for (let tmp = 0; tmp < n; tmp++){
                     layout.step();
-                    updateNodeSpritesPosition();
                 }
+                updateNodeSpritesPosition();
             }
         } else if (layoutType === 'TimelineScale') {
             //
@@ -1456,6 +1468,9 @@ export default function (settings) {
                 nodeSprite.pinned = false;
                 layout.pinNode(nodeSprite, false);
             }
+        });
+        _.each(linkSprites, (l) => {
+            l.updatePosition();
         });
     }
 

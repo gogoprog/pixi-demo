@@ -208,7 +208,7 @@ const nodeMoveListener = function (e) {
             const np = new PIXI.Point();
             np.x = n.position.x + dx;
             np.y = n.position.y + dy;
-            n.updateNodePosition(np);
+            n.updateNodePosition(np, true);
             container.nodeMoved(n);
         });
         this.parent.isDirty = true;
@@ -222,7 +222,7 @@ const nodeMoveListener = function (e) {
         this.parent.selectNode(this);
         this.parent.nodeSelected(this);
         // newPosition=null;
-        this.updateNodePosition(newPosition);
+        this.updateNodePosition(newPosition, true);
         this.parent.nodeMoved(this);
         this.parent.setPositionDirty(true);
     }
