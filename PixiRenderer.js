@@ -16,7 +16,6 @@ import elpForceLayout from "./layout/elpLayout/ForceLayout"
 import Graph from './Graph';
 
 import SelectionManager from './SelectionManager';
-import { addWheelListener, removeWheelListener } from './WheelListener';
 import { zoom, rootCaptureHandler, nodeCaptureListener } from './customizedEventHandling';
 
 import SimpleLineSprite from './sprite/SimpleLineSprite';
@@ -987,7 +986,7 @@ export default function (settings) {
             destroyed = true;
             isDirty = false;
             document.removeEventListener('mousedown', this._mouseDownListener);
-            removeWheelListener(canvas, this._zoomActionListener);
+            canvas.removeEventListener('mousewheel', this._zoomActionListener);
             graph.off('changed', onGraphChanged);
             animationAgent.destroy();
             _.each(nodeSprites, (ns) => {
@@ -1282,7 +1281,7 @@ export default function (settings) {
     }, 100);
 
     if (!disabledWheel) {
-        addWheelListener(canvas, pixiGraphics._zoomActionListener);
+        canvas.addEventListener('mousewheel', pixiGraphics._zoomActionListener, { passive: true });
     }
 
     pixiGraphics._lastDownTarget = null;
@@ -1290,7 +1289,7 @@ export default function (settings) {
         pixiGraphics._lastDownTarget = event.target;
     };
 
-    document.addEventListener('mousedown', pixiGraphics._mouseDownListener);
+    document.addEventListener('mousedown', pixiGraphics._mouseDownListener, { passive: true });
 
     pixiGraphics._contextmenuHandler = function (event) {
         event.preventDefault();
