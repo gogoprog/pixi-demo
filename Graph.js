@@ -380,6 +380,32 @@ export default function Graph(source, options) {
                 // console.log('Base graph ELP model changed, ', elpData);
                 graphPart.fire('elp-changed', elpData);
             });
+
+            entityGraphSource.on('collection', (changes) => {
+                let localChanges = [];
+                _.each(changes, (change)=>{
+                    if (change.entity) {
+                        const node = self.getNode(change.entity.id);
+                        if (node) {
+                            localChanges.push({
+                                node: node,
+                                changeType: 'collection'
+                            });
+                        } else {
+                            console.warn('Collection change for unknown node ', change);
+                        }
+                    } else if(change.link) {
+                        const link = self.getLinkById(change.link.sourceEntity, change.link.targetEntity, change.link.id);
+                        if (link) {
+                            localChanges.push({
+                                link: link,
+                                changeType: 'collection'
+                            })
+                        }
+                    }
+                });
+                graphPart.fire('collection', localChanges);
+            });
         },
     };
 

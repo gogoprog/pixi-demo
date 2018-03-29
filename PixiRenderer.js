@@ -410,6 +410,8 @@ export default function (settings) {
     // add animation
     let animationAgent = new AnimationAgent();
 
+    const COLLECTION_FLAG_MASK = [0, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024];
+
     ///////////////////////////////////////////////////////////////////////////////
     // Public API is begin
     ///////////////////////////////////////////////////////////////////////////////
@@ -1655,6 +1657,32 @@ export default function (settings) {
         graph.on('changed', onGraphChanged);
         graph.on('elp-changed', onGraphElpChanged);
         graph.on('init', onGraphInit);
+        graph.on('collection', onGraphDataCollectionUpdate);
+    }
+
+    function decodeCollectionFlag(flag) {
+        const collectionIds = [];
+        for (let i = 1; i <= COLLECTION_FLAG_MASK.length; i++) {
+            if (COLLECTION_FLAG_MASK[i] > flag) {
+                break;
+            } else if ((COLLECTION_FLAG_MASK[i] & flag) > 0) {
+                collectionIds.push(i);
+            }
+        }
+        return collectionIds;
+    }
+
+    function onGraphDataCollectionUpdate(changes) {
+        _.each(changes, (c)=>{
+            if(c.node) {
+                const nodeSprite = nodeSprites[c.node.id];
+                // hard coding the collection id property name
+                const collIdArr = decodeCollectionFlag(c.node.data.properties._$collectionIds);
+                nodeSprite.setNodeIcon(collIdArr, nodeContainer);
+            }
+            // we don't have collection icon for links
+        });
+        isDirty = true;
     }
 
     function removeNode(node) {
