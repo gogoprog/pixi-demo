@@ -1768,6 +1768,7 @@ export default function (settings) {
     }
 
     function onGraphChanged(changes) {
+        console.log(`Graph changed ${new Date()}`);
         const nodeIdArray = [];
         const linkIdArray = [];
         isDirty = true;
@@ -1807,6 +1808,7 @@ export default function (settings) {
             pixiGraphics.clearSelection();
             pixiGraphics.selectSubGraph(nodeIdArray, linkIdArray);
         }
+        console.log(`Graph change process complete ${new Date()}`);
     }
 
     function onGraphInit(changes) {

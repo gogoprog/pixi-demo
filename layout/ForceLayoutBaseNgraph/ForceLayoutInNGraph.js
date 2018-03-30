@@ -235,6 +235,7 @@ export default function createLayout(graph, physicsSettings) {
     }
 
     function onGraphChanged(changes) {
+        console.log(`Graph changed ${new Date()}`);
         var pinnedBodyIdSet = new Set();
         var addData = false;
         var dynamic = dynamicLayout;
@@ -301,6 +302,8 @@ export default function createLayout(graph, physicsSettings) {
                 }
             }
         }
+
+        console.log(`Graph change process complete ${new Date()}`);
     }
 
     function updateSpringLength(){
