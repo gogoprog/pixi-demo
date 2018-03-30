@@ -30,8 +30,7 @@ export default function (settings) {
     let isDirty = true;
 
     let graphType = { entityTypes: [], linkTypes: [] };
-    let graphData;
-
+    // TODO remove the below two properties, not necessary;
     let graphEntities = {};
     let graphLinks = {};
 
@@ -1002,7 +1001,6 @@ export default function (settings) {
             layout = null;
             networkLayout = null;
             animationAgent = null;
-            graphData = null;
             graph.clear();
             graph = null;
             // graphEntityTypes = null;
@@ -1164,7 +1162,6 @@ export default function (settings) {
         },
         setGraphData(gData) {
             graph.setEntityGraphSource(gData);
-            graphData = gData;
         },
         getGraphEntities() {
             return graphEntities;
@@ -1528,16 +1525,7 @@ export default function (settings) {
         // }
 
         nodeSprite.parent = nodeContainer;
-        if (graphData) {
-            const collIdArr = graphData.getNodeCollId(p);
-            nodeSprite.setNodeIcon(collIdArr, nodeContainer);
-            // const nodeCollTask = graphData.getNodeCollId(p);
-            // nodeCollTask.then((result) => {
-            //     nodeSprite.setNodeIcon(result, nodeContainer);
-            // }).catch((reason) => {
-            //     console.warn(`获取实体集合异常 ${reason}`);
-            // });
-        }
+        nodeSprite.setNodeIcon(decodeCollectionFlag(p.data.properties._$collectionIds), nodeContainer);
 
         if (p.data.properties._$lock) {
             nodeSprite.pinned = true;
@@ -1661,6 +1649,7 @@ export default function (settings) {
     }
 
     function decodeCollectionFlag(flag) {
+        flag = flag || 0;
         const collectionIds = [];
         for (let i = 1; i <= COLLECTION_FLAG_MASK.length; i++) {
             if (COLLECTION_FLAG_MASK[i] > flag) {
@@ -1762,20 +1751,8 @@ export default function (settings) {
         nodeSprite.data = node.data;
         nodeSprite.updateLabel();
         nodeSprite.updateScale();
-
         nodeSprite.updateBorder(textContainer);
-
-        if (graphData) {
-            const nodeSprite = nodeSprites[node.id];
-            const collIdArr = graphData.getNodeCollId(node);
-            nodeSprite.setNodeIcon(collIdArr, nodeContainer);
-            // const nodeCollTask = graphData.getNodeCollId(node);
-            // nodeCollTask.then((result) => {
-            //     nodeSprite.setNodeIcon(result, nodeContainer);
-            // }).catch((reason) => {
-            //     console.warn(`获取实体集合异常 ${reason}`);
-            // });
-        }
+        nodeSprite.setNodeIcon(decodeCollectionFlag(node.data.properties._$collectionIds), nodeContainer);
     }
 
     function updateLink(link) {
