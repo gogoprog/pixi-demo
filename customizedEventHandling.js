@@ -61,6 +61,16 @@ export const rootCaptureHandler = function (e) {
         };
         this.selectingArea = true;
         // console.log('Root captured @' + JSON.stringify(this.mouseLocation));
+
+        const np = {};
+        np.global = {};
+
+        np.global.x = this.mouseLocation.x;
+        np.global.y = this.mouseLocation.y;
+
+        let tnp = new PIXI.Point();
+        tnp = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(np, this.contentRoot.children[4]);
+        this.selectSingleLink(tnp.x, tnp.y);
     }
     if (!this.moveListener) {
         this.moveListener = rootMoveHandler.bind(this);
