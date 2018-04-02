@@ -69,7 +69,7 @@ export const rootCaptureHandler = function (e) {
         np.global.y = this.mouseLocation.y;
 
         let tnp = new PIXI.Point();
-        tnp = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(np, this.contentRoot.children[4]);
+        tnp = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(np, this.contentRoot.children[4]);   // children[4] lineContainer
         this.selectSingleLink(tnp.x, tnp.y);
     }
     if (!this.moveListener) {
@@ -140,7 +140,7 @@ const rootMoveHandler = function (e) {
             // top = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(op, this.contentRoot);
             // tnp = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(np, this.contentRoot);
             top = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(op, this.contentRoot.children[5]);
-            tnp = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(np, this.contentRoot.children[5]);
+            tnp = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(np, this.contentRoot.children[5]);   // children[5] nodeContainer
             const me = e.data.originalEvent;
             let flag = true;
             if (me.ctrlKey) {

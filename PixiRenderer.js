@@ -210,318 +210,43 @@ export default function (settings) {
             return;
         }
 
+        const rectBox = {xl, xr, yt, yb};
         _.each(linkSprites, (link) => {
             if (!link.visible) {
                 return;
             }
 
-            if (link._controlOffsetIndex === 0) { // straight line,  cannot use link.fx
-                let linkXl;
-                let linkXr;
-                let linkYt;
-                let linkYb;
-                if (link.x1 > link.x2) {
-                    linkXl = link.x2;
-                    linkXr = link.x1;
-                } else {
-                    linkXl = link.x1;
-                    linkXr = link.x2;
-                }
-                if (link.y1 > link.y2) {
-                    linkYt = link.y2;
-                    linkYb = link.y1;
-                } else {
-                    linkYt = link.y1;
-                    linkYb = link.y2;
-                }
-
-                if (linkXl <= xr && linkXr >= xl && linkYt <= yb && linkYb >= yt) { // 矩形碰撞检测  https://silentmatt.com/rectangle-intersection/
-                    // const x = linkXr - linkXl;
-                    // const y = linkYb - linkYt;
-
-                    // const rectLeft = Math.max(linkXl, xl);
-                    // const rectRight = Math.min(linkXr, xr);
-                    // const rectLeftY = (rectLeft - linkXl) * y / x;
-                    // const rectRightY = (rectRight - linkXl) * y / x;
-                    // const rectBottom = linkYb - Math.min(rectLeftY, rectRightY);
-                    // const rectTop = linkYb - Math.max(rectLeftY, rectRightY);
-
-                    const x = link.x2 - link.x1;
-                    const y = link.y2 - link.y1;
-                    const rectLeft = Math.max(linkXl, xl);
-                    const rectRight = Math.min(linkXr, xr);
-                    const rectLeftY = link.y1 + (rectLeft - link.x1) * y / x;
-                    const rectRightY = link.y1 + (rectRight - link.x1) * y / x;
-                    const rectBottom = Math.max(rectLeftY, rectRightY);
-                    const rectTop =  Math.min(rectLeftY, rectRightY);
-
-                    if (rectLeft <= xr && rectRight >= xl && rectTop <= yb && rectBottom >= yt) {
-                        lineContainer.selectLink(link);
-                    }
-
-                    // console.log("链接 坐标 link.x1" + link.x1 + ' link.y1 ' + link.y1 + ' link.x2 ' + link.x2 + ' link.y2 ' + link.y2);
-                    // console.log("交点 没有交集 框选坐标 xl" + xl + ' xr ' + xr + ' yt ' + yt + ' yb ' + yb);
-                    // console.log("交点 没有交集 链接坐标 linkXl" + linkXl + ' linkXr ' + linkXr + ' linkYt ' + linkYt + ' linkYb ' + linkYb);
-                }
-            } else {    // polyline
-                let detectFlag = false;
-                let linkXl;
-                let linkXr;
-                let linkYt;
-                let linkYb;
-                if (link.x1 > link.fx) {
-                    linkXl = link.fx;
-                    linkXr = link.x1;
-                } else {
-                    linkXl = link.x1;
-                    linkXr = link.fx;
-                }
-                if (link.y1 > link.fy) {
-                    linkYt = link.fy;
-                    linkYb = link.y1;
-                } else {
-                    linkYt = link.y1;
-                    linkYb = link.fy;
-                }
-
-                if (linkXl <= xr && linkXr >= xl && linkYt <= yb && linkYb >= yt) { // 矩形碰撞检测
-                    const x = link.fx - link.x1;
-                    const y = link.fy - link.y1;
-                    const rectLeft = Math.max(linkXl, xl);
-                    const rectRight = Math.min(linkXr, xr);
-                    const rectLeftY = link.y1 + (rectLeft - link.x1) * y / x;
-                    const rectRightY = link.y1 + (rectRight - link.x1) * y / x;
-                    const rectBottom = Math.max(rectLeftY, rectRightY);
-                    const rectTop =  Math.min(rectLeftY, rectRightY);
-
-                    if (rectLeft <= xr && rectRight >= xl && rectTop <= yb && rectBottom >= yt) {
-                        lineContainer.selectLink(link);
-                        detectFlag = true;
-                    }
-                }
-
-                if (!detectFlag) {
-                    if (link.fx > link.tx) {
-                        linkXl = link.tx;
-                        linkXr = link.fx;
-                    } else {
-                        linkXl = link.fx;
-                        linkXr = link.tx;
-                    }
-                    if (link.fy > link.ty) {
-                        linkYt = link.ty;
-                        linkYb = link.fy;
-                    } else {
-                        linkYt = link.fy;
-                        linkYb = link.ty;
-                    }
-
-                    if (linkXl <= xr && linkXr >= xl && linkYt <= yb && linkYb >= yt) { // 矩形碰撞检测
-                        const x = link.tx - link.fx;
-                        const y = link.ty - link.fy;
-                        const rectLeft = Math.max(linkXl, xl);
-                        const rectRight = Math.min(linkXr, xr);
-                        const rectLeftY = link.fy + (rectLeft - link.fx) * y / x;
-                        const rectRightY = link.fy + (rectRight - link.fx) * y / x;
-                        const rectBottom = Math.max(rectLeftY, rectRightY);
-                        const rectTop =  Math.min(rectLeftY, rectRightY);
-
-                        if (rectLeft <= xr && rectRight >= xl && rectTop <= yb && rectBottom >= yt) {
-                            lineContainer.selectLink(link);
-                            detectFlag = true;
-                        }
-                    }
-                }
-
-                if (!detectFlag) {
-                    if (link.tx > link.x2) {
-                        linkXl = link.x2;
-                        linkXr = link.tx;
-                    } else {
-                        linkXl = link.tx;
-                        linkXr = link.x2;
-                    }
-                    if (link.ty > link.y2) {
-                        linkYt = link.y2;
-                        linkYb = link.ty;
-                    } else {
-                        linkYt = link.ty;
-                        linkYb = link.y2;
-                    }
-
-                    if (linkXl <= xr && linkXr >= xl && linkYt <= yb && linkYb >= yt) { // 矩形碰撞检测
-                        const x = link.x2 - link.tx;
-                        const y = link.y2 - link.ty;
-                        const rectLeft = Math.max(linkXl, xl);
-                        const rectRight = Math.min(linkXr, xr);
-                        const rectLeftY = link.ty + (rectLeft - link.tx) * y / x;
-                        const rectRightY = link.ty + (rectRight - link.tx) * y / x;
-                        const rectBottom = Math.max(rectLeftY, rectRightY);
-                        const rectTop =  Math.min(rectLeftY, rectRightY);
-
-                        if (rectLeft <= xr && rectRight >= xl && rectTop <= yb && rectBottom >= yt) {
-                            lineContainer.selectLink(link);
-                            // detectFlag = true;
-                        }
-                    }
-                }
-
+            let detectFlag = pixiGraphics.detectLinkSelect(link, rectBox);
+            if (detectFlag) {
+                lineContainer.selectLink(link);
             }
         });
     };
 
+    /**
+     * {x0, y0} click point
+     * @param {*} x0 
+     * @param {*} y0 
+     */
     stage.selectSingleLink = function (x0, y0) {
         isDirty = true;
         const xl = x0 - 1;
         const xr = x0 + 1;
         const yt = y0 - 1;
         const yb = y0 + 1;
+        const rectBox = {xl, xr, yt, yb};   // {x0, y0} as a center point to construct a rectangle
 
         _.each(linkSprites, (link) => {
             if (!link.visible) {
                 return;
             }
 
-            if (link._controlOffsetIndex === 0) { // straight line,  cannot use link.fx
-                let linkXl;
-                let linkXr;
-                let linkYt;
-                let linkYb;
-                if (link.x1 > link.x2) {
-                    linkXl = link.x2;
-                    linkXr = link.x1;
-                } else {
-                    linkXl = link.x1;
-                    linkXr = link.x2;
-                }
-                if (link.y1 > link.y2) {
-                    linkYt = link.y2;
-                    linkYb = link.y1;
-                } else {
-                    linkYt = link.y1;
-                    linkYb = link.y2;
-                }
-
-                if (linkXl <= xr && linkXr >= xl && linkYt <= yb && linkYb >= yt) { // 矩形碰撞检测  https://silentmatt.com/rectangle-intersection/
-                    const x = link.x2 - link.x1;
-                    const y = link.y2 - link.y1;
-                    const rectLeft = Math.max(linkXl, xl);
-                    const rectRight = Math.min(linkXr, xr);
-                    const rectLeftY = link.y1 + (rectLeft - link.x1) * y / x;
-                    const rectRightY = link.y1 + (rectRight - link.x1) * y / x;
-                    const rectBottom = Math.max(rectLeftY, rectRightY);
-                    const rectTop =  Math.min(rectLeftY, rectRightY);
-
-                    if (rectLeft <= xr && rectRight >= xl && rectTop <= yb && rectBottom >= yt) {
-                        lineContainer.linkSelected(link);
-                    }
-                }
-            } else {    // polyline
-                let detectFlag = false;
-                let linkXl;
-                let linkXr;
-                let linkYt;
-                let linkYb;
-                if (link.x1 > link.fx) {
-                    linkXl = link.fx;
-                    linkXr = link.x1;
-                } else {
-                    linkXl = link.x1;
-                    linkXr = link.fx;
-                }
-                if (link.y1 > link.fy) {
-                    linkYt = link.fy;
-                    linkYb = link.y1;
-                } else {
-                    linkYt = link.y1;
-                    linkYb = link.fy;
-                }
-
-                if (linkXl <= xr && linkXr >= xl && linkYt <= yb && linkYb >= yt) { // 矩形碰撞检测
-                    const x = link.fx - link.x1;
-                    const y = link.fy - link.y1;
-                    const rectLeft = Math.max(linkXl, xl);
-                    const rectRight = Math.min(linkXr, xr);
-                    const rectLeftY = link.y1 + (rectLeft - link.x1) * y / x;
-                    const rectRightY = link.y1 + (rectRight - link.x1) * y / x;
-                    const rectBottom = Math.max(rectLeftY, rectRightY);
-                    const rectTop =  Math.min(rectLeftY, rectRightY);
-
-                    if (rectLeft <= xr && rectRight >= xl && rectTop <= yb && rectBottom >= yt) {
-                        lineContainer.linkSelected(link);
-                        detectFlag = true;
-                    }
-                }
-
-                if (!detectFlag) {
-                    if (link.fx > link.tx) {
-                        linkXl = link.tx;
-                        linkXr = link.fx;
-                    } else {
-                        linkXl = link.fx;
-                        linkXr = link.tx;
-                    }
-                    if (link.fy > link.ty) {
-                        linkYt = link.ty;
-                        linkYb = link.fy;
-                    } else {
-                        linkYt = link.fy;
-                        linkYb = link.ty;
-                    }
-
-                    if (linkXl <= xr && linkXr >= xl && linkYt <= yb && linkYb >= yt) { // 矩形碰撞检测
-                        const x = link.tx - link.fx;
-                        const y = link.ty - link.fy;
-                        const rectLeft = Math.max(linkXl, xl);
-                        const rectRight = Math.min(linkXr, xr);
-                        const rectLeftY = link.fy + (rectLeft - link.fx) * y / x;
-                        const rectRightY = link.fy + (rectRight - link.fx) * y / x;
-                        const rectBottom = Math.max(rectLeftY, rectRightY);
-                        const rectTop =  Math.min(rectLeftY, rectRightY);
-
-                        if (rectLeft <= xr && rectRight >= xl && rectTop <= yb && rectBottom >= yt) {
-                            lineContainer.linkSelected(link);
-                            detectFlag = true;
-                        }
-                    }
-                }
-
-                if (!detectFlag) {
-                    if (link.tx > link.x2) {
-                        linkXl = link.x2;
-                        linkXr = link.tx;
-                    } else {
-                        linkXl = link.tx;
-                        linkXr = link.x2;
-                    }
-                    if (link.ty > link.y2) {
-                        linkYt = link.y2;
-                        linkYb = link.ty;
-                    } else {
-                        linkYt = link.ty;
-                        linkYb = link.y2;
-                    }
-
-                    if (linkXl <= xr && linkXr >= xl && linkYt <= yb && linkYb >= yt) { // 矩形碰撞检测
-                        const x = link.x2 - link.tx;
-                        const y = link.y2 - link.ty;
-                        const rectLeft = Math.max(linkXl, xl);
-                        const rectRight = Math.min(linkXr, xr);
-                        const rectLeftY = link.ty + (rectLeft - link.tx) * y / x;
-                        const rectRightY = link.ty + (rectRight - link.tx) * y / x;
-                        const rectBottom = Math.max(rectLeftY, rectRightY);
-                        const rectTop =  Math.min(rectLeftY, rectRightY);
-
-                        if (rectLeft <= xr && rectRight >= xl && rectTop <= yb && rectBottom >= yt) {
-                            lineContainer.linkSelected(link);
-                            // detectFlag = true;
-                        }
-                    }
-                }
+            let detectFlag = pixiGraphics.detectLinkSelect(link, rectBox);
+            if (detectFlag) {
+                lineContainer.linkSelected(link);
             }
         });
     };
-
 
     /**
      * Very Very Important Variables
@@ -1425,6 +1150,85 @@ export default function (settings) {
             } else {
                 emptyTextContainer.removeChild(emptyText);
             }
+        },
+
+        /**
+         * detect whether the linkSprite is selected.
+         * @param {*} linkSprite link sprite object
+         * @param {*} rectBox rectBox select region as a rectangle or click point spread as a rectangle;
+         */
+        detectLinkSelect(linkSprite, rectBox) {
+            const link = linkSprite;
+            // linkPosition x1, y1 as straight line's from point,  x2, y2 as straight line's end point
+            let detectFlag = false;
+            let linkPosition = {};
+            if (link._controlOffsetIndex === 0) { // straight line 
+                linkPosition = {x1: link.x1, y1: link.y1, x2: link.x2, y2: link.y2};
+                detectFlag = pixiGraphics.linkCollisionDetect(link, rectBox);
+            } else {    // polyline consist of three strainght lines, when one of three strainght lines is detect as true, it is not necessary to detect other strainght line 
+                linkPosition = {x1: link.x1, y1: link.y1, x2: link.fx, y2: link.fy};  // first strainght line
+                detectFlag = pixiGraphics.linkCollisionDetect(linkPosition, rectBox);
+
+                if (!detectFlag) {
+                    linkPosition = {x1: link.fx, y1: link.fy, x2: link.tx, y2: link.ty};  // second strainght line
+                    detectFlag = pixiGraphics.linkCollisionDetect(linkPosition, rectBox);
+                }
+
+                if (!detectFlag) {
+                    linkPosition = {x1: link.tx, y1: link.ty, x2: link.x2, y2: link.y2};  // third strainght line
+                    detectFlag = pixiGraphics.linkCollisionDetect(linkPosition, rectBox);
+                }
+            }
+
+            return detectFlag;
+        },
+
+        /**
+         * link and rectangle collision detect.
+         * @param {*} linkPosition link graph link position;
+         * @param {*} rectBox rectBox select region as a rectangle or click point spread as a rectangle;
+         */
+        linkCollisionDetect(linkPosition, rectBox) {
+            const link = linkPosition;
+            const xl = rectBox.xl;
+            const xr = rectBox.xr;
+            const yt = rectBox.yt;
+            const yb = rectBox.yb;
+            let linkXl;
+            let linkXr;
+            let linkYt;
+            let linkYb;
+            if (link.x1 > link.x2) {
+                linkXl = link.x2;
+                linkXr = link.x1;
+            } else {
+                linkXl = link.x1;
+                linkXr = link.x2;
+            }
+            if (link.y1 > link.y2) {
+                linkYt = link.y2;
+                linkYb = link.y1;
+            } else {
+                linkYt = link.y1;
+                linkYb = link.y2;
+            }
+
+            if (linkXl <= xr && linkXr >= xl && linkYt <= yb && linkYb >= yt) { // 矩形碰撞检测  https://silentmatt.com/rectangle-intersection/
+                const x = link.x2 - link.x1;
+                const y = link.y2 - link.y1;
+                const rectLeft = Math.max(linkXl, xl);
+                const rectRight = Math.min(linkXr, xr);
+                const rectLeftY = link.y1 + (rectLeft - link.x1) * y / x;
+                const rectRightY = link.y1 + (rectRight - link.x1) * y / x;
+                const rectBottom = Math.max(rectLeftY, rectRightY);
+                const rectTop =  Math.min(rectLeftY, rectRightY);
+
+                if (rectLeft <= xr && rectRight >= xl && rectTop <= yb && rectBottom >= yt) {
+                    return true;
+                }
+            }
+
+            return false;
         },
     };
 
