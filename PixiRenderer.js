@@ -1402,9 +1402,9 @@ export default function (settings) {
 
             // trigger bird view update
             // if (root.getBounds().width > 0) { // the getBounds method is too heavy;
-            if (graph.getNodesCount() > 0) {
-                pixiGraphics.fireBirdViewChangeEvent();
-            }
+            // if (graph.getNodesCount() > 0) {
+            pixiGraphics.fireBirdViewChangeEvent();
+            // }
             isDirty = false;
             nodeContainer.isDirty = false;
             stage.isDirty = false;

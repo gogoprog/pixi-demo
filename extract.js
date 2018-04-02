@@ -69,33 +69,34 @@ export default {
         const width = frame.width * resolution;
         const height = frame.height * resolution;
         const canvasBuffer = new PIXI.CanvasRenderTarget(width, height);
-        if (textureBuffer) {
-            // bind the buffer
-            renderer.bindRenderTarget(textureBuffer);
-            // set up an array of pixels
-            const webglPixels = new Uint8Array(BYTES_PER_PIXEL * width * height);
-            // read pixels to the array
-            const gl = renderer.gl;
-            gl.readPixels(
-                frame.x * resolution,
-                frame.y * resolution,
-                width,
-                height,
-                gl.RGBA,
-                gl.UNSIGNED_BYTE,
-                webglPixels,
-            );
-            // add the pixels to the canvas
-            const canvasData = canvasBuffer.context.getImageData(0, 0, width, height);
-            canvasData.data.set(webglPixels);
-            canvasBuffer.context.putImageData(canvasData, 0, 0);
-            // pulling pixels
-            if (flipY) {
-                canvasBuffer.context.scale(1, -1);
-                canvasBuffer.context.drawImage(canvasBuffer.canvas, 0, -height);
+        if (width) { // to avoid errors from getImageData()
+            if (textureBuffer) {
+                // bind the buffer
+                renderer.bindRenderTarget(textureBuffer);
+                // set up an array of pixels
+                const webglPixels = new Uint8Array(BYTES_PER_PIXEL * width * height);
+                // read pixels to the array
+                const gl = renderer.gl;
+                gl.readPixels(
+                    frame.x * resolution,
+                    frame.y * resolution,
+                    width,
+                    height,
+                    gl.RGBA,
+                    gl.UNSIGNED_BYTE,
+                    webglPixels,
+                );
+                // add the pixels to the canvas
+                const canvasData = canvasBuffer.context.getImageData(0, 0, width, height);
+                canvasData.data.set(webglPixels);
+                canvasBuffer.context.putImageData(canvasData, 0, 0);
+                // pulling pixels
+                if (flipY) {
+                    canvasBuffer.context.scale(1, -1);
+                    canvasBuffer.context.drawImage(canvasBuffer.canvas, 0, -height);
+                }
             }
         }
-
         // send the canvas back..
         return canvasBuffer.canvas;
     },
@@ -127,8 +128,10 @@ export default {
         const width = frame.width * resolution;
         const height = frame.height * resolution;
         const canvasBuffer = new PIXI.CanvasRenderTarget(width, height);
-        const canvasData = context.getImageData(frame.x * resolution, frame.y * resolution, width, height);
-        canvasBuffer.context.putImageData(canvasData, 0, 0);
+        if (width) { // to avoid errors from getImageData()
+            const canvasData = context.getImageData(frame.x * resolution, frame.y * resolution, width, height);
+            canvasBuffer.context.putImageData(canvasData, 0, 0);
+        }
 
         // send the canvas back..
         return canvasBuffer.canvas;
