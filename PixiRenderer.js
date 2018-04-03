@@ -11,6 +11,7 @@ import TimelineLayout from './layout/TimelineLayout';
 // import ForceLayoutBaseNgraph from "./layout/ForceLayoutBaseNgraph/ForceLayout"
 import createLayout from "./layout/ForceLayoutBaseNgraph/ForceLayoutInNGraph"
 import GraphLevelForceLayout from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayout"
+import GraphLevelForceLayoutOpt from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayoutOpt"
 import elpForceLayout from "./layout/elpLayout/ForceLayout"
 
 import Graph from './Graph';
@@ -439,7 +440,7 @@ export default function (settings) {
             }
             layoutType = 'Structural';
             // layout = new StructuralLayout(nodeSprites, nodeContainer, visualConfig);
-            layout = new GraphLevelForceLayout(nodeSprites, nodeContainer, visualConfig);;
+            layout = new GraphLevelForceLayoutOpt(nodeSprites, nodeContainer, visualConfig);;
             this.setNodesToFullScreen(disableAnimation);
         },
         /**
