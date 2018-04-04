@@ -1072,6 +1072,10 @@ export default function (settings) {
             graph.on('changed', func);
         },
 
+        onGraphElpChanged(func) {
+            graph.on('elp-changed', func);
+        },
+
         addCanvasEventListener(eventName, func, state) {
             canvas.addEventListener(eventName, func, state);
         },
