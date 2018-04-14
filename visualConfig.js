@@ -15,6 +15,7 @@ export const visualConfig = {
     ELLIPSE_X_OFFSET: 0.15 * 32,
     LAYOUT_ANIMATION: true,
     ORIGINAL_FORCE_LAYOUT: false,
+    PERSON_LAYOUT:false,
     forceLayout: {
         springLength: 250,
         springCoeff: 0.00008,

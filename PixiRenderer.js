@@ -13,6 +13,7 @@ import createLayout from "./layout/ForceLayoutBaseNgraph/ForceLayoutInNGraph"
 import GraphLevelForceLayout from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayout"
 import GraphLevelForceLayoutOpt from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayoutOpt"
 import elpForceLayout from "./layout/elpLayout/ForceLayout"
+import personForceLayout from "./layout/personLayout/PersonForceLayout"
 
 import Graph from './Graph';
 
@@ -54,7 +55,7 @@ export default function (settings) {
     if (visualConfig.ORIGINAL_FORCE_LAYOUT) {
         networkLayout = elpForceLayout(graph, visualConfig.forceLayout);
     } else {
-        networkLayout = createLayout(graph, visualConfig.forceLayout);
+        networkLayout = createLayout(graph, visualConfig.forceLayout);        
     }
 
     networkLayout.on('stable', (isStable) => {
@@ -65,6 +66,11 @@ export default function (settings) {
 
     let layout = networkLayout;
     let layoutType = 'Network';
+    if (visualConfig.PERSON_LAYOUT){
+        layoutType = 'PersonLayout';
+        this.drawPersonLayout(true);
+    }
+    
     const showDebugMarkup = false;
 
     const canvas = settings.container;
@@ -433,6 +439,16 @@ export default function (settings) {
             this.setNodesToFullScreen(disableAnimation);
         },
 
+        drawPersonLayout(disableAnimation) {
+            isDirty = true;
+            if (stage.isTimelineLayout) {
+                timelineLayout.disableTimelineLayout();
+            }
+            layoutType = 'PersonLayout';
+            layout = new personForceLayout(nodeSprites, nodeContainer, visualConfig);
+            this.setNodesToFullScreen(disableAnimation);
+        },
+
         drawStructuralLayout(disableAnimation) {
             isDirty = true;
             if (stage.isTimelineLayout) {
@@ -440,7 +456,7 @@ export default function (settings) {
             }
             layoutType = 'Structural';
             // layout = new StructuralLayout(nodeSprites, nodeContainer, visualConfig);
-            layout = new GraphLevelForceLayoutOpt(nodeSprites, nodeContainer, visualConfig);;
+            layout = new GraphLevelForceLayoutOpt(nodeSprites, nodeContainer, visualConfig);
             this.setNodesToFullScreen(disableAnimation);
         },
         /**
@@ -973,6 +989,8 @@ export default function (settings) {
                 this.setNodesToFullScreen(disableAnimation);
             } else if (layoutType === 'Circular') {
                 this.drawCircleLayout(disableAnimation);
+            } else if (layoutType === 'PersonLayout'){
+                this.drawPersonLayout(disableAnimation);
             } else if (layoutType === 'Structural') {
                 this.drawStructuralLayout(disableAnimation);
             } else if (layoutType === 'Layered') {
