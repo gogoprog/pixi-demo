@@ -1751,43 +1751,59 @@ export default function (settings) {
         console.log(`Graph changed ${new Date()}`);
         const nodeIdArray = [];
         const linkIdArray = [];
+        const updateNodeIdArray = [];
+        const updateLinkIdArray = [];
         isDirty = true;
         for (let i = 0; i < changes.length; ++i) {
             const change = changes[i];
+            const changeNode = change.node;
+            const changeLink = change.link;
             if (change.changeType === 'add') {
-                if (change.node) {
-                    initNode(change.node);
-                    nodeIdArray.push(change.node.id);
+                if (changeNode) {
+                    initNode(changeNode);
+                    nodeIdArray.push(changeNode.id);
                 }
-                if (change.link) {
-                    initLink(change.link);
-                    linkIdArray.push(change.link.id);
+                if (changeLink) {
+                    initLink(changeLink);
+                    linkIdArray.push(changeLink.id);
                 }
             } else if (change.changeType === 'remove') {
-                if (change.node) {
-                    removeNode(change.node);
+                if (changeNode) {
+                    removeNode(changeNode);
                 }
-                if (change.link) {
-                    removeLink(change.link);
+                if (changeLink) {
+                    removeLink(changeLink);
                     lineContainer.unSelectedLinks = {};
                 }
             } else if (change.changeType === 'update') {
-                if (change.node) {
-                    updateNode(change.node);
+                if (changeNode) {
+                    updateNode(changeNode);
+                    updateNodeIdArray.push(changeNode.id);
                 }
-                if (change.link) {
-                    updateLink(change.link);
+                if (changeLink) {
+                    updateLink(changeLink);
+                    updateLinkIdArray.push(changeLink.id);
                 }
             }
         }
 
+        let added = false;
         if (nodeIdArray.length > 0 || linkIdArray.length > 0) {
             if(!visualConfig.ORIGINAL_FORCE_LAYOUT) {
                 pixiGraphics.performLayout();
             }
             pixiGraphics.clearSelection();
             pixiGraphics.selectSubGraph(nodeIdArray, linkIdArray);
+            added = true;
         }
+
+        if (updateNodeIdArray.length > 0 || updateLinkIdArray.length > 0) {
+            if (!added) {
+                pixiGraphics.clearSelection();
+            }
+            pixiGraphics.selectSubGraph(updateNodeIdArray, updateLinkIdArray);
+        }
+
         console.log(`Graph change process complete ${new Date()}`);
     }
 
