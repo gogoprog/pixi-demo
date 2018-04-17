@@ -153,40 +153,40 @@ export default class personForceLayout extends Layout {
         var isStable = false;
         while (!isStable){
             isStable = graph.layout.step();
-            var nodeBodiesInGraph = graph.layout.nodeBodies;
-            for (var nodeBodyId in nodeBodiesInGraph) {
-                var newNode = newNodes.get(parseInt(nodeBodyId));
-                var entityIdSet = newNode.data.groups;
-                var pos = graph.layout.getNodePosition(nodeBodyId);
-                var x = newNode.oldPos.x;
-                var y = newNode.oldPos.y;
-                var deltaX = pos.x - x;
-                var deltaY = pos.y - y;
-
-                for (var entityId of entityIdSet) {
-                    var node = nodes[entityId];
-                    node.position.x = node.position.x + deltaX;
-                    node.position.y = node.position.y + deltaY;
-                    if (this.left > node.position.x) {
-                        this.left = node.position.x;
-                    }
-                    if (this.right < node.position.x) {
-                        this.right = node.position.x;
-                    }
-                    if (this.top > node.position.y) {
-                        this.top = node.position.y;
-                    }
-                    if (this.bottom < node.position.y) {
-                        this.bottom = node.position.y;
-                    } 
-                    
-                }
-                newNode.oldPos.x = pos.x;
-                newNode.oldPos.y = pos.y;
-                // newNode.oldPos = pos;
-            }
+            
         }
+        var nodeBodiesInGraph = graph.layout.nodeBodies;
+        for (var nodeBodyId in nodeBodiesInGraph) {
+            var newNode = newNodes.get(parseInt(nodeBodyId));
+            var entityIdSet = newNode.data.groups;
+            var pos = graph.layout.getNodePosition(nodeBodyId);
+            var x = newNode.oldPos.x;
+            var y = newNode.oldPos.y;
+            var deltaX = pos.x - x;
+            var deltaY = pos.y - y;
 
+            for (var entityId of entityIdSet) {
+                var node = nodes[entityId];
+                node.position.x = node.position.x + deltaX;
+                node.position.y = node.position.y + deltaY;
+                if (this.left > node.position.x) {
+                    this.left = node.position.x;
+                }
+                if (this.right < node.position.x) {
+                    this.right = node.position.x;
+                }
+                if (this.top > node.position.y) {
+                    this.top = node.position.y;
+                }
+                if (this.bottom < node.position.y) {
+                    this.bottom = node.position.y;
+                } 
+                
+            }
+            newNode.oldPos.x = pos.x;
+            newNode.oldPos.y = pos.y;
+            // newNode.oldPos = pos;
+        }
 
     };
 }
