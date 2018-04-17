@@ -1,4 +1,6 @@
 import { linkCaptureListener } from '../customizedEventHandling';
+import LabelSprite from './LabelSprite';
+import {visualConfig} from "../visualConfig";
 
 export default class SimpleLineSprite {
     static textureCache = {};
@@ -18,9 +20,9 @@ export default class SimpleLineSprite {
         this.y2 = y2;
         this.visualConfig = visualConfig;
         this._controlOffsetIndex = controlOffsetIndex || 0;
-        this.coustomSettingThickness = visualConfig.ui.line.width;
-        this.coustomSettingColor = visualConfig.ui.line.color;
-        this.coustomSettingAlpha = visualConfig.ui.line.alpha;
+        this.customSettingThickness = visualConfig.ui.line.width;
+        this.customSettingColor = visualConfig.ui.line.color;
+        this.customSettingAlpha = visualConfig.ui.line.alpha;
         if (hasArrow) {
             if (!arrowStyle) {
                 this.arrow = new PIXI.Sprite(SimpleLineSprite.getTexture(thickness, color));
@@ -33,9 +35,21 @@ export default class SimpleLineSprite {
             this.arrow.on('mouseup', linkCaptureListener);
         }
         this.label = new PIXI.Text(label, fontConfig);
-        this.label.scale.set(0.5, 0.5);
+        this.label.scale.set(visualConfig.factor, visualConfig.factor);
         this.label.anchor.x = 0.5;
+        this.label.anchor.y = 0.5;
         this.label.lineSprite = this;
+        this.label.visible = visualConfig.ui.label.visibleByDefault;
+
+        const labelBg = new PIXI.Sprite(PIXI.Texture.WHITE);
+        labelBg.tint = visualConfig.ui.label.background.color;
+        labelBg.width = this.label.width + 4;
+        labelBg.height = this.label.height + 2;
+        labelBg.anchor.x = 0.5;
+        labelBg.anchor.y = 0.5;
+        labelBg.visible = this.label.visible;
+        this.labelBg = labelBg;
+
         this.label.on('mousedown', linkCaptureListener);
         this.updatePosition();
     }
@@ -85,20 +99,20 @@ export default class SimpleLineSprite {
             if (typeof colorHex === 'string' && colorHex.startsWith('#')) {
                 colorHex = parseInt('0x' + colorHex.substring(1), 16);
             }
-            this.coustomSettingColor = colorHex;
+            this.customSettingColor = colorHex;
         }
         if (this.data.properties._$alpha){
-            this.coustomSettingAlpha = this.data.properties._$alpha;
+            this.customSettingAlpha = this.data.properties._$alpha;
             this.label.alpha = this.data.properties._$alpha;
         }
         if (this.data.properties._$thickness){
-            this.coustomSettingThickness = this.data.properties._$thickness;
+            this.customSettingThickness = this.data.properties._$thickness;
         }
 
-        this.alpha = this.coustomSettingAlpha;
-        this.color = this.coustomSettingColor;
-        this.thickness = this.coustomSettingThickness;
-        this.label.alpha = this.coustomSettingAlpha;
+        this.alpha = this.customSettingAlpha;
+        this.color = this.customSettingColor;
+        this.thickness = this.customSettingThickness;
+        this.label.alpha = this.customSettingAlpha;
     }
 
     /**
@@ -106,9 +120,9 @@ export default class SimpleLineSprite {
      */
     getLineAttr() {
         const lineAttr = {};
-        lineAttr.width = this.coustomSettingThickness;
-        lineAttr.color = this.coustomSettingColor;
-        lineAttr.alpha = this.coustomSettingAlpha;
+        lineAttr.width = this.customSettingThickness;
+        lineAttr.color = this.customSettingColor;
+        lineAttr.alpha = this.customSettingAlpha;
         return lineAttr;
     }
 
@@ -121,12 +135,18 @@ export default class SimpleLineSprite {
         if (selected) {
             this.color = this.visualConfig.ui.line.highlight.color;
             this.alpha = this.visualConfig.ui.line.highlight.alpha;
-            this.label.style = this.visualConfig.ui.label.fontHighlight;
+            this.thickness = this.visualConfig.ui.line.highlight.width;
+            // this.label.style = this.visualConfig.ui.label.fontHighlight;
+            this.label.visible = true;
+            this.labelBg.visible = true;
         } else {
-            this.label.alpha = this.coustomSettingAlpha;
-            this.color = this.coustomSettingColor;
-            this.alpha = this.coustomSettingAlpha;
-            this.label.style = this.visualConfig.ui.label.font;
+            this.label.alpha = this.customSettingAlpha;
+            this.color = this.customSettingColor;
+            this.alpha = this.customSettingAlpha;
+            this.thickness = this.customSettingThickness;
+            // this.label.style = this.visualConfig.ui.label.font;
+            this.label.visible = false;
+            this.labelBg.visible = false;
         }
     }
 
@@ -164,13 +184,15 @@ export default class SimpleLineSprite {
     updatePosition() {
         if (this.x1 !== this.x2 || this.y1 !== this.y2) {
             if (this._controlOffsetIndex === 0 || this.forceStraightLine) {
+                const midX = (this.x2 + this.x1) / 2;
+                const midY = (this.y2 + this.y1) / 2;
                 if (this.hasArrow) {
-                    this.arrow.position.x = (this.x2 + this.x1) / 2;
-                    this.arrow.position.y = (this.y2 + this.y1) / 2;
+                    this.arrow.position.x = midX;
+                    this.arrow.position.y = midY;
                     this.arrow.rotation = Math.atan2(this.y2 - this.y1, this.x2 - this.x1) - Math.PI / 2;
                 }
-                this.label.position.x = (this.x2 + this.x1) / 2;
-                this.label.position.y = (this.y2 + this.y1) / 2 + 5;
+                this.label.position.set(midX, midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
+                this.labelBg.position.set(this.label.position.x, this.label.position.y);
             } else {
                 const angle = Math.atan2(this.y2 - this.y1, this.x2 - this.x1);
                 let dxCtl = SimpleLineSprite.MULTI_OFFSET;  // AC
@@ -187,13 +209,16 @@ export default class SimpleLineSprite {
                 this.tx = (ex / bevel) * dxCtl + (ey / bevel) * dyCtl + this.x2;
                 this.ty = (ey / bevel) * dxCtl - (ex / bevel) * dyCtl + this.y2;
 
+                const midX = (this.fx + this.tx) / 2;
+                const midY = (this.fy + this.ty) / 2;
                 if (this.hasArrow) {
-                    this.arrow.position.x = (this.fx + this.tx) / 2;
-                    this.arrow.position.y = (this.fy + this.ty) / 2;
+                    this.arrow.position.x = midX;
+                    this.arrow.position.y = midY;
                     this.arrow.rotation = angle - Math.PI / 2;
                 }
-                this.label.position.x = (this.fx + this.tx) / 2;
-                this.label.position.y = (this.fy + this.ty) / 2 + 5;
+
+                this.label.position.set(midX, midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
+                this.labelBg.position.set(this.label.position.x, this.label.position.y);
             }
         } else {
             const angle = Math.atan2(this.y2 - this.y1, this.x2 - this.x1);
@@ -210,13 +235,16 @@ export default class SimpleLineSprite {
             this.tx = this.x1 + dxCtl / 2;
             this.ty = this.y1 - dyCtl;
 
+            const midX = (this.fx + this.tx) / 2;
+            const midY = (this.fy + this.ty) / 2;
+
             if (this.hasArrow) {
-                this.arrow.position.x = (this.fx + this.tx) / 2;
-                this.arrow.position.y = (this.fy + this.ty) / 2;
+                this.arrow.position.x = midX;
+                this.arrow.position.y = midY;
                 this.arrow.rotation = angle - Math.PI / 2;
             }
-            this.label.position.x = (this.fx + this.tx) / 2;
-            this.label.position.y = (this.fy + this.ty) / 2 + 5;
+            this.label.position.set(midX, midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
+            this.labelBg.position.set(this.label.position.x, this.label.position.y);
         }
     }
 
@@ -226,6 +254,7 @@ export default class SimpleLineSprite {
             this.arrow.visible = false;
         }
         this.label.visible = false;
+        this.labelBg.visible = false;
     }
 
     show() {
@@ -233,7 +262,11 @@ export default class SimpleLineSprite {
         if (this.hasArrow) {
             this.arrow.visible = true;
         }
-        this.label.visible = true;
+        const labelVisible = visualConfig.ui.label.visibleByDefault || this.selected;
+        if (labelVisible) {
+            this.label.visible = true;
+            this.labelBg.visible = true;
+        }
     }
 
     destroy() {
@@ -242,6 +275,9 @@ export default class SimpleLineSprite {
         }
         if (this.label) {
             this.label.destroy({ texture: true, baseTexture: true });
+        }
+        if (this.labelBg) {
+            this.arrow.destroy({ texture: false, baseTexture: false });
         }
     }
 

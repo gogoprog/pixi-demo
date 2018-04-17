@@ -37,8 +37,12 @@ export default class Settings {
 
         const lockIconUrl = '/static/256/Lock/lock_state.png';
         const multiIconUrl = '/static/images/ic_multiple_objects.png';
+        const selectionFrameUrl = '/static/256/other/Square.png';
+        const circleBorderUrl = '/static/256/other/Circle.png';
         visConfig.lockIcon = PIXI.Texture.fromImage(lockIconUrl);
         visConfig.multiIcon = PIXI.Texture.fromImage(multiIconUrl);
+        visConfig.selectionFrameTexture = PIXI.Texture.fromImage(selectionFrameUrl);
+        visConfig.circleBorderTexture = PIXI.Texture.fromImage(circleBorderUrl);
 
         visConfig = Object.assign({}, visConfig);
         this.visualConfig = visConfig;

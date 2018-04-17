@@ -1,11 +1,12 @@
 export const visualConfig = {
     factor: 0.125,
     backgroundColor: 0xf7f7f7,
-    NODE_LABLE_OFFSET_Y: 26,
-    LINK_LABLE_OFFSET_Y: 10,
+    NODE_LABLE_OFFSET_Y: 28,
+    LINK_LABLE_OFFSET_Y: 18,
     MAX_SCALE: 10,
     MAX_ADJUST: 3,
     MIN_SCALE: 0.05,
+    TEXTURE_WIDTH: 256,
     NODE_WIDTH: 32,
     NODE_ICON_WIDTH: 18,
     NODE_LOCK_WIDTH: 24,
@@ -15,7 +16,7 @@ export const visualConfig = {
     ELLIPSE_X_OFFSET: 0.15 * 32,
     LAYOUT_ANIMATION: true,
     ORIGINAL_FORCE_LAYOUT: false,
-    PERSON_LAYOUT:false,
+    PERSON_LAYOUT: false,
     forceLayout: {
         springLength: 250,
         springCoeff: 0.00008,
@@ -42,14 +43,12 @@ export const visualConfig = {
             },
         },
         line: {
-            // 链接的颜色
-            // color: 0x2962cb,
-            color: 0x333333,
+            color: 0x999999,
             alpha: 1,
             width: 2,
             highlight: {
-                color: 0x328eff,
-                width: 2,
+                color: 0x3663ce,
+                width: 4,
                 alpha: 1,
             },
         },
@@ -65,8 +64,12 @@ export const visualConfig = {
             },
         },
         label: {
-            font: { fontFamily: 'Microsoft YaHei,Tahoma', fill: '#333', align: 'center', fontSize: '20px', },
-            fontHighlight: { fontFamily: 'Microsoft YaHei,Tahoma', fill: 0x3284ff, align: 'center', fontSize: '24px' },
+            visibleByDefault: false,
+            font: {fontFamily: 'Microsoft YaHei,Tahoma', fill: 0xFFFFFF, align: 'center', fontSize: '40px',},
+            fontHighlight: {fontFamily: 'Microsoft YaHei,Tahoma', fill: 0xFFFFFF, align: 'center', fontSize: '40px'},
+            background: {
+                color: 0x3663ce,
+            }
         },
         timeline: {
             color: 0x2962cb,
@@ -103,14 +106,24 @@ export const visualConfig = {
             }
         }
     },
+
     findGraphCollIcon(collId) {
         const data = visualConfig.graphCollIcons;
         if (data) {
             return data[collId - 1];
         }
     },
+
     getLockIcon() {
         const data = visualConfig.lockIcon;
         return data;
+    },
+
+    getSelectionFrameTexture() {
+        return this.selectionFrameTexture;
+    },
+
+    getCircleBorderTexture() {
+        return this.circleBorderTexture;
     },
 };

@@ -22,9 +22,9 @@ export default class LinkSprite {
         this.y2 = y2;
         this.visualConfig = visualConfig;
         this._controlOffsetIndex = controlOffsetIndex || 0;
-        this.coustomSettingThickness = visualConfig.ui.line.width;
-        this.coustomSettingColor = visualConfig.ui.line.color;
-        this.coustomSettingAlpha = visualConfig.ui.line.alpha;
+        this.customSettingThickness = visualConfig.ui.line.width;
+        this.customSettingColor = visualConfig.ui.line.color;
+        this.customSettingAlpha = visualConfig.ui.line.alpha;
         if (hasArrow) {
             if (!isMultiArrow) {
                 this.arrow = new PIXI.Sprite(LinkSprite.getTexture(thickness, color));
@@ -93,20 +93,20 @@ export default class LinkSprite {
             if (typeof colorHex === 'string' && colorHex.startsWith('#')) {
                 colorHex = parseInt('0x' + colorHex.substring(1), 16);
             }
-            this.coustomSettingColor = colorHex;
+            this.customSettingColor = colorHex;
         }
         if (this.data.properties._$alpha){
-            this.coustomSettingAlpha = this.data.properties._$alpha;
+            this.customSettingAlpha = this.data.properties._$alpha;
             this.label.alpha = this.data.properties._$alpha;
         }
         if (this.data.properties._$thickness){
-            this.coustomSettingThickness = this.data.properties._$thickness;
+            this.customSettingThickness = this.data.properties._$thickness;
         }
 
-        this.alpha = this.coustomSettingAlpha;
-        this.color = this.coustomSettingColor;
-        this.thickness = this.coustomSettingThickness;
-        this.label.alpha = this.coustomSettingAlpha;
+        this.alpha = this.customSettingAlpha;
+        this.color = this.customSettingColor;
+        this.thickness = this.customSettingThickness;
+        this.label.alpha = this.customSettingAlpha;
     }
 
     /**
@@ -114,9 +114,9 @@ export default class LinkSprite {
      */
     getLineAttr() {
         const lineAttr = {};
-        lineAttr.width = this.coustomSettingThickness;
-        lineAttr.color = this.coustomSettingColor;
-        lineAttr.alpha = this.coustomSettingAlpha;
+        lineAttr.width = this.customSettingThickness;
+        lineAttr.color = this.customSettingColor;
+        lineAttr.alpha = this.customSettingAlpha;
         return lineAttr;
     }
 
@@ -131,9 +131,9 @@ export default class LinkSprite {
             this.alpha = this.visualConfig.ui.line.highlight.alpha;
             this.label.style = this.visualConfig.ui.label.fontHighlight;
         } else {
-            this.label.alpha = this.coustomSettingAlpha;
-            this.color = this.coustomSettingColor;
-            this.alpha = this.coustomSettingAlpha;
+            this.label.alpha = this.customSettingAlpha;
+            this.color = this.customSettingColor;
+            this.alpha = this.customSettingAlpha;
             this.label.style = this.visualConfig.ui.label.font;
         }
     }

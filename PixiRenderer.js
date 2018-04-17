@@ -55,7 +55,7 @@ export default function (settings) {
     if (visualConfig.ORIGINAL_FORCE_LAYOUT) {
         networkLayout = elpForceLayout(graph, visualConfig.forceLayout);
     } else {
-        networkLayout = createLayout(graph, visualConfig.forceLayout);        
+        networkLayout = createLayout(graph, visualConfig.forceLayout);
     }
 
     networkLayout.on('stable', (isStable) => {
@@ -70,7 +70,7 @@ export default function (settings) {
         layoutType = 'PersonLayout';
         layout = new personForceLayout(nodeSprites, nodeContainer, visualConfig);
     }
-    
+
     const showDebugMarkup = false;
 
     const canvas = settings.container;
@@ -95,6 +95,7 @@ export default function (settings) {
     // let lineParticleContainer= new PIXI.ParticleContainer(5000, { scale: true, position: true, rotation: true, uvs: false, alpha: true }, 16384,true);
     const lineContainer = new PIXI.Container();
     const textContainer = new PIXI.Container();
+    const backgroundContainer = new PIXI.Container();
     const emptyTextContainer = new PIXI.Container();
     const emptyText = new PIXI.Text('分析结果为空', { fontFamily: 'Arial', fontSize: 24, fill: 0x1469a8, align: 'center' });
     const boarderGraphics = new PIXI.Graphics();
@@ -118,6 +119,7 @@ export default function (settings) {
     root.addChild(lineGraphics);
     // root.addChild(lineParticleContainer);
     root.addChild(boarderGraphics);
+    root.addChild(backgroundContainer);
     stage.addChild(selectRegionGraphics);
     root.addChild(textContainer);
     root.addChild(emptyTextContainer);
@@ -232,8 +234,8 @@ export default function (settings) {
 
     /**
      * {x0, y0} click point
-     * @param {*} x0 
-     * @param {*} y0 
+     * @param {*} x0
+     * @param {*} y0
      */
     stage.selectSingleLink = function (x0, y0) {
         isDirty = true;
@@ -981,7 +983,7 @@ export default function (settings) {
                         l.updatePosition();
                     });
 
-                    drawBorders();
+                    // drawBorders();
                     drawLines();
 
                     renderer.render(stage);
@@ -1185,10 +1187,10 @@ export default function (settings) {
             // linkPosition x1, y1 as straight line's from point,  x2, y2 as straight line's end point
             let detectFlag = false;
             let linkPosition = {};
-            if (link._controlOffsetIndex === 0) { // straight line 
+            if (link._controlOffsetIndex === 0) { // straight line
                 linkPosition = {x1: link.x1, y1: link.y1, x2: link.x2, y2: link.y2};
                 detectFlag = pixiGraphics.linkCollisionDetect(link, rectBox);
-            } else {    // polyline consist of three strainght lines, when one of three strainght lines is detect as true, it is not necessary to detect other strainght line 
+            } else {    // polyline consist of three strainght lines, when one of three strainght lines is detect as true, it is not necessary to detect other strainght line
                 linkPosition = {x1: link.x1, y1: link.y1, x2: link.fx, y2: link.fy};  // first strainght line
                 detectFlag = pixiGraphics.linkCollisionDetect(linkPosition, rectBox);
 
@@ -1295,7 +1297,7 @@ export default function (settings) {
     function selectionChanged() {
         isDirty = true;
         pixiGraphics.fire('selectionChanged');
-        drawBorders();
+        // drawBorders();
         drawChangeLines();
     }
 
@@ -1406,7 +1408,7 @@ export default function (settings) {
 
         if (layoutPositionChanged || isDirty || nodeContainer.isDirty || stage.isDirty || lineContainer.isDirty
             || nodeContainer.positionDirty || lineContainer.styleDirty || animationAgent.needRerender()) {
-            drawBorders();
+            // drawBorders();
             drawLines();
 
             selectRegionGraphics.clear();
@@ -1526,6 +1528,8 @@ export default function (settings) {
         }
 
         textContainer.addChild(nodeSprite.ts);
+        backgroundContainer.addChild(nodeSprite.selectionFrame);
+        backgroundContainer.addChild(nodeSprite.bg);
         nodeContainer.addChild(nodeSprite);
         nodeSprites[p.id] = nodeSprite;
         // if (layout) {
@@ -1610,6 +1614,7 @@ export default function (settings) {
         linkSprites[l.id] = l;
         l.label.interactive = true;
         //l.label.fill= '#00FF00'
+        backgroundContainer.addChild(l.labelBg);
         lineContainer.addChild(l.label);
         if (f.data.isDirected) {
             l.arrow.interactive = true;
@@ -1670,6 +1675,12 @@ export default function (settings) {
             if (nodeSprite.ts) {
                 textContainer.removeChild(nodeSprite.ts);
             }
+            if (nodeSprite.bg) {
+                backgroundContainer.removeChild(nodeSprite.bg);
+            }
+            if (nodeSprite.selectionFrame) {
+                backgroundContainer.removeChild(nodeSprite.selectionFrame);
+            }
             if (nodeSprite.gcs) {
                 for (let i = 0; i < nodeSprite.gcs.length; i++) {
                     nodeContainer.removeChild(nodeSprite.gcs[i]);
@@ -1701,6 +1712,9 @@ export default function (settings) {
             }
             if (l.label) {
                 lineContainer.removeChild(l.label);
+            }
+            if (l.labelBg) {
+                backgroundContainer.removeChild(l.labelBg);
             }
             if (l.arrow) {
                 lineContainer.removeChild(l.arrow);
