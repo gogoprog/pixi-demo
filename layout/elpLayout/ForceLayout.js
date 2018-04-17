@@ -285,7 +285,7 @@ export default function elpForceLayout(graph, physicsSettings) {
         for (var [graphId, subGraph] of subGraphs.entries()){
             subGraph.layout.updateBounds();
         }
-        subGraphLayoutBaseD3(50000);
+        subGraphLayoutBaseD3(150);
         
     }
 

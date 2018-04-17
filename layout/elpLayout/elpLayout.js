@@ -231,6 +231,7 @@ export default function elpLayout(graph, physicsSettings) {
     }
 
     function onGraphChanged(changes) {
+        console.log('elplayout ongraphchanged ' + changes.length);
         var pinnedBodyIdSet = new Set();
         var addData = false;
         var dynamic = dynamicLayout;
@@ -269,7 +270,7 @@ export default function elpLayout(graph, physicsSettings) {
         if (!dynamic){
             if (addData){
                 let i = 0;
-                let n = 50000;
+                let n = 150;
                 while(i < n){
                     api.step();
                     i++;
