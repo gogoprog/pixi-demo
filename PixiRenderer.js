@@ -68,7 +68,7 @@ export default function (settings) {
     let layoutType = 'Network';
     if (visualConfig.PERSON_LAYOUT){
         layoutType = 'PersonLayout';
-        this.drawPersonLayout(true);
+        layout = new personForceLayout(nodeSprites, nodeContainer, visualConfig);
     }
     
     const showDebugMarkup = false;
