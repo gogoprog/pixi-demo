@@ -7,6 +7,7 @@ export const elpVisualConfig = {
     MAX_ADJUST: 3,
     MIN_SCALE: 0.5,
     NODE_WIDTH: 32,
+    NODE_ICON_Y_OFFSET: 38,
     ELLIPSE_WIDTH: 40,
     ELLIPSE_HIEGHT: 25,
     ELLIPSE_Y_OFFSET: 0.4 * 32,

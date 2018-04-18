@@ -349,21 +349,9 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         });
         // from the center of first icon to the center of last icon
         const iconRowWidth = (this.gcs.length - 1) * (vizConf.NODE_ICON_WIDTH + 10) * 0.5 * nodeSprite.scale.x / vizConf.factor;
-        let iconPosY = 0;
+        let iconPosY;
         this.gcs[0].position.x = this.position.x - iconRowWidth * 0.5;
-        if (this.ts) {
-            if (nodeSprite.scale.y / vizConf.factor > 1) {
-                this.gcs[0].position.y = iconPosY = this.ts.position.y + 20 + vizConf.NODE_LABLE_OFFSET_Y * nodeSprite.scale.y * 0.5 / vizConf.factor;
-            } else {
-                this.gcs[0].position.y = iconPosY = this.ts.position.y + 20 * nodeSprite.scale.y / vizConf.factor;
-            }
-        } else {
-            if (nodeSprite.scale.y / vizConf.factor > 1) {
-                this.gcs[0].position.y = iconPosY = this.position.y + 20 + vizConf.NODE_LABLE_OFFSET_Y * nodeSprite.scale.y * 0.5 / vizConf.factor;
-            } else {
-                this.gcs[0].position.y = iconPosY = this.position.y + 20 * nodeSprite.scale.y / vizConf.factor;
-            }
-        }
+        this.gcs[0].position.y = iconPosY = this.position.y + vizConf.NODE_ICON_Y_OFFSET * nodeSprite.scale.y / vizConf.factor;
         for (let i = 1; i < this.gcs.length; i++) {
             this.gcs[i].position.x = this.gcs[i - 1].position.x + (vizConf.NODE_ICON_WIDTH + 10) * 0.5 * nodeSprite.scale.x / vizConf.factor;
             this.gcs[i].position.y = iconPosY;
