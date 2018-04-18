@@ -124,6 +124,9 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             this.ts.visible = this.visualConfig.ui.label.visibleByDefault;
         }
         this.selectionFrame.visible = selected;
+        if (selected) {
+            this.selectionFrame.scale.set(this.scale.x, this.scale.y);
+        }
     }
 
     /**
