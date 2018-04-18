@@ -1,6 +1,4 @@
 import { linkCaptureListener } from '../customizedEventHandling';
-import LabelSprite from './LabelSprite';
-import {visualConfig} from "../visualConfig";
 
 export default class SimpleLineSprite {
     static textureCache = {};
@@ -131,12 +129,13 @@ export default class SimpleLineSprite {
     }
 
     selectionChanged(selected) {
+        const lineStyle = this.visualConfig.ui.line;
+        const labelStyle = this.visualConfig.ui.label;
         this.selected = selected;
         if (selected) {
-            this.color = this.visualConfig.ui.line.highlight.color;
-            this.alpha = this.visualConfig.ui.line.highlight.alpha;
-            this.thickness = this.visualConfig.ui.line.highlight.width;
-            // this.label.style = this.visualConfig.ui.label.fontHighlight;
+            this.color = lineStyle.highlight.color;
+            this.alpha = lineStyle.highlight.alpha;
+            this.thickness = lineStyle.highlight.width;
             this.label.visible = true;
             this.labelBg.visible = true;
         } else {
@@ -144,9 +143,8 @@ export default class SimpleLineSprite {
             this.color = this.customSettingColor;
             this.alpha = this.customSettingAlpha;
             this.thickness = this.customSettingThickness;
-            // this.label.style = this.visualConfig.ui.label.font;
-            this.label.visible = false;
-            this.labelBg.visible = false;
+            this.label.visible = labelStyle.visibleByDefault;
+            this.labelBg.visible = labelStyle.visibleByDefault;
         }
     }
 
@@ -262,7 +260,7 @@ export default class SimpleLineSprite {
         if (this.hasArrow) {
             this.arrow.visible = true;
         }
-        const labelVisible = visualConfig.ui.label.visibleByDefault || this.selected;
+        const labelVisible = this.visualConfig.ui.label.visibleByDefault || this.selected;
         if (labelVisible) {
             this.label.visible = true;
             this.labelBg.visible = true;

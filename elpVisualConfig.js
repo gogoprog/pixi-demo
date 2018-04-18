@@ -1,8 +1,8 @@
 export const elpVisualConfig = {
-    factor: 0.125,
+    factor: 0.25,
     backgroundColor: 0xFFFFFF,
-    NODE_LABLE_OFFSET_Y: 15,
-    LINK_LABLE_OFFSET_Y: 5,
+    NODE_LABLE_OFFSET_Y: 54,
+    LINK_LABLE_OFFSET_Y: 18,
     MAX_SCALE: 5,
     MAX_ADJUST: 3,
     MIN_SCALE: 0.5,
@@ -58,18 +58,22 @@ export const elpVisualConfig = {
             },
         },
         label: {
+            visibleByDefault: true,
             font: {
                 fontFamily: 'Microsoft YaHei,Tahoma',
-                fill: 0x0086E3,
+                fill: 0xFFFFFF,
                 align: 'center',
-                fontSize: '24px',
+                fontSize: '40px',
             },
             fontHighlight: {
                 fontFamily: 'Microsoft YaHei,Tahoma',
-                fill: 0x0086E3,
+                fill: 0xFFFFFF,
                 align: 'center',
-                fontSize: '24px',
+                fontSize: '40px',
             },
+            background: {
+                color: 0x3663ce,
+            }
         },
         timeline: {
             color: 0xFFFFFF,
@@ -102,5 +106,13 @@ export const elpVisualConfig = {
                 return data[i].texture;
             }
         }
+    },
+
+    getSelectionFrameTexture() {
+        return this.selectionFrameTexture;
+    },
+
+    getCircleBorderTexture() {
+        return this.circleBorderTexture;
     },
 };

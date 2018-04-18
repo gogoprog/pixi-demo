@@ -101,6 +101,7 @@ export default function (settings) {
     const boarderGraphics = new PIXI.Graphics();
     const selectRegionGraphics = new PIXI.Graphics();
     const lineGraphics = new PIXI.Graphics();
+    const iconContainer = new PIXI.ParticleContainer(5000, { scale: true, position: true, rotation: true, uvs: false, alpha: true }, 16384,true);
     let destroyed = false;
 
     root.width = viewWidth;
@@ -125,6 +126,7 @@ export default function (settings) {
     root.addChild(emptyTextContainer);
     root.addChild(lineContainer);
     root.addChild(nodeContainer);
+    root.addChild(iconContainer);
 
     stage.contentRoot = root;
 
@@ -1143,7 +1145,7 @@ export default function (settings) {
                 if (!node.pinned) {
                     node.pinned = true;
                     layout.pinNode(node, true);
-                    node.setNodeLockIcon(nodeContainer);
+                    node.setNodeLockIcon(iconContainer);
                     node.data.properties._$lock = true;
                 }
             }
@@ -1155,7 +1157,7 @@ export default function (settings) {
                 if (node.pinned) {
                     node.pinned = false;
                     layout.pinNode(node, false);
-                    node.removeNodeLockIcon(nodeContainer);
+                    node.removeNodeLockIcon(iconContainer);
                     delete node.data.properties._$lock;
                 }
             }
@@ -1498,7 +1500,7 @@ export default function (settings) {
         const semanticType = `/static/256${pixiGraphics.getEntitySemanticType(p.data.type)}`;
         const texture = visualConfig.findIcon(semanticType);
 
-        const nodeSprite = new SimpleNodeSprite(texture, p, visualConfig);
+        const nodeSprite = new SimpleNodeSprite(texture, p, visualConfig, iconContainer);
 
         // if (p.data.properties && p.data.properties._$hidden) {
         //     nodeSprite.hide();
@@ -1512,7 +1514,7 @@ export default function (settings) {
         if (p.data.properties._$lock) {
             nodeSprite.pinned = true;
             layout.pinNode(nodeSprite, true);
-            nodeSprite.setNodeLockIcon(nodeContainer);
+            nodeSprite.setNodeLockIcon(iconContainer);
         }
 
         // 更新缩放
@@ -1687,11 +1689,11 @@ export default function (settings) {
                 }
             }
             if (nodeSprite.ls) {
-                nodeContainer.removeChild(nodeSprite.ls);
+                iconContainer.removeChild(nodeSprite.ls);
             }
 
             if (nodeSprite.ms) {
-                nodeContainer.removeChild(nodeSprite.ms);
+                iconContainer.removeChild(nodeSprite.ms);
             }
 
             nodeContainer.removeChild(nodeSprite);

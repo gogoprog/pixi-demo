@@ -1,7 +1,7 @@
 export const visualConfig = {
-    factor: 0.125,
+    factor: 0.25,
     backgroundColor: 0xf7f7f7,
-    NODE_LABLE_OFFSET_Y: 28,
+    NODE_LABLE_OFFSET_Y: 54,
     LINK_LABLE_OFFSET_Y: 18,
     MAX_SCALE: 10,
     MAX_ADJUST: 3,

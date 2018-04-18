@@ -1,10 +1,8 @@
-import { visualConfig } from '../visualConfig';
-import CircleBorderTexture from './CircleBorderSprite';
 
 export default class SimpleNodeSprite extends PIXI.Sprite {
-    constructor(texture, node, visualConfig, selectionFrameContainer) {
+    constructor(texture, node, visualConfig, iconContainer) {
         super(texture);
-
+        this.iconContainer = iconContainer;
         this.id = node.id;
         this.type = node.data.type;
         this.data = node.data;
@@ -86,7 +84,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     toggleDisplay(nodeVisible){
         this.visible = nodeVisible;
         // either visible by deafult or show lable when selected.
-        this.ts.visible = nodeVisible && (visualConfig.ui.label.visibleByDefault || this.selected);
+        this.ts.visible = nodeVisible && (this.visualConfig.ui.label.visibleByDefault || this.selected);
         this.bg.visible = this.ts.visible;
         this.selectionFrame.visible = nodeVisible;
         if (this.gcs) {
@@ -119,13 +117,11 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     selectionChanged(selected) {
         this._selected = selected;
         if (selected) {
-            // this.ts.style = this.visualConfig.ui.label.fontHighlight;
             this.bg.visible = true;
             this.ts.visible = true;
         } else {
-            // this.ts.style = this.visualConfig.ui.label.font;
-            this.bg.visible = false;
-            this.ts.visible = false;
+            this.bg.visible = this.visualConfig.ui.label.visibleByDefault;
+            this.ts.visible = this.visualConfig.ui.label.visibleByDefault;
         }
         this.selectionFrame.visible = selected;
     }
@@ -135,12 +131,13 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
      */
     updateScale() {
         if (this.data.properties._$scale) {
+            const vizConf = this.visualConfig;
             const zoomValue = this.data.properties._$scale;
-            const scaleValue = zoomValue * visualConfig.factor;
+            const scaleValue = zoomValue * vizConf.factor;
             this.scale.set(scaleValue, scaleValue);
             this.ts.scale.set(scaleValue, scaleValue);
             this.bg.scale.set(this.ts.scale.x, this.ts.scale.y);
-            this.ts.position.set(this.position.x, this.position.y +  this.visualConfig.NODE_LABLE_OFFSET_Y * this.scale.y / visualConfig.factor);
+            this.ts.position.set(this.position.x, this.position.y +  vizConf.NODE_LABLE_OFFSET_Y * this.scale.y / vizConf.factor);
             this.bg.position.set(this.ts.position.x, this.ts.position.y);
             this.bg.width = this.ts.width + 4;
             this.bg.height = this.ts.height + 2;
@@ -154,8 +151,8 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
 
             if (this.ls) {
                 this.ls.scale.set(0.5 * zoomValue);
-                this.ls.position.x = this.position.x + visualConfig.NODE_LOCK_WIDTH * 0.5 * zoomValue;
-                this.ls.position.y = this.position.y - visualConfig.NODE_LOCK_WIDTH * 0.5 * zoomValue;
+                this.ls.position.x = this.position.x + vizConf.NODE_LOCK_WIDTH * 0.5 * zoomValue;
+                this.ls.position.y = this.position.y - vizConf.NODE_LOCK_WIDTH * 0.5 * zoomValue;
             }
             if (this.circleBorder) {
                 this.circleBorder.scale.set(zoomValue);
@@ -163,8 +160,8 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
 
             if (this.ms) {
                 this.ms.scale.set(0.5 * zoomValue);
-                this.ms.position.x = this.position.x + visualConfig.NODE_LOCK_WIDTH * 0.6 * zoomValue;
-                this.ms.position.y = this.position.y + visualConfig.NODE_LOCK_WIDTH * 0.4 * zoomValue;
+                this.ms.position.x = this.position.x + vizConf.NODE_LOCK_WIDTH * 0.6 * zoomValue;
+                this.ms.position.y = this.position.y + vizConf.NODE_LOCK_WIDTH * 0.4 * zoomValue;
             }
 
             if(this.selectionFrame && this.selectionFrame.visible) {
@@ -178,8 +175,9 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
      */
     updateBorder(textContainer) {
         if(this.data.properties._$showBorder){
+            const vizConf = this.visualConfig;
             const borderColor = this.data.properties._$borderColor;
-            const defaultStyle = visualConfig.formatting.nodeBorder;
+            const defaultStyle = vizConf.formatting.nodeBorder;
             let colorHex = borderColor;
             if (typeof borderColor === 'string' && borderColor.startsWith('#')) {
                 colorHex = parseInt('0x' + borderColor.substring(1), 16);
@@ -197,15 +195,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             };
 
             if (!this.circleBorder) {
-                // this.circleBorder = new CircleBorderTexture(this.boundaryAttr, visualConfig.NODE_WIDTH * 1.4 / 2);
-                // this.circleBorder.scale.x = this.scale.x / visualConfig.factor;
-                // this.circleBorder.scale.y = this.scale.y / visualConfig.factor;
-                // this.circleBorder.anchor.x = 0.5;
-                // this.circleBorder.anchor.y = 0.5;
-                // this.circleBorder.position.x = this.position.x;
-                // this.circleBorder.position.y = this.position.y;
-                // this.circleBorder.visible = this.visible;
-                const borderTexture = visualConfig.getCircleBorderTexture();
+                const borderTexture = vizConf.getCircleBorderTexture();
                 const circleBorder = new PIXI.Sprite(borderTexture);
                 circleBorder.visible = true;
                 circleBorder.scale.set(this.scale.x, this.scale.y);
@@ -216,7 +206,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
                 this.circleBorder = circleBorder;
                 textContainer.addChild(this.circleBorder);
             } else {
-                // this.circleBorder.setNewStyle(this.boundaryAttr, visualConfig.NODE_WIDTH * 1.4 / 2);
+                // this.circleBorder.setNewStyle(this.boundaryAttr, vizConf.NODE_WIDTH * 1.4 / 2);
                 this.circleBorder.tint = colorHex;
                 this.circleBorder.scale.set(this.scale.x, this.scale.y);
             }
@@ -268,11 +258,12 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     }
 
     _updateNodeAttachPosition(p) {
+        const vizConf = this.visualConfig;
         this.position.x = p.x;
         this.position.y = p.y;
         if (this.ts) {
             this.ts.position.x = p.x;
-            this.ts.position.y = p.y + this.visualConfig.NODE_LABLE_OFFSET_Y * this.scale.y / visualConfig.factor;
+            this.ts.position.y = p.y + vizConf.NODE_LABLE_OFFSET_Y * this.scale.y / vizConf.factor;
             this.bg.position.set(this.ts.position.x, this.ts.position.y);
         }
 
@@ -281,13 +272,13 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         }
 
         if (this.ls) {
-            this.ls.position.x = p.x + this.visualConfig.NODE_LOCK_WIDTH * 0.5 * this.scale.x / visualConfig.factor;
-            this.ls.position.y = p.y - this.visualConfig.NODE_LOCK_WIDTH * 0.5 * this.scale.y / visualConfig.factor;
+            this.ls.position.x = p.x + vizConf.NODE_LOCK_WIDTH * 0.5 * this.scale.x / vizConf.factor;
+            this.ls.position.y = p.y - vizConf.NODE_LOCK_WIDTH * 0.5 * this.scale.y / vizConf.factor;
         }
 
         if (this.ms) {
-            this.ms.position.x = p.x + this.visualConfig.NODE_LOCK_WIDTH * 0.6 * this.scale.x / visualConfig.factor;
-            this.ms.position.y = p.y + this.visualConfig.NODE_LOCK_WIDTH * 0.4 * this.scale.y / visualConfig.factor;
+            this.ms.position.x = p.x + vizConf.NODE_LOCK_WIDTH * 0.6 * this.scale.x / vizConf.factor;
+            this.ms.position.y = p.y + vizConf.NODE_LOCK_WIDTH * 0.4 * this.scale.y / vizConf.factor;
         }
 
         if (this.circleBorder) {
@@ -301,14 +292,14 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         }
     }
 
-    setNodeIcon(collIdArr, nodeContainer) {
+    setNodeIcon(collIdArr, iconContainer) {
         if (this.gcs) {
             let gcsLen = this.gcs.length;
             while (gcsLen--) {
                 const iconSprite = this.gcs[gcsLen];
                 const index = collIdArr.indexOf(iconSprite.id);
                 if (index < 0) {
-                    nodeContainer.removeChild(iconSprite);
+                    iconContainer.removeChild(iconSprite);
                     this.gcs.splice(gcsLen, 1);
                 } else {
                     collIdArr.splice(index, 1);
@@ -316,7 +307,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             }
         }
 
-        this._addIconToNode(collIdArr, nodeContainer);
+        this._addIconToNode(collIdArr, iconContainer);
 
         this.relayoutNodeIcon();
     }
@@ -328,16 +319,17 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     }
 
     _addIconToNode(collIdArr, nodeContainer) {
+        const vizConf = this.visualConfig;
         const nodeSprite = this;
         const gcsArr = nodeSprite.gcs || [];
 
         for (const collId of collIdArr) { // 添加集合
-            const iconTexture = this.visualConfig.findGraphCollIcon(collId);
+            const iconTexture = vizConf.findGraphCollIcon(collId);
             const iconSprite = new PIXI.Sprite(iconTexture);
             iconSprite.id = collId;
             iconSprite.anchor.x = 0.5;
             iconSprite.anchor.y = 0.5;
-            iconSprite.scale.set(0.5 * nodeSprite.scale.x / visualConfig.factor, 0.5 * nodeSprite.scale.y / visualConfig.factor);
+            iconSprite.scale.set(0.5 * nodeSprite.scale.x / vizConf.factor, 0.5 * nodeSprite.scale.y / vizConf.factor);
 
             iconSprite.visible = nodeSprite.visible;
             gcsArr.push(iconSprite);
@@ -347,6 +339,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     }
 
     relayoutNodeIcon() {
+        const vizConf = this.visualConfig;
         if (!this.gcs || this.gcs.length === 0) {
             return;
         }
@@ -355,45 +348,46 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             return a.id - b.id;
         });
         // from the center of first icon to the center of last icon
-        const iconRowWidth = (this.gcs.length - 1) * (this.visualConfig.NODE_ICON_WIDTH + 10) * 0.5 * nodeSprite.scale.x / visualConfig.factor;
+        const iconRowWidth = (this.gcs.length - 1) * (vizConf.NODE_ICON_WIDTH + 10) * 0.5 * nodeSprite.scale.x / vizConf.factor;
         let iconPosY = 0;
         this.gcs[0].position.x = this.position.x - iconRowWidth * 0.5;
         if (this.ts) {
-            if (nodeSprite.scale.y / visualConfig.factor > 1) {
-                this.gcs[0].position.y = iconPosY = this.ts.position.y + 20 + this.visualConfig.NODE_LABLE_OFFSET_Y * nodeSprite.scale.y * 0.5 / visualConfig.factor;
+            if (nodeSprite.scale.y / vizConf.factor > 1) {
+                this.gcs[0].position.y = iconPosY = this.ts.position.y + 20 + vizConf.NODE_LABLE_OFFSET_Y * nodeSprite.scale.y * 0.5 / vizConf.factor;
             } else {
-                this.gcs[0].position.y = iconPosY = this.ts.position.y + 20 * nodeSprite.scale.y / visualConfig.factor;
+                this.gcs[0].position.y = iconPosY = this.ts.position.y + 20 * nodeSprite.scale.y / vizConf.factor;
             }
         } else {
-            if (nodeSprite.scale.y / visualConfig.factor > 1) {
-                this.gcs[0].position.y = iconPosY = this.position.y + 20 + this.visualConfig.NODE_LABLE_OFFSET_Y * nodeSprite.scale.y * 0.5 / visualConfig.factor;
+            if (nodeSprite.scale.y / vizConf.factor > 1) {
+                this.gcs[0].position.y = iconPosY = this.position.y + 20 + vizConf.NODE_LABLE_OFFSET_Y * nodeSprite.scale.y * 0.5 / vizConf.factor;
             } else {
-                this.gcs[0].position.y = iconPosY = this.position.y + 20 * nodeSprite.scale.y / visualConfig.factor;
+                this.gcs[0].position.y = iconPosY = this.position.y + 20 * nodeSprite.scale.y / vizConf.factor;
             }
         }
         for (let i = 1; i < this.gcs.length; i++) {
-            this.gcs[i].position.x = this.gcs[i - 1].position.x + (this.visualConfig.NODE_ICON_WIDTH + 10) * 0.5 * nodeSprite.scale.x / visualConfig.factor;
+            this.gcs[i].position.x = this.gcs[i - 1].position.x + (vizConf.NODE_ICON_WIDTH + 10) * 0.5 * nodeSprite.scale.x / vizConf.factor;
             this.gcs[i].position.y = iconPosY;
         }
     }
 
-    setNodeLockIcon(nodeContainer) {
+    setNodeLockIcon(iconContainer) {
+        const vizConf = this.visualConfig;
         const nodeSprite = this;
         const iconTexture = this.visualConfig.getLockIcon();
         const iconSprite = new PIXI.Sprite(iconTexture);
         iconSprite.anchor.x = 0.5;
         iconSprite.anchor.y = 0.5;
-        iconSprite.scale.set(0.5 * nodeSprite.scale.x / visualConfig.factor, 0.5 * nodeSprite.scale.y / visualConfig.factor);
-        iconSprite.position.x = nodeSprite.position.x + this.visualConfig.NODE_LOCK_WIDTH * 0.5 * nodeSprite.scale.x / visualConfig.factor;
-        iconSprite.position.y = nodeSprite.position.y - this.visualConfig.NODE_LOCK_WIDTH * 0.5 * nodeSprite.scale.y / visualConfig.factor;
+        iconSprite.scale.set(0.5 * nodeSprite.scale.x / vizConf.factor, 0.5 * nodeSprite.scale.y / vizConf.factor);
+        iconSprite.position.x = nodeSprite.position.x + vizConf.NODE_LOCK_WIDTH * 0.5 * nodeSprite.scale.x / vizConf.factor;
+        iconSprite.position.y = nodeSprite.position.y - vizConf.NODE_LOCK_WIDTH * 0.5 * nodeSprite.scale.y / vizConf.factor;
 
         iconSprite.visible = nodeSprite.visible;
-        nodeContainer.addChild(iconSprite);
+        iconContainer.addChild(iconSprite);
         nodeSprite.ls = iconSprite;
     }
 
-    removeNodeLockIcon(nodeContainer) {
-        nodeContainer.removeChild(this.ls);
+    removeNodeLockIcon(iconContainer) {
+        iconContainer.removeChild(this.ls);
         this.ls = null;
     }
 
@@ -405,21 +399,22 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     }
 
     enableMultipleIcon() {
+        const vizConf = this.visualConfig;
         const nodeSprite = this;
         const iconTexture = this.visualConfig.multiIcon;
         const iconSprite = new PIXI.Sprite(iconTexture);
         iconSprite.anchor.x = 0.5;
         iconSprite.anchor.y = 0.5;
-        iconSprite.scale.set(0.5 * nodeSprite.scale.x / visualConfig.factor, 0.5 * nodeSprite.scale.y / visualConfig.factor);
-        iconSprite.position.x = nodeSprite.position.x + this.visualConfig.NODE_LOCK_WIDTH * 0.6 * nodeSprite.scale.x / visualConfig.factor;
-        iconSprite.position.y = nodeSprite.position.y + this.visualConfig.NODE_LOCK_WIDTH * 0.4 * nodeSprite.scale.y / visualConfig.factor;
+        iconSprite.scale.set(0.5 * nodeSprite.scale.x / vizConf.factor, 0.5 * nodeSprite.scale.y / vizConf.factor);
+        iconSprite.position.x = nodeSprite.position.x + vizConf.NODE_LOCK_WIDTH * 0.6 * nodeSprite.scale.x / vizConf.factor;
+        iconSprite.position.y = nodeSprite.position.y + vizConf.NODE_LOCK_WIDTH * 0.4 * nodeSprite.scale.y / vizConf.factor;
 
         iconSprite.visible = nodeSprite.visible;
-        this.parent.addChild(iconSprite);
+        this.iconContainer.addChild(iconSprite);
         nodeSprite.ms = iconSprite;
     }
     disableMultipleIcon() {
-        this.parent.removeChild(this.ms);
+        this.iconContainer.removeChild(this.ms);
         this.ms = null;
     }
     isMultiple() {
