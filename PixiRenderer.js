@@ -95,13 +95,21 @@ export default function (settings) {
     // let lineParticleContainer= new PIXI.ParticleContainer(5000, { scale: true, position: true, rotation: true, uvs: false, alpha: true }, 16384,true);
     const lineContainer = new PIXI.Container();
     const textContainer = new PIXI.Container();
+    textContainer.interactive = false;
+    textContainer.interactiveChildren = false;
     const labelContainer = new PIXI.Container();
+    labelContainer.interactive = false;
+    labelContainer.interactiveChildren = false;
     const emptyTextContainer = new PIXI.Container();
+    emptyTextContainer.interactive = false;
+    emptyTextContainer.interactiveChildren = false;
     const emptyText = new PIXI.Text('分析结果为空', { fontFamily: 'Arial', fontSize: 24, fill: 0x1469a8, align: 'center' });
     const boarderGraphics = new PIXI.Graphics();
     const selectRegionGraphics = new PIXI.Graphics();
     const lineGraphics = new PIXI.Graphics();
     const iconContainer = new PIXI.ParticleContainer(5000, { scale: true, position: true, rotation: true, uvs: false, alpha: true }, 16384,true);
+    iconContainer.interactive = false;
+    iconContainer.interactiveChildren = false;
     let destroyed = false;
 
     root.width = viewWidth;
@@ -135,7 +143,7 @@ export default function (settings) {
     stage.height = viewHeight;
 
     // TODO here set the canvas as 20000*20000
-    root.hitArea = new PIXI.Rectangle(-10000, -10000, 20000, 20000);
+    root.hitArea = new PIXI.Rectangle(-1000000, -1000000, 2000000, 2000000);
     root.interactive = true;
 
     // renderer.backgroundColor = 0xFFFFFF;
@@ -148,6 +156,8 @@ export default function (settings) {
         root.handleMouseUp(e);
         selectionChanged();
     });
+
+    root.on('rightup', contextmenuListener);
 
     nodeContainer.nodeCaptured = function (node) {
         stage.hasNodeCaptured = true;
@@ -1276,8 +1286,6 @@ export default function (settings) {
 
     pixiGraphics._contextmenuHandler = function (event) {
         event.preventDefault();
-        event.stopPropagation();
-        contextmenuListener(event);
         return false;
     };
 
@@ -1308,60 +1316,63 @@ export default function (settings) {
         pixiGraphics.fire('hiddenStatusChanged');
     }
 
+    /**
+     * Context menu event is sourced from rightup event on
+     * 1. node sprite
+     * 2. link label sprite
+     * 3. the root container.
+     * PIXI will handle the detection of which one is hit and put it in the target property of event;
+     * @param e
+     */
     function contextmenuListener(e) {
-        let nodeFlag = false;
-        let linkFlag = false;
+
+        if( e.target instanceof SimpleNodeSprite) {
+            // console.log('Right up on node');
+            if(!e.target.selected) {
+                nodeContainer.selectNode(e.target);
+            }
+            selectionChanged();
+        } else if( e.target instanceof PIXI.Sprite) {
+            // console.log('rightup on link label');
+            const lineSprite = e.target.lineSprite;
+            if(!lineSprite.selected) {
+                lineContainer.selectLink(lineSprite);
+            }
+            selectionChanged();
+        }
+
+        let mouseOnSelectedNode = false;
+        let mouseOnSelectedLink = false;
         const selectedNodes = pixiGraphics.getSelectedNodes();
         const selectedLinks = pixiGraphics.getSelectedLinks();
+        let event = {};
         if (!selectedNodes.length && !selectedLinks.length) {
             rightStack.length = 0;
-            console.log('blank right up');
-            const event = { type: 'blank', original: e };
-            fireContextmenu(event);
-        }
-
-        for (const nodeSprite of selectedNodes) {
-            if (nodeSprite === e.target) {
-                nodeFlag = true;
-                break;
-            }
-        }
-
-        if (nodeFlag) {
-            console.log('node right up');
-            const event = { type: 'node', original: e };
-            fireContextmenu(event);
-        }
-
-        if (!nodeFlag) {
-            for (const linkSprite of selectedLinks) {
-                if (linkSprite.arrow === e.target || linkSprite.label === e.target) {
-                    linkFlag = true;
+            event = { type: 'blank', original: e };
+        } else {
+            for (const nodeSprite of selectedNodes) {
+                if (nodeSprite === e.target) {
+                    mouseOnSelectedNode = true;
                     break;
                 }
             }
-            if (linkFlag) {
-                console.log('link right up');
-                const event = { type: 'link', original: e };
-                fireContextmenu(event);
-            }
-        }
-
-        if (rightStack.length > 0) {
-            const lastObj = rightStack.pop();  // stack 最上层
-            if (lastObj) {
-                if (e.type === 'contextmenu' && lastObj.type === 'contextmenu') {
-                    console.log('blank right up with select nodes or links');
-                    const event = { type: 'blank', original: e };
-                    fireContextmenu(event);
-                } else if (e.type === 'rightup') {
-                    rightStack.pop();   // stack 第二层
-                    rightStack.push(lastObj);
+            if (mouseOnSelectedNode) {
+                event = { type: 'node', original: e };
+            } else {
+                for (const linkSprite of selectedLinks) {
+                    if (linkSprite.arrow === e.target || linkSprite.label === e.target) {
+                        mouseOnSelectedLink = true;
+                        break;
+                    }
+                }
+                if (mouseOnSelectedLink) {
+                    event = { type: 'link', original: e };
+                } else {
+                    event = { type: 'blank', original: e };
                 }
             }
         }
-        const obj = { type: e.type, };
-        rightStack.push(obj);
+        fireContextmenu(event);
     }
 
     function fireContextmenu(event) {
