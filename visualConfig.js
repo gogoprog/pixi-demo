@@ -19,7 +19,7 @@ export const visualConfig = {
     ORIGINAL_FORCE_LAYOUT: false,
     PERSON_LAYOUT: false,
     forceLayout: {
-        springLength: 250,
+        springLength: 500,
         springCoeff: 0.00008,
         dragCoeff: 0.08,
         gravity: -1.2,
