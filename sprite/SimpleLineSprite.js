@@ -265,7 +265,7 @@ export default class SimpleLineSprite {
             this.label.destroy({ texture: true, baseTexture: true });
         }
         if (this.labelBg) {
-            this.arrow.destroy({ texture: false, baseTexture: false });
+            this.labelBg.destroy({ texture: false, baseTexture: false });
         }
     }
 
