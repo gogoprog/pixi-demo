@@ -95,7 +95,7 @@ export default function (settings) {
     // let lineParticleContainer= new PIXI.ParticleContainer(5000, { scale: true, position: true, rotation: true, uvs: false, alpha: true }, 16384,true);
     const lineContainer = new PIXI.Container();
     const textContainer = new PIXI.Container();
-    const backgroundContainer = new PIXI.Container();
+    const labelContainer = new PIXI.Container();
     const emptyTextContainer = new PIXI.Container();
     const emptyText = new PIXI.Text('分析结果为空', { fontFamily: 'Arial', fontSize: 24, fill: 0x1469a8, align: 'center' });
     const boarderGraphics = new PIXI.Graphics();
@@ -108,6 +108,7 @@ export default function (settings) {
     root.height = viewHeight;
     root.parent = stage;
     stage.addChild(root);
+    stage.addChild(selectRegionGraphics);
 
     lineGraphics.zIndex = 6;
     boarderGraphics.zIndex = 10;
@@ -115,16 +116,15 @@ export default function (settings) {
     textContainer.zIndex = 15;
     lineContainer.zIndex = 18;
     nodeContainer.zIndex = 20;
-    emptyTextContainer.zIndex = 22;
 
+    emptyTextContainer.zIndex = 22;
     root.addChild(lineGraphics);
     // root.addChild(lineParticleContainer);
     root.addChild(boarderGraphics);
-    root.addChild(backgroundContainer);
-    stage.addChild(selectRegionGraphics);
+    root.addChild(lineContainer);
+    root.addChild(labelContainer);
     root.addChild(textContainer);
     root.addChild(emptyTextContainer);
-    root.addChild(lineContainer);
     root.addChild(nodeContainer);
     root.addChild(iconContainer);
 
@@ -1529,9 +1529,9 @@ export default function (settings) {
             nodeSprite.updateBorder(textContainer);
         }
 
-        textContainer.addChild(nodeSprite.ts);
-        backgroundContainer.addChild(nodeSprite.selectionFrame);
-        backgroundContainer.addChild(nodeSprite.bg);
+        labelContainer.addChild(nodeSprite.selectionFrame);
+        labelContainer.addChild(nodeSprite.bg);
+        labelContainer.addChild(nodeSprite.ts);
         nodeContainer.addChild(nodeSprite);
         nodeSprites[p.id] = nodeSprite;
         // if (layout) {
@@ -1616,8 +1616,8 @@ export default function (settings) {
         linkSprites[l.id] = l;
         l.label.interactive = true;
         //l.label.fill= '#00FF00'
-        backgroundContainer.addChild(l.labelBg);
-        lineContainer.addChild(l.label);
+        labelContainer.addChild(l.labelBg);
+        labelContainer.addChild(l.label);
         if (f.data.isDirected) {
             l.arrow.interactive = true;
             l.arrow.buttonMode = true;
@@ -1675,13 +1675,13 @@ export default function (settings) {
                 nodeContainer.deselectNode(nodeSprite);
             }
             if (nodeSprite.ts) {
-                textContainer.removeChild(nodeSprite.ts);
+                labelContainer.removeChild(nodeSprite.ts);
             }
             if (nodeSprite.bg) {
-                backgroundContainer.removeChild(nodeSprite.bg);
+                labelContainer.removeChild(nodeSprite.bg);
             }
             if (nodeSprite.selectionFrame) {
-                backgroundContainer.removeChild(nodeSprite.selectionFrame);
+                labelContainer.removeChild(nodeSprite.selectionFrame);
             }
             if (nodeSprite.gcs) {
                 for (let i = 0; i < nodeSprite.gcs.length; i++) {
@@ -1713,10 +1713,10 @@ export default function (settings) {
                 lineContainer.deselectLink(l);
             }
             if (l.label) {
-                lineContainer.removeChild(l.label);
+                labelContainer.removeChild(l.label);
             }
             if (l.labelBg) {
-                backgroundContainer.removeChild(l.labelBg);
+                labelContainer.removeChild(l.labelBg);
             }
             if (l.arrow) {
                 lineContainer.removeChild(l.arrow);

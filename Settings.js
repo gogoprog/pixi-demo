@@ -43,6 +43,7 @@ export default class Settings {
         visConfig.multiIcon = PIXI.Texture.fromImage(multiIconUrl);
         visConfig.selectionFrameTexture = PIXI.Texture.fromImage(selectionFrameUrl);
         visConfig.circleBorderTexture = PIXI.Texture.fromImage(circleBorderUrl);
+        visConfig.arrowTexture = PIXI.Texture.fromImage('/static/256/other/Arrow.png');
 
         visConfig = Object.assign({}, visConfig);
         this.visualConfig = visConfig;

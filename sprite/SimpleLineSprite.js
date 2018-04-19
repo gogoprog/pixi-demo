@@ -23,11 +23,12 @@ export default class SimpleLineSprite {
         this.customSettingAlpha = visualConfig.ui.line.alpha;
         if (hasArrow) {
             if (!arrowStyle) {
-                this.arrow = new PIXI.Sprite(SimpleLineSprite.getTexture(thickness, color));
+                this.arrow = new PIXI.Sprite(this.visualConfig.arrowTexture);
             } else {
                 this.arrow = new PIXI.Sprite(SimpleLineSprite.getMultiTexture(thickness, color));
             }
-            this.arrow.scale.set(0.5, 0.5);
+            this.arrow.tint = this._color;
+            this.arrow.scale.set(0.2, 0.2);
             this.arrow.anchor.x = 0.5;
             this.arrow.lineSprite = this;
             this.arrow.on('mouseup', linkCaptureListener);
@@ -40,6 +41,7 @@ export default class SimpleLineSprite {
         this.label.visible = visualConfig.ui.label.visibleByDefault;
 
         const labelBg = new PIXI.Sprite(PIXI.Texture.WHITE);
+        labelBg.alpha = 1;
         labelBg.tint = visualConfig.ui.label.background.color;
         labelBg.width = this.label.width + 4;
         labelBg.height = this.label.height + 2;
@@ -57,13 +59,6 @@ export default class SimpleLineSprite {
     }
     set thickness(value) {
         this._thickness = value;
-        if (this.hasArrow) {
-            if (this.arrowStyle) {
-                this.arrow.texture = SimpleLineSprite.getMultiTexture(this._thickness, this._color);
-            } else {
-                this.arrow.texture = SimpleLineSprite.getTexture(this._thickness, this._color);
-            }
-        }
     }
 
     get color() {
@@ -72,11 +67,7 @@ export default class SimpleLineSprite {
     set color(value) {
         this._color = value;
         if (this.hasArrow) {
-            if (this.arrowStyle) {
-                this.arrow.texture = SimpleLineSprite.getMultiTexture(this._thickness, this._color);
-            } else {
-                this.arrow.texture = SimpleLineSprite.getTexture(this._thickness, this._color);
-            }
+            this.arrow.tint = this._color;
         }
     }
 
@@ -99,18 +90,12 @@ export default class SimpleLineSprite {
             }
             this.customSettingColor = colorHex;
         }
-        if (this.data.properties._$alpha){
-            this.customSettingAlpha = this.data.properties._$alpha;
-            this.label.alpha = this.data.properties._$alpha;
-        }
         if (this.data.properties._$thickness){
             this.customSettingThickness = this.data.properties._$thickness;
         }
 
-        this.alpha = this.customSettingAlpha;
         this.color = this.customSettingColor;
         this.thickness = this.customSettingThickness;
-        this.label.alpha = this.customSettingAlpha;
     }
 
     /**
@@ -129,22 +114,27 @@ export default class SimpleLineSprite {
     }
 
     selectionChanged(selected) {
-        const lineStyle = this.visualConfig.ui.line;
-        const labelStyle = this.visualConfig.ui.label;
+        const vizConf = this.visualConfig;
+        const lineStyle = vizConf.ui.line;
+        const labelStyle = vizConf.ui.label;
         this.selected = selected;
         if (selected) {
             this.color = lineStyle.highlight.color;
-            this.alpha = lineStyle.highlight.alpha;
+            // this.alpha = lineStyle.highlight.alpha;
             this.thickness = lineStyle.highlight.width;
             this.label.visible = true;
             this.labelBg.visible = true;
+            this.label.style = vizConf.ui.label.fontHighlight;
+            this.labelBg.tint = vizConf.ui.label.background.highlight;
         } else {
-            this.label.alpha = this.customSettingAlpha;
+            // this.label.alpha = this.customSettingAlpha;
             this.color = this.customSettingColor;
-            this.alpha = this.customSettingAlpha;
+            // this.alpha = this.customSettingAlpha;
             this.thickness = this.customSettingThickness;
             this.label.visible = labelStyle.visibleByDefault;
             this.labelBg.visible = labelStyle.visibleByDefault;
+            this.label.style = vizConf.ui.label.font;
+            this.labelBg.tint = vizConf.ui.label.background.color;
         }
     }
 
@@ -289,30 +279,6 @@ export default class SimpleLineSprite {
         canvas.width = width;
         canvas.height = height;
         return canvas;
-    }
-
-    // FIXME thinkness is not used here!
-    static getTexture(thickness, color) {
-        const key = `${thickness}-${color}`;
-        if (!SimpleLineSprite.textureCache[key]) {
-            const arrowW = SimpleLineSprite.ARROW_WIDTH + SimpleLineSprite.THICKNESS_FACTOR * thickness;
-            const arrowH = SimpleLineSprite.ARROW_HEIGHT + SimpleLineSprite.THICKNESS_FACTOR * thickness;
-            const canvas = SimpleLineSprite.getCanvas(arrowW, arrowH);
-            const context = canvas.getContext('2d');
-            context.fillStyle = PIXI.utils.hex2string(color);
-
-            context.beginPath();
-            context.moveTo(0, 0);
-            context.lineTo(arrowW / 2, arrowH);
-            context.lineTo(arrowW, 0);
-
-            context.fill();
-
-            const texture = new PIXI.Texture(new PIXI.BaseTexture(canvas), PIXI.SCALE_MODES.LINEAR);
-            texture.frame = new PIXI.Rectangle(0, 0, arrowW, arrowH);
-            SimpleLineSprite.textureCache[key] = texture;
-        }
-        return SimpleLineSprite.textureCache[key];
     }
 
     static getMultiTexture(thickness, color) {

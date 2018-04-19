@@ -162,7 +162,7 @@ export const nodeCaptureListener = function (e) {
     this.interactionData = e.data;
     this.parent.nodeCaptured(this);
     this.dragging = true;
-    this.alpha = 0.6;
+    // this.alpha = 0.6;
     this.parent.isDirty = true;
     this.parent.setPositionDirty(false);
 
@@ -181,7 +181,7 @@ export const nodeCaptureListener = function (e) {
 // 选中节点处理
 const nodeReleaseListener = function (e) {
     this.off('mousemove', this.moveListener);
-    this.alpha = 1;
+    // this.alpha = 1;
     this.dragging = false;
     this.parent.nodeReleased(this);
     this.parent.isDirty = true;

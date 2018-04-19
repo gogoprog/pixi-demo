@@ -1,13 +1,16 @@
 export const elpVisualConfig = {
-    factor: 0.25,
+    factor: 0.20,
     backgroundColor: 0xFFFFFF,
-    NODE_LABLE_OFFSET_Y: 54,
+    NODE_LABLE_OFFSET_Y: 44,
     LINK_LABLE_OFFSET_Y: 18,
     MAX_SCALE: 5,
     MAX_ADJUST: 3,
     MIN_SCALE: 0.5,
-    NODE_WIDTH: 32,
-    NODE_ICON_Y_OFFSET: 38,
+    TEXTURE_WIDTH: 256,
+    NODE_WIDTH: 50,
+    NODE_ICON_WIDTH: 16,
+    NODE_ICON_Y_OFFSET: 30, // Y offset for collection icon position.
+    NODE_LOCK_WIDTH: 38,
     ELLIPSE_WIDTH: 40,
     ELLIPSE_HIEGHT: 25,
     ELLIPSE_Y_OFFSET: 0.4 * 32,
@@ -62,18 +65,19 @@ export const elpVisualConfig = {
             visibleByDefault: true,
             font: {
                 fontFamily: 'Microsoft YaHei,Tahoma',
-                fill: 0xFFFFFF,
+                fill: 0x000000,
                 align: 'center',
-                fontSize: '40px',
+                fontSize: '60px',
             },
             fontHighlight: {
                 fontFamily: 'Microsoft YaHei,Tahoma',
-                fill: 0xFFFFFF,
+                fill: 0xffffff,
                 align: 'center',
-                fontSize: '40px',
+                fontSize: '60px',
             },
             background: {
-                color: 0x3663ce,
+                color: 0xffffff,
+                highlight: 0x3663ce,
             }
         },
         timeline: {
