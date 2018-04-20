@@ -34,7 +34,7 @@ export default class SimpleLineSprite {
             this.arrow.on('mouseup', linkCaptureListener);
         }
         this.label = new PIXI.Text(label, fontConfig);
-        this.label.scale.set(visualConfig.factor, visualConfig.factor);
+        this.label.scale.set(visualConfig.ui.label.scale, visualConfig.ui.label.scale);
         this.label.anchor.x = 0.5;
         this.label.anchor.y = 0.5;
         this.label.lineSprite = this;

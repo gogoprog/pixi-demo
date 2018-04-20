@@ -1,7 +1,7 @@
 export const visualConfig = {
     factor: 0.20,
     backgroundColor: 0xf7f7f7,
-    NODE_LABLE_OFFSET_Y: 44,
+    NODE_LABLE_OFFSET_Y: 46,
     LINK_LABLE_OFFSET_Y: 18,
     MAX_SCALE: 10,
     MAX_ADJUST: 3,
@@ -65,6 +65,7 @@ export const visualConfig = {
             },
         },
         label: {
+            scale: 0.28,
             visibleByDefault: true,
             font: {fontFamily: 'Microsoft YaHei,Tahoma', fill: 0x000000, align: 'center', fontSize: '48px',},
             fontHighlight: {fontFamily: 'Microsoft YaHei,Tahoma', fill: 0xffffff, align: 'center', fontSize: '48px'},

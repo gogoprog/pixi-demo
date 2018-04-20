@@ -35,7 +35,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         t.position.set(node.data.properties._$x, node.data.properties._$y + visualConfig.NODE_LABLE_OFFSET_Y);
         t.anchor.x = 0.5;
         t.anchor.y = 0.5;
-        t.scale.set(visualConfig.factor, visualConfig.factor);
+        t.scale.set(visualConfig.ui.label.scale, visualConfig.ui.label.scale);
         t.visible = visualConfig.ui.label.visibleByDefault;
         this.ts = t;
 
@@ -144,8 +144,9 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             const vizConf = this.visualConfig;
             const zoomValue = this.data.properties._$scale;
             const scaleValue = zoomValue * vizConf.factor;
+            const labelScale = zoomValue * vizConf.ui.label.scale;
             this.scale.set(scaleValue, scaleValue);
-            this.ts.scale.set(scaleValue, scaleValue);
+            this.ts.scale.set(labelScale, labelScale);
             this.bg.scale.set(this.ts.scale.x, this.ts.scale.y);
             this.ts.position.set(this.position.x, this.position.y +  vizConf.NODE_LABLE_OFFSET_Y * this.scale.y / vizConf.factor);
             this.bg.position.set(this.ts.position.x, this.ts.position.y);
