@@ -1118,7 +1118,9 @@ export default function (settings) {
         modifyNodeLabel(nodeLabelsObj) {
             for (const nodeId in nodeLabelsObj) {
                 const nodeSprite = nodeSprites[nodeId];
-                nodeSprite.ts.text = nodeLabelsObj[nodeId];
+                if (nodeSprite.ts) {
+                    nodeSprite.ts.text = nodeLabelsObj[nodeId];
+                }
             }
         },
 
@@ -1543,8 +1545,10 @@ export default function (settings) {
         }
 
         labelContainer.addChild(nodeSprite.selectionFrame);
-        labelContainer.addChild(nodeSprite.bg);
-        labelContainer.addChild(nodeSprite.ts);
+        if (nodeSprite.ts) {
+            labelContainer.addChild(nodeSprite.bg);
+            labelContainer.addChild(nodeSprite.ts);
+        }
         nodeContainer.addChild(nodeSprite);
         nodeSprites[p.id] = nodeSprite;
         // if (layout) {
@@ -1627,10 +1631,6 @@ export default function (settings) {
         srcNodeSprite.outgoing.push(l);
         tgtNodeSprite.incoming.push(l);
         linkSprites[l.id] = l;
-        l.label.interactive = true;
-        //l.label.fill= '#00FF00'
-        labelContainer.addChild(l.labelBg);
-        labelContainer.addChild(l.label);
         if (f.data.isDirected) {
             l.arrow.interactive = true;
             l.arrow.buttonMode = true;
@@ -1638,7 +1638,13 @@ export default function (settings) {
             l.arrow.on('rightup', contextmenuListener);
         }
 
-        l.label.on('rightup', contextmenuListener);
+        if (l.label) {
+            l.label.interactive = true;
+            //l.label.fill= '#00FF00'
+            labelContainer.addChild(l.labelBg);
+            labelContainer.addChild(l.label);
+            l.label.on('rightup', contextmenuListener);
+        }
     }
 
     function listenToGraphEvents() {

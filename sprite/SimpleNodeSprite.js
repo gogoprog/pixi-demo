@@ -30,7 +30,25 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         this.interactive = true;
         this.buttonMode = true;
 
-        // if(visualConfig.ui.label.visibleByDefault) {
+        // for merged entity
+        this._multiple = false;
+
+        this._selected = false;
+
+        this.createText(node, visualConfig);
+
+        const selectionTexture = visualConfig.getSelectionFrameTexture();
+        const selectionFrame = new PIXI.Sprite(selectionTexture);
+        selectionFrame.visible = false;
+        selectionFrame.scale.set(this.scale.x, this.scale.y);
+        selectionFrame.position.set(this.position.x, this.position.y);
+        selectionFrame.anchor.x = 0.5;
+        selectionFrame.anchor.y = 0.5;
+
+        this.selectionFrame = selectionFrame;
+    }
+
+    createText(node, visualConfig) {
         const t = new PIXI.Text((node.data.label ? node.data.label : ''), visualConfig.ui.label.font);
         t.position.set(node.data.properties._$x, node.data.properties._$y + visualConfig.NODE_LABLE_OFFSET_Y);
         t.anchor.x = 0.5;
@@ -50,23 +68,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         labelBg.anchor.y = 0.5;
         labelBg.visible = t.visible;
         this.bg = labelBg;
-        // }
-
-
-        // for merged entity
-        this._multiple = false;
-
-        this._selected = false;
-
-        const selectionTexture = visualConfig.getSelectionFrameTexture();
-        const selectionFrame = new PIXI.Sprite(selectionTexture);
-        selectionFrame.visible = false;
-        selectionFrame.scale.set(this.scale.x, this.scale.y);
-        selectionFrame.position.set(this.position.x, this.position.y);
-        selectionFrame.anchor.x = 0.5;
-        selectionFrame.anchor.y = 0.5;
-
-        this.selectionFrame = selectionFrame;
     }
 
     /**
@@ -86,8 +87,10 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     toggleDisplay(nodeVisible){
         this.visible = nodeVisible;
         // either visible by deafult or show lable when selected.
-        this.ts.visible = nodeVisible && (this.visualConfig.ui.label.visibleByDefault || this.selected);
-        this.bg.visible = this.ts.visible;
+        if (this.ts) {
+            this.ts.visible = nodeVisible && (this.visualConfig.ui.label.visibleByDefault || this.selected);
+            this.bg.visible = this.ts.visible;
+        }
         this.selectionFrame.visible = nodeVisible;
         if (this.gcs) {
             for (let i = 0; i < this.gcs.length; i++) {
@@ -120,15 +123,19 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         const vizConf = this.visualConfig;
         this._selected = selected;
         if (selected) {
-            this.bg.visible = true;
-            this.ts.visible = true;
-            this.ts.style = this.visualConfig.ui.label.fontHighlight;
-            this.bg.tint = vizConf.ui.label.background.highlight;
+            if (this.ts) {
+                this.bg.visible = true;
+                this.ts.visible = true;
+                this.ts.style = this.visualConfig.ui.label.fontHighlight;
+                this.bg.tint = vizConf.ui.label.background.highlight;
+            }
         } else {
-            this.bg.visible = vizConf.ui.label.visibleByDefault;
-            this.ts.visible = vizConf.ui.label.visibleByDefault;
-            this.ts.style = vizConf.ui.label.font;
-            this.bg.tint = vizConf.ui.label.background.color;
+            if (this.ts) {
+                this.bg.visible = vizConf.ui.label.visibleByDefault;
+                this.ts.visible = vizConf.ui.label.visibleByDefault;
+                this.ts.style = vizConf.ui.label.font;
+                this.bg.tint = vizConf.ui.label.background.color;
+            }
         }
         this.selectionFrame.visible = selected;
         if (selected) {
@@ -146,12 +153,14 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             const scaleValue = zoomValue * vizConf.factor;
             const labelScale = zoomValue * vizConf.ui.label.scale;
             this.scale.set(scaleValue, scaleValue);
-            this.ts.scale.set(labelScale, labelScale);
-            this.bg.scale.set(this.ts.scale.x, this.ts.scale.y);
-            this.ts.position.set(this.position.x, this.position.y +  vizConf.NODE_LABLE_OFFSET_Y * this.scale.y / vizConf.factor);
-            this.bg.position.set(this.ts.position.x, this.ts.position.y);
-            this.bg.width = this.ts.width + 4;
-            this.bg.height = this.ts.height + 2;
+            if (this.ts) {
+                this.ts.scale.set(labelScale, labelScale);
+                this.bg.scale.set(this.ts.scale.x, this.ts.scale.y);
+                this.ts.position.set(this.position.x, this.position.y +  vizConf.NODE_LABLE_OFFSET_Y * this.scale.y / vizConf.factor);
+                this.bg.position.set(this.ts.position.x, this.ts.position.y);
+                this.bg.width = this.ts.width + 4;
+                this.bg.height = this.ts.height + 2;
+            }
 
             if (this.gcs) {
                 for (let i = 0; i < this.gcs.length; i++) {
@@ -324,9 +333,16 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     }
 
     updateLabel() {
-        this.ts.text = this.data.label;
-        this.bg.width = this.ts.width + 4;
-        this.bg.height = this.ts.height + 2;
+        const label = this.data.label;
+        if (label) {
+            if (this.ts) {
+                this.ts.text = this.data.label;
+                this.bg.width = this.ts.width + 4;
+                this.bg.height = this.ts.height + 2;
+            } else {
+                this.createText(this, this.visualConfig);
+            }
+        }
     }
     _addIconToNode(collIdArr, nodeContainer) {
         const vizConf = this.visualConfig;

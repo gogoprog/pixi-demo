@@ -33,6 +33,14 @@ export default class SimpleLineSprite {
             this.arrow.lineSprite = this;
             this.arrow.on('mouseup', linkCaptureListener);
         }
+        
+        if (label) {
+            this.createText(label, fontConfig, visualConfig);
+        }
+        this.updatePosition();
+    }
+
+    createText(label, fontConfig, visualConfig) {
         this.label = new PIXI.Text(label, fontConfig);
         this.label.scale.set(visualConfig.ui.label.scale, visualConfig.ui.label.scale);
         this.label.anchor.x = 0.5;
@@ -51,7 +59,6 @@ export default class SimpleLineSprite {
         this.labelBg = labelBg;
 
         this.label.on('mousedown', linkCaptureListener);
-        this.updatePosition();
     }
 
     get thickness() {
@@ -110,7 +117,14 @@ export default class SimpleLineSprite {
     }
 
     updateLabel() {
-        this.label.text = this.data.label;
+        const label = this.data.label;
+        if (label) {
+            if (this.label) {
+                this.label.text = label;
+            } else {
+                this.createText(label, this.visualConfig.ui.label.font, this.visualConfig);
+            }
+        }
     }
 
     selectionChanged(selected) {
@@ -122,19 +136,23 @@ export default class SimpleLineSprite {
             this.color = lineStyle.highlight.color;
             // this.alpha = lineStyle.highlight.alpha;
             this.thickness = lineStyle.highlight.width;
-            this.label.visible = true;
-            this.labelBg.visible = true;
-            this.label.style = vizConf.ui.label.fontHighlight;
-            this.labelBg.tint = vizConf.ui.label.background.highlight;
+            if (this.label) {
+                this.label.visible = true;
+                this.labelBg.visible = true;
+                this.label.style = vizConf.ui.label.fontHighlight;
+                this.labelBg.tint = vizConf.ui.label.background.highlight;
+            }
         } else {
             // this.label.alpha = this.customSettingAlpha;
             this.color = this.customSettingColor;
             // this.alpha = this.customSettingAlpha;
             this.thickness = this.customSettingThickness;
-            this.label.visible = labelStyle.visibleByDefault;
-            this.labelBg.visible = labelStyle.visibleByDefault;
-            this.label.style = vizConf.ui.label.font;
-            this.labelBg.tint = vizConf.ui.label.background.color;
+            if (this.label) {
+                this.label.visible = labelStyle.visibleByDefault;
+                this.labelBg.visible = labelStyle.visibleByDefault;
+                this.label.style = vizConf.ui.label.font;
+                this.labelBg.tint = vizConf.ui.label.background.color;
+            }
         }
     }
 
@@ -179,8 +197,10 @@ export default class SimpleLineSprite {
                     this.arrow.position.y = midY;
                     this.arrow.rotation = Math.atan2(this.y2 - this.y1, this.x2 - this.x1) - Math.PI / 2;
                 }
-                this.label.position.set(midX, midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
-                this.labelBg.position.set(this.label.position.x, this.label.position.y);
+                if (this.label) {
+                    this.label.position.set(midX, midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
+                    this.labelBg.position.set(this.label.position.x, this.label.position.y);
+                }
             } else {
                 const angle = Math.atan2(this.y2 - this.y1, this.x2 - this.x1);
                 let dxCtl = SimpleLineSprite.MULTI_OFFSET;  // AC
@@ -205,8 +225,10 @@ export default class SimpleLineSprite {
                     this.arrow.rotation = angle - Math.PI / 2;
                 }
 
-                this.label.position.set(midX, midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
-                this.labelBg.position.set(this.label.position.x, this.label.position.y);
+                if (this.label) {
+                    this.label.position.set(midX, midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
+                    this.labelBg.position.set(this.label.position.x, this.label.position.y);
+                }
             }
         } else {
             const angle = Math.atan2(this.y2 - this.y1, this.x2 - this.x1);
@@ -231,8 +253,10 @@ export default class SimpleLineSprite {
                 this.arrow.position.y = midY;
                 this.arrow.rotation = angle - Math.PI / 2;
             }
-            this.label.position.set(midX, midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
-            this.labelBg.position.set(this.label.position.x, this.label.position.y);
+            if (this.label) {
+                this.label.position.set(midX, midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
+                this.labelBg.position.set(this.label.position.x, this.label.position.y);
+            }
         }
     }
 
@@ -241,8 +265,10 @@ export default class SimpleLineSprite {
         if (this.hasArrow) {
             this.arrow.visible = false;
         }
-        this.label.visible = false;
-        this.labelBg.visible = false;
+        if (this.label) {
+            this.label.visible = false;
+            this.labelBg.visible = false;
+        }
     }
 
     show() {
@@ -251,7 +277,7 @@ export default class SimpleLineSprite {
             this.arrow.visible = true;
         }
         const labelVisible = this.visualConfig.ui.label.visibleByDefault || this.selected;
-        if (labelVisible) {
+        if (labelVisible && this.label) {
             this.label.visible = true;
             this.labelBg.visible = true;
         }
