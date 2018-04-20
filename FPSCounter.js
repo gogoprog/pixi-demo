@@ -1,8 +1,6 @@
-import { isDebugMode } from "./Utils";
-
 export default class FPSCounter {
     constructor() {
-        this.DEBUG = isDebugMode();
+        this.DEBUG = localStorage.showFPS ? localStorage.showFPS : false;
 
         if (this.DEBUG) {
             this.frameCount = 0;
