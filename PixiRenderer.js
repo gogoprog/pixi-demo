@@ -1350,7 +1350,7 @@ export default function (settings) {
         let event = {};
         if (!selectedNodes.length && !selectedLinks.length) {
             rightStack.length = 0;
-            event = { type: 'blank', original: e };
+            event = { type: 'blank', original: e , target: null};
         } else {
             for (const nodeSprite of selectedNodes) {
                 if (nodeSprite === e.target) {
@@ -1359,7 +1359,7 @@ export default function (settings) {
                 }
             }
             if (mouseOnSelectedNode) {
-                event = { type: 'node', original: e };
+                event = { type: 'node', original: e , target: e.target.data };
             } else {
                 for (const linkSprite of selectedLinks) {
                     if (linkSprite.arrow === e.target || linkSprite.label === e.target) {
@@ -1368,9 +1368,9 @@ export default function (settings) {
                     }
                 }
                 if (mouseOnSelectedLink) {
-                    event = { type: 'link', original: e };
+                    event = { type: 'link', original: e , target: e.target.lineSprite.data};
                 } else {
-                    event = { type: 'blank', original: e };
+                    event = { type: 'blank', original: e, target: null};
                 }
             }
         }
