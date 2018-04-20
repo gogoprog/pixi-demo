@@ -71,6 +71,8 @@ export default function (settings) {
         layout = new personForceLayout(nodeSprites, nodeContainer, visualConfig);
     }
 
+    let textAnalysis = visualConfig.TEXT_ANALYSIS;
+
     const showDebugMarkup = false;
 
     const canvas = settings.container;
@@ -1829,6 +1831,13 @@ export default function (settings) {
                 pixiGraphics.clearSelection();
             }
             pixiGraphics.selectSubGraph(updateNodeIdArray, updateLinkIdArray);
+        }
+
+        if (textAnalysis){
+            for (let tmp = 0; tmp < 10000; tmp++){
+                layout.step();
+            }
+            updateNodeSpritesPosition();
         }
 
         console.log(`Graph change process complete ${new Date()}`);
