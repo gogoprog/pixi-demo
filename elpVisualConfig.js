@@ -1,7 +1,7 @@
 export const elpVisualConfig = {
     factor: 0.20,
     backgroundColor: 0xFFFFFF,
-    NODE_LABLE_OFFSET_Y: 44,
+    NODE_LABLE_OFFSET_Y: 50,
     LINK_LABLE_OFFSET_Y: 18,
     MAX_SCALE: 5,
     MAX_ADJUST: 3,
@@ -18,7 +18,7 @@ export const elpVisualConfig = {
     LAYOUT_ANIMATION: true,
     ORIGINAL_FORCE_LAYOUT: true,
     forceLayout: {
-        springLength: 200,
+        springLength: 300,
         springCoeff: 0.00008,
         dragCoeff: 0.08,
         gravity: -1.2,
@@ -62,6 +62,7 @@ export const elpVisualConfig = {
             },
         },
         label: {
+            scale: 0.28,
             visibleByDefault: true,
             font: {
                 fontFamily: 'Microsoft YaHei,Tahoma',

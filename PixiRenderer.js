@@ -82,6 +82,7 @@ export default function (settings) {
     const viewWidth = settings.container.clientWidth;
     const viewHeight = settings.container.clientHeight;
 
+    PIXI.settings.SPRITE_BATCH_SIZE = 4098 * 2;
     const renderer = new PIXI.autoDetectRenderer(viewWidth, viewHeight, {
         view: settings.container,
         transparent: false,
