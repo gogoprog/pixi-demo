@@ -95,8 +95,9 @@ export default class GraphLevelForceLayoutOpt extends Layout {
         this.maxGraphLevel = 20;           // 最大图层数量
         this.processdNodeIdSet = new Set();// 已经处理过的数据,上层节点位置计算后，底层不再更新
         this.randomNum = 20;               // 构建图层时随机挑选节点的数量
-        this.iconDiameter = 32;            // 图表直径大小
- 
+        this.iconDiameter = visualConfig.NODE_WIDTH;            // 图表直径大小
+        this.idealEdgeLength = visualConfig.forceLayout.springLength;
+
         console.log("LayoutBaseFMMM[1]: do subGraph divided")
         let startTimeOfdivideSubGraph = new Date().getTime();        
         this.divideSubGraphBaseAllData();
@@ -322,7 +323,7 @@ export default class GraphLevelForceLayoutOpt extends Layout {
     stepIter(subGraph){
         let graphLevelNum = subGraph.graphLevelIndexMap.size;
         for (let graphIndex = graphLevelNum - 1; graphIndex >= 0; graphIndex--){
-            console.log("        graph level [" + graphIndex + "] begin setp");    
+            console.log("        graph level [" + graphIndex + "] begin setp");   
             let startTimeOneGrpahLevel = new Date().getTime();        
             let graphLevel = subGraph.graphLevelIndexMap.get(graphIndex);
             if (graphIndex !== graphLevelNum - 1){
@@ -330,10 +331,17 @@ export default class GraphLevelForceLayoutOpt extends Layout {
             } else {
                 this.placementFirstGrahpLevelRandom(graphLevel)
             }
+            // console.log("        graph level [" + graphIndex + "] has " + graphLevel.num + " nodes");  
+            // console.log("        graph level [" + graphIndex + "] node are: ");                  
+            // for (let nodeId of graphLevel.clusterId){
+            //     let node = this.nodes[this.indexMapinverse.get(nodeId)];
+            //     console.log("                " + this.indexMapinverse.get(nodeId));  
+            // }
+                               
             let iter = 0;
             let maxIter = this.getMaxIter(graphIndex, graphLevelNum, graphLevel.num);
             // if (graphIndex === 0){
-            //     maxIter = 200;
+            //     maxIter = 0;
             // }
             for (; iter < maxIter; iter++){  
                 for(let attFtmp of this.attF){
@@ -345,9 +353,9 @@ export default class GraphLevelForceLayoutOpt extends Layout {
                     repFtmp.Fy = 0;
                 }
                 let movement = this.froceLayout(graphLevel, graphIndex, subGraph);                        
-                if (Math.abs(movement) < 0.01){                        
-                    break;
-                }
+                // if (Math.abs(movement) < 0.01){                        
+                //     break;
+                // }
             }
             for (let nodeId of graphLevel.clusterId){
                 this.processdNodeIdSet.add(nodeId);
@@ -392,6 +400,9 @@ export default class GraphLevelForceLayoutOpt extends Layout {
         let graphNodeList = graphLevel.adjoinRecord;
         let innerPNodeMap = new Map();
         let innerMNodeMap = new Map();
+        let innerPMNodeMap = new Map();
+        let outerMNodeMap = new Map();
+        let psMap = new Map();
         for (let index = 0; index < graphLevel.num; index ++){
             let nodeId = clusterId[index];
             let sNodeId = clusterParentIdList[index];
@@ -406,21 +417,18 @@ export default class GraphLevelForceLayoutOpt extends Layout {
             // 若该节点没有与外部链接, 暂存, 后续处理
             if (adjoinSNodeIdList.length === 0){
                 if (type === 4){
-                    let innerMNodeList = innerMNodeMap.get(graphNode.pNodeId);                    
-                    if (!innerMNodeList){
-                        innerMNodeList = []
-                        innerMNodeMap.set(graphNode.pNodeId, innerMNodeList);
-                    }
-                    innerMNodeList.push(nodeId);                     
+                    this.addNodeId2TmpMap(innerMNodeMap, graphNode.pNodeId, nodeId);
+                    psMap.set(graphNode.pNodeId, sNodeId);
+                } else if (type === 2){
+                    this.addNodeId2TmpMap(innerPNodeMap, sNodeId, nodeId);
                 } else {
-                    let innerPNodeList = innerPNodeMap.get(graphNode.pNodeId);                    
-                    if (!innerPNodeList){
-                        innerPNodeList = []
-                        innerPNodeMap.set(sNodeId, innerPNodeList);
-                    }
-                    innerPNodeList.push(nodeId);   
+                    this.addNodeId2TmpMap(innerPMNodeMap, sNodeId, nodeId);
                 }
                 continue;
+            }
+            // 记录与外部相连的mNode
+            if (type === 4){
+                this.addNodeId2TmpMap(outerMNodeMap, graphNode.pNodeId, nodeId);                   
             }
             // 当前节点所属太阳系的sNode的节点位置
             let sNodePos = this.pos[sNodeId];
@@ -440,15 +448,70 @@ export default class GraphLevelForceLayoutOpt extends Layout {
             let node = this.nodes[this.indexMapinverse.get(nodeId)];
             node.position = posNew;
         }
-        this.circlePlacement(innerPNodeMap);
-        this.circlePlacement(innerMNodeMap);
+        // 对pm节点进行布局
+        for (let [sNodeId, pmNodeIdList] of innerPMNodeMap.entries()){
+            let sNodePos = this.pos[sNodeId];
+            for (let pmNodeId of pmNodeIdList){
+                let mNodeIdList = outerMNodeMap.get(pmNodeId);
+                if (!mNodeIdList || mNodeIdList.length){
+                    console.assert("Error when placement. This should not be print!");
+                }
+                let x = 0;
+                let y = 0;
+                for (let mNodeId of mNodeIdList) {
+                    let mNodePos = this.pos[mNodeId];                
+                    x += sNodePos.x + 0.5 * (mNodePos.x - sNodePos.x) + Math.random() * this.iconDiameter;  
+                    y += sNodePos.y + 0.5 * (mNodePos.y - sNodePos.y) + Math.random() * this.iconDiameter;
+                }
+                let posNew = this.pos[pmNodeId];
+                posNew.x = x / mNodeIdList.length;
+                posNew.y = y / mNodeIdList.length;
+                let node = this.nodes[this.indexMapinverse.get(pmNodeId)];
+                node.position = posNew;
+                
+            }
+        }
+        this.circlePlacement(innerPNodeMap, true);
+        this.mNodePlacement(innerMNodeMap, psMap);
+    }
+
+    /**
+     * 将节点id加到临时map结构,Map<keyNodeId, List<NodeId>>
+     * @param {*} tmpMap 
+     * @param {*} keyNodeId 
+     * @param {*} nodeId 
+     */
+    addNodeId2TmpMap(tmpMap, keyNodeId, nodeId){
+        let nodeIdList = tmpMap.get(keyNodeId);                    
+        if (!nodeIdList){
+            nodeIdList = []
+            tmpMap.set(keyNodeId, nodeIdList);
+        }
+        nodeIdList.push(nodeId);   
+    }
+
+    mNodePlacement(innerMNodeMap, psMap){
+        let tmpMap = new Map();
+        let noNeedOffectTmpMap = new Map();
+        for (let [pNodeId, mNodeIdList] of innerMNodeMap.entries()){
+            let sNodeId = psMap.get(pNodeId);
+            let node = this.nodes[this.indexMapinverse.get(sNodeId)];
+            let degree = node.incoming.length + node.outgoing.length;
+            if (degree === 1){
+                noNeedOffectTmpMap.set(sNodeId, mNodeIdList)
+            } else {
+                tmpMap.set(pNodeId, mNodeIdList);
+            }
+        }
+        this.circlePlacement(tmpMap, true);
+        this.circlePlacement(noNeedOffectTmpMap, false);
     }
 
     /**
      * 与外界无连接的节点圆形布局
      * @param {*} nodeMap 
      */
-    circlePlacement(nodeMap){
+    circlePlacement(nodeMap, needOffect){
         for (let [centerNodeId, nodeIdList] of nodeMap.entries()){
             let position = this.pos[centerNodeId];
             let repFTmp = this.repF[centerNodeId];
@@ -456,8 +519,9 @@ export default class GraphLevelForceLayoutOpt extends Layout {
             positionTmp.x = position.x;
             positionTmp.y = position.y;
             let num = nodeIdList.length;            
-            if (repFTmp.Fx && repFTmp.Fy){
-                let scale = (150 + 10 * (num/200)) / Math.sqrt(repFTmp.Fx * repFTmp.Fx + repFTmp.Fy * repFTmp.Fy)
+            if (repFTmp.Fx && repFTmp.Fy && needOffect){
+                // let scale = (this.idealEdgeLength + 10 * (num/200)) / Math.sqrt(repFTmp.Fx * repFTmp.Fx + repFTmp.Fy * repFTmp.Fy)
+                let scale = (this.idealEdgeLength + 10 * (num/200)) / Math.sqrt(repFTmp.Fx * repFTmp.Fx + repFTmp.Fy * repFTmp.Fy)
                 positionTmp.x = position.x + scale * repFTmp.Fx;
                 positionTmp.y = position.y + scale * repFTmp.Fy;
             }
@@ -469,7 +533,7 @@ export default class GraphLevelForceLayoutOpt extends Layout {
                 if (i + n > num){
                     n = num - i;
                 }
-                let radius = 10 * idx;
+                let radius = this.iconDiameter * idx;
                 let initialAngle = 360 / n;
 
                 let angle = j * initialAngle * Math.PI / 180;
@@ -791,10 +855,10 @@ export default class GraphLevelForceLayoutOpt extends Layout {
         // clusterParentIndex需要在生成第二图层时进行赋值
         // **此时的顺序仅是临时顺序，在生成第二层时需要调整**
         firstGraphLevelTmp.num = subGraph.nodeNumber; 
-        let edgeLength = 150 + 10 * (subGraph.nodeNumber/200);
+        // let edgeLength = this.idealEdgeLength + 10 * (subGraph.nodeNumber/200);
+        let edgeLength = this.idealEdgeLength;
         for (let nodeId of subGraph.nodeIdSet){
             firstGraphLevelTmp.nodeIdSet.add(nodeId);            
-            firstGraphLevelTmp.clusterWeight.set(nodeId, 1);
             let nodeRealId = this.indexMapinverse.get(nodeId);
             let node = this.nodes[nodeRealId];
             // 使用set可以过滤掉多重链接的问题
@@ -820,6 +884,7 @@ export default class GraphLevelForceLayoutOpt extends Layout {
                 edgeList.push(anotherNodeIndex);
                 edgeLengthList.push(edgeLength);
             }
+            firstGraphLevelTmp.clusterWeight.set(nodeId, anotherNodeIdSet.size);            
             firstGraphLevelTmp.edgeList.set(nodeId, edgeList);
             firstGraphLevelTmp.edgeLength.set(nodeId, edgeLengthList);
             // }
@@ -1041,7 +1106,7 @@ export default class GraphLevelForceLayoutOpt extends Layout {
         let minWeight = 0;
         let minWeigtNodeId = -1;
         let lastIndex = nodeIdSet.size-1;
-        for (let i = 0; i < this.randomNum && lastIndex >= 0; i++){
+        for (let i = 0; i < num && lastIndex >= 0; i++){
             // 从剩余的为挑选的id中挑选一个id
             let randomIndex = parseInt(lastIndex * Math.random());
             let nodeId = nodeIdArray[randomIndex];
