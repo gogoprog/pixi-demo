@@ -122,9 +122,7 @@ export default class GraphLevelForceLayoutOpt extends Layout {
         // 对子图进行布局
         console.log("LayoutBaseFMMM[2]: do layout for subGraph")
         let startTimeOfSubGraphLayout = new Date().getTime();
-        let hasInsularNodeSugGraph = false;
         if (this.insularNodeSubGraph.nodeNumber > 0){
-            hasInsularNodeSugGraph = true;
             this.subGraphList.add(this.insularNodeSubGraph);
         }
         let subGraphNumber = this.subGraphList.size;
@@ -234,11 +232,13 @@ export default class GraphLevelForceLayoutOpt extends Layout {
             let dx = (bounds.x2 - bounds.x1) / 2;
             let dy = (bounds.y2 - bounds.y1) / 2;
             this.insularNodeSubGraph.r = Math.sqrt(dx * dx + dy * dy) + 50;
+            this.insularNodeSubGraph.oldX = (bounds.x2 + bounds.x1) / 2;
+            this.insularNodeSubGraph.oldY = (bounds.y2 + bounds.y1) / 2;
         }
         this.doDivide(nodeIdSet);
         nodeIdSet.clear();
-        insularNodeRealIdSet.clear();
-        insularNodeIdSet.clear();
+        // insularNodeRealIdSet.clear();
+        // insularNodeIdSet.clear();
     }
 
 
@@ -388,6 +388,8 @@ export default class GraphLevelForceLayoutOpt extends Layout {
         let dx = (bounds.x2 - bounds.x1) / 2;
         let dy = (bounds.y2 - bounds.y1) / 2;
         subGraph.r = Math.sqrt(dx * dx + dy * dy) + 50;
+        subGraph.oldX = (bounds.x2 + bounds.x1) / 2;
+        subGraph.oldY = (bounds.y2 + bounds.y1) / 2;
     }
 
     /**
@@ -421,7 +423,7 @@ export default class GraphLevelForceLayoutOpt extends Layout {
                     psMap.set(graphNode.pNodeId, sNodeId);
                 } else if (type === 2){
                     this.addNodeId2TmpMap(innerPNodeMap, sNodeId, nodeId);
-                } else {
+                } else if (type === 3){
                     this.addNodeId2TmpMap(innerPMNodeMap, sNodeId, nodeId);
                 }
                 continue;
@@ -466,9 +468,9 @@ export default class GraphLevelForceLayoutOpt extends Layout {
                     posNew.y = y / mNodeIdList.length;
                     let node = this.nodes[this.indexMapinverse.get(pmNodeId)];
                     node.position = posNew;
+                } else {
+                    this.addNodeId2TmpMap(innerPNodeMap, sNodeId, pmNodeId)
                 }
-
-
             }
         }
         this.circlePlacement(innerPNodeMap, true);
