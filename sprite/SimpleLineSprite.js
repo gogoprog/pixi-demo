@@ -33,7 +33,7 @@ export default class SimpleLineSprite {
             this.arrow.lineSprite = this;
             this.arrow.on('mouseup', linkCaptureListener);
         }
-        
+
         if (label) {
             this.createText(label, fontConfig, visualConfig);
         }
@@ -121,6 +121,9 @@ export default class SimpleLineSprite {
         if (label) {
             if (this.label) {
                 this.label.text = label;
+                this.labelBg.width = this.label.width + 4;
+                this.labelBg.height = this.label.height + 2;
+                this.labelBg.visible = this.label.visible;
             } else {
                 this.createText(label, this.visualConfig.ui.label.font, this.visualConfig);
             }
