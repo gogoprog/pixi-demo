@@ -60,7 +60,7 @@ export default function LayeredLayout(nodeSprites, nodeContainer, visualConfig) 
         // 以深度优先的方式遍历树结构，从底层向上计算各个节点的坐标
         that.computeTreeNodePosition(xAxisList, yAxisList, tree)
         // 下一颗树的起始横向游标位置应该是上一颗树的边缘之后: 第一层唯一一个子树的最后一个节点的end
-        xAxisTmp = tree.getLevels().get(0).getChildTreeMap().get(0).getLastTreeNode().end
+        xAxisTmp = tree.getLevels().get(0).getChildTreeMap().get(0).getLastTreeNode().end + this.NODE_WIDTH*4;
     }
     for (var tree of forest) {
         that.draw2(tree)
@@ -138,6 +138,8 @@ LayeredLayout.prototype.computeTreePositionInLevel = function (xAxisList, yAxisL
         } else {
             // 记录游标的初始位置
             var initialX = xAxisList[idxOfThisLevel]
+            var lastStart = 0;
+            var lasetEnd = 0;
             for (var treeNodeId of sortIdList){
                 var treeNode = nodeMap.get(treeNodeId)
                 // 利用本层计算得到的节点位置
@@ -157,9 +159,6 @@ LayeredLayout.prototype.computeTreePositionInLevel = function (xAxisList, yAxisL
                         // 对应的底层节点要移动
                         detalx = initialX - treeNode.start
                         move(tree, treeNode, detalx)
-                        // 更新treeNode的start和end的坐标
-                        treeNode.end = detalx + treeNode.end
-                        treeNode.start = detalx + treeNode.start
                         // 则将该父节点的位置移动到positionByLowerLevel
                         positionInActually = positionByLowerLevel
                         // 此时，本子树中该节点之前的所有叶子节点也要移动位置
@@ -174,15 +173,19 @@ LayeredLayout.prototype.computeTreePositionInLevel = function (xAxisList, yAxisL
                         if (idxOfThisLevel == levelSize-2){
                             console.log(lowerChildTree)
                         }
-                        // 更新treeNode的start和end的坐标
-                        treeNode.end = detalx + treeNode.end
-                        treeNode.start = detalx + treeNode.start
+
                     } 
-                    
+                    // 更新treeNode的start和end的坐标
+                    treeNode.end = detalx + treeNode.end
+                    treeNode.start = detalx + treeNode.start
+                    lastStart = treeNode.start;
+                    lasetEnd = treeNode.end;
                     // 改变游标的初始位置，用于下一个子树的位置计算
                     // initialX = initialX + minGap * 3 + treeNode.end - treeNode.start
                     initialX =  minGap * 3 + treeNode.end
-
+                } else {
+                    treeNode.start = lastStart
+                    treeNode.end = Math.max(lasetEnd, positionInActually + minGap)
                 }
                 treeNode.positionx = positionInActually
                 treeNode.positiony = yAxisList[idxOfThisLevel]
