@@ -362,7 +362,7 @@ export default function (settings) {
          * adjust the initial display location to center of the scene
          */
         adjustInitialDisplayLocation(disableAnimation) {
-            this.performLayout(disableAnimation);
+            this.performLayout(disableAnimation, true);
         },
 
         /**
@@ -446,17 +446,17 @@ export default function (settings) {
         /**
          * draw circle layout
          */
-        drawCircleLayout(disableAnimation) {
+        drawCircleLayout(disableAnimation, init) {
             isDirty = true;
             if (stage.isTimelineLayout) {
                 timelineLayout.disableTimelineLayout();
             }
             layoutType = 'Circular';
-            layout = new CircleLayout(nodeSprites, nodeContainer, visualConfig);
+            layout = new CircleLayout(nodeSprites, nodeContainer, visualConfig, init);
             this.setNodesToFullScreen(disableAnimation);
         },
 
-        drawPersonLayout(disableAnimation) {
+        drawPersonLayout(disableAnimation, init) {
             isDirty = true;
             if (stage.isTimelineLayout) {
                 timelineLayout.disableTimelineLayout();
@@ -466,23 +466,23 @@ export default function (settings) {
             this.setNodesToFullScreen(disableAnimation);
         },
 
-        drawStructuralLayout(disableAnimation) {
+        drawStructuralLayout(disableAnimation, init) {
             isDirty = true;
             if (stage.isTimelineLayout) {
                 timelineLayout.disableTimelineLayout();
             }
             layoutType = 'Structural';
             // layout = new StructuralLayout(nodeSprites, nodeContainer, visualConfig);
-            layout = new GraphLevelForceLayoutOpt(nodeSprites, nodeContainer, visualConfig);
+            layout = new GraphLevelForceLayoutOpt(nodeSprites, nodeContainer, visualConfig, init);
             this.setNodesToFullScreen(disableAnimation);
         },
         /**
          * draw layered layout
          */
-        drawLayeredLayout(disableAnimation) {
+        drawLayeredLayout(disableAnimation, init) {
             isDirty = true;
             layoutType = 'Layered';
-            layout = new LayeredLayoutNew(nodeSprites, nodeContainer, visualConfig);
+            layout = new LayeredLayoutNew(nodeSprites, nodeContainer, visualConfig, init);
             if (stage.isTimelineLayout) {
                 timelineLayout.disableTimelineLayout();
             }
@@ -492,10 +492,10 @@ export default function (settings) {
         /**
          * draw radiate layout
          */
-        drawRadiateLayout(disableAnimation) {
+        drawRadiateLayout(disableAnimation, init) {
             isDirty = true;
             layoutType = 'Radiate';
-            layout = new RadiateLayout(nodeSprites, nodeContainer, visualConfig);
+            layout = new RadiateLayout(nodeSprites, nodeContainer, visualConfig, init);
             if (stage.isTimelineLayout) {
                 timelineLayout.disableTimelineLayout();
             }
@@ -981,7 +981,7 @@ export default function (settings) {
             layout.updateDynamicLayout(dynamic);
         },
 
-        performLayout(disableAnimation) {
+        performLayout(disableAnimation, init) {
             disableLayout = disableAnimation;
             if (layoutType === 'Network') {
                 if (stage.isTimelineLayout) {
@@ -1005,15 +1005,15 @@ export default function (settings) {
                 }
                 this.setNodesToFullScreen(disableAnimation);
             } else if (layoutType === 'Circular') {
-                this.drawCircleLayout(disableAnimation);
+                this.drawCircleLayout(disableAnimation, init);
             } else if (layoutType === 'PersonLayout'){
-                this.drawPersonLayout(disableAnimation);
+                this.drawPersonLayout(disableAnimation, init);
             } else if (layoutType === 'Structural') {
-                this.drawStructuralLayout(disableAnimation);
+                this.drawStructuralLayout(disableAnimation, init);
             } else if (layoutType === 'Layered') {
-                this.drawLayeredLayout(disableAnimation);
+                this.drawLayeredLayout(disableAnimation, init);
             } else if (layoutType === 'Radiate') {
-                this.drawRadiateLayout(disableAnimation);
+                this.drawRadiateLayout(disableAnimation, init);
             } else if (layoutType === 'TimelineScale') {
                 timelineLayout.drawTimelineLayout();
             } else {
