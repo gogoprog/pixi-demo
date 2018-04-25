@@ -1274,12 +1274,12 @@ export default function (settings) {
         },
     };
 
-    pixiGraphics._zoomActionListener = _.throttle((e) => {
-        pixiGraphics.zoom(e.offsetX || (e.originalEvent ? e.originalEvent.offsetX : null), e.offsetY || (e.originalEvent ? e.originalEvent.offsetY : null), e.deltaY < 0);
-    }, 100);
-
     if (!disabledWheel) {
-        canvas.addEventListener('mousewheel', pixiGraphics._zoomActionListener, { passive: true });
+        canvas.addEventListener('mousewheel', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            pixiGraphics.zoom(e.offsetX || (e.originalEvent ? e.originalEvent.offsetX : null), e.offsetY || (e.originalEvent ? e.originalEvent.offsetY : null), e.deltaY < 0);
+        }, { passive: false });
     }
 
     pixiGraphics._lastDownTarget = null;
