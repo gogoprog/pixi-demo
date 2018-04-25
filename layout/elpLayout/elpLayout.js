@@ -330,7 +330,9 @@ export default function elpLayout(graph, physicsSettings) {
                 for (var link of links){
                     var linkId = link.id;
                     var spring = springs[linkId];
-                    spring.length = springLength/3;
+                    if (spring) {
+                        spring.length = springLength/3;
+                    }
                 }
             }
         }

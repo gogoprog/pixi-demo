@@ -5,34 +5,36 @@ import createForest from './CreateForest.js';
 import Layout  from './Layout.js';
 
 export default class RadiateLayout extends Layout {
-    constructor(nodeSprites, nodeContainer, visualConfig) {
+    constructor(nodeSprites, nodeContainer, visualConfig, init) {
         super(nodeSprites, nodeContainer);
         this.NODE_WIDTH = visualConfig.NODE_WIDTH;
         this.levela = [];
         this.levelx = [];
         this.levelCount = [];
     
-        //initialize!
-        let nodes = this.getNodes();
-        let selectNodes = this.getSelectNodes();
-        let forest = [];
-        forest = createForest(nodes, selectNodes, visualConfig);
-        let that = this;
-        //计算辐射布局坐标
-        for (let i = 0; i < forest.length; i++) {
-            that.levela = [];
-            that.calRadiateAngle(forest[i], forest[i].root);
-            that.calRadiatePosition(forest[i], forest[i].root);
-            if (i > 0) {
-                let len = forest[i].levelRadius[forest[i].levelRadius.length - 1] + forest[i - 1].root.positionx + forest[i - 1].levelRadius[forest[i - 1].levelRadius.length - 1] + that.NODE_WIDTH * 4;
-                that.move(forest[i].root, len);
+        if (!init){
+            //initialize!
+            let nodes = this.getNodes();
+            let selectNodes = this.getSelectNodes();
+            let forest = [];
+            forest = createForest(nodes, selectNodes, visualConfig);
+            let that = this;
+            //计算辐射布局坐标
+            for (let i = 0; i < forest.length; i++) {
+                that.levela = [];
+                that.calRadiateAngle(forest[i], forest[i].root);
+                that.calRadiatePosition(forest[i], forest[i].root);
+                if (i > 0) {
+                    let len = forest[i].levelRadius[forest[i].levelRadius.length - 1] + forest[i - 1].root.positionx + forest[i - 1].levelRadius[forest[i - 1].levelRadius.length - 1] + that.NODE_WIDTH * 4;
+                    that.move(forest[i].root, len);
+                }
             }
-        }
-       _.each(forest, function (tree) {
-            _.each(tree, function (treeNode) {
-                that.draw(treeNode);
+            _.each(forest, function (tree) {
+                _.each(tree, function (treeNode) {
+                    that.draw(treeNode);
+                });
             });
-        });
+        }
     };
 
     //辐射布局的方法

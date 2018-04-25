@@ -15,56 +15,57 @@ Array.prototype.contains = function (obj) {  
     return false;  
 }  
 
-export default function LayeredLayout(nodeSprites, nodeContainer, visualConfig) {
+export default function LayeredLayout(nodeSprites, nodeContainer, visualConfig, init) {
     Layout.call(this, nodeSprites, nodeContainer);
     this.NODE_WIDTH = visualConfig.NODE_WIDTH;
     this.levelx = [];
+    if(!init){
+        // initialize!
+        let nodes = this.getNodes()
+        let selectNodes = this.getSelectNodes()
+        let forest = []
+        forest = cretatForestNew(selectNodes, nodes)
+        let that = this
 
-    // initialize!
-    let nodes = this.getNodes()
-    let selectNodes = this.getSelectNodes()
-    let forest = []
-    forest = cretatForestNew(selectNodes, nodes)
-    let that = this
+        var xAxisTmp = 0
+        // 计算层次布局坐标
+        for (var tree of forest) {
+            // 计算树每层的节点数量
+            tree = SortTree(tree)
+            // console.log(tree)
 
-    var xAxisTmp = 0
-    // 计算层次布局坐标
-    for (var tree of forest) {
-        // 计算树每层的节点数量
-        tree = SortTree(tree)
-        // console.log(tree)
-
-        var maxTreeNodeNumberOfLevel = 0
-        for (var level of tree.getLevels().values()){
-            var number = 0
-            for (var childTree of level.getChildTreeMap().values()){
-                number += childTree.getNodeMap().size
+            var maxTreeNodeNumberOfLevel = 0
+            for (var level of tree.getLevels().values()){
+                var number = 0
+                for (var childTree of level.getChildTreeMap().values()){
+                    number += childTree.getNodeMap().size
+                }
+                if (number > maxTreeNodeNumberOfLevel){
+                    maxTreeNodeNumberOfLevel = number
+                }
             }
-            if (number > maxTreeNodeNumberOfLevel){
-                maxTreeNodeNumberOfLevel = number
-            }
-        }
-        var yAxisTmp = Math.ceil(maxTreeNodeNumberOfLevel / 10) * that.NODE_WIDTH * 4;
+            var yAxisTmp = Math.ceil(maxTreeNodeNumberOfLevel / 10) * that.NODE_WIDTH * 4;
 
-        // xAxisList中记录每层横坐标的游标位置
-        var xAxisList = []
-        // TODO: 根据两层之间的节点数量计算层级的位置，即每层节点的纵坐标(选最大的?这个再议)
-        var yAxisList = []
-        
-        yAxisList.push(0)
-        xAxisList.push(xAxisTmp)
-        for (var idx = 1; idx < tree.getLevels().size; idx++){
-            yAxisList[idx] = yAxisList[idx - 1] + yAxisTmp
+            // xAxisList中记录每层横坐标的游标位置
+            var xAxisList = []
+            // TODO: 根据两层之间的节点数量计算层级的位置，即每层节点的纵坐标(选最大的?这个再议)
+            var yAxisList = []
+            
+            yAxisList.push(0)
             xAxisList.push(xAxisTmp)
+            for (var idx = 1; idx < tree.getLevels().size; idx++){
+                yAxisList[idx] = yAxisList[idx - 1] + yAxisTmp
+                xAxisList.push(xAxisTmp)
+            }
+            // 以深度优先的方式遍历树结构，从底层向上计算各个节点的坐标
+            that.computeTreeNodePosition(xAxisList, yAxisList, tree)
+            // 下一颗树的起始横向游标位置应该是上一颗树的边缘之后: 第一层唯一一个子树的最后一个节点的end
+            xAxisTmp = tree.getLevels().get(0).getChildTreeMap().get(0).getLastTreeNode().end + this.NODE_WIDTH*4;
         }
-        // 以深度优先的方式遍历树结构，从底层向上计算各个节点的坐标
-        that.computeTreeNodePosition(xAxisList, yAxisList, tree)
-        // 下一颗树的起始横向游标位置应该是上一颗树的边缘之后: 第一层唯一一个子树的最后一个节点的end
-        xAxisTmp = tree.getLevels().get(0).getChildTreeMap().get(0).getLastTreeNode().end + this.NODE_WIDTH*4;
-    }
-    for (var tree of forest) {
-        that.draw2(tree)
-    }
+        for (var tree of forest) {
+            that.draw2(tree)
+        }
+    } 
 }
 
 // 组合继承Layout

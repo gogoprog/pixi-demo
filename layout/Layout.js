@@ -28,7 +28,11 @@ export default class Layout {
                 scale: n.scale.x,
                 layoutLevel: 0,
                 type: n.type,
-                cluster: n.cluster
+                cluster: n.cluster,
+                position: {
+                    x: n.position.x,
+                    y: n.position.y
+                }
             };
             if(that.isNodeOriginallyPinned(n)){
                 node.isPinned = true;
