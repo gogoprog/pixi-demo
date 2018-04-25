@@ -1119,9 +1119,7 @@ export default function (settings) {
         modifyNodeLabel(nodeLabelsObj) {
             for (const nodeId in nodeLabelsObj) {
                 const nodeSprite = nodeSprites[nodeId];
-                if (nodeSprite.ts) {
-                    nodeSprite.ts.text = nodeLabelsObj[nodeId];
-                }
+                nodeSprite.updateLabel();
             }
         },
 
