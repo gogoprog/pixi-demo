@@ -176,8 +176,9 @@ function createTreeNode(node, thisLevelContainNodeIdSet, allNodes, levelId){
 
 
 function getMaxDegreeNode(nodeList) {
-    var maxDegree = 0;
+    var maxDegree = -1;
     var maxDegreeNodes = []
+    var maxDegreeNodeIdSet = new Set();    
     _.each(nodeList, function (node) {
         if ((!node.inTree) && node.id) {
             var degree = 0;
@@ -190,11 +191,57 @@ function getMaxDegreeNode(nodeList) {
             if (degree > maxDegree) {
                 maxDegree = degree;
                 maxDegreeNodes = []
+                maxDegreeNodeIdSet.clear();
                 maxDegreeNodes.push(node);
+                maxDegreeNodeIdSet.add(node.id);
             } else if (degree == maxDegree) {
-                maxDegreeNodes.push(node);
+                if (inSameTree(maxDegreeNodeIdSet, node, nodeList)){
+                    maxDegreeNodes.push(node);
+                    maxDegreeNodeIdSet.add(node.id);                    
+                }
             }
         }
     });
     return maxDegreeNodes;
+}
+
+function inSameTree(maxDegreeNodeIdSet, node, nodeList) {
+    var subGraphNodeIdSet = new Set();
+    subGraphNodeIdSet.add(node.id);
+    var newNodeIdSet = new Set();
+    newNodeIdSet.add(node.id);    
+    while (newNodeIdSet.size !== 0){
+        var tmpNewNodeIdSet = new Set();
+        for (var nodeId of newNodeIdSet){
+            var tmpNode = nodeList[nodeId];
+            getSubGraph(subGraphNodeIdSet, tmpNewNodeIdSet, tmpNode);
+        }
+        newNodeIdSet.clear();
+        for (var nodeId of tmpNewNodeIdSet){
+            if (maxDegreeNodeIdSet.has(nodeId)){
+                subGraphNodeIdSet.clear();
+                tmpNewNodeIdSet.clear();
+                return true;
+            }
+            subGraphNodeIdSet.add(nodeId);
+            newNodeIdSet.add(nodeId);
+        }
+        tmpNewNodeIdSet.clear();
+    }
+    return false;
+}
+
+function getSubGraph(subGraphNodeIdSet, newNodeIdSet, node){
+    _.each(node.incoming, function (link) {
+        var anotherNodeId = link.data.sourceEntity;
+        if (!subGraphNodeIdSet.has(anotherNodeId)){
+            newNodeIdSet.add(anotherNodeId)            
+        }
+    })
+    _.each(node.outgoing, function (link) {
+        var anotherNodeId = link.data.targetEntity;
+        if (!subGraphNodeIdSet.has(anotherNodeId)){
+            newNodeIdSet.add(anotherNodeId)            
+        }
+    })
 }

@@ -125,6 +125,8 @@ LayeredLayout.prototype.computeTreePositionInLevel = function (xAxisList, yAxisL
                 var treeNode = nodeMap.get(treeNodeId)
                 treeNode.positionx = xAxisList[idxOfThisLevel] 
                 treeNode.positiony = yAxisList[idxOfThisLevel]
+                treeNode.start = xAxisList[idxOfThisLevel] 
+                treeNode.end = xAxisList[idxOfThisLevel]
                 xAxisList[idxOfThisLevel] = treeNode.positionx + minGap
             }
             // 计算该子树的位置信息
@@ -183,7 +185,7 @@ LayeredLayout.prototype.computeTreePositionInLevel = function (xAxisList, yAxisL
                     lasetEnd = treeNode.end;
                     // 改变游标的初始位置，用于下一个子树的位置计算
                     // initialX = initialX + minGap * 3 + treeNode.end - treeNode.start
-                    initialX =  minGap * 3 + treeNode.end
+                    initialX =  minGap + treeNode.end
                 } else {
                     treeNode.start = lastStart
                     treeNode.end = Math.max(lasetEnd, positionInActually + minGap)
@@ -200,7 +202,7 @@ LayeredLayout.prototype.computeTreePositionInLevel = function (xAxisList, yAxisL
                 parentNode.end = Math.max(childTree.getLastTreeNode().positionx, nodeMap.get(nodeIdHasChildrenList[numberOfNodeHasChildren-1]).end)
             } 
         }
-        xAxisList[idxOfThisLevel] = xAxisList[idxOfThisLevel] + 3 * minGap
+        xAxisList[idxOfThisLevel] = xAxisList[idxOfThisLevel] * minGap
     } 
 }
 
