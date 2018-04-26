@@ -1254,7 +1254,11 @@ export default function (settings) {
             }
 
             if (linkXl <= xr && linkXr >= xl && linkYt <= yb && linkYb >= yt) { // 矩形碰撞检测  https://silentmatt.com/rectangle-intersection/
-                const x = link.x2 - link.x1;
+                let x = link.x2 - link.x1;
+                x = x === 0 ? 1 : x;
+                if (linkXl === linkXr) {    // 垂直的链接 水平设置1像素的偏移量
+                    linkXr = linkXl + 1;
+                }
                 const y = link.y2 - link.y1;
                 const rectLeft = Math.max(linkXl, xl);
                 const rectRight = Math.min(linkXr, xr);
