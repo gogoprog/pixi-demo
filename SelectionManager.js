@@ -19,7 +19,11 @@ export default function SelectionManager(nodeContainer, lineContainer) {
             const node = this.nodeContainer.recentlySelected;
             if (mouseEvent.ctrlKey) {
                 if (node.selected) {   // multi-selecting
-                    this.nodeContainer.selectNode(node);
+                    if (node.hadSelected) { // ctrl 已经选择的取消选择
+                        this.nodeContainer.deselectNode(node);
+                    } else {
+                        this.nodeContainer.selectNode(node);
+                    }
                 } else {
                     this.nodeContainer.deselectNode(node);
                 }
@@ -76,6 +80,8 @@ const NodeSelectionManager = function () {
                 this.selectedNodes[node.id] = node;
                 this.nodes.push(node);
                 node.selectionChanged(true);
+            } else {
+                node.hadSelected = true;
             }
         }
     };
@@ -90,6 +96,7 @@ const NodeSelectionManager = function () {
             // 更新下节点样式
             node.selectionChanged(false);
             delete this.selectedNodes[node.id];
+            node.hadSelected = false;
         }
     };
 
@@ -99,6 +106,7 @@ const NodeSelectionManager = function () {
             this.isDirty = true;
             _.each(this.selectedNodes, (node) => {
                 node.selectionChanged(false);
+                node.hadSelected = false;
             });
             this.selectedNodes = {};
             this.nodes = [];
