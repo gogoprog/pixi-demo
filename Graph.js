@@ -406,6 +406,24 @@ export default function Graph(source, options) {
                 });
                 graphPart.fire('collection', localChanges);
             });
+
+            entityGraphSource.on('control', (changes) => {
+                let localChanges = [];
+                _.each(changes, (change) => {
+                    if (change.entity) {
+                        const node = self.getNode(change.entity.id);
+                        if (node) {
+                            localChanges.push({
+                                node: node,
+                                changeType: 'control'
+                            });
+                        } else {
+                            console.warn('control change for unknown node ', change);
+                        }
+                    }
+                });
+                graphPart.fire('control', localChanges);
+            });
         },
     };
 

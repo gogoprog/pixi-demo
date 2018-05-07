@@ -98,12 +98,14 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             }
         }
 
-        if (this.ls) {
-            this.ls.visible = nodeVisible;
+        if (this.os) {  // 锁定图标和合并图标
+            for (let i = 0; i < this.os.length; i++) {
+                this.os[i].visible = nodeVisible;
+            }
         }
 
-        if (this.ms) {
-            this.ms.visible = nodeVisible;
+        if (this.cs) {
+            this.cs.visible = nodeVisible;
         }
 
         if (this.circleBorder) {
@@ -169,19 +171,22 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             }
             this.relayoutNodeIcon();
 
-            if (this.ls) {
-                this.ls.scale.set(0.5 * zoomValue);
-                this.ls.position.x = this.position.x + vizConf.NODE_LOCK_WIDTH * 0.5 * zoomValue;
-                this.ls.position.y = this.position.y - vizConf.NODE_LOCK_WIDTH * 0.5 * zoomValue;
-            }
             if (this.circleBorder) {
                 this.circleBorder.scale.set(zoomValue);
             }
 
-            if (this.ms) {
-                this.ms.scale.set(0.5 * zoomValue);
-                this.ms.position.x = this.position.x + vizConf.NODE_LOCK_WIDTH * 0.6 * zoomValue;
-                this.ms.position.y = this.position.y + vizConf.NODE_LOCK_WIDTH * 0.4 * zoomValue;
+            if (this.os) {
+                for (let i = 0; i < this.os.length; i++) {
+                    this.os[i].scale.set(0.5 * zoomValue);
+                }
+
+                this.relayoutNodeOtherIcon();
+            }
+
+            if (this.cs) {
+                this.cs.scale.set(0.5 * zoomValue);
+                this.cs.position.x = this.position.x + vizConf.NODE_LOCK_WIDTH * 0.5 * zoomValue;
+                this.cs.position.y = this.position.y - vizConf.NODE_LOCK_WIDTH * 0.5 * zoomValue;
             }
 
             if(this.selectionFrame && this.selectionFrame.visible) {
@@ -291,14 +296,13 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             this.relayoutNodeIcon();
         }
 
-        if (this.ls) {
-            this.ls.position.x = p.x + vizConf.NODE_LOCK_WIDTH * 0.5 * this.scale.x / vizConf.factor;
-            this.ls.position.y = p.y - vizConf.NODE_LOCK_WIDTH * 0.5 * this.scale.y / vizConf.factor;
+        if (this.os && this.os.length > 0) {
+            this.relayoutNodeOtherIcon();
         }
 
-        if (this.ms) {
-            this.ms.position.x = p.x + vizConf.NODE_LOCK_WIDTH * 0.6 * this.scale.x / vizConf.factor;
-            this.ms.position.y = p.y + vizConf.NODE_LOCK_WIDTH * 0.4 * this.scale.y / vizConf.factor;
+        if (this.cs) {
+            this.cs.position.x = p.x + vizConf.NODE_LOCK_WIDTH * 0.5 * this.scale.x / vizConf.factor;
+            this.cs.position.y = p.y - vizConf.NODE_LOCK_WIDTH * 0.5 * this.scale.y / vizConf.factor;
         }
 
         if (this.circleBorder) {
@@ -312,14 +316,14 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         }
     }
 
-    setNodeIcon(collIdArr, iconContainer) {
+    setNodeIcon(collIdArr) {
         if (this.gcs) {
             let gcsLen = this.gcs.length;
             while (gcsLen--) {
                 const iconSprite = this.gcs[gcsLen];
                 const index = collIdArr.indexOf(iconSprite.id);
                 if (index < 0) {
-                    iconContainer.removeChild(iconSprite);
+                    this.iconContainer.removeChild(iconSprite);
                     this.gcs.splice(gcsLen, 1);
                 } else {
                     collIdArr.splice(index, 1);
@@ -327,7 +331,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             }
         }
 
-        this._addIconToNode(collIdArr, iconContainer);
+        this._addIconToNode(collIdArr);
 
         this.relayoutNodeIcon();
     }
@@ -344,7 +348,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             }
         }
     }
-    _addIconToNode(collIdArr, nodeContainer) {
+    _addIconToNode(collIdArr) {
         const vizConf = this.visualConfig;
         const nodeSprite = this;
         const gcsArr = nodeSprite.gcs || [];
@@ -359,7 +363,8 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
 
             iconSprite.visible = nodeSprite.visible;
             gcsArr.push(iconSprite);
-            nodeContainer.addChild(iconSprite);
+            this.iconContainer.addChild(iconSprite);
+
         }
         nodeSprite.gcs = gcsArr;
     }
@@ -384,24 +389,52 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         }
     }
 
-    setNodeLockIcon(iconContainer) {
+    relayoutNodeOtherIcon() {
         const vizConf = this.visualConfig;
+        if (!this.os || this.os.length === 0) {
+            return;
+        }
         const nodeSprite = this;
-        const iconTexture = this.visualConfig.getLockIcon();
-        const iconSprite = new PIXI.Sprite(iconTexture);
-        iconSprite.anchor.x = 0.5;
-        iconSprite.anchor.y = 0.5;
-        iconSprite.scale.set(0.5 * nodeSprite.scale.x / vizConf.factor, 0.5 * nodeSprite.scale.y / vizConf.factor);
-        iconSprite.position.x = nodeSprite.position.x + vizConf.NODE_LOCK_WIDTH * 0.5 * nodeSprite.scale.x / vizConf.factor;
-        iconSprite.position.y = nodeSprite.position.y - vizConf.NODE_LOCK_WIDTH * 0.5 * nodeSprite.scale.y / vizConf.factor;
 
-        iconSprite.visible = nodeSprite.visible;
-        iconContainer.addChild(iconSprite);
-        nodeSprite.ls = iconSprite;
+        const iconRowWidth = (vizConf.NODE_ICON_WIDTH + 10) * 0.5 * nodeSprite.scale.x / vizConf.factor;
+        let iconPosY;
+        this.os[0].position.x = this.position.x + iconRowWidth;
+        this.os[0].position.y = iconPosY = this.position.y + vizConf.NODE_ICON_WIDTH * nodeSprite.scale.y / vizConf.factor;
+        for (let i = 1; i < this.os.length; i++) {
+            this.os[i].position.x = this.os[i - 1].position.x + iconRowWidth;
+            this.os[i].position.y = iconPosY;
+        }
     }
 
-    removeNodeLockIcon(iconContainer) {
-        iconContainer.removeChild(this.ls);
+    setNodeLockIcon() {
+        const nodeSprite = this;
+        if (!nodeSprite.ls) {
+            const vizConf = this.visualConfig;
+            const iconTexture = this.visualConfig.getLockIcon();
+            const iconSprite = new PIXI.Sprite(iconTexture);
+            iconSprite.anchor.x = 0.5;
+            iconSprite.anchor.y = 0.5;
+            iconSprite.scale.set(0.5 * nodeSprite.scale.x / vizConf.factor, 0.5 * nodeSprite.scale.y / vizConf.factor);
+            iconSprite.position.x = nodeSprite.position.x + vizConf.NODE_LOCK_WIDTH * 0.5 * nodeSprite.scale.x / vizConf.factor;
+            iconSprite.position.y = nodeSprite.position.y - vizConf.NODE_LOCK_WIDTH * 0.5 * nodeSprite.scale.y / vizConf.factor;
+
+            iconSprite.visible = nodeSprite.visible;
+            this.iconContainer.addChild(iconSprite);
+            nodeSprite.ls = iconSprite;
+
+            const osArr = nodeSprite.os || [];
+            osArr.unshift(iconSprite);
+            nodeSprite.os = osArr;
+            this.relayoutNodeOtherIcon();
+        }
+    }
+
+    removeNodeLockIcon() {
+        if (this.os && this.ls) {
+            this.os.shift();
+            this.relayoutNodeOtherIcon();
+        }
+        this.iconContainer.removeChild(this.ls);
         this.ls = null;
     }
 
@@ -426,8 +459,17 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         iconSprite.visible = nodeSprite.visible;
         this.iconContainer.addChild(iconSprite);
         nodeSprite.ms = iconSprite;
+
+        const osArr = nodeSprite.os || [];
+        osArr.push(iconSprite)
+        nodeSprite.os = osArr;
+        this.relayoutNodeOtherIcon();
     }
     disableMultipleIcon() {
+        if (this.os && this.ms) {
+            this.os.pop();
+            this.relayoutNodeOtherIcon();
+        }
         this.iconContainer.removeChild(this.ms);
         this.ms = null;
     }
@@ -441,6 +483,30 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             this.disableMultipleIcon();
         }
         this._multiple = value;
+    }
+
+    setControlIcon() {
+        const nodeSprite = this;
+        if (!nodeSprite.cs) {
+            const vizConf = this.visualConfig;
+            const controlTexture = this.visualConfig.getControlTexture();
+            const iconSprite = new PIXI.Sprite(controlTexture);
+
+            iconSprite.anchor.x = 0.5;
+            iconSprite.anchor.y = 0.5;
+            iconSprite.scale.set(0.5 * nodeSprite.scale.x / vizConf.factor, 0.5 * nodeSprite.scale.y / vizConf.factor);
+            iconSprite.position.x = nodeSprite.position.x + vizConf.NODE_LOCK_WIDTH * 0.5 * nodeSprite.scale.x / vizConf.factor;
+            iconSprite.position.y = nodeSprite.position.y - vizConf.NODE_LOCK_WIDTH * 0.5 * nodeSprite.scale.y / vizConf.factor;
+
+            iconSprite.visible = nodeSprite.visible;
+            this.iconContainer.addChild(iconSprite);
+            nodeSprite.cs = iconSprite;
+        }
+    }
+
+    removeControlIcon() {
+        this.iconContainer.removeChild(this.cs);
+        this.cs = null;
     }
 
 }
