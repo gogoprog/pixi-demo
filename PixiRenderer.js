@@ -1861,6 +1861,8 @@ export default function (settings) {
             pixiGraphics.selectSubGraph(updateNodeIdArray, updateLinkIdArray);
         }
 
+        selectionChanged();
+
         if (textAnalysis){
             for (let tmp = 0; tmp < 10000; tmp++){
                 layout.step();
