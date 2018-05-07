@@ -1854,14 +1854,18 @@ export default function (settings) {
             added = true;
         }
 
+        let updated = false;
         if (updateNodeIdArray.length > 0 || updateLinkIdArray.length > 0) {
             if (!added) {
                 pixiGraphics.clearSelection();
             }
             pixiGraphics.selectSubGraph(updateNodeIdArray, updateLinkIdArray);
+            updated = true;
         }
 
-        selectionChanged();
+        if (!added && !updated) {   // 删除时触发selectionChanged
+            selectionChanged();
+        }
 
         if (textAnalysis){
             for (let tmp = 0; tmp < 10000; tmp++){
