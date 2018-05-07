@@ -130,4 +130,8 @@ export const visualConfig = {
     getCircleBorderTexture() {
         return this.circleBorderTexture;
     },
+
+    getControlTexture() {
+        return this.controlTexture;
+    },
 };

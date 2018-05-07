@@ -36,13 +36,15 @@ export default class Settings {
         visConfig.graphCollIcons = graphCollIcons;
 
         const lockIconUrl = '/static/256/Lock/lock_state.png';
-        const multiIconUrl = '/static/images/ic_multiple_objects.png';
+        const multiIconUrl = '/static/256/LeafMergeEntity/LeafEntityMerge.png';
         const selectionFrameUrl = '/static/256/other/Square.png';
         const circleBorderUrl = '/static/256/other/Circle.png';
+        const controlIconUrl = '/static/256/Control/PeopleControl.png';
         visConfig.lockIcon = PIXI.Texture.fromImage(lockIconUrl);
         visConfig.multiIcon = PIXI.Texture.fromImage(multiIconUrl);
         visConfig.selectionFrameTexture = PIXI.Texture.fromImage(selectionFrameUrl);
         visConfig.circleBorderTexture = PIXI.Texture.fromImage(circleBorderUrl);
+        visConfig.controlTexture = PIXI.Texture.fromImage(controlIconUrl);
         visConfig.arrowTexture = PIXI.Texture.fromImage('/static/256/other/Arrow.png');
 
         visConfig = Object.assign({}, visConfig);

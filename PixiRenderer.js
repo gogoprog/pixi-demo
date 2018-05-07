@@ -1158,7 +1158,7 @@ export default function (settings) {
                 if (!node.pinned) {
                     node.pinned = true;
                     layout.pinNode(node, true);
-                    node.setNodeLockIcon(iconContainer);
+                    node.setNodeLockIcon();
                     node.data.properties._$lock = true;
                 }
             }
@@ -1170,7 +1170,7 @@ export default function (settings) {
                 if (node.pinned) {
                     node.pinned = false;
                     layout.pinNode(node, false);
-                    node.removeNodeLockIcon(iconContainer);
+                    node.removeNodeLockIcon();
                     delete node.data.properties._$lock;
                 }
             }
@@ -1527,12 +1527,12 @@ export default function (settings) {
         // }
 
         nodeSprite.parent = nodeContainer;
-        nodeSprite.setNodeIcon(decodeCollectionFlag(p.data.properties._$collectionIds), nodeContainer);
+        nodeSprite.setNodeIcon(decodeCollectionFlag(p.data.properties._$collectionIds));
 
         if (p.data.properties._$lock) {
             nodeSprite.pinned = true;
             layout.pinNode(nodeSprite, true);
-            nodeSprite.setNodeLockIcon(iconContainer);
+            nodeSprite.setNodeLockIcon();
         }
 
         // 更新缩放
@@ -1655,6 +1655,7 @@ export default function (settings) {
         graph.on('elp-changed', onGraphElpChanged);
         graph.on('init', onGraphInit);
         graph.on('collection', onGraphDataCollectionUpdate);
+        graph.on('control', onGraphControlUpdate);
     }
 
     function decodeCollectionFlag(flag) {
@@ -1676,9 +1677,24 @@ export default function (settings) {
                 const nodeSprite = nodeSprites[c.node.id];
                 // hard coding the collection id property name
                 const collIdArr = decodeCollectionFlag(c.node.data.properties._$collectionIds);
-                nodeSprite.setNodeIcon(collIdArr, nodeContainer);
+                nodeSprite.setNodeIcon(collIdArr);
             }
             // we don't have collection icon for links
+        });
+        isDirty = true;
+    }
+
+    function onGraphControlUpdate(changes) {
+        _.each(changes, (c)=>{
+            if(c.node) {
+                const nodeSprite = nodeSprites[c.node.id];
+                if (nodeSprite.properties._$control) {
+                    nodeSprite.setControlIcon();
+                } else {
+                    nodeSprite.removeControlIcon();
+                }
+            }
+            // links is not need control
         });
         isDirty = true;
     }
@@ -1707,15 +1723,18 @@ export default function (settings) {
             }
             if (nodeSprite.gcs) {
                 for (let i = 0; i < nodeSprite.gcs.length; i++) {
-                    nodeContainer.removeChild(nodeSprite.gcs[i]);
+                    iconContainer.removeChild(nodeSprite.gcs[i]);
                 }
             }
-            if (nodeSprite.ls) {
-                iconContainer.removeChild(nodeSprite.ls);
+
+            if (nodeSprite.os) {
+                for (let i = 0; i < nodeSprite.os.length; i++) {
+                    iconContainer.removeChild(nodeSprite.os[i]);
+                }
             }
 
-            if (nodeSprite.ms) {
-                iconContainer.removeChild(nodeSprite.ms);
+            if (nodeSprite.cs) {
+                iconContainer.removeChild(nodeSprite.cs);
             }
 
             nodeContainer.removeChild(nodeSprite);
@@ -1770,7 +1789,7 @@ export default function (settings) {
         nodeSprite.updateLabel();
         nodeSprite.updateScale();
         nodeSprite.updateBorder(textContainer);
-        nodeSprite.setNodeIcon(decodeCollectionFlag(node.data.properties._$collectionIds), nodeContainer);
+        nodeSprite.setNodeIcon(decodeCollectionFlag(node.data.properties._$collectionIds));
     }
 
     function updateLink(link) {
