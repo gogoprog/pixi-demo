@@ -1688,7 +1688,7 @@ export default function (settings) {
         _.each(changes, (c)=>{
             if(c.node) {
                 const nodeSprite = nodeSprites[c.node.id];
-                if (nodeSprite.properties._$control) {
+                if (nodeSprite.data.properties._$control) {
                     nodeSprite.setControlIcon();
                 } else {
                     nodeSprite.removeControlIcon();
