@@ -1854,11 +1854,17 @@ export default function (settings) {
             added = true;
         }
 
+        let updated = false;
         if (updateNodeIdArray.length > 0 || updateLinkIdArray.length > 0) {
             if (!added) {
                 pixiGraphics.clearSelection();
             }
             pixiGraphics.selectSubGraph(updateNodeIdArray, updateLinkIdArray);
+            updated = true;
+        }
+
+        if (!added && !updated) {   // 删除时触发selectionChanged
+            selectionChanged();
         }
 
         if (textAnalysis){
