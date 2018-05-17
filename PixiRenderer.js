@@ -110,7 +110,8 @@ export default function (settings) {
     const boarderGraphics = new PIXI.Graphics();
     const selectRegionGraphics = new PIXI.Graphics();
     const lineGraphics = new PIXI.Graphics();
-    const iconContainer = new PIXI.ParticleContainer(5000, { scale: true, position: true, rotation: true, uvs: false, alpha: true }, 16384,true);
+    // const iconContainer = new PIXI.ParticleContainer(5000, { scale: true, position: true, rotation: true, uvs: false, alpha: true }, 16384,true);
+    const iconContainer = new PIXI.Container();
     iconContainer.interactive = false;
     iconContainer.interactiveChildren = false;
     let destroyed = false;
