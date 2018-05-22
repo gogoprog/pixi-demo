@@ -537,7 +537,7 @@ export default function (settings) {
                     l.updatePosition();
                 });
             } else {
-                const rootPlacement = this.calculateRootPosition(visualConfig.MAX_ADJUST);
+                const rootPlacement = this.calculateRootPosition(1);
                 if (rootPlacement) {
                     animationAgent.move(root, rootPlacement.position);
                 } else {

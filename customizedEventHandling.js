@@ -166,13 +166,6 @@ export const nodeCaptureListener = function (e) {
     this.parent.isDirty = true;
     this.parent.setPositionDirty(false);
 
-    const mouseEvent = e.data.originalEvent;
-    if (!mouseEvent.ctrlKey) {
-        this.parent.parent.deselectAll();
-    }
-    this.parent.selectNode(this);
-    this.parent.nodeSelected(this);
-
     newPosition.copy(this.interactionData.getLocalPosition(this.parent));
 
     if (!this.moveListener) {
@@ -193,6 +186,8 @@ const nodeReleaseListener = function (e) {
     this.parent.nodeReleased(this);
     this.parent.isDirty = true;
     this.interactionData = null;
+    this.parent.selectNode(this);
+    this.parent.nodeSelected(this);
     this.parent.selectedNodesPosChanged();
     this.moveListener = null;
     this.off('mouseup', this.releaseListener);
@@ -230,6 +225,12 @@ const nodeMoveListener = function (e) {
         this.parent.dragJustNow = true;
         this.parent.setPositionDirty(true);
     } else if (!this.selected) {
+        const mouseEvent = e.data.originalEvent;
+        if (!mouseEvent.ctrlKey) {
+            this.parent.parent.deselectAll();
+        }
+        this.parent.selectNode(this);
+        this.parent.nodeSelected(this);
         this.updateNodePosition(newPosition, true);
         this.parent.nodeMoved(this);
         this.parent.setPositionDirty(true);
