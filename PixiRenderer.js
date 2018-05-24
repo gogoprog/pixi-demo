@@ -1124,6 +1124,13 @@ export default function (settings) {
             }
         },
 
+        updateNodeTexture(nodeSprite) {
+            const iconUrl = pixiGraphics.getEntitySemanticType(nodeSprite.data.type);
+            const semanticType = `/static/256/unknown${iconUrl}`;
+            nodeSprite.texture = PIXI.Texture.fromImage(semanticType);
+            nodeSprite.updateLabel();
+        },
+
         // convert the canvas drawing buffer into base64 encoded image url
         exportImage(width, height) {
             return new Promise((resolve, reject) => {
@@ -1516,8 +1523,17 @@ export default function (settings) {
     }
 
     function initNode(p) {
-        const semanticType = `/static/256${pixiGraphics.getEntitySemanticType(p.data.type)}`;
-        const texture = visualConfig.findIcon(semanticType);
+        const iconUrl = pixiGraphics.getEntitySemanticType(p.data.type);
+        let semanticType = '/static/256';
+        let texture = null;
+        const unknown = p.data.properties._$unknown;
+        if (unknown) {
+            semanticType = `${semanticType}/unknown${iconUrl}`;
+            texture = PIXI.Texture.fromImage(semanticType);
+        } else {
+            semanticType = `${semanticType}${iconUrl}`;
+            texture = visualConfig.findIcon(semanticType);
+        }
 
         const nodeSprite = new SimpleNodeSprite(texture, p, visualConfig, iconContainer);
 
@@ -1657,6 +1673,7 @@ export default function (settings) {
         graph.on('init', onGraphInit);
         graph.on('collection', onGraphDataCollectionUpdate);
         graph.on('control', onGraphControlUpdate);
+        graph.on('texture', onGraphTextureUpdate);
     }
 
     function decodeCollectionFlag(flag) {
@@ -1696,6 +1713,19 @@ export default function (settings) {
                 }
             }
             // links is not need control
+        });
+        isDirty = true;
+    }
+
+    function onGraphTextureUpdate(changes) {
+        _.each(changes, (c)=>{
+            if(c.node) {
+                const nodeSprite = nodeSprites[c.node.id];
+                if (nodeSprite.data.properties._$unknown) {
+                    pixiGraphics.updateNodeTexture(nodeSprite);
+                }
+            }
+            // links is not need unknown
         });
         isDirty = true;
     }
