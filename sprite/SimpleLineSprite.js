@@ -7,6 +7,7 @@ export default class SimpleLineSprite {
     static get ARROW_HEIGHT() { return 24; }
     static get ARROW_WIDTH() { return 16; }
     static get THICKNESS_FACTOR() { return 4; }
+    static get ARROW_FIXED_SCALE() { return 0.2 };
 
     constructor(label, thickness, color, arrowStyle, hasArrow, x1, y1, x2, y2, controlOffsetIndex, fontConfig, visualConfig) {
         this.hasArrow = hasArrow;
@@ -28,7 +29,7 @@ export default class SimpleLineSprite {
                 this.arrow = new PIXI.Sprite(SimpleLineSprite.getMultiTexture(thickness, color));
             }
             this.arrow.tint = this._color;
-            this.arrow.scale.set(0.2, 0.2);
+            this.arrow.scale.set(SimpleLineSprite.ARROW_FIXED_SCALE, SimpleLineSprite.ARROW_FIXED_SCALE);
             this.arrow.anchor.x = 0.5;
             this.arrow.lineSprite = this;
             this.arrow.on('mouseup', linkCaptureListener);
@@ -66,6 +67,15 @@ export default class SimpleLineSprite {
     }
     set thickness(value) {
         this._thickness = value;
+        const vizConf = this.visualConfig;
+        const lineStyle = vizConf.ui.line;
+        const currentScale = value / lineStyle.width;
+        const scaleDiff = (currentScale - 1) / 2;
+        const arrowScale = SimpleLineSprite.ARROW_FIXED_SCALE * (1 + scaleDiff);
+        if (this.arrow) {
+            this.arrow.scale.x = arrowScale;
+            this.arrow.scale.y = arrowScale;
+        }
     }
 
     get color() {
@@ -130,6 +140,13 @@ export default class SimpleLineSprite {
         }
     }
 
+    /**
+     * Selection change handler for a line sprite.
+     *
+     * 2018-05-30
+     * Due to requirements specified in BUG#5950, when a line is selected, the thickness need not to change.
+     * @param selected
+     */
     selectionChanged(selected) {
         const vizConf = this.visualConfig;
         const lineStyle = vizConf.ui.line;
@@ -138,7 +155,7 @@ export default class SimpleLineSprite {
         if (selected) {
             this.color = lineStyle.highlight.color;
             // this.alpha = lineStyle.highlight.alpha;
-            this.thickness = lineStyle.highlight.width;
+            // this.thickness = lineStyle.highlight.width;
             if (this.label) {
                 this.label.visible = true;
                 this.labelBg.visible = true;
@@ -149,7 +166,7 @@ export default class SimpleLineSprite {
             // this.label.alpha = this.customSettingAlpha;
             this.color = this.customSettingColor;
             // this.alpha = this.customSettingAlpha;
-            this.thickness = this.customSettingThickness;
+            // this.thickness = this.customSettingThickness;
             if (this.label) {
                 this.label.visible = labelStyle.visibleByDefault;
                 this.labelBg.visible = labelStyle.visibleByDefault;

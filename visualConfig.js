@@ -50,7 +50,7 @@ export const visualConfig = {
             width: 2,
             highlight: {
                 color: 0x3663ce,
-                width: 4,
+                width: 2,
                 alpha: 1,
             },
         },
