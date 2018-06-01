@@ -1131,6 +1131,13 @@ export default function (settings) {
             nodeSprite.updateLabel();
         },
 
+        removeNodeTexture(nodeSprite) {
+            const iconUrl = pixiGraphics.getEntitySemanticType(nodeSprite.data.type);
+            const semanticType = `/static/256${iconUrl}`;
+            nodeSprite.texture = visualConfig.findIcon(semanticType);
+            nodeSprite.updateLabel();
+        },
+
         // convert the canvas drawing buffer into base64 encoded image url
         exportImage(width, height) {
             return new Promise((resolve, reject) => {
@@ -1723,6 +1730,8 @@ export default function (settings) {
                 const nodeSprite = nodeSprites[c.node.id];
                 if (nodeSprite.data.properties._$unknown) {
                     pixiGraphics.updateNodeTexture(nodeSprite);
+                } else {
+                    pixiGraphics.removeNodeTexture(nodeSprite);
                 }
             }
             // links is not need unknown
