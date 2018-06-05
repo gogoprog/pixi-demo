@@ -44,7 +44,7 @@ export default function LayeredLayout(nodeSprites, nodeContainer, visualConfig, 
                     maxTreeNodeNumberOfLevel = number
                 }
             }
-            var yAxisTmp = Math.ceil(maxTreeNodeNumberOfLevel / 20) * that.NODE_WIDTH ;
+            var yAxisTmp = Math.max(Math.ceil(maxTreeNodeNumberOfLevel / 20) * that.NODE_WIDTH, that.NODE_WIDTH * 2);
 
             // xAxisList中记录每层横坐标的游标位置
             var xAxisList = []
@@ -97,7 +97,7 @@ LayeredLayout.prototype.computeTreePositionInLevel = function (xAxisList, yAxisL
         lowerLevel = levelMap.get(idxOfThisLevel + 1)
     }
     // 节点之间最小间距
-    var minGap = this.NODE_WIDTH * 2;
+    var minGap = this.NODE_WIDTH * 2.5;
 
      // 遍历本层所有子树
     for (var childTree of thisLevel.getChildTreeMap().values()){
