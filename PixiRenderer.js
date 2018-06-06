@@ -1681,6 +1681,7 @@ export default function (settings) {
         graph.on('collection', onGraphDataCollectionUpdate);
         graph.on('control', onGraphControlUpdate);
         graph.on('texture', onGraphTextureUpdate);
+        graph.on('lock', onGraphLockUpdate);
     }
 
     function decodeCollectionFlag(flag) {
@@ -1739,6 +1740,21 @@ export default function (settings) {
         isDirty = true;
     }
 
+    function onGraphLockUpdate(changes) {
+        _.each(changes, (c)=>{
+            if(c.node) {
+                const nodeSprite = nodeSprites[c.node.id];
+                if (nodeSprite.data.properties._$lock) {
+                    pixiGraphics.lock([nodeSprite]);
+                } else {
+                    pixiGraphics.unlock([nodeSprite]);
+                }
+            }
+            // links is not need unknown
+        });
+        isDirty = true;
+    }
+
     function removeNode(node) {
         isDirty = true;
         const nodeSprite = nodeSprites[node.id];
@@ -1770,7 +1786,7 @@ export default function (settings) {
             if (nodeSprite.os) {
                 for (let i = 0; i < nodeSprite.os.length; i++) {
                     iconContainer.removeChild(nodeSprite.os[i]);
-                }
+            }
             }
 
             if (nodeSprite.cs) {
