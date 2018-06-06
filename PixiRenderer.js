@@ -1156,8 +1156,10 @@ export default function (settings) {
 
                 displayCanvas.context.fillStyle = `#${visualConfig.backgroundColor.toString(16)}`;
                 displayCanvas.context.fillRect(0, 0, width, height);
-                displayCanvas.context.drawImage(imageCanvas, 0, 0, imageCanvas.width, imageCanvas.height, shiftX, shiftY, imageCanvas.width * ratio, imageCanvas.height * ratio);
-
+                if (imageCanvas.width || imageCanvas.height) {
+                    displayCanvas.context.drawImage(imageCanvas, 0, 0, imageCanvas.width, imageCanvas.height, shiftX, shiftY, imageCanvas.width * ratio, imageCanvas.height * ratio);
+                }
+                
                 resolve(displayCanvas.canvas.toDataURL());
             });
         },
