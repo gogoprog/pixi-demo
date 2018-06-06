@@ -442,6 +442,24 @@ export default function Graph(source, options) {
                 });
                 graphPart.fire('texture', localChanges);
             });
+
+            entityGraphSource.on('lock', (changes) => {
+                let localChanges = [];
+                _.each(changes, (change) => {
+                    if (change.entity) {
+                        const node = self.getNode(change.entity.id);
+                        if (node) {
+                            localChanges.push({
+                                node: node,
+                                changeType: 'lock'
+                            });
+                        } else {
+                            console.warn('lock change for unknown node ', change);
+                        }
+                    }
+                });
+                graphPart.fire('lock', localChanges);
+            });
         },
     };
 
