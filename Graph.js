@@ -367,10 +367,14 @@ export default function Graph(source, options) {
                 self.beginInitUpdate();
 
                 self.source.forEachEntity((e) => {
-                    self.addNode(e.id, e);
+                    if (!e.properties._$hidden) {
+                        self.addNode(e.id, e);
+                    }
                 });
                 self.source.forEachLink((l) => {
-                    self.addLink(l.sourceEntity, l.targetEntity, l);
+                    if (!l.properties._$hidden) {
+                        self.addLink(l.sourceEntity, l.targetEntity, l);
+                    }
                 });
                 self.endInitUpdate();
                 // console.log('Renderer graph finished handling source init event');
