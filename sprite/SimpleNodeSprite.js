@@ -185,8 +185,8 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
 
             if (this.cs) {
                 this.cs.scale.set(0.5 * zoomValue);
-                this.cs.position.x = this.position.x + vizConf.NODE_LOCK_WIDTH * 0.5 * zoomValue;
-                this.cs.position.y = this.position.y - vizConf.NODE_LOCK_WIDTH * 0.5 * zoomValue;
+                this.cs.position.x = this.position.x + (vizConf.NODE_STANDARD_SQUARE_WIDTH - vizConf.NODE_ATTACH_ICON_WIDTH) * 0.5 * scaleValue;
+                this.cs.position.y = this.position.y - (vizConf.NODE_STANDARD_SQUARE_WIDTH - vizConf.NODE_ATTACH_ICON_WIDTH) * 0.5 * scaleValue;
             }
 
             if(this.selectionFrame && this.selectionFrame.visible) {
@@ -301,8 +301,8 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         }
 
         if (this.cs) {
-            this.cs.position.x = p.x + vizConf.NODE_LOCK_WIDTH * 0.5 * this.scale.x / vizConf.factor;
-            this.cs.position.y = p.y - vizConf.NODE_LOCK_WIDTH * 0.5 * this.scale.y / vizConf.factor;
+            this.cs.position.x = p.x + (vizConf.NODE_STANDARD_SQUARE_WIDTH - vizConf.NODE_ATTACH_ICON_WIDTH) * 0.5 * this.scale.x;
+            this.cs.position.y = p.y - (vizConf.NODE_STANDARD_SQUARE_WIDTH - vizConf.NODE_ATTACH_ICON_WIDTH) * 0.5 * this.scale.y;
         }
 
         if (this.circleBorder) {
@@ -396,13 +396,14 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         }
         const nodeSprite = this;
 
-        const iconRowWidth = (vizConf.NODE_ICON_WIDTH + 10) * 0.5 * nodeSprite.scale.x / vizConf.factor;
-        let iconPosY;
-        this.os[0].position.x = this.position.x + iconRowWidth;
-        this.os[0].position.y = iconPosY = this.position.y + vizConf.NODE_ICON_WIDTH * nodeSprite.scale.y / vizConf.factor;
-        for (let i = 1; i < this.os.length; i++) {
-            this.os[i].position.x = this.os[i - 1].position.x + iconRowWidth;
+        // 以实体为中心的正方形210x210为标准 左下角图标从右到左依次排列
+        const iconRowWidth = vizConf.NODE_ATTACH_ICON_WIDTH * nodeSprite.scale.x + 10 * nodeSprite.scale.x / vizConf.factor;
+        const iconPosY = nodeSprite.position.y + (vizConf.NODE_STANDARD_SQUARE_WIDTH - vizConf.NODE_ATTACH_ICON_WIDTH) * 0.5 * nodeSprite.scale.y;
+        let k = 0;
+        for (let i = this.os.length - 1; i >= 0; i--) {
+            this.os[i].position.x = nodeSprite.position.x + (vizConf.NODE_STANDARD_SQUARE_WIDTH - vizConf.NODE_ATTACH_ICON_WIDTH) * 0.5 * nodeSprite.scale.x - k * iconRowWidth;
             this.os[i].position.y = iconPosY;
+            k ++;
         }
     }
 
@@ -415,9 +416,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             iconSprite.anchor.x = 0.5;
             iconSprite.anchor.y = 0.5;
             iconSprite.scale.set(0.5 * nodeSprite.scale.x / vizConf.factor, 0.5 * nodeSprite.scale.y / vizConf.factor);
-            iconSprite.position.x = nodeSprite.position.x + vizConf.NODE_LOCK_WIDTH * 0.5 * nodeSprite.scale.x / vizConf.factor;
-            iconSprite.position.y = nodeSprite.position.y - vizConf.NODE_LOCK_WIDTH * 0.5 * nodeSprite.scale.y / vizConf.factor;
-
             iconSprite.visible = nodeSprite.visible;
             this.iconContainer.addChild(iconSprite);
             nodeSprite.ls = iconSprite;
@@ -453,9 +451,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         iconSprite.anchor.x = 0.5;
         iconSprite.anchor.y = 0.5;
         iconSprite.scale.set(0.5 * nodeSprite.scale.x / vizConf.factor, 0.5 * nodeSprite.scale.y / vizConf.factor);
-        iconSprite.position.x = nodeSprite.position.x + vizConf.NODE_LOCK_WIDTH * 0.6 * nodeSprite.scale.x / vizConf.factor;
-        iconSprite.position.y = nodeSprite.position.y + vizConf.NODE_LOCK_WIDTH * 0.4 * nodeSprite.scale.y / vizConf.factor;
-
         iconSprite.visible = nodeSprite.visible;
         this.iconContainer.addChild(iconSprite);
         nodeSprite.ms = iconSprite;
@@ -492,11 +487,12 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             const controlTexture = this.visualConfig.getControlTexture();
             const iconSprite = new PIXI.Sprite(controlTexture);
 
+            // 以实体为中心的正方形210x210为标准 根据视觉图标注位置画各个实体的附属图标
             iconSprite.anchor.x = 0.5;
             iconSprite.anchor.y = 0.5;
             iconSprite.scale.set(0.5 * nodeSprite.scale.x / vizConf.factor, 0.5 * nodeSprite.scale.y / vizConf.factor);
-            iconSprite.position.x = nodeSprite.position.x + vizConf.NODE_LOCK_WIDTH * 0.5 * nodeSprite.scale.x / vizConf.factor;
-            iconSprite.position.y = nodeSprite.position.y - vizConf.NODE_LOCK_WIDTH * 0.5 * nodeSprite.scale.y / vizConf.factor;
+            iconSprite.position.x = nodeSprite.position.x + (vizConf.NODE_STANDARD_SQUARE_WIDTH - vizConf.NODE_ATTACH_ICON_WIDTH) * 0.5 * nodeSprite.scale.x;
+            iconSprite.position.y = nodeSprite.position.y - (vizConf.NODE_STANDARD_SQUARE_WIDTH - vizConf.NODE_ATTACH_ICON_WIDTH) * 0.5 * nodeSprite.scale.y;
 
             iconSprite.visible = nodeSprite.visible;
             this.iconContainer.addChild(iconSprite);
