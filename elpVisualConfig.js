@@ -11,6 +11,8 @@ export const elpVisualConfig = {
     NODE_ICON_WIDTH: 16,
     NODE_ICON_Y_OFFSET: 30, // Y offset for collection icon position.
     NODE_LOCK_WIDTH: 38,
+    NODE_ATTACH_ICON_WIDTH: 24, // 实体附属图标宽度
+    NODE_STANDARD_SQUARE_WIDTH: 210, // 实体附属图标标准正方形宽度
     ELLIPSE_WIDTH: 40,
     ELLIPSE_HIEGHT: 25,
     ELLIPSE_Y_OFFSET: 0.4 * 32,
