@@ -1536,7 +1536,8 @@ export default function (settings) {
         let semanticType = '/static/256';
         let texture = null;
         const unknown = p.data.properties._$unknown;
-        if (unknown) {
+        const lazy = p.data.properties._$lazy;
+        if (unknown || lazy) {
             semanticType = `${semanticType}/unknown${iconUrl}`;
             texture = PIXI.Texture.fromImage(semanticType);
         } else {
@@ -1731,7 +1732,9 @@ export default function (settings) {
         _.each(changes, (c)=>{
             if(c.node) {
                 const nodeSprite = nodeSprites[c.node.id];
-                if (nodeSprite.data.properties._$unknown) {
+                const unknown = nodeSprite.data.properties._$unknown;
+                const lazy = nodeSprite.data.properties._$lazy;
+                if (unknown || lazy) {
                     pixiGraphics.updateNodeTexture(nodeSprite);
                 } else {
                     pixiGraphics.removeNodeTexture(nodeSprite);
