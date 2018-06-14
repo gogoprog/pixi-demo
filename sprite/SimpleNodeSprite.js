@@ -35,6 +35,9 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
 
         this._selected = false;
 
+        // 是否是未知类型的实体
+        this.isUnknown = node.data.properties._$unknown || node.data.properties._$lazy;
+
         this.createText(node, visualConfig);
 
         const selectionTexture = visualConfig.getSelectionFrameTexture();
@@ -56,7 +59,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         t.scale.set(visualConfig.ui.label.scale, visualConfig.ui.label.scale);
         t.visible = visualConfig.ui.label.visibleByDefault;
         this.ts = t;
-
 
         const labelBg = new PIXI.Sprite(PIXI.Texture.WHITE);
         labelBg.alpha = 1;
@@ -102,6 +104,10 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             for (let i = 0; i < this.os.length; i++) {
                 this.os[i].visible = nodeVisible;
             }
+        }
+
+        if (this.unknownSprite) {
+            this.unknownSprite.visible = nodeVisible;
         }
 
         if (this.cs) {
@@ -181,6 +187,10 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
                 }
 
                 this.relayoutNodeOtherIcon();
+            }
+
+            if (this.unknownSprite) {
+                this.unknownSprite.scale.set(0.2 * this.scale.x / vizConf.factor, 0.2 * this.scale.y / vizConf.factor);
             }
 
             if (this.cs) {
@@ -296,6 +306,11 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             this.relayoutNodeIcon();
         }
 
+        if (this.unknownSprite) {
+            this.unknownSprite.position.x = this.position.x;
+            this.unknownSprite.position.y = this.position.y;
+        }
+
         if (this.os && this.os.length > 0) {
             this.relayoutNodeOtherIcon();
         }
@@ -364,7 +379,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             iconSprite.visible = nodeSprite.visible;
             gcsArr.push(iconSprite);
             this.iconContainer.addChild(iconSprite);
-
         }
         nodeSprite.gcs = gcsArr;
     }
@@ -411,8 +425,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         const nodeSprite = this;
         if (!nodeSprite.ls) {
             const vizConf = this.visualConfig;
-            const iconTexture = this.visualConfig.getLockIcon();
-            const iconSprite = new PIXI.Sprite(iconTexture);
+            const iconSprite = new PIXI.Sprite(this.visualConfig.lockIcon);
             iconSprite.anchor.x = 0.5;
             iconSprite.anchor.y = 0.5;
             iconSprite.scale.set(0.5 * nodeSprite.scale.x / vizConf.factor, 0.5 * nodeSprite.scale.y / vizConf.factor);
@@ -434,6 +447,33 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         }
         this.iconContainer.removeChild(this.ls);
         this.ls = null;
+    }
+
+    setNodeUnknownIcon() {
+        const nodeSprite = this;
+        if (!nodeSprite.unknownSprite) {
+            const vizConf = this.visualConfig;
+            const iconSprite = new PIXI.Sprite(this.visualConfig.unknownIcon);
+            iconSprite.anchor.x = 0.5;
+            iconSprite.anchor.y = 0.5;
+            iconSprite.scale.set(0.2 * nodeSprite.scale.x / vizConf.factor, 0.2 * nodeSprite.scale.y / vizConf.factor);
+            iconSprite.position.x = nodeSprite.position.x;
+            iconSprite.position.y = nodeSprite.position.y;
+
+            iconSprite.visible = nodeSprite.visible;
+            this.iconContainer.addChild(iconSprite);
+            nodeSprite.unknownSprite = iconSprite;
+
+            let colorMatrix = new PIXI.filters.ColorMatrixFilter();
+            this.filters = [colorMatrix];
+            colorMatrix.greyscale(0.5, true);
+        }
+    }
+
+    removeNodeUnknownIcon() {
+        this.iconContainer.removeChild(this.unknownSprite);
+        this.unknownSprite = null;
+        this.filters = [];
     }
 
     destroy() {
@@ -504,5 +544,4 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         this.iconContainer.removeChild(this.cs);
         this.cs = null;
     }
-
 }

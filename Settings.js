@@ -23,8 +23,7 @@ export default class Settings {
         visConfig.icons = images;
         const textAnalysisIconUrl = '/static/256/TextAnalysis/TextAnalysis.png';
         const text = {name: '文本', url: textAnalysisIconUrl};
-        const textAnalysisTexture = PIXI.Texture.fromImage(textAnalysisIconUrl);
-        text.texture = textAnalysisTexture;
+        text.texture = PIXI.Texture.fromImage(textAnalysisIconUrl);
         visConfig.icons.push(text);
 
         const graphCollIcons = visConfig.graphCollIcons || [];
@@ -35,17 +34,21 @@ export default class Settings {
         }
         visConfig.graphCollIcons = graphCollIcons;
 
-        const lockIconUrl = '/static/256/Lock/lock_state.png';
-        const multiIconUrl = '/static/256/LeafMergeEntity/LeafEntityMerge.png';
+        const lockIconUrl = '/static/256/subscript/lock_state.png';
+        const unknownIconUrl = '/static/256/subscript/unknown.png';
+        const multiIconUrl = '/static/256/subscript/LeafEntityMerge.png';
         const selectionFrameUrl = '/static/256/other/Square.png';
         const circleBorderUrl = '/static/256/other/Circle.png';
-        const controlIconUrl = '/static/256/Control/PeopleControl.png';
+        const controlIconUrl = '/static/256/subscript/PeopleControl.png';
         visConfig.lockIcon = PIXI.Texture.fromImage(lockIconUrl);
         visConfig.multiIcon = PIXI.Texture.fromImage(multiIconUrl);
+        visConfig.unknownIcon = PIXI.Texture.fromImage(unknownIconUrl);
         visConfig.selectionFrameTexture = PIXI.Texture.fromImage(selectionFrameUrl);
         visConfig.circleBorderTexture = PIXI.Texture.fromImage(circleBorderUrl);
         visConfig.controlTexture = PIXI.Texture.fromImage(controlIconUrl);
         visConfig.arrowTexture = PIXI.Texture.fromImage('/static/256/other/Arrow.png');
+
+        visConfig.allentities = PIXI.Texture.fromImage('/static/256/allentities.png');
 
         visConfig = Object.assign({}, visConfig);
         this.visualConfig = visConfig;
