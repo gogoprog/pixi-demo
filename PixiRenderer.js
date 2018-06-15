@@ -22,6 +22,7 @@ import { zoom, rootCaptureHandler, nodeCaptureListener } from './customizedEvent
 
 import SimpleLineSprite from './sprite/SimpleLineSprite';
 import SimpleNodeSprite from './sprite/SimpleNodeSprite';
+import NodeContainer from "./plugin/node/NodeContainer";
 
 import AnimationAgent from './AnimationAgent';
 import FPSCounter from './FPSCounter';
@@ -93,7 +94,7 @@ export default function (settings) {
     });
     const stage = new PIXI.Container();   // the view port, same size as canvas, used to capture mouse action
     const root = new PIXI.Container();   // the content root
-    const nodeContainer = new PIXI.Container();
+    const nodeContainer = localStorage.useCustomizedRenderer ? new NodeContainer(visualConfig.allentities) : new PIXI.Container();
 
     // let lineParticleContainer= new PIXI.ParticleContainer(5000, { scale: true, position: true, rotation: true, uvs: false, alpha: true }, 16384,true);
     const lineContainer = new PIXI.Container();
@@ -103,11 +104,13 @@ export default function (settings) {
     const labelContainer = new PIXI.Container();
     labelContainer.interactive = false;
     labelContainer.interactiveChildren = false;
+    const selectionFrameContainer = new PIXI.Container();
+    selectionFrameContainer.interactive = false;
+    selectionFrameContainer.interactiveChildren = false;
     const emptyTextContainer = new PIXI.Container();
     emptyTextContainer.interactive = false;
     emptyTextContainer.interactiveChildren = false;
     const emptyText = new PIXI.Text('分析结果为空', { fontFamily: 'Arial', fontSize: 24, fill: 0x1469a8, align: 'center' });
-    const boarderGraphics = new PIXI.Graphics();
     const selectRegionGraphics = new PIXI.Graphics();
     const lineGraphics = new PIXI.Graphics();
     // const iconContainer = new PIXI.ParticleContainer(5000, { scale: true, position: true, rotation: true, uvs: false, alpha: true }, 16384,true);
@@ -123,7 +126,6 @@ export default function (settings) {
     stage.addChild(selectRegionGraphics);
 
     lineGraphics.zIndex = 6;
-    boarderGraphics.zIndex = 10;
     selectRegionGraphics.zIndex = 11;
     textContainer.zIndex = 15;
     lineContainer.zIndex = 18;
@@ -132,9 +134,9 @@ export default function (settings) {
     emptyTextContainer.zIndex = 22;
     root.addChild(lineGraphics);
     // root.addChild(lineParticleContainer);
-    root.addChild(boarderGraphics);
     root.addChild(lineContainer);
     root.addChild(labelContainer);
+    root.addChild(selectionFrameContainer);
     root.addChild(textContainer);
     root.addChild(emptyTextContainer);
     root.addChild(nodeContainer);
@@ -197,7 +199,6 @@ export default function (settings) {
     };
 
     stage.selectAllNodesInRegion = function (x1, y1, x2, y2, flag, onlyNodeFlag) {
-        console.log('selectAllNodesInRegion begin');
         isDirty = true;
         let xl;
         let xr;
@@ -282,7 +283,6 @@ export default function (settings) {
     let linkSprites = {};
 
     //let bfsQueue = [];
-
 
     /**
      * now we vindicate a map for nodes to draw boundary.
@@ -922,7 +922,6 @@ export default function (settings) {
             graphLinks = null;
             counter.destroy();
 
-            boarderGraphics.destroy(false);
             selectRegionGraphics.destroy(false);
             lineGraphics.destroy(false);
             textContainer.destroy(false);
@@ -999,7 +998,6 @@ export default function (settings) {
                         l.updatePosition();
                     });
 
-                    // drawBorders();
                     drawLines();
 
                     renderer.render(stage);
@@ -1124,20 +1122,6 @@ export default function (settings) {
             }
         },
 
-        updateNodeTexture(nodeSprite) {
-            const iconUrl = pixiGraphics.getEntitySemanticType(nodeSprite.data.type);
-            const semanticType = `/static/256/unknown${iconUrl}`;
-            nodeSprite.texture = PIXI.Texture.fromImage(semanticType);
-            nodeSprite.updateLabel();
-        },
-
-        removeNodeTexture(nodeSprite) {
-            const iconUrl = pixiGraphics.getEntitySemanticType(nodeSprite.data.type);
-            const semanticType = `/static/256${iconUrl}`;
-            nodeSprite.texture = visualConfig.findIcon(semanticType);
-            nodeSprite.updateLabel();
-        },
-
         // convert the canvas drawing buffer into base64 encoded image url
         exportImage(width, height) {
             return new Promise((resolve, reject) => {
@@ -1159,7 +1143,7 @@ export default function (settings) {
                 if (imageCanvas.width || imageCanvas.height) {
                     displayCanvas.context.drawImage(imageCanvas, 0, 0, imageCanvas.width, imageCanvas.height, shiftX, shiftY, imageCanvas.width * ratio, imageCanvas.height * ratio);
                 }
-                
+
                 resolve(displayCanvas.canvas.toDataURL());
             });
         },
@@ -1331,7 +1315,6 @@ export default function (settings) {
     function selectionChanged() {
         isDirty = true;
         pixiGraphics.fire('selectionChanged');
-        // drawBorders();
         drawChangeLines();
     }
 
@@ -1445,7 +1428,6 @@ export default function (settings) {
 
         if (layoutPositionChanged || isDirty || nodeContainer.isDirty || stage.isDirty || lineContainer.isDirty
             || nodeContainer.positionDirty || lineContainer.styleDirty || animationAgent.needRerender()) {
-            // drawBorders();
             drawLines();
 
             selectRegionGraphics.clear();
@@ -1460,6 +1442,9 @@ export default function (settings) {
             if (stage.isTimelineLayout) {
                 timelineLayout.drawNodeTimelines();
             }
+
+            labelContainer.visible = root.scale.x > 0.5;
+
             renderer.render(stage);
 
             // trigger bird view update
@@ -1491,23 +1476,6 @@ export default function (settings) {
         });
     }
 
-    // TODO 画边框,查看drawRoudedRect性能
-    function drawBorders() {
-        const keys = Object.keys(nodeContainer.selectedNodes);
-        boarderGraphics.clear();
-        if (keys.length > 0) {
-            boarderGraphics.lineStyle(visualConfig.ui.frame.border.width, visualConfig.ui.frame.border.color, visualConfig.ui.frame.border.alpha);
-            _.each(nodeContainer.selectedNodes, (n2) => {
-                // if the node is invisible, we don't need draw is boundary
-                // TODO here we should consider the performance.
-                if (n2.visible) {
-                    boarderGraphics.drawRect(n2.position.x - 24 * n2.scale.x / visualConfig.factor, n2.position.y - 24 * n2.scale.y / visualConfig.factor, 48 * n2.scale.x / visualConfig.factor, (60) * n2.scale.y / visualConfig.factor);
-                }
-            });
-            boarderGraphics.endFill();
-        }
-    }
-
     function drawLines() {
         lineGraphics.clear();
         _.each(linkSprites, (link) => {
@@ -1533,28 +1501,17 @@ export default function (settings) {
 
     function initNode(p) {
         const iconUrl = pixiGraphics.getEntitySemanticType(p.data.type);
-        let semanticType = '/static/256';
-        let texture = null;
-        const unknown = p.data.properties._$unknown;
-        const lazy = p.data.properties._$lazy;
-        if (unknown || lazy) {
-            semanticType = `${semanticType}/unknown${iconUrl}`;
-            texture = PIXI.Texture.fromImage(semanticType);
-        } else {
-            semanticType = `${semanticType}${iconUrl}`;
-            texture = visualConfig.findIcon(semanticType);
-        }
+        const texture = visualConfig.findIcon(`/static/256${iconUrl}`);
 
         const nodeSprite = new SimpleNodeSprite(texture, p, visualConfig, iconContainer);
+        nodeSprite.iconUrl = iconUrl;
 
-        // if (p.data.properties && p.data.properties._$hidden) {
-        //     nodeSprite.hide();
-        // } else {
-        //     nodeSprite.show();
-        // }
-
-        nodeSprite.parent = nodeContainer;
         nodeSprite.setNodeIcon(decodeCollectionFlag(p.data.properties._$collectionIds));
+
+        // 设置unknown图标
+        if (nodeSprite.isUnknown) {
+            nodeSprite.setNodeUnknownIcon();
+        }
 
         if (p.data.properties._$lock) {
             nodeSprite.pinned = true;
@@ -1574,16 +1531,14 @@ export default function (settings) {
             nodeSprite.updateBorder(textContainer);
         }
 
-        labelContainer.addChild(nodeSprite.selectionFrame);
+        selectionFrameContainer.addChild(nodeSprite.selectionFrame);
         if (nodeSprite.ts) {
             labelContainer.addChild(nodeSprite.bg);
             labelContainer.addChild(nodeSprite.ts);
         }
         nodeContainer.addChild(nodeSprite);
         nodeSprites[p.id] = nodeSprite;
-        // if (layout) {
-        //     layout.setNodePosition(nodeSprite.id, nodeSprite.position.x, nodeSprite.position.y);
-        // }
+
         nodeSprite.on('mousedown', nodeCaptureListener);
         nodeSprite.on('rightup', contextmenuListener);
     }
@@ -1732,15 +1687,16 @@ export default function (settings) {
         _.each(changes, (c)=>{
             if(c.node) {
                 const nodeSprite = nodeSprites[c.node.id];
-                const unknown = nodeSprite.data.properties._$unknown;
-                const lazy = nodeSprite.data.properties._$lazy;
-                if (unknown || lazy) {
-                    pixiGraphics.updateNodeTexture(nodeSprite);
+
+                nodeSprite.updateLabel();
+
+                nodeSprite.isUnknown = nodeSprite.data.properties._$unknown || nodeSprite.data.properties._$lazy;
+                if (nodeSprite.isUnknown) {
+                    nodeSprite.setNodeUnknownIcon();
                 } else {
-                    pixiGraphics.removeNodeTexture(nodeSprite);
+                    nodeSprite.removeNodeUnknownIcon();
                 }
             }
-            // links is not need unknown
         });
         isDirty = true;
     }
@@ -1780,7 +1736,7 @@ export default function (settings) {
                 labelContainer.removeChild(nodeSprite.bg);
             }
             if (nodeSprite.selectionFrame) {
-                labelContainer.removeChild(nodeSprite.selectionFrame);
+                selectionFrameContainer.removeChild(nodeSprite.selectionFrame);
             }
             if (nodeSprite.gcs) {
                 for (let i = 0; i < nodeSprite.gcs.length; i++) {
