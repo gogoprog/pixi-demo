@@ -5,7 +5,6 @@ export default function SelectionManager(nodeContainer, lineContainer) {
     // root中有isDirty
     this.isDirty = false;
 
-    NodeSelectionManager.call(nodeContainer);
     LinkSelectionManager.call(lineContainer);
     this.deselectAll = function () {
         this.nodeContainer.deselectAllNodes();
@@ -57,66 +56,6 @@ export default function SelectionManager(nodeContainer, lineContainer) {
         }
     };
 }
-
-const NodeSelectionManager = function () {
-    // 将选中的节点以数组保存 [node1, node2, ...]
-    this.nodes = [];
-    // 将选中的节点以对象保存 { node.id1: node1, node.id2: node2, ... }
-    this.selectedNodes = {};
-    this.recentlySelected = null;
-    // nodeContainer中有isDirty
-    this.isDirty = false;
-    this.positionDirty = false;
-
-    this.nodeSelected = function (node) {
-        this.isDirty = true;
-        this.recentlySelected = node;
-    };
-
-    this.selectNode = function (node) {
-        if (node) {
-            this.isDirty = true;
-            if (!_.has(this.selectedNodes, node.id)) {
-                this.selectedNodes[node.id] = node;
-                this.nodes.push(node);
-                node.selectionChanged(true);
-            } else {
-                node.hadSelected = true;
-            }
-        }
-    };
-
-    this.deselectNode = function (node) {
-        if (node.selected) {
-            this.isDirty = true;
-            const index = this.nodes.indexOf(this.selectedNodes[node.id]);
-            if (index > -1) {
-                this.nodes.splice(index, 1);
-            }
-            // 更新下节点样式
-            node.selectionChanged(false);
-            delete this.selectedNodes[node.id];
-            node.hadSelected = false;
-        }
-    };
-
-    this.deselectAllNodes = function () {
-        const keys = Object.keys(this.selectedNodes);
-        if (keys.length > 0) {
-            this.isDirty = true;
-            _.each(this.selectedNodes, (node) => {
-                node.selectionChanged(false);
-                node.hadSelected = false;
-            });
-            this.selectedNodes = {};
-            this.nodes = [];
-        }
-    };
-
-    this.setPositionDirty = function (posDirty) {
-        this.positionDirty = posDirty;
-    };
-};
 
 const LinkSelectionManager = function () {
     // 将选中的链接以数组保存 [lin1, link2, ...]

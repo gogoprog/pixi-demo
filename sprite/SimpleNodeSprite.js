@@ -14,8 +14,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         this.incoming = [];
         this.outgoing = [];
 
-        this.nodeScale = visualConfig.factor;
-        this.scale.set(this.nodeScale);
+        this.scale.set(visualConfig.factor);
 
         this.boundaryAttr = {};
         this.boundaryAttr.border = {};
@@ -39,16 +38,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         this.isUnknown = node.data.properties._$unknown || node.data.properties._$lazy;
 
         this.createText(node, visualConfig);
-
-        const selectionTexture = visualConfig.getSelectionFrameTexture();
-        const selectionFrame = new PIXI.Sprite(selectionTexture);
-        selectionFrame.visible = false;
-        selectionFrame.scale.set(this.scale.x, this.scale.y);
-        selectionFrame.position.set(this.position.x, this.position.y);
-        selectionFrame.anchor.x = 0.5;
-        selectionFrame.anchor.y = 0.5;
-
-        this.selectionFrame = selectionFrame;
     }
 
     createText(node, visualConfig) {
@@ -70,53 +59,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         labelBg.anchor.y = 0.5;
         labelBg.visible = t.visible;
         this.bg = labelBg;
-    }
-
-    /**
-     * 隐藏图表
-     */
-    hide() {
-        this.toggleDisplay(false);
-    }
-
-    /**
-     * 显示图表
-     */
-    show() {
-        this.toggleDisplay(true);
-    }
-
-    toggleDisplay(nodeVisible){
-        this.visible = nodeVisible;
-        // either visible by deafult or show lable when selected.
-        if (this.ts) {
-            this.ts.visible = nodeVisible && (this.visualConfig.ui.label.visibleByDefault || this.selected);
-            this.bg.visible = this.ts.visible;
-        }
-        this.selectionFrame.visible = nodeVisible;
-        if (this.gcs) {
-            for (let i = 0; i < this.gcs.length; i++) {
-                this.gcs[i].visible = nodeVisible;
-            }
-        }
-
-        if (this.os) {  // 锁定图标和合并图标
-            for (let i = 0; i < this.os.length; i++) {
-                this.os[i].visible = nodeVisible;
-            }
-        }
-
-        if (this.unknownSprite) {
-            this.unknownSprite.visible = nodeVisible;
-        }
-
-        if (this.cs) {
-            this.cs.visible = nodeVisible;
-        }
-
-        if (this.circleBorder) {
-            this.circleBorder.visible = nodeVisible;
-        }
     }
 
     set selected(isSelected) {
@@ -144,10 +86,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
                 this.ts.style = vizConf.ui.label.font;
                 this.bg.tint = vizConf.ui.label.background.color;
             }
-        }
-        this.selectionFrame.visible = selected;
-        if (selected) {
-            this.selectionFrame.scale.set(this.scale.x, this.scale.y);
         }
     }
 
@@ -197,10 +135,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
                 this.cs.scale.set(0.5 * zoomValue);
                 this.cs.position.x = this.position.x + (vizConf.NODE_STANDARD_SQUARE_WIDTH - vizConf.NODE_ATTACH_ICON_WIDTH) * 0.5 * scaleValue;
                 this.cs.position.y = this.position.y - (vizConf.NODE_STANDARD_SQUARE_WIDTH - vizConf.NODE_ATTACH_ICON_WIDTH) * 0.5 * scaleValue;
-            }
-
-            if(this.selectionFrame && this.selectionFrame.visible) {
-                this.selectionFrame.scale.set(this.scale.x, this.scale.y);
             }
         }
     }
@@ -323,11 +257,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         if (this.circleBorder) {
             this.circleBorder.position.x = p.x;
             this.circleBorder.position.y = p.y;
-        }
-
-        if(this.selectionFrame) {
-            this.selectionFrame.position.x = p.x;
-            this.selectionFrame.position.y = p.y;
         }
     }
 
@@ -463,17 +392,12 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             iconSprite.visible = nodeSprite.visible;
             this.iconContainer.addChild(iconSprite);
             nodeSprite.unknownSprite = iconSprite;
-
-            let colorMatrix = new PIXI.filters.ColorMatrixFilter();
-            this.filters = [colorMatrix];
-            colorMatrix.greyscale(0.5, true);
         }
     }
 
     removeNodeUnknownIcon() {
         this.iconContainer.removeChild(this.unknownSprite);
         this.unknownSprite = null;
-        this.filters = [];
     }
 
     destroy() {

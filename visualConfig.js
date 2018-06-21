@@ -120,11 +120,6 @@ export const visualConfig = {
         }
     },
 
-    getLockIcon() {
-        const data = visualConfig.lockIcon;
-        return data;
-    },
-
     getSelectionFrameTexture() {
         return this.selectionFrameTexture;
     },
