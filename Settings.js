@@ -1,5 +1,3 @@
-import { visualConfig } from './visualConfig';
-
 export default class Settings {
     constructor(divId, timelineId, visConfig) {
         const canvasContainer = document.getElementById(divId);

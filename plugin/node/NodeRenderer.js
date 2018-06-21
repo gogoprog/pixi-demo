@@ -8,6 +8,7 @@ const INDEX_OF_OFFSET = 2;
 const INDEX_OF_SCALE = 3;
 const INDEX_OF_ICON = 4;
 const INDEX_OF_IS_UNKNOWN = 5;
+const INDEX_OF_SELECTED = 6;
 /**
  * Renderer dedicated to drawing and batching sprites.
  *
@@ -58,6 +59,10 @@ export default class NodeRenderer extends PIXI.ObjectRenderer
         this.quad.vao.addAttribute(this.isUnknownBuffer, this.shader.attributes.aIsUnknown, gl.FLOAT, false, 4, 0);
         this.extension.vertexAttribDivisorANGLE(INDEX_OF_IS_UNKNOWN, 1);
 
+        this.selectedBuffer = glCore.GLBuffer.createVertexBuffer(gl, null, gl.DYNAMIC_DRAW);
+        this.quad.vao.addAttribute(this.selectedBuffer, this.shader.attributes.aSelected, gl.FLOAT, false, 4, 0);
+        this.extension.vertexAttribDivisorANGLE(INDEX_OF_SELECTED, 1);
+
         this.renderer.bindVao(this.quad.vao);
         this.quad.upload();
     }
@@ -75,15 +80,29 @@ export default class NodeRenderer extends PIXI.ObjectRenderer
         const quad = this.quad;
         renderer.bindVao(quad.vao);
 
-        this.offsetBuffer.upload(container.offSetArray);
-        this.scaleBuffer.upload(container.scaleArray);
-        this.iconIndexBuffer.upload(container.iconIndexArray);
-        this.isUnknownBuffer.upload(container.isUnknownArray);
+        if (container.needRefreshData) {
+            container.needRefreshData = false;
+            this.scaleBuffer.upload(container.scaleArray);
+            this.iconIndexBuffer.upload(container.iconIndexArray);
+            this.isUnknownBuffer.upload(container.isUnknownArray);
+        }
 
-        const base = container.texture.baseTexture;
-        this.shader.uniforms.uSampler = renderer.bindTexture(base);
+        if (container.needRefreshOffset) {
+            container.needRefreshOffset = false;
+            this.offsetBuffer.upload(container.offSetArray);
+        }
 
-        this.extension.drawArraysInstancedANGLE(this.renderer.gl.TRIANGLES, 0, 6, container.instanceCount);
+        if (container.needRefreshSelection) {
+            container.needRefreshSelection = false;
+            this.selectedBuffer.upload(container.selectedArray);
+        }
+
+        this.shader.uniforms.transformMatrix = container.parent.transform.worldTransform.toArray(true);
+
+        this.shader.uniforms.uSampler = renderer.bindTexture(container.texture.baseTexture);
+        this.shader.uniforms.uSelectedSampler = renderer.bindTexture(container.selectionTexture.baseTexture);
+
+        this.extension.drawArraysInstancedANGLE(this.renderer.gl.TRIANGLES, 0, 12, container.instanceCount);
     }
 }
 

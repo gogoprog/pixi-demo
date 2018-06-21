@@ -94,9 +94,7 @@ export default function (settings) {
     });
     const stage = new PIXI.Container();   // the view port, same size as canvas, used to capture mouse action
     const root = new PIXI.Container();   // the content root
-    const nodeContainer = localStorage.useCustomizedRenderer ? new NodeContainer(visualConfig.allentities) : new PIXI.Container();
-
-    // let lineParticleContainer= new PIXI.ParticleContainer(5000, { scale: true, position: true, rotation: true, uvs: false, alpha: true }, 16384,true);
+    const nodeContainer = new NodeContainer(visualConfig);
     const lineContainer = new PIXI.Container();
     const textContainer = new PIXI.Container();
     textContainer.interactive = false;
@@ -104,9 +102,6 @@ export default function (settings) {
     const labelContainer = new PIXI.Container();
     labelContainer.interactive = false;
     labelContainer.interactiveChildren = false;
-    const selectionFrameContainer = new PIXI.Container();
-    selectionFrameContainer.interactive = false;
-    selectionFrameContainer.interactiveChildren = false;
     const emptyTextContainer = new PIXI.Container();
     emptyTextContainer.interactive = false;
     emptyTextContainer.interactiveChildren = false;
@@ -133,10 +128,9 @@ export default function (settings) {
 
     emptyTextContainer.zIndex = 22;
     root.addChild(lineGraphics);
-    // root.addChild(lineParticleContainer);
     root.addChild(lineContainer);
     root.addChild(labelContainer);
-    root.addChild(selectionFrameContainer);
+    // root.addChild(nodeContainer.selectionContainer);
     root.addChild(textContainer);
     root.addChild(emptyTextContainer);
     root.addChild(nodeContainer);
@@ -165,20 +159,20 @@ export default function (settings) {
 
     root.on('rightup', contextmenuListener);
 
-    nodeContainer.nodeCaptured = function (node) {
+    nodeContainer.on('nodeCaptured', (node) => {
         stage.hasNodeCaptured = true;
         if (layoutType === 'Network' && dynamicLayout) {
             if (!node.pinned) {
                 layout.pinNode(node, true);
             }
         }
-    };
+    });
 
-    nodeContainer.nodeMoved = function (node) {
+    nodeContainer.on('nodeMoved', (node) => {
         layout.setNodePosition(node.id, node.position.x, node.position.y);
-    };
+    });
 
-    nodeContainer.nodeReleased = function (node) {
+    nodeContainer.on('nodeReleased', (node) => {
         stage.hasNodeCaptured = false;
         if (layoutType === 'Network' && dynamicLayout) {
             if (node.pinned && !node.data.properties._$lock) {
@@ -188,7 +182,7 @@ export default function (settings) {
                 node.pinned = true;
             }
         }
-    };
+    });
 
     // layout 相关,把移动位置同步到layout内部
     nodeContainer.selectedNodesPosChanged = function () {
@@ -531,6 +525,7 @@ export default function (settings) {
                     n.position.x -= sumx;
                     n.position.y -= sumy;
                     n.updateNodePosition(n.position);
+                    nodeContainer.nodeMoved(n);
                     layout.setNodePosition(n.id, n.position.x, n.position.y);
                 });
                 _.each(linkSprites, (l) => {
@@ -739,6 +734,7 @@ export default function (settings) {
                 n.position.x -= sumx;
                 n.position.y -= sumy;
                 n.updateNodePosition(n.position);
+                nodeContainer.nodeMoved(n);
                 layout.setNodePosition(n.id, n.position.x, n.position.y);
             });
             _.each(linkSprites, (l) => {
@@ -972,6 +968,7 @@ export default function (settings) {
             _.each(nodeSprites, (nodeSprite, nodeId) => {
                 renderer.setNodePosition(nodeId, currentX, 0);
                 nodeSprite.updateNodePosition(layout.getNodePosition(nodeId), true);
+                nodeContainer.nodeMoved(nodeSprite);
                 currentX += nodeMarginX;
             });
         },
@@ -993,6 +990,7 @@ export default function (settings) {
 
                     _.each(nodeSprites, (nodeSprite, nodeId) => { //大开销计算
                         nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+                        nodeContainer.nodeMoved(nodeSprite);
                     });
                     _.each(linkSprites, (l) => {
                         l.updatePosition();
@@ -1466,6 +1464,7 @@ export default function (settings) {
     function updateNodeSpritesPosition() {
         _.each(nodeSprites, (nodeSprite, nodeId) => { // 大开销计算
             nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+            nodeContainer.nodeMoved(nodeSprite);
             if (nodeSprite.pinned && !nodeSprite.data.properties._$lock) {
                 nodeSprite.pinned = false;
                 layout.pinNode(nodeSprite, false);
@@ -1531,7 +1530,6 @@ export default function (settings) {
             nodeSprite.updateBorder(textContainer);
         }
 
-        selectionFrameContainer.addChild(nodeSprite.selectionFrame);
         if (nodeSprite.ts) {
             labelContainer.addChild(nodeSprite.bg);
             labelContainer.addChild(nodeSprite.ts);
@@ -1735,19 +1733,20 @@ export default function (settings) {
             if (nodeSprite.bg) {
                 labelContainer.removeChild(nodeSprite.bg);
             }
-            if (nodeSprite.selectionFrame) {
-                selectionFrameContainer.removeChild(nodeSprite.selectionFrame);
-            }
+
             if (nodeSprite.gcs) {
                 for (let i = 0; i < nodeSprite.gcs.length; i++) {
                     iconContainer.removeChild(nodeSprite.gcs[i]);
                 }
             }
+            if (nodeSprite.unknownSprite) {
+                iconContainer.removeChild(nodeSprite.unknownSprite);
+            }
 
             if (nodeSprite.os) {
                 for (let i = 0; i < nodeSprite.os.length; i++) {
                     iconContainer.removeChild(nodeSprite.os[i]);
-            }
+                }
             }
 
             if (nodeSprite.cs) {
@@ -1805,6 +1804,8 @@ export default function (settings) {
         nodeSprite.data = node.data;
         nodeSprite.updateLabel();
         nodeSprite.updateScale();
+        nodeContainer.updateScale(nodeSprite);
+        // nodeContainer.selectionContainer.updateScale(nodeSprite.id, nodeSprite.selectionFrame);
         nodeSprite.updateBorder(textContainer);
         nodeSprite.setNodeIcon(decodeCollectionFlag(node.data.properties._$collectionIds));
     }
