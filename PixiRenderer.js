@@ -22,7 +22,8 @@ import { zoom, rootCaptureHandler, nodeCaptureListener } from './customizedEvent
 
 import SimpleLineSprite from './sprite/SimpleLineSprite';
 import SimpleNodeSprite from './sprite/SimpleNodeSprite';
-import NodeContainer from "./plugin/node/NodeContainer";
+import NodeContainer from './plugin/node/NodeContainer';
+import LinkContainer from './plugin/link/LinkContainer';
 
 import AnimationAgent from './AnimationAgent';
 import FPSCounter from './FPSCounter';
@@ -95,7 +96,6 @@ export default function (settings) {
     const stage = new PIXI.Container();   // the view port, same size as canvas, used to capture mouse action
     const root = new PIXI.Container();   // the content root
     const nodeContainer = new NodeContainer(visualConfig);
-    const lineContainer = new PIXI.Container();
     const textContainer = new PIXI.Container();
     textContainer.interactive = false;
     textContainer.interactiveChildren = false;
@@ -108,6 +108,7 @@ export default function (settings) {
     const emptyText = new PIXI.Text('分析结果为空', { fontFamily: 'Arial', fontSize: 24, fill: 0x1469a8, align: 'center' });
     const selectRegionGraphics = new PIXI.Graphics();
     const lineGraphics = new PIXI.Graphics();
+    const linkContainer = new LinkContainer();
     // const iconContainer = new PIXI.ParticleContainer(5000, { scale: true, position: true, rotation: true, uvs: false, alpha: true }, 16384,true);
     const iconContainer = new PIXI.Container();
     iconContainer.interactive = false;
@@ -123,14 +124,12 @@ export default function (settings) {
     lineGraphics.zIndex = 6;
     selectRegionGraphics.zIndex = 11;
     textContainer.zIndex = 15;
-    lineContainer.zIndex = 18;
     nodeContainer.zIndex = 20;
 
     emptyTextContainer.zIndex = 22;
     root.addChild(lineGraphics);
-    root.addChild(lineContainer);
+    root.addChild(linkContainer);
     root.addChild(labelContainer);
-    // root.addChild(nodeContainer.selectionContainer);
     root.addChild(textContainer);
     root.addChild(emptyTextContainer);
     root.addChild(nodeContainer);
@@ -149,7 +148,7 @@ export default function (settings) {
     // renderer.backgroundColor = 0xFFFFFF;
     renderer.backgroundColor = visualConfig.backgroundColor;
 
-    SelectionManager.call(root, nodeContainer, lineContainer);
+    SelectionManager.call(root, nodeContainer, linkContainer);
 
     root.on('mouseup', function (e) {
         isDirty = true;
@@ -217,9 +216,6 @@ export default function (settings) {
         }
         _.each(nodeSprites, (n) => {
             // console.log(n.position.x+" "+n.position.y);
-            if (!n.visible) {
-                return;
-            }
             if ((n.position.x <= xr) && (n.position.x >= xl) && (n.position.y >= yt) && (n.position.y <= yb)) {
                 // console.log("here i come!!");
                 nodeContainer.selectNode(n);
@@ -232,13 +228,9 @@ export default function (settings) {
 
         const rectBox = {xl, xr, yt, yb};
         _.each(linkSprites, (link) => {
-            if (!link.visible) {
-                return;
-            }
-
             let detectFlag = pixiGraphics.detectLinkSelect(link, rectBox);
             if (detectFlag) {
-                lineContainer.selectLink(link);
+                linkContainer.selectLink(link);
             }
         });
     };
@@ -257,13 +249,9 @@ export default function (settings) {
         const rectBox = {xl, xr, yt, yb};   // {x0, y0} as a center point to construct a rectangle
 
         _.each(linkSprites, (link) => {
-            if (!link.visible) {
-                return;
-            }
-
             let detectFlag = pixiGraphics.detectLinkSelect(link, rectBox);
             if (detectFlag) {
-                lineContainer.linkSelected(link);
+                linkContainer.linkSelected(link);
             }
         });
     };
@@ -411,7 +399,7 @@ export default function (settings) {
          * links of nodeContainer are selected @SelectionManager.js
          */
         getSelectedLinks() {
-            return lineContainer.links;
+            return linkContainer.links;
         },
 
         /**
@@ -432,7 +420,7 @@ export default function (settings) {
          */
         getSelectedLinksData() {
             const selectedLinks = [];
-            _.each(lineContainer.links, (ls) => {
+            _.each(linkContainer.links, (ls) => {
                 selectedLinks.push(Object.assign({}, ls.data));
             });
             return selectedLinks;
@@ -756,7 +744,7 @@ export default function (settings) {
                 _.each(linkSprites, (linkSprite) => {
                     const actualId = linkSprite.id;
                     if (_.indexOf(linkIdArray, actualId) >= 0) {
-                        lineContainer.deselectLink(linkSprite);
+                        linkContainer.deselectLink(linkSprite);
                     }
                 });
             }
@@ -776,7 +764,7 @@ export default function (settings) {
             _.each(linkSprites, (linkSprite) => {
                 const actualId = linkSprite.id;
                 if (_.indexOf(linkIdArray, actualId) >= 0) {
-                    lineContainer.selectLink(linkSprite);
+                    linkContainer.selectLink(linkSprite);
                 }
             });
             selectionChanged();
@@ -792,21 +780,17 @@ export default function (settings) {
             _.each(startingNodes, (n) => {
                 if (direction === 'both' || direction === 'in') {
                     _.each(n.incoming, (l) => {
-                        if (l.visible) {
-                            lineContainer.selectLink(l);
-                            if (alsoSelectNodes && nodeSprites[l.data.sourceEntity].visible) {
-                                nodeContainer.selectNode(nodeSprites[l.data.sourceEntity]);
-                            }
+                        linkContainer.selectLink(l);
+                        if (alsoSelectNodes) {
+                            nodeContainer.selectNode(nodeSprites[l.data.sourceEntity]);
                         }
                     });
                 }
                 if (direction === 'both' || direction === 'out') {
                     _.each(n.outgoing, (l) => {
-                        if (l.visible) {
-                            lineContainer.selectLink(l);
-                            if (alsoSelectNodes && nodeSprites[l.data.targetEntity].visible) {
-                                nodeContainer.selectNode(nodeSprites[l.data.targetEntity]);
-                            }
+                        linkContainer.selectLink(l);
+                        if (alsoSelectNodes) {
+                            nodeContainer.selectNode(nodeSprites[l.data.targetEntity]);
                         }
                     });
                 }
@@ -833,14 +817,10 @@ export default function (settings) {
         selectAll() {
             isDirty = true;
             _.each(linkSprites, (l) => {
-                if (l.visible) {
-                    lineContainer.selectLink(l);
-                }
+                linkContainer.selectLink(l);
             });
             _.each(nodeSprites, (n) => {
-                if (n.visible) {
-                    nodeContainer.selectNode(n);
-                }
+                nodeContainer.selectNode(n);
             });
             selectionChanged();
         },
@@ -848,14 +828,14 @@ export default function (settings) {
         selectReverseSelection() {
             isDirty = true;
             _.each(linkSprites, (l) => {
-                if (l.selected || l.visible === false) {
-                    lineContainer.deselectLink(l);
+                if (l.selected) {
+                    linkContainer.deselectLink(l);
                 } else {
-                    lineContainer.selectLink(l);
+                    linkContainer.selectLink(l);
                 }
             });
             _.each(nodeSprites, (n) => {
-                if (n.selected || n.visible === false) {
+                if (n.selected) {
                     nodeContainer.deselectNode(n);
                 } else {
                     nodeContainer.selectNode(n);
@@ -921,14 +901,17 @@ export default function (settings) {
             selectRegionGraphics.destroy(false);
             lineGraphics.destroy(false);
             textContainer.destroy(false);
+            linkContainer.destroy(false);
             nodeContainer.destroy(false);
-            lineContainer.destroy(false);
+            // lineContainer.destroy(false);
             root.destroy(false);
             stage.destroy(false);   // false to not let pixi containers destroy sprites.
             renderer.destroy(true); // true for removing the underlying view(canvas)
         },
 
         setLayoutType(layoutTypeStr) {
+            lineGraphics.visible = layoutTypeStr === 'TimelineScale';
+
             console.info(`Setting layout type to ${layoutTypeStr}`);
             layoutType = layoutTypeStr || 'Network';
             if (layoutType !== 'Network'
@@ -996,7 +979,7 @@ export default function (settings) {
                         l.updatePosition();
                     });
 
-                    drawLines();
+                    // drawLines();
 
                     renderer.render(stage);
                 }
@@ -1175,10 +1158,6 @@ export default function (settings) {
             }
         },
 
-        updateLineContainerStyleDirty() {
-            lineContainer.styleDirty = true;
-        },
-
         resize(width, height) {
             isDirty = true;
             renderer.resize(width, height);
@@ -1313,7 +1292,7 @@ export default function (settings) {
     function selectionChanged() {
         isDirty = true;
         pixiGraphics.fire('selectionChanged');
-        drawChangeLines();
+        // drawChangeLines();
     }
 
     function hiddenStatusChanged() {
@@ -1341,7 +1320,7 @@ export default function (settings) {
             // console.log('rightup on link label');
             const lineSprite = e.target.lineSprite;
             if(!lineSprite.selected) {
-                lineContainer.selectLink(lineSprite);
+                linkContainer.selectLink(lineSprite);
             }
             selectionChanged();
         }
@@ -1365,7 +1344,8 @@ export default function (settings) {
                 event = { type: 'node', original: e , target: e.target.data };
             } else {
                 for (const linkSprite of selectedLinks) {
-                    if (linkSprite.arrow === e.target || linkSprite.label === e.target) {
+                    // if (linkSprite.arrow === e.target || linkSprite.label === e.target) {
+                    if (linkSprite.label === e.target) {
                         mouseOnSelectedLink = true;
                         break;
                     }
@@ -1424,9 +1404,9 @@ export default function (settings) {
             }
         }
 
-        if (layoutPositionChanged || isDirty || nodeContainer.isDirty || stage.isDirty || lineContainer.isDirty
-            || nodeContainer.positionDirty || lineContainer.styleDirty || animationAgent.needRerender()) {
-            drawLines();
+        if (layoutPositionChanged || isDirty || nodeContainer.isDirty || stage.isDirty || linkContainer.isDirty
+            || nodeContainer.positionDirty || animationAgent.needRerender()) {
+            // drawLines();
 
             selectRegionGraphics.clear();
             if (stage.selectRegion && stage.selectingArea) {
@@ -1453,9 +1433,9 @@ export default function (settings) {
             isDirty = false;
             nodeContainer.isDirty = false;
             stage.isDirty = false;
-            lineContainer.isDirty = false;
+            linkContainer.isDirty = false;
             nodeContainer.positionDirty = false;
-            lineContainer.styleDirty = false;
+            // linkContainer.styleDirty = false;
         }
         counter.nextFrame();
         requestAnimationFrame(animationLoop);
@@ -1472,29 +1452,6 @@ export default function (settings) {
         });
         _.each(linkSprites, (l) => {
             l.updatePosition();
-        });
-    }
-
-    function drawLines() {
-        lineGraphics.clear();
-        _.each(linkSprites, (link) => {
-            if (link.visible) {
-                link.renderLine(lineGraphics);
-            }
-        });
-    }
-
-    function drawChangeLines() {
-        _.each(lineContainer.selectedLinks, (link) => {
-            if (link.visible) {
-                link.renderLine(lineGraphics);
-            }
-        });
-
-        _.each(lineContainer.unSelectedLinks, (link) => {
-            if (link.visible) {
-                link.renderLine(lineGraphics);
-            }
         });
     }
 
@@ -1603,23 +1560,17 @@ export default function (settings) {
         l.id = f.data.id;
         l.ngLink = f;
 
-        if (f.data.properties && f.data.properties._$hidden) {
-            l.hide();
-        } else {
-            l.show();
-        }
-
         l.setLineAttr();
 
         srcNodeSprite.outgoing.push(l);
         tgtNodeSprite.incoming.push(l);
         linkSprites[l.id] = l;
-        if (f.data.isDirected) {
-            l.arrow.interactive = true;
-            l.arrow.buttonMode = true;
-            lineContainer.addChild(l.arrow);
-            l.arrow.on('rightup', contextmenuListener);
-        }
+        // if (f.data.isDirected) {
+        //     l.arrow.interactive = true;
+        //     l.arrow.buttonMode = true;
+        //     lineContainer.addChild(l.arrow);
+        //     l.arrow.on('rightup', contextmenuListener);
+        // }
 
         if (l.label) {
             l.label.interactive = true;
@@ -1628,6 +1579,9 @@ export default function (settings) {
             labelContainer.addChild(l.label);
             l.label.on('rightup', contextmenuListener);
         }
+
+        linkContainer.addLink(l);
+        l.parent = linkContainer;
     }
 
     function listenToGraphEvents() {
@@ -1767,7 +1721,7 @@ export default function (settings) {
         const l = linkSprites[link.id];
         if (l) {
             if (l.selected) {
-                lineContainer.deselectLink(l);
+                linkContainer.deselectLink(l);
             }
             if (l.label) {
                 labelContainer.removeChild(l.label);
@@ -1775,9 +1729,9 @@ export default function (settings) {
             if (l.labelBg) {
                 labelContainer.removeChild(l.labelBg);
             }
-            if (l.arrow) {
-                lineContainer.removeChild(l.arrow);
-            }
+            // if (l.arrow) {
+            //     lineContainer.removeChild(l.arrow);
+            // }
             const srcEntitySprite = nodeSprites[l.data.sourceEntity];
             const tgtEntitySprite = nodeSprites[l.data.targetEntity];
             const outLinkIndex = srcEntitySprite.outgoing.indexOf(l);
@@ -1793,6 +1747,9 @@ export default function (settings) {
             delete linkSprites[l.id];
             delete graphLinks[l.data.id];
             l.destroy();
+
+            linkContainer.removeLink(l.id);
+
             // console.log("Removed link: " + link.id);
         } else {
             console.log(`Could not find link sprite: ${link.id}`);
@@ -1848,7 +1805,7 @@ export default function (settings) {
                 }
                 if (changeLink) {
                     removeLink(changeLink);
-                    lineContainer.unSelectedLinks = {};
+                    linkContainer.unSelectedLinks = {};
                 }
             } else if (change.changeType === 'update') {
                 if (changeNode) {

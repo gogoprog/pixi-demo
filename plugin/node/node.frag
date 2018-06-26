@@ -9,7 +9,7 @@ uniform sampler2D uSelectedSampler;
 void main(void){
     if (vVertexID < 6.0) {
         if (vSelected < 0.5) {
-                discard;
+            discard;
         } else {
             gl_FragColor = texture2D(uSelectedSampler, vTextureCoord);
         }
