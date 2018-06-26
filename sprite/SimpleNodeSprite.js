@@ -1,4 +1,3 @@
-
 const COLLECTION_SCALE_FACTOR = 0.5;
 export default class SimpleNodeSprite extends PIXI.Sprite {
     constructor(texture, node, visualConfig, iconContainer) {

@@ -125,9 +125,7 @@ export default class NodeContainer extends PIXI.Container {
 
         this.idIndexMap.add({id: child.id, index});
 
-        child.updateTransform();
-        const localTransform = child.transform.localTransform;
-        this.offSetArray.set([localTransform.tx, localTransform.ty] , 2 * index);
+        this.offSetArray.set([child.x, child.y] , 2 * index);
 
         // all entities' icon index
         const iconIndex = allentities[child.iconUrl];
@@ -184,6 +182,7 @@ export default class NodeContainer extends PIXI.Container {
         this.needRefreshSelection = true;
     }
 
+    // copy from SelectionManager
     nodeSelected(node) {
         this.isDirty = true;
         this.recentlySelected = node;
@@ -250,10 +249,8 @@ export default class NodeContainer extends PIXI.Container {
         this.emit('nodeCaptured', node);
     }
     nodeMoved(node) {
-        node.updateTransform();
-        const localTransform = node.transform.localTransform;
         const index = this.idIndexMap.indexFrom(node.id);
-        this.offSetArray.set([localTransform.tx, localTransform.ty] , 2 * index);
+        this.offSetArray.set([node.x, node.y] , 2 * index);
 
         this.needRefreshOffset = true;
 
