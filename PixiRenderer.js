@@ -1365,7 +1365,10 @@ export default function (settings) {
         pixiGraphics.fire('contextmenu', event);
     }
 
-    function animationLoop() {
+    let lastScanTime = null;
+    function animationLoop(timestamp) {
+        if (!lastScanTime) lastScanTime = timestamp;
+
         if (destroyed) {
             console.info('Renderer destroyed, exiting animation loop');
             return;
@@ -1404,9 +1407,15 @@ export default function (settings) {
             }
         }
 
+        // Every 0.5 second, we check whether to change label's visible property.
+        if (timestamp - lastScanTime > 500) {
+            lastScanTime = timestamp;
+            updateLabelVisibility();
+            isDirty = true;
+        }
+
         if (layoutPositionChanged || isDirty || nodeContainer.isDirty || stage.isDirty || linkContainer.isDirty
             || nodeContainer.positionDirty || animationAgent.needRerender()) {
-            // drawLines();
 
             selectRegionGraphics.clear();
             if (stage.selectRegion && stage.selectingArea) {
@@ -1420,8 +1429,6 @@ export default function (settings) {
             if (stage.isTimelineLayout) {
                 timelineLayout.drawNodeTimelines();
             }
-
-            labelContainer.visible = root.scale.x > 0.5;
 
             renderer.render(stage);
 
@@ -1439,6 +1446,45 @@ export default function (settings) {
         }
         counter.nextFrame();
         requestAnimationFrame(animationLoop);
+    }
+
+    /**
+     * 更新是否显示Label
+     */
+    function updateLabelVisibility() {
+        if (root.scale.x > 0.5) {
+            labelContainer.visible = true;
+
+            let topLeft = root.worldTransform.applyInverse({x: 0, y: 0});
+            let bottomRight = root.worldTransform.applyInverse({x: viewWidth, y: viewHeight});
+            // simple render children!
+            for (const nodeId in nodeSprites)
+            {
+                const node = nodeSprites[nodeId];
+                if ( topLeft.x < node.x && node.x < bottomRight.x && topLeft.y < node.y && node.y < bottomRight.y) {
+                    node.ts.visible = true;
+                    node.bg.visible = true;
+                } else {
+                    node.ts.visible = false;
+                    node.bg.visible = false;
+                }
+            }
+            for (const linkId in linkSprites)
+            {
+                const link = linkSprites[linkId];
+                const midX = (link.fx + link.tx) / 2;
+                const midY = (link.fy + link.ty) / 2;
+                if ( topLeft.x < midX && midX < bottomRight.x && topLeft.y < midY && midY < bottomRight.y) {
+                    link.label.visible = true;
+                    link.labelBg.visible = true;
+                } else {
+                    link.label.visible = false;
+                    link.labelBg.visible = false;
+                }
+            }
+        } else {
+            labelContainer.visible = false;
+        }
     }
 
     function updateNodeSpritesPosition() {
@@ -1805,7 +1851,6 @@ export default function (settings) {
                 }
                 if (changeLink) {
                     removeLink(changeLink);
-                    linkContainer.unSelectedLinks = {};
                 }
             } else if (change.changeType === 'update') {
                 if (changeNode) {

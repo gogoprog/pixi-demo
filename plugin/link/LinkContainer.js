@@ -24,13 +24,10 @@ export default class LinkContainer extends PIXI.Container {
         // 将选中的链接以数组保存 [lin1, link2, ...]
         this.links = [];
         // 将选中的链接以对象保存 { link.id1: link1, link.id2: link2... }
-        this.selectedLinks = {};
+        this.selectedLinks = new Map();
         this.recentlySelected = null;
         // lineContainer中有isDirty
         this.isDirty = false;
-        // 将未选中的链接以对象保存
-        this.unSelectedLinks = {};
-        // this.styleDirty = false;
     }
 
     /**
@@ -219,14 +216,13 @@ export default class LinkContainer extends PIXI.Container {
         this.needRefreshData = true;
     }
 
-    updateSelection(child) {
+    updateSelection(child, isSelected) {
         const index = this.idIndexMap.indexFrom(child.id);
-        if (child.selected) {
+        if (isSelected) {
             this.selectedArray.set([1.0], index);
         } else {
             this.selectedArray.set([0.0], index);
         }
-        this.needRefreshSelection = true;
     }
 
     updateThickness(child) {
@@ -251,11 +247,13 @@ export default class LinkContainer extends PIXI.Container {
     selectLink(link) {
         if (link) {
             this.isDirty = true;
-            if (!_.has(this.selectedLinks, link.id)) {
-                this.selectedLinks[link.id] = link;
+            if (!this.selectedLinks.has(link.id)) {
+                this.selectedLinks.set(link.id, link);
                 this.links.push(link);
-                // 这个方法是在哪里定义的
                 link.selectionChanged(true);
+
+                this.updateSelection(link, true);
+                this.needRefreshSelection = true;
             }
         }
     };
@@ -263,26 +261,29 @@ export default class LinkContainer extends PIXI.Container {
     deselectLink(link) {
         if (link.selected) {
             this.isDirty = true;
-            const index = this.links.indexOf(this.selectedLinks[link.id]);
+            const index = this.links.indexOf(this.selectedLinks.get(link.id));
             if (index > -1) {
                 this.links.splice(index, 1);
             }
             link.selectionChanged(false);
-            delete this.selectedLinks[link.id];
-            this.unSelectedLinks[link.id] = link;
+            this.selectedLinks.delete(link.id);
+
+            this.updateSelection(link, false);
+            this.needRefreshSelection = true;
         }
     };
 
     deselectAllLinks() {
-        const keys = Object.keys(this.selectedLinks);
-        if (keys.length > 0) {
+        if (this.selectedLinks.size > 0) {
             this.isDirty = true;
-            _.each(this.selectedLinks, (link, id) => {
+            this.selectedLinks.forEach((link) => {
                 link.selectionChanged(false);
-                this.unSelectedLinks[id] = link;
+
+                this.updateSelection(link, false);
             });
-            this.selectedLinks = {};
+            this.selectedLinks.clear();
             this.links = [];
+            this.needRefreshSelection = true;
         }
     };
 }

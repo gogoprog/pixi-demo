@@ -35,7 +35,6 @@ export default class SimpleLineSprite {
         this.label.anchor.x = 0.5;
         this.label.anchor.y = 0.5;
         this.label.lineSprite = this;
-        this.label.visible = visualConfig.ui.label.visibleByDefault;
 
         const labelBg = new PIXI.Sprite(PIXI.Texture.WHITE);
         labelBg.alpha = 1;
@@ -44,7 +43,6 @@ export default class SimpleLineSprite {
         labelBg.height = this.label.height + 2;
         labelBg.anchor.x = 0.5;
         labelBg.anchor.y = 0.5;
-        labelBg.visible = this.label.visible;
         this.labelBg = labelBg;
 
         this.label.on('mousedown', linkCaptureListener);
@@ -104,7 +102,6 @@ export default class SimpleLineSprite {
                 this.label.text = label;
                 this.labelBg.width = this.label.width + 4;
                 this.labelBg.height = this.label.height + 2;
-                this.labelBg.visible = this.label.visible;
             } else {
                 this.createText(label, this.visualConfig.ui.label.font, this.visualConfig);
             }
@@ -120,25 +117,17 @@ export default class SimpleLineSprite {
      */
     selectionChanged(selected) {
         const vizConf = this.visualConfig;
-        const labelStyle = vizConf.ui.label;
         this.selected = selected;
         if (selected) {
             if (this.label) {
-                this.label.visible = true;
-                this.labelBg.visible = true;
                 this.label.style = vizConf.ui.label.fontHighlight;
                 this.labelBg.tint = vizConf.ui.label.background.highlight;
             }
         } else {
             if (this.label) {
-                this.label.visible = labelStyle.visibleByDefault;
-                this.labelBg.visible = labelStyle.visibleByDefault;
                 this.label.style = vizConf.ui.label.font;
                 this.labelBg.tint = vizConf.ui.label.background.color;
             }
-        }
-        if (this.parent) {
-            this.parent.updateSelection(this);
         }
     }
 

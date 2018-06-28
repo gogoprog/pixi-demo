@@ -26,7 +26,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
 
         this.visualConfig = visualConfig;
         this.interactive = true;
-        this.buttonMode = true;
 
         // for merged entity
         this._multiple = false;
@@ -45,7 +44,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         t.anchor.x = 0.5;
         t.anchor.y = 0.5;
         t.scale.set(visualConfig.ui.label.scale, visualConfig.ui.label.scale);
-        t.visible = visualConfig.ui.label.visibleByDefault;
         this.ts = t;
 
         const labelBg = new PIXI.Sprite(PIXI.Texture.WHITE);
@@ -56,7 +54,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         labelBg.position.set(t.position.x, t.position.y);
         labelBg.anchor.x = 0.5;
         labelBg.anchor.y = 0.5;
-        labelBg.visible = t.visible;
         this.bg = labelBg;
     }
 
@@ -73,15 +70,11 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         this._selected = selected;
         if (selected) {
             if (this.ts) {
-                this.bg.visible = true;
-                this.ts.visible = true;
                 this.ts.style = this.visualConfig.ui.label.fontHighlight;
                 this.bg.tint = vizConf.ui.label.background.highlight;
             }
         } else {
             if (this.ts) {
-                this.bg.visible = vizConf.ui.label.visibleByDefault;
-                this.ts.visible = vizConf.ui.label.visibleByDefault;
                 this.ts.style = vizConf.ui.label.font;
                 this.bg.tint = vizConf.ui.label.background.color;
             }
@@ -165,7 +158,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             if (!this.circleBorder) {
                 const borderTexture = vizConf.getCircleBorderTexture();
                 const circleBorder = new PIXI.Sprite(borderTexture);
-                circleBorder.visible = true;
                 circleBorder.scale.set(this.scale.x, this.scale.y);
                 circleBorder.position.set(this.position.x, this.position.y);
                 circleBorder.anchor.x = 0.5;
@@ -304,7 +296,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             iconSprite.anchor.y = 0.5;
             iconSprite.scale.set(COLLECTION_SCALE_FACTOR * nodeSprite.scale.x / vizConf.factor, COLLECTION_SCALE_FACTOR * nodeSprite.scale.y / vizConf.factor);
 
-            iconSprite.visible = nodeSprite.visible;
             gcsArr.push(iconSprite);
             this.iconContainer.addChild(iconSprite);
         }
@@ -357,7 +348,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             iconSprite.anchor.x = 0.5;
             iconSprite.anchor.y = 0.5;
             iconSprite.scale.set(0.5 * nodeSprite.scale.x / vizConf.factor, 0.5 * nodeSprite.scale.y / vizConf.factor);
-            iconSprite.visible = nodeSprite.visible;
             this.iconContainer.addChild(iconSprite);
             nodeSprite.ls = iconSprite;
 
@@ -388,7 +378,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             iconSprite.position.x = nodeSprite.position.x;
             iconSprite.position.y = nodeSprite.position.y;
 
-            iconSprite.visible = nodeSprite.visible;
             this.iconContainer.addChild(iconSprite);
             nodeSprite.unknownSprite = iconSprite;
         }
@@ -414,7 +403,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         iconSprite.anchor.x = 0.5;
         iconSprite.anchor.y = 0.5;
         iconSprite.scale.set(0.5 * nodeSprite.scale.x / vizConf.factor, 0.5 * nodeSprite.scale.y / vizConf.factor);
-        iconSprite.visible = nodeSprite.visible;
         this.iconContainer.addChild(iconSprite);
         nodeSprite.ms = iconSprite;
 
@@ -457,7 +445,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             iconSprite.position.x = nodeSprite.position.x + (vizConf.NODE_STANDARD_SQUARE_WIDTH - vizConf.NODE_ATTACH_ICON_WIDTH) * 0.5 * nodeSprite.scale.x;
             iconSprite.position.y = nodeSprite.position.y - (vizConf.NODE_STANDARD_SQUARE_WIDTH - vizConf.NODE_ATTACH_ICON_WIDTH) * 0.5 * nodeSprite.scale.y;
 
-            iconSprite.visible = nodeSprite.visible;
             this.iconContainer.addChild(iconSprite);
             nodeSprite.cs = iconSprite;
         }
