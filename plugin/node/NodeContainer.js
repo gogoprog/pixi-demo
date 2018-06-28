@@ -28,7 +28,7 @@ export default class NodeContainer extends PIXI.Container {
         // 将选中的节点以数组保存 [node1, node2, ...]
         this.nodes = [];
         // 将选中的节点以对象保存 { node.id1: node1, node.id2: node2, ... }
-        this.selectedNodes = {};
+        this.selectedNodes = new Map();
         this.recentlySelected = null;
         // nodeContainer中有isDirty
         this.isDirty = false;
@@ -191,8 +191,8 @@ export default class NodeContainer extends PIXI.Container {
     selectNode(node) {
         if (node) {
             this.isDirty = true;
-            if (!_.has(this.selectedNodes, node.id)) {
-                this.selectedNodes[node.id] = node;
+            if (!this.selectedNodes.has(node.id)) {
+                this.selectedNodes.set(node.id, node);
                 this.nodes.push(node);
                 node.selectionChanged(true);
 
@@ -208,13 +208,13 @@ export default class NodeContainer extends PIXI.Container {
     deselectNode(node) {
         if (node.selected) {
             this.isDirty = true;
-            const index = this.nodes.indexOf(this.selectedNodes[node.id]);
+            const index = this.nodes.indexOf(this.selectedNodes.get(node.id));
             if (index > -1) {
                 this.nodes.splice(index, 1);
             }
             // 更新下节点样式
             node.selectionChanged(false);
-            delete this.selectedNodes[node.id];
+            this.selectedNodes.delete(node.id);
             node.hadSelected = false;
 
             const selectedIndex = this.idIndexMap.indexFrom(node.id);
@@ -224,20 +224,19 @@ export default class NodeContainer extends PIXI.Container {
     };
 
     deselectAllNodes() {
-        const keys = Object.keys(this.selectedNodes);
-        if (keys.length > 0) {
+        if (this.selectedNodes.size > 0) {
             this.isDirty = true;
             const self = this;
-            _.each(this.selectedNodes, (node) => {
+            this.selectedNodes.forEach((node) => {
                 node.selectionChanged(false);
                 node.hadSelected = false;
 
                 const index = self.idIndexMap.indexFrom(node.id);
                 self.selectedArray.set([0.0], index);
-                self.needRefreshSelection = true;
             });
-            this.selectedNodes = {};
+            this.selectedNodes.clear();
             this.nodes = [];
+            this.needRefreshSelection = true;
         }
     };
 

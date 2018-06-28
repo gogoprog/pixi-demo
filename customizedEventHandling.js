@@ -60,16 +60,8 @@ export const rootCaptureHandler = function (e) {
             y: e.data.global.y,
         };
         this.selectingArea = true;
-        // console.log('Root captured @' + JSON.stringify(this.mouseLocation));
 
-        const np = {};
-        np.global = {};
-
-        np.global.x = this.mouseLocation.x;
-        np.global.y = this.mouseLocation.y;
-
-        let tnp = new PIXI.Point();
-        tnp = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(np, this.contentRoot.children[4]);   // children[4] lineContainer
+        let tnp = this.contentRoot.worldTransform.applyInverse(this.mouseLocation);
         this.selectSingleLink(tnp.x, tnp.y);
     }
     if (!this.moveListener) {
@@ -125,22 +117,8 @@ const rootMoveHandler = function (e) {
                 y2: newPosition.y,
             };
 
-            const op = {};
-            const np = {};
-            op.global = {};
-            np.global = {};
-
-            op.global.x = oldPosition.x;
-            op.global.y = oldPosition.y;
-            np.global.x = newPosition.x;
-            np.global.y = newPosition.y;
-
-            let top = new PIXI.Point();
-            let tnp = new PIXI.Point();
-            // top = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(op, this.contentRoot);
-            // tnp = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(np, this.contentRoot);
-            top = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(op, this.contentRoot.children[5]);
-            tnp = PIXI.interaction.InteractionData.prototype.getLocalPosition.call(np, this.contentRoot.children[5]);   // children[5] nodeContainer
+            let top = this.contentRoot.worldTransform.applyInverse(oldPosition);
+            let tnp = this.contentRoot.worldTransform.applyInverse(newPosition);
             const me = e.data.originalEvent;
             let flag = true;
             if (me.ctrlKey) {
