@@ -39,7 +39,13 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     }
 
     createText(node, visualConfig) {
-        const t = new PIXI.Text((node.data.label ? node.data.label : ''), visualConfig.ui.label.font);
+        const t = new PIXI.extras.BitmapText((node.data.label ? node.data.label : ''), {
+            font: {
+                name : visualConfig.font.font,
+                size: visualConfig.ui.label.font.size
+            },
+            tint: visualConfig.ui.label.font.color
+        });
         t.position.set(node.data.properties._$x, node.data.properties._$y + visualConfig.NODE_LABLE_OFFSET_Y);
         t.anchor.x = 0.5;
         t.anchor.y = 0.5;
@@ -70,12 +76,12 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         this._selected = selected;
         if (selected) {
             if (this.ts) {
-                this.ts.style = this.visualConfig.ui.label.fontHighlight;
+                this.ts.tint = vizConf.ui.label.font.highlight;
                 this.bg.tint = vizConf.ui.label.background.highlight;
             }
         } else {
             if (this.ts) {
-                this.ts.style = vizConf.ui.label.font;
+                this.ts.tint = vizConf.ui.label.font.color;
                 this.bg.tint = vizConf.ui.label.background.color;
             }
         }

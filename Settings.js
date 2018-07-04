@@ -9,16 +9,21 @@ export default class Settings {
         canvas.width = canvasContainer.offsetWidth - 2;
         canvas.height = canvasContainer.offsetHeight - 2;
         this.container = canvas;
-        this.updateVisualConfig(visConfig);
+        this.visualConfig = visConfig;
+        this.updateVisualConfig();
         this.timelineContainer = timelineId;
         this.mode = 'picking';
     }
-    updateVisualConfig(visConfig) {
-        const images = visConfig.icons || [];
-        for (const image of images) {
-            image.texture = PIXI.Texture.fromImage(image.url);
-        }
-        visConfig.icons = images;
+    updateVisualConfig() {
+        let visConfig = this.visualConfig;
+
+        // const images = visConfig.icons || [];
+        // for (const image of images) {
+        //     image.texture = PIXI.Texture.fromImage(image.url);
+        // }
+        // visConfig.icons = images;
+        visConfig.defaultIcon = PIXI.Texture.fromImage('/static/256/other/Unknown.png');
+
         const textAnalysisIconUrl = '/static/256/TextAnalysis/TextAnalysis.png';
         const text = {name: '文本', url: textAnalysisIconUrl};
         text.texture = PIXI.Texture.fromImage(textAnalysisIconUrl);
@@ -50,5 +55,16 @@ export default class Settings {
 
         visConfig = Object.assign({}, visConfig);
         this.visualConfig = visConfig;
+    }
+
+    loadResources(callback) {
+        let visConfig = this.visualConfig;
+
+        const loader = new PIXI.loaders.Loader();
+        loader.add('fontXML', '/static/font/noto.fnt');
+        loader.load((loader, resources) => {
+            visConfig.font = resources.fontXML.bitmapFont;
+            callback();
+        });
     }
 }

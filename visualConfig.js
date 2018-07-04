@@ -70,8 +70,11 @@ export const visualConfig = {
         label: {
             scale: 0.28,
             visibleByDefault: true,
-            font: {fontFamily: 'Microsoft YaHei,Tahoma', fill: 0x000000, align: 'center', fontSize: '48px',},
-            fontHighlight: {fontFamily: 'Microsoft YaHei,Tahoma', fill: 0xffffff, align: 'center', fontSize: '48px'},
+            font: {
+                size: 48,
+                color: 0x333333,
+                highlight: 0xffffff,
+            },
             background: {
                 color: 0xffffff,
                 highlight: 0x3663ce,
@@ -118,10 +121,6 @@ export const visualConfig = {
         if (data) {
             return data[collId - 1];
         }
-    },
-
-    getSelectionFrameTexture() {
-        return this.selectionFrameTexture;
     },
 
     getCircleBorderTexture() {

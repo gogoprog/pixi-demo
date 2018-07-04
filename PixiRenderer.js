@@ -1503,9 +1503,9 @@ export default function (settings) {
 
     function initNode(p) {
         const iconUrl = pixiGraphics.getEntitySemanticType(p.data.type);
-        const texture = visualConfig.findIcon(`/static/256${iconUrl}`);
+        // const texture = visualConfig.findIcon(`/static/256${iconUrl}`);
 
-        const nodeSprite = new SimpleNodeSprite(texture, p, visualConfig, iconContainer);
+        const nodeSprite = new SimpleNodeSprite(visualConfig.defaultIcon, p, visualConfig, iconContainer);
         nodeSprite.iconUrl = iconUrl;
 
         nodeSprite.setNodeIcon(decodeCollectionFlag(p.data.properties._$collectionIds));
@@ -1587,7 +1587,7 @@ export default function (settings) {
             (f.data.label ? f.data.label : ''), visualConfig.ui.line.width, visualConfig.ui.line.color, f.data.isMultiple, f.data.isDirected,
             srcNodeSprite.position.x, srcNodeSprite.position.y,
             tgtNodeSprite.position.x, tgtNodeSprite.position.y,
-            positionOffset, visualConfig.ui.label.font, visualConfig);
+            positionOffset, visualConfig);
 
         if (sameTgtLink.length > 0 && reverseLink.length === 0) {
             sameTgtLink.push(l);

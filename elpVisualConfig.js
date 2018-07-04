@@ -67,16 +67,9 @@ export const elpVisualConfig = {
             scale: 0.28,
             visibleByDefault: true,
             font: {
-                fontFamily: 'Microsoft YaHei,Tahoma',
-                fill: 0x000000,
-                align: 'center',
-                fontSize: '60px',
-            },
-            fontHighlight: {
-                fontFamily: 'Microsoft YaHei,Tahoma',
-                fill: 0xffffff,
-                align: 'center',
-                fontSize: '60px',
+                size: 48,
+                color: 0x333333,
+                highlight: 0xffffff,
             },
             background: {
                 color: 0xffffff,
@@ -114,10 +107,6 @@ export const elpVisualConfig = {
                 return data[i].texture;
             }
         }
-    },
-
-    getSelectionFrameTexture() {
-        return this.selectionFrameTexture;
     },
 
     getCircleBorderTexture() {
