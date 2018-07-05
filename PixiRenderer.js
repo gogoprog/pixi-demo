@@ -1171,6 +1171,272 @@ export default function (settings) {
         },
 
         /**
+         * 左对齐
+         * @param {[]} nodes nodeSprite
+         */
+        alignLeft(nodes) {
+            this._checkNodes(nodes);
+
+            isDirty = true;
+            let minPositionX = Number.MAX_SAFE_INTEGER;
+            for (const node of nodes) {
+                const leftBorder = node.position.x - node.scale.x * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+                if (leftBorder < minPositionX) {
+                    minPositionX = leftBorder;
+                }
+            }
+
+            for (const node of nodes) {
+                node.position.x = minPositionX + node.scale.x *  visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+                node.updateNodePosition(node.position, true);
+                nodeContainer.nodeMoved(node);
+            }
+        },
+
+        /**
+         * 右对齐
+         * @param {[]} nodes nodeSprite
+         */
+        alignRight(nodes) {
+            this._checkNodes(nodes);
+
+            isDirty = true;
+            let maxPositionX = Number.MIN_SAFE_INTEGER;
+            for (const node of nodes) {
+                const rightBorder = node.position.x + node.scale.x * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+                if (rightBorder > maxPositionX) {
+                    maxPositionX = rightBorder;
+                }
+            }
+
+            for (const node of nodes) {
+                node.position.x = maxPositionX - node.scale.x * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+                node.updateNodePosition(node.position, true);
+                nodeContainer.nodeMoved(node);
+            }
+        },
+
+        /**
+         * 垂直对齐
+         * @param {[]} nodes nodeSprite
+         */
+        alignVertical(nodes) {
+            this._checkNodes(nodes);
+
+            isDirty = true;
+            let sumPositionX = 0;
+            for (const node of nodes) {
+                sumPositionX += node.position.x;
+            }
+            const avgPositionX = sumPositionX / nodes.length;
+
+            for (const node of nodes) {
+                node.position.x = avgPositionX;
+                node.updateNodePosition(node.position, true);
+                nodeContainer.nodeMoved(node);
+            }
+        },
+
+        /**
+         * 水平对齐
+         * @param {[]} nodes nodeSprite
+         */
+        alignHorizontal(nodes) {
+            this._checkNodes(nodes);
+
+            isDirty = true;
+            let sumPositionY = 0;
+            for (const node of nodes) {
+                sumPositionY += node.position.y;
+            }
+            const avgPositionY = sumPositionY / nodes.length;
+
+            for (const node of nodes) {
+                node.position.y = avgPositionY;
+                node.updateNodePosition(node.position, true);
+                nodeContainer.nodeMoved(node);
+            }
+        },
+
+        /**
+         * 底端对齐
+         * @param {[]]} nodes nodeSprite
+         */
+        alignBottom(nodes) {
+            this._checkNodes(nodes);
+
+            isDirty = true;
+            let maxPositionY = Number.MIN_SAFE_INTEGER;
+            for (const node of nodes) {
+                const bottomBorder = node.position.y + node.scale.y * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+                if (bottomBorder > maxPositionY) {
+                    maxPositionY = bottomBorder;
+                }
+            }
+
+            for (const node of nodes) {
+                node.position.y = maxPositionY - node.scale.y * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+                node.updateNodePosition(node.position, true);
+                nodeContainer.nodeMoved(node);
+            }
+        },
+
+        /**
+         * 顶端对齐
+         * @param {[]} nodes nodeSprite
+         */
+        alignTop(nodes) {
+            this._checkNodes(nodes);
+
+            isDirty = true;
+            let minPositionY = Number.MAX_SAFE_INTEGER;
+            for (const node of nodes) {
+                const topBorder = node.position.y - node.scale.y * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+                if (topBorder < minPositionY) {
+                    minPositionY = topBorder;
+                }
+            }
+
+            for (const node of nodes) {
+                node.position.y = minPositionY + node.scale.y * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+                node.updateNodePosition(node.position, true);
+                nodeContainer.nodeMoved(node);
+            }
+        },
+
+        /**
+         * 横向分布
+         * @param {[]} nodes nodeSprite
+         */
+        horizontalDistribution(nodes) {
+            this._checkNodes(nodes);
+
+            const topLeft = root.worldTransform.applyInverse({x: 0, y: 0});
+            const bottomRight = root.worldTransform.applyInverse({x: viewWidth, y: viewHeight});
+            isDirty = true;
+            nodes.sort((a, b) => {
+                return a.position.x - b.position.x;
+            });
+
+            const nodesSize = nodes.length - 1;
+            const minPositionX = nodes[0].position.x;
+            const maxPositionX = nodes[nodesSize].position.x;
+            let stepSize = (maxPositionX - minPositionX) / nodesSize;
+            const distance = nodes[0].scale.x * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5 + nodes[nodesSize].scale.x * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+            if (stepSize < distance && (minPositionX > topLeft.x || maxPositionX < bottomRight.x)) { // 选择的实体之间距离过小，并且X轴最小或最大位置在可视范围内，则尝试移动X轴最小、最大的位置以分布其中的其它元素
+                const diff = (distance - stepSize) * nodesSize;
+                let hasmoved = false;
+                if (minPositionX - topLeft.x > bottomRight.x - maxPositionX) { // X轴位置最小 离左边距距离 大于 X轴位置最大 离右边距距离
+                    if (minPositionX - diff > topLeft.x) { // X轴位置最小 向左移动diff后还在图表可视范围内
+                        nodes[0].position.x = minPositionX - diff;
+                        stepSize = distance;
+                        hasmoved = true;
+                        nodes[0].updateNodePosition(nodes[0].position, true);
+                        nodeContainer.nodeMoved(nodes[0]);
+                    }
+                } else {
+                    if (maxPositionX + diff < bottomRight.x) { // X轴位置最大 向右移动diff后还在图表可视范围内
+                        nodes[nodesSize].position.x = maxPositionX + diff;
+                        stepSize = distance;
+                        hasmoved = true;
+                        nodes[nodesSize].updateNodePosition(nodes[nodesSize].position, true);
+                        nodeContainer.nodeMoved(nodes[nodesSize]);
+                    }
+                }
+
+                if (!hasmoved) {
+                    if (minPositionX - diff / 2 > topLeft.x && maxPositionX + diff / 2 < bottomRight.x) { // X轴 向左移动或向右移动diff后不在图表可视范围内，则X轴位置最小 向左移动diff/2后在图表可视范围内并且X轴位置最大 向右移动diff/2后在图表可视范围内
+                        nodes[0].position.x = minPositionX - diff / 2;
+                        nodes[nodesSize].position.x = maxPositionX + diff / 2;
+                        stepSize = distance;
+                        nodes[0].updateNodePosition(nodes[0].position, true);
+                        nodeContainer.nodeMoved(nodes[0]);
+                        nodes[nodesSize].updateNodePosition(nodes[nodesSize].position, true);
+                        nodeContainer.nodeMoved(nodes[nodesSize]);
+                    }
+                }
+            }
+
+            for (let i = 1; i < nodesSize; i++) { // 横向分布，其它实体均匀分布之间
+                const node = nodes[i];
+                node.position.x = nodes[i-1].position.x + stepSize;
+                node.updateNodePosition(node.position, true);
+                nodeContainer.nodeMoved(node);
+            }
+        },
+
+        /**
+         * 纵向分布
+         * @param {[]} nodes nodeSprite
+         */
+        verticalDistribution(nodes) {
+            this._checkNodes(nodes);
+
+            const topLeft = root.worldTransform.applyInverse({x: 0, y: 0});
+            const bottomRight = root.worldTransform.applyInverse({x: viewWidth, y: viewHeight});
+            isDirty = true;
+            nodes.sort((a, b) => {
+                return a.position.y - b.position.y;
+            });
+
+            const nodesSize = nodes.length - 1;
+            const minPositionY = nodes[0].position.y;
+            const maxPositionY = nodes[nodesSize].position.y;
+            let stepSize = (maxPositionY - minPositionY) / nodesSize;
+            const distance = nodes[0].scale.y * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5 + nodes[nodesSize].scale.y * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+            if (stepSize < distance && (minPositionY > topLeft.y || maxPositionY < bottomRight.y)) { // 选择的实体之间距离过小，并且Y轴最小或最大位置在可视范围内，则尝试移动Y轴最小、最大的位置以分布其中的其它元素
+                const diff = (distance - stepSize) * nodesSize;
+                let hasmoved = false;
+                if (minPositionY - topLeft.y > bottomRight.y - maxPositionY) { // Y轴位置最小 离顶部距距离 大于 Y轴位置最大 离底部距距离
+                    if (minPositionY - diff > topLeft.y) { // Y轴位置最小 向上移动diff后还在图表可视范围内
+                        nodes[0].position.y = minPositionY - diff;
+                        stepSize = distance;
+                        hasmoved = true;
+                        nodes[0].updateNodePosition(nodes[0].position, true);
+                        nodeContainer.nodeMoved(nodes[0]);
+                    }
+                } else {
+                    if (maxPositionY + diff < bottomRight.y) { // Y轴位置最大 向下移动diff后还在图表可视范围内
+                        nodes[nodesSize].position.y = maxPositionY + diff;
+                        stepSize = distance;
+                        hasmoved = true;
+                        nodes[nodesSize].updateNodePosition(nodes[nodesSize].position, true);
+                        nodeContainer.nodeMoved(nodes[nodesSize]);
+                    }
+                }
+
+                if (!hasmoved) {
+                    if (minPositionY - diff / 2 > topLeft.y && maxPositionY + diff / 2 < bottomRight.y) { // Y轴 向上移动或向下移动diff后不在图表可视范围内，则Y轴位置最小 向左移动diff/2后在图表可视范围内并且Y轴位置最大 向右移动diff/2后在图表可视范围内
+                        nodes[0].position.y = minPositionY - diff / 2;
+                        nodes[nodesSize].position.y = maxPositionY + diff / 2;
+                        stepSize = distance;
+                        nodes[0].updateNodePosition(nodes[0].position, true);
+                        nodeContainer.nodeMoved(nodes[0]);
+                        nodes[nodesSize].updateNodePosition(nodes[nodesSize].position, true);
+                        nodeContainer.nodeMoved(nodes[nodesSize]);
+                    }
+                }
+            }
+
+            for (let i = 1; i < nodesSize; i++) { // 纵向分布，其它实体均匀分布之间
+                const node = nodes[i];
+                node.position.y = nodes[i-1].position.y + stepSize;
+                node.updateNodePosition(node.position, true);
+                nodeContainer.nodeMoved(node);
+            }
+        },
+
+        /**
+         * 检查参数是否合法
+         * @param {[]} nodes nodeSprite
+         */
+        _checkNodes(nodes) {
+            if (!nodes || !nodes.length || nodes.length < 2) {
+                throw new Error('select nodes must exists and length must greater than 1');
+            }
+        },
+
+        /**
          * detect whether the linkSprite is selected.
          * @param {*} linkSprite link sprite object
          * @param {*} rectBox rectBox select region as a rectangle or click point spread as a rectangle;
