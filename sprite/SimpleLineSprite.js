@@ -192,39 +192,4 @@ export default class SimpleLineSprite {
         this.labelBg.destroy({ texture: false, baseTexture: false });
     }
 
-    /**
-     * @param width
-     * @param height
-     * @returns {Element}
-     */
-    // static getCanvas(width, height) {
-    //     const canvas = document.createElement('canvas');
-    //     canvas.width = width;
-    //     canvas.height = height;
-    //     return canvas;
-    // }
-    //
-    // static getMultiTexture(thickness, color) {
-    //     const key = `${thickness}-${color}-multi`;
-    //     if (!SimpleLineSprite.textureCache[key]) {
-    //         const arrowW = SimpleLineSprite.ARROW_WIDTH + SimpleLineSprite.THICKNESS_FACTOR * thickness;
-    //         const arrowH = SimpleLineSprite.ARROW_HEIGHT + SimpleLineSprite.THICKNESS_FACTOR * thickness;
-    //         const canvas = SimpleLineSprite.getCanvas(arrowW, arrowH);
-    //         const context = canvas.getContext('2d');
-    //         context.fillStyle = PIXI.utils.hex2string(color);
-    //         context.beginPath();
-    //         context.moveTo(0, 0);
-    //         context.lineTo(arrowW / 2, arrowH / 2);
-    //         context.lineTo(arrowW, 0);
-    //         context.moveTo(0, arrowH / 2);
-    //         context.lineTo(arrowW / 2, arrowH);
-    //         context.lineTo(arrowW, arrowH / 2);
-    //
-    //         context.fill();
-    //         const texture = new PIXI.Texture(new PIXI.BaseTexture(canvas), PIXI.SCALE_MODES.LINEAR);
-    //         texture.frame = new PIXI.Rectangle(0, 0, arrowW, arrowH);
-    //         SimpleLineSprite.textureCache[key] = texture;
-    //     }
-    //     return SimpleLineSprite.textureCache[key];
-    // }
 }
