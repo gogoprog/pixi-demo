@@ -26,10 +26,10 @@ export default function SelectionManager(nodeContainer, linkContainer) {
                     this.nodeContainer.deselectNode(node);
                 }
             } else {
-                if (!this.dragJustNow) {
+                if (!this.nodeContainer.dragJustNow) {
                     this.deselectAll();
                 } else {
-                    this.dragJustNow = false;
+                    this.nodeContainer.dragJustNow = false;
                 }
                 this.nodeContainer.selectNode(node);
             }
