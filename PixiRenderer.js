@@ -32,16 +32,8 @@ import extract from './extract';
 
 export default function (settings) {
     let isDirty = true;
-
     let graphType = { entityTypes: [], linkTypes: [] };
-    // TODO remove the below two properties, not necessary;
-    let graphEntities = {};
-    let graphLinks = {};
-
-    const rightStack = [];
-
     let graph = Graph();
-
     const mode = settings.mode;
     // Where do we render our graph?
     if (typeof settings.container === 'undefined') {
@@ -277,7 +269,6 @@ export default function (settings) {
     graph.forEachNode(initNode);
     graph.forEachLink(initLink);
     // setupWheelListener(canvas, root); // wheel listener 现在在外部模板内设置，通过zoom接口来调用renderer的缩放方法。
-    let layoutIterations = 0;
     const counter = new FPSCounter();
     let dynamicLayout = false;
     let disableLayout = false;
@@ -892,10 +883,6 @@ export default function (settings) {
             animationAgent = null;
             graph.clear();
             graph = null;
-            // graphEntityTypes = null;
-            // graphLinkTypes = null;
-            graphEntities = null;
-            graphLinks = null;
             counter.destroy();
 
             selectRegionGraphics.destroy(false);
@@ -926,11 +913,6 @@ export default function (settings) {
                 networkLayout.setLayoutType(layoutType)
             }
             if (layoutType === 'Network') {
-                if (!dynamicLayout && layoutTypeStr !== 'Network') {
-                    layoutIterations = 0;
-                } else {
-                    layoutIterations = 150;
-                }
                 layout = networkLayout;
                 _.each(nodeSprites, (nodeSprite, nodeId) => {
                     if (nodeSprite.data.properties._$lock) {
@@ -978,8 +960,6 @@ export default function (settings) {
                     _.each(linkSprites, (l) => {
                         l.updatePosition();
                     });
-
-                    // drawLines();
 
                     renderer.render(stage);
                 }
@@ -1056,18 +1036,6 @@ export default function (settings) {
         },
         setGraphData(gData) {
             graph.setEntityGraphSource(gData);
-        },
-        getGraphEntities() {
-            return graphEntities;
-        },
-        setGraphEntities(gEntities) {
-            graphEntities = gEntities;
-        },
-        getGraphLinks() {
-            return graphLinks;
-        },
-        setGraphLinks(gLinks) {
-            graphLinks = gLinks;
         },
 
         getEntitySemanticType(nodeUuid) {
@@ -1558,12 +1526,6 @@ export default function (settings) {
     function selectionChanged() {
         isDirty = true;
         pixiGraphics.fire('selectionChanged');
-        // drawChangeLines();
-    }
-
-    function hiddenStatusChanged() {
-        isDirty = true;
-        pixiGraphics.fire('hiddenStatusChanged');
     }
 
     /**
@@ -1597,7 +1559,6 @@ export default function (settings) {
         const selectedLinks = pixiGraphics.getSelectedLinks();
         let event = {};
         if (!selectedNodes.length && !selectedLinks.length) {
-            rightStack.length = 0;
             event = { type: 'blank', original: e , target: null};
         } else {
             for (const nodeSprite of selectedNodes) {
@@ -2021,7 +1982,6 @@ export default function (settings) {
 
             nodeContainer.removeChild(nodeSprite);
             delete nodeSprites[node.id];
-            delete graphEntities[node.data.id];
             // console.log("Removed node: " + node.id);
         } else {
             console.log(`Could not find node sprite:${node.id}`);
@@ -2057,7 +2017,6 @@ export default function (settings) {
                 tgtEntitySprite.incoming.splice(inLinkIndex, 1);
             }
             delete linkSprites[l.id];
-            delete graphLinks[l.data.id];
             l.destroy();
 
             linkContainer.removeLink(l.id);
