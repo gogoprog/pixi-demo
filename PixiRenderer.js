@@ -805,6 +805,17 @@ export default function (settings) {
             selectionChanged();
         },
 
+        /**
+         * 选择端点和链接
+         * @param {[]} selectedNodes nodeSprite
+         * @param {[]} selectedLinks linkSprite
+         */
+        selectNodesAndLinks(selectedNodes, selectedLinks) {
+            isDirty = true;
+            this.selectLinksFromNodes(selectedNodes, 'both', true);
+            this.selectNodesOfLinks(selectedLinks);
+        },
+
         selectAll() {
             isDirty = true;
             _.each(linkSprites, (l) => {
