@@ -1425,7 +1425,7 @@ export default function (settings) {
             // linkPosition x1, y1 as straight line's from point,  x2, y2 as straight line's end point
             let detectFlag = false;
             let linkPosition = {};
-            if (link._controlOffsetIndex === 0) { // straight line
+            if (link._controlOffsetIndex === 0 && link.data.sourceEntity !== link.data.targetEntity) { // straight line and not self link
                 linkPosition = {x1: link.x1, y1: link.y1, x2: link.x2, y2: link.y2};
                 detectFlag = pixiGraphics.linkCollisionDetect(link, rectBox);
             } else {    // polyline consist of three strainght lines, when one of three strainght lines is detect as true, it is not necessary to detect other strainght line
