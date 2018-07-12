@@ -1,14 +1,6 @@
 import { linkCaptureListener } from '../customizedEventHandling';
 
 export default class SimpleLineSprite {
-    static textureCache = {};
-
-    static get MULTI_OFFSET() { return 30; } // 10 px between each line.
-    // static get ARROW_HEIGHT() { return 24; }
-    // static get ARROW_WIDTH() { return 16; }
-    // static get THICKNESS_FACTOR() { return 4; }
-    // static get ARROW_FIXED_SCALE() { return 0.2 };
-
     constructor(label, thickness, color, arrowStyle, hasArrow, x1, y1, x2, y2, controlOffsetIndex, visualConfig) {
         this.hasArrow = hasArrow;
         this._thickness = thickness;
@@ -142,8 +134,8 @@ export default class SimpleLineSprite {
 
     updatePosition() {
         if (this.x1 !== this.x2 || this.y1 !== this.y2) {
-            let dxCtl = SimpleLineSprite.MULTI_OFFSET;  // AC
-            let dyCtl = this._controlOffsetIndex * SimpleLineSprite.MULTI_OFFSET;;  // CD
+            let dxCtl = this.visualConfig.LINK_MULTI_OFFSET;  // AC
+            let dyCtl = this._controlOffsetIndex * this.visualConfig.LINK_MULTI_OFFSET;  // CD
 
             const x = this.x2 - this.x1;
             const y = this.y2 - this.y1;
@@ -163,12 +155,11 @@ export default class SimpleLineSprite {
             this.label.position.set(midX, midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
             this.labelBg.position.set(this.label.position.x, this.label.position.y);
         } else {
-            const selfLinkOffset = 60; // 自链接偏移量
-            let dxCtl = selfLinkOffset;  // AC
-            let dyCtl = selfLinkOffset;  // CD
+            let dxCtl = this.visualConfig.SELF_LINK_OFFSET;  // AC
+            let dyCtl = this.visualConfig.SELF_LINK_OFFSET;  // CD
             if (this._controlOffsetIndex !== 0) {
-                dxCtl = selfLinkOffset;
-                dyCtl = Math.abs(this._controlOffsetIndex * selfLinkOffset);
+                dxCtl = this.visualConfig.SELF_LINK_OFFSET;
+                dyCtl = Math.abs(this._controlOffsetIndex * this.visualConfig.SELF_LINK_OFFSET);
             }
 
             this.fx = this.x1 - dxCtl / 2;
