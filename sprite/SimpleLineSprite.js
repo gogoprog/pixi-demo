@@ -163,12 +163,12 @@ export default class SimpleLineSprite {
             this.label.position.set(midX, midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
             this.labelBg.position.set(this.label.position.x, this.label.position.y);
         } else {
-
-            let dxCtl = SimpleLineSprite.MULTI_OFFSET;  // AC
-            let dyCtl = SimpleLineSprite.MULTI_OFFSET;  // CD
+            const selfLinkOffset = 60; // 自链接偏移量
+            let dxCtl = selfLinkOffset;  // AC
+            let dyCtl = selfLinkOffset;  // CD
             if (this._controlOffsetIndex !== 0) {
-                dxCtl = SimpleLineSprite.MULTI_OFFSET;
-                dyCtl = Math.abs(this._controlOffsetIndex * SimpleLineSprite.MULTI_OFFSET);
+                dxCtl = selfLinkOffset;
+                dyCtl = Math.abs(this._controlOffsetIndex * selfLinkOffset);
             }
 
             this.fx = this.x1 - dxCtl / 2;
