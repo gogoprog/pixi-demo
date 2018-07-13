@@ -75,7 +75,7 @@ export const visualConfig = {
             visibleByDefault: true,
             font: {
                 size: 48,
-                color: 0x333333,
+                color: 0x000000,
                 highlight: 0xffffff,
             },
             background: {
