@@ -179,6 +179,10 @@ export default class LinkContainer extends PIXI.Container {
 
             const hasArrow = this.hasArrowArray.subarray(this.instanceCount - 1, this.instanceCount);
             this.hasArrowArray.set(hasArrow, index);
+
+            const existedId = this.idIndexMap.idFrom(this.instanceCount - 1);
+            this.idIndexMap.remove('id', existedId);
+            this.idIndexMap.add({id: existedId, index: index});
         }
 
         this.instanceCount--;
