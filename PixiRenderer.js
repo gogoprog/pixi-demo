@@ -2100,11 +2100,11 @@ export default function (settings) {
             }
         }
 
+        if(!visualConfig.ORIGINAL_FORCE_LAYOUT) {
+            pixiGraphics.performLayout();
+        }
         let added = false;
         if (nodeIdArray.length > 0 || linkIdArray.length > 0) {
-            if(!visualConfig.ORIGINAL_FORCE_LAYOUT) {
-                pixiGraphics.performLayout();
-            }
             pixiGraphics.clearSelection();
             pixiGraphics.selectSubGraph(nodeIdArray, linkIdArray);
             added = true;
