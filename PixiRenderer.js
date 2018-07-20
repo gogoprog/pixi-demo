@@ -242,6 +242,21 @@ export default function (settings) {
 
         _.each(linkSprites, (link) => {
             let detectFlag = pixiGraphics.detectLinkSelect(link, rectBox);
+            // 判断是否点击在链接箭头上
+            if (!detectFlag) {
+                const height = 3.2 * link.thickness;
+                const width = 9.6 * link.thickness;
+
+                let leftTopX = link.perpendicularVector[0] * height + link.midX;
+                let leftTopY = link.perpendicularVector[1] * height + link.midY;
+                let leftBottomX = -link.perpendicularVector[0] * height + link.midX;
+                let leftBottomY = -link.perpendicularVector[1] * height + link.midY;
+                let rightX = link.unitVector[0] * width + link.midX;
+                let rightY = link.unitVector[1] * width + link.midY;
+
+                detectFlag = pixiGraphics.isPointInTriangle(x0, y0, leftTopX, leftTopY, leftBottomX, leftBottomY, rightX, rightY);
+            }
+
             if (detectFlag) {
                 linkContainer.linkSelected(link);
             }
@@ -1415,6 +1430,30 @@ export default function (settings) {
             }
         },
 
+        // 判断点P(x, y)与有向直线P1P2的关系. 小于0表示点在直线左侧，等于0表示点在直线上，大于0表示点在直线右侧
+        evaluatePointToLine(x, y, x1, y1, x2, y2) {
+            const a = y2 - y1;
+            const b = x1 - x2;
+            const c = x2 * y1 - x1 * y2;
+            return a * x + b * y + c;
+        },
+
+        // 判断点P(x, y)是否在点P1(x1, y1), P2(x2, y2), P3(x3, y3)构成的三角形内（包括边）
+        isPointInTriangle(x, y, x1, y1, x2, y2, x3, y3) {
+            // 分别计算点P与有向直线P1P2, P2P3, P3P1的关系，如果都在同一侧则可判断点在三角形内
+            // 注意三角形有可能是顺时针(d>0)，也可能是逆时针(d<0)。
+            const d1 = pixiGraphics.evaluatePointToLine(x, y, x1, y1, x2, y2);
+            const d2 = pixiGraphics.evaluatePointToLine(x, y, x2, y2, x3, y3);
+            if (d1 * d2 < 0) {
+                return false;
+            }
+            const d3 = pixiGraphics.evaluatePointToLine(x, y, x3, y3, x1, y1);
+            if (d2 * d3 < 0) {
+                return false;
+            }
+            return true;
+        },
+
         /**
          * detect whether the linkSprite is selected.
          * @param {*} linkSprite link sprite object
@@ -1422,6 +1461,7 @@ export default function (settings) {
          */
         detectLinkSelect(linkSprite, rectBox) {
             const link = linkSprite;
+
             // linkPosition x1, y1 as straight line's from point,  x2, y2 as straight line's end point
             let detectFlag = false;
             let linkPosition = {};
@@ -2100,11 +2140,11 @@ export default function (settings) {
             }
         }
 
-        if(!visualConfig.ORIGINAL_FORCE_LAYOUT) {
-            pixiGraphics.performLayout();
-        }
         let added = false;
         if (nodeIdArray.length > 0 || linkIdArray.length > 0) {
+            if(!visualConfig.ORIGINAL_FORCE_LAYOUT) {
+                pixiGraphics.performLayout();
+            }
             pixiGraphics.clearSelection();
             pixiGraphics.selectSubGraph(nodeIdArray, linkIdArray);
             added = true;
@@ -2120,6 +2160,9 @@ export default function (settings) {
         }
 
         if (!added && !updated) {   // 删除时触发selectionChanged
+            if(!visualConfig.ORIGINAL_FORCE_LAYOUT) {
+                pixiGraphics.performLayout();
+            }
             selectionChanged();
         }
 

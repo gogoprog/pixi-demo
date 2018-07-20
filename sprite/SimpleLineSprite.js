@@ -141,18 +141,18 @@ export default class SimpleLineSprite {
             const y = this.y2 - this.y1;
             const bevel = Math.sqrt(x * x + y * y);
 
-            const unitVector = [x / bevel, y / bevel];
-            const perpendicularVector = [- unitVector[1], unitVector[0]];
+            this.unitVector = [x / bevel, y / bevel];
+            this.perpendicularVector = [- this.unitVector[1], this.unitVector[0]];
 
-            this.fx = this.x1 + unitVector[0] * dxCtl + perpendicularVector[0] * dyCtl;
-            this.fy = this.y1 + unitVector[1] * dxCtl + perpendicularVector[1] * dyCtl;
-            this.tx = this.x2 - unitVector[0] * dxCtl + perpendicularVector[0] * dyCtl;
-            this.ty = this.y2 - unitVector[1] * dxCtl + perpendicularVector[1] * dyCtl;
+            this.fx = this.x1 + this.unitVector[0] * dxCtl + this.perpendicularVector[0] * dyCtl;
+            this.fy = this.y1 + this.unitVector[1] * dxCtl + this.perpendicularVector[1] * dyCtl;
+            this.tx = this.x2 - this.unitVector[0] * dxCtl + this.perpendicularVector[0] * dyCtl;
+            this.ty = this.y2 - this.unitVector[1] * dxCtl + this.perpendicularVector[1] * dyCtl;
 
-            const midX = (this.fx + this.tx) / 2;
-            const midY = (this.fy + this.ty) / 2;
+            this.midX = (this.fx + this.tx) / 2;
+            this.midY = (this.fy + this.ty) / 2;
 
-            this.label.position.set(midX, midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
+            this.label.position.set(this.midX, this.midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
             this.labelBg.position.set(this.label.position.x, this.label.position.y);
         } else {
             let dxCtl = this.visualConfig.SELF_LINK_OFFSET;  // AC
@@ -162,15 +162,18 @@ export default class SimpleLineSprite {
                 dyCtl = Math.abs(this._controlOffsetIndex * this.visualConfig.SELF_LINK_OFFSET);
             }
 
+            this.unitVector = [1, 0];
+            this.perpendicularVector = [0, 1];
+
             this.fx = this.x1 - dxCtl / 2;
             this.fy = this.y1 - dyCtl;
 
             this.tx = this.x1 + dxCtl / 2;
             this.ty = this.y1 - dyCtl;
 
-            const midX = (this.fx + this.tx) / 2;
-            const midY = (this.fy + this.ty) / 2;
-            this.label.position.set(midX, midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
+            this.midX = (this.fx + this.tx) / 2;
+            this.midY = (this.fy + this.ty) / 2;
+            this.label.position.set(this.midX, this.midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
             this.labelBg.position.set(this.label.position.x, this.label.position.y);
         }
         if (this.parent) {
