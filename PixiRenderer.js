@@ -1421,6 +1421,27 @@ export default function (settings) {
         },
 
         /**
+         * 向上移动
+         * @param nodes
+         * @param direction
+         */
+        move(nodes, direction) {
+            nodes.forEach((node) => {
+                if (direction === 'up') {
+                    node.position.y--;
+                } else if (direction === 'down'){
+                    node.position.y++;
+                } else if (direction === 'left'){
+                    node.position.x--;
+                } else if (direction === 'right'){
+                    node.position.x++;
+                }
+                node.updateNodePosition(node.position, true);
+                nodeContainer.nodeMoved(node);
+            });
+        },
+
+        /**
          * 检查参数是否合法
          * @param {[]} nodes nodeSprite
          */
