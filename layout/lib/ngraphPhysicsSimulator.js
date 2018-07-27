@@ -155,6 +155,20 @@ export default function PhysicsSimulator(settings) {
       return true;
     },
 
+    updateSetting: function (newSetting){
+      let oldSettringSpringLength = settings.springLength;
+      settings.springLength = newSetting.springLength || settings.springLength;
+      settings.springCoeff = newSetting.springCoeff || settings.springCoeff;
+      settings.gravity = newSetting.gravity || settings.gravity;
+      settings.theta = newSetting.theta || settings.theta;
+      settings.dragCoeff = newSetting.dragCoeff || settings.dragCoeff;
+      let coeff = settings.springLength / oldSettringSpringLength;
+      for (let spring of springs){
+        let oldSpringLength = spring.length;
+        spring.length = oldSpringLength * coeff;
+      }
+    },
+
     /**
      * Adds a spring to this simulation.
      *
