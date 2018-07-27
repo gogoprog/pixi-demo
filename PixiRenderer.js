@@ -989,7 +989,7 @@ export default function (settings) {
 
                     renderer.render(stage);
                 }
-                this.setNodesToFullScreen(disableAnimation);
+                 this.setNodesToFullScreen(disableAnimation);
             } else if (layoutType === 'Circular') {
                 this.drawCircleLayout(disableAnimation, init);
             } else if (layoutType === 'PersonLayout'){
@@ -1558,6 +1558,15 @@ export default function (settings) {
 
             return false;
         },
+        /**
+         * config change and set
+         * @param {*} newSetting settings update
+         */
+        updateNetworkLayoutSetting(newSetting){
+            networkLayout.simulator.updateSetting(newSetting.forceLayout);
+            visualConfig.speed = newSetting.speed;
+            visualConfig.rate = newSetting.rate;
+        }
     };
 
     if (!disabledWheel) {
@@ -1666,21 +1675,21 @@ export default function (settings) {
 
     let lastScanTime = null;
     function animationLoop(timestamp) {
+        let speed = ('speed' in visualConfig) ? visualConfig.speed : 1;
         if (!lastScanTime) lastScanTime = timestamp;
 
         if (destroyed) {
             console.info('Renderer destroyed, exiting animation loop');
             return;
         }
-        let n = 2;
+        let n = speed > 1 ? 2 * speed : 2;
         if (graph.getNodesCount() < 100){
-            n = 10;
+            n = speed > 1 ? 10 * speed : 10;
         } else if (graph.getNodesCount() < 500){
-            n = 8;
+            n = speed > 1 ? 8 * speed : 8;
         } else if (graph.getNodesCount() < 1000){
-            n = 5;
+            n = speed > 1 ? 5 * speed : 5;
         }
-
         animationAgent.step();
         let layoutPositionChanged = false;
         if (layoutType === 'Network') {
@@ -1690,6 +1699,10 @@ export default function (settings) {
                     layout.step();
                 }
                 updateNodeSpritesPosition();
+                if (visualConfig.isScale) {
+                    pixiGraphics.setNodesToFullScreen(true);
+                    visualConfig.isScale = false;
+                }
             }
         } else if (layoutType === 'TimelineScale') {
             //
