@@ -1701,7 +1701,6 @@ export default function (settings) {
                 updateNodeSpritesPosition();
                 if (visualConfig.isScale) {
                     pixiGraphics.setNodesToFullScreen(true);
-                    visualConfig.isScale = false;
                 }
             }
         } else if (layoutType === 'TimelineScale') {
