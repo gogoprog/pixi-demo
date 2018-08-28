@@ -17,17 +17,8 @@ export default class Settings {
     updateVisualConfig() {
         let visConfig = this.visualConfig;
 
-        // const images = visConfig.icons || [];
-        // for (const image of images) {
-        //     image.texture = PIXI.Texture.fromImage(image.url);
-        // }
-        // visConfig.icons = images;
         visConfig.defaultIcon = PIXI.Texture.fromImage('/static/256/other/Unknown.png');
 
-        const textAnalysisIconUrl = '/static/256/TextAnalysis/TextAnalysis.png';
-        const text = {name: '文本', url: textAnalysisIconUrl};
-        text.texture = PIXI.Texture.fromImage(textAnalysisIconUrl);
-        visConfig.icons.push(text);
 
         const graphCollIcons = visConfig.graphCollIcons || [];
         for (let i = 0; i < 10; i++) {

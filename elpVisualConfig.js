@@ -101,15 +101,6 @@ export const elpVisualConfig = {
             alpha: 1,
         },
     },
-    icons: localStorage.tldwImg ? JSON.parse(localStorage.tldwImg) : [],
-    findIcon(link) {
-        const data = this.icons;
-        for (let i = 0; i < data.length; i++) {
-            if (data[i].url === link) {
-                return data[i].texture;
-            }
-        }
-    },
 
     getCircleBorderTexture() {
         return this.circleBorderTexture;

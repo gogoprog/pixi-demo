@@ -1,11 +1,16 @@
 import NodeRenderer from './NodeRenderer';
 import Bimap from '../Bimap';
 import { getBufferSize } from '../Utility';
-import allentities from 'static/256/allentities';
+import allentities from 'static/256/allentities.json';
 
 export default class NodeContainer extends PIXI.Container {
     constructor(visualConfig) {
         super();
+
+        this.iconMap = allentities.reduce((map, entity) => {
+            map[entity.url] = entity.iconIndex;
+            return map;
+        }, {});
 
         this.texture = visualConfig.allentities;
 
@@ -128,7 +133,7 @@ export default class NodeContainer extends PIXI.Container {
         this.offSetArray.set([child.x, child.y] , 2 * index);
 
         // all entities' icon index
-        const iconIndex = allentities[child.iconUrl];
+        const iconIndex = this.iconMap[child.iconUrl];
         this.iconIndexArray.set([iconIndex], index);
 
         this.selectedArray.set([0.0], index);
