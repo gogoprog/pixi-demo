@@ -653,7 +653,7 @@ export default function (settings) {
             let sumx = 0;
             let sumy = 0;
             let count = 0;
-            _.each(nodeContainer.selectedNodes, (n) => {
+            nodeContainer.selectedNodes.forEach((n) => {
                 sumx += n.position.x;
                 sumy += n.position.y;
                 count++;
