@@ -1,8 +1,10 @@
 import { linkCaptureListener } from '../customizedEventHandling';
 
 export default class SimpleLineSprite {
-    constructor(label, thickness, color, arrowStyle, hasArrow, x1, y1, x2, y2, controlOffsetIndex, visualConfig) {
-        this.hasArrow = hasArrow;
+    constructor(data, thickness, color, x1, y1, x2, y2, controlOffsetIndex, visualConfig) {
+        this.id = data.id;
+        this.data = data;
+        this.hasArrow = data.isDirected;
         this._thickness = thickness;
         this._color = color;
         this.x1 = x1;
@@ -15,33 +17,51 @@ export default class SimpleLineSprite {
         this.customSettingColor = visualConfig.ui.line.color;
         this.customSettingAlpha = visualConfig.ui.line.alpha;
 
-        this.createText(label, visualConfig);
+        this.label = new PIXI.Container();
+        this.label.scale.set(this.visualConfig.ui.label.scale, this.visualConfig.ui.label.scale);
+        this.labelBgContainer = [];
+        this.label.on('mousedown', linkCaptureListener);
+
+        if (!this.data.properties._$hideLabel) {
+            this.createText();
+        }
         this.updatePosition();
     }
 
-    createText(label, visualConfig) {
-        this.label = new PIXI.extras.BitmapText((label ? label : ''), {
-            font: {
-                name : visualConfig.font.font,
-                size: visualConfig.ui.label.font.size
-            },
-            tint: visualConfig.ui.label.font.color
+    createText() {
+        let labels = this.data.label;
+        if (this.data.properties._$customizedLabel && this.data.properties._$customizedLabel.length > 0) {
+            labels = this.data.properties._$customizedLabel;
+        }
+
+        labels = labels.split('\n');
+        labels.forEach((label, index) => {
+            const t = new PIXI.extras.BitmapText((label ? label : ''), {
+                font: {
+                    name : this.visualConfig.font.font,
+                    size: this.visualConfig.ui.label.font.size
+                },
+                tint: this.visualConfig.ui.label.font.color
+            });
+
+            t.position.set(0, this.visualConfig.NODE_LABLE_OFFSET_BETWEEN_LINE * index);
+            t.anchor.x = 0.5;
+            t.anchor.y = 0.5;
+
+            const labelBg = new PIXI.Sprite(PIXI.Texture.WHITE);
+            labelBg.alpha = 1;
+            labelBg.tint = this.visualConfig.ui.label.background.color;
+            labelBg.width = t.width + 4;
+            labelBg.height = t.height + 2;
+            labelBg.position.set(t.position.x, t.position.y);
+            labelBg.anchor.x = 0.5;
+            labelBg.anchor.y = 0.5;
+
+            this.label.addChild(labelBg);
+            this.label.addChild(t);
+
+            this.labelBgContainer.push(labelBg);
         });
-        this.label.scale.set(visualConfig.ui.label.scale, visualConfig.ui.label.scale);
-        this.label.anchor.x = 0.5;
-        this.label.anchor.y = 0.5;
-        this.label.lineSprite = this;
-
-        const labelBg = new PIXI.Sprite(PIXI.Texture.WHITE);
-        labelBg.alpha = 1;
-        labelBg.tint = visualConfig.ui.label.background.color;
-        labelBg.width = this.label.width + 4;
-        labelBg.height = this.label.height + 2;
-        labelBg.anchor.x = 0.5;
-        labelBg.anchor.y = 0.5;
-        this.labelBg = labelBg;
-
-        this.label.on('mousedown', linkCaptureListener);
     }
 
     get thickness() {
@@ -94,12 +114,12 @@ export default class SimpleLineSprite {
     updateLabel() {
         const label = this.data.label;
 
-        if (this.label) {
-            this.label.text = label;
-            this.labelBg.width = this.label.width + 4;
-            this.labelBg.height = this.label.height + 2;
-        } else {
-            this.createText(label, this.visualConfig.ui.label.font, this.visualConfig);
+        if (label) {
+            this.labelBgContainer = [];
+            this.label.removeChildren();
+            if (!this.data.properties._$hideLabel) {
+                this.createText();
+            }
         }
     }
 
@@ -115,10 +135,14 @@ export default class SimpleLineSprite {
         this.selected = selected;
         if (selected) {
             this.label.tint = vizConf.ui.label.font.highlight;
-            this.labelBg.tint = vizConf.ui.label.background.highlight;
+            this.labelBgContainer.forEach((labelBg) => {
+                labelBg.tint = vizConf.ui.label.background.highlight;
+            });
         } else {
             this.label.tint = vizConf.ui.label.font.color;
-            this.labelBg.tint = vizConf.ui.label.background.color;
+            this.labelBgContainer.forEach((labelBg) => {
+                labelBg.tint = vizConf.ui.label.background.color;
+            });
         }
     }
 
@@ -153,7 +177,6 @@ export default class SimpleLineSprite {
             this.midY = (this.fy + this.ty) / 2;
 
             this.label.position.set(this.midX, this.midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
-            this.labelBg.position.set(this.label.position.x, this.label.position.y);
         } else {
             let dxCtl = this.visualConfig.SELF_LINK_OFFSET;  // AC
             let dyCtl = this.visualConfig.SELF_LINK_OFFSET;  // CD
@@ -174,7 +197,6 @@ export default class SimpleLineSprite {
             this.midX = (this.fx + this.tx) / 2;
             this.midY = (this.fy + this.ty) / 2;
             this.label.position.set(this.midX, this.midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
-            this.labelBg.position.set(this.label.position.x, this.label.position.y);
         }
         if (this.parent) {
             this.parent.updatePosition(this);
@@ -183,7 +205,6 @@ export default class SimpleLineSprite {
 
     destroy() {
         this.label.destroy({ texture: true, baseTexture: true });
-        this.labelBg.destroy({ texture: false, baseTexture: false });
     }
 
 }

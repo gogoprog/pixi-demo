@@ -1772,13 +1772,7 @@ export default function (settings) {
             for (const nodeId in nodeSprites)
             {
                 const node = nodeSprites[nodeId];
-                if ( topLeft.x < node.x && node.x < bottomRight.x && topLeft.y < node.y && node.y < bottomRight.y) {
-                    node.ts.visible = true;
-                    node.bg.visible = true;
-                } else {
-                    node.ts.visible = false;
-                    node.bg.visible = false;
-                }
+                node.ts.visible = topLeft.x < node.x && node.x < bottomRight.x && topLeft.y < node.y && node.y < bottomRight.y;
             }
             for (const linkId in linkSprites)
             {
@@ -1787,10 +1781,10 @@ export default function (settings) {
                 const midY = (link.fy + link.ty) / 2;
                 if ( topLeft.x < midX && midX < bottomRight.x && topLeft.y < midY && midY < bottomRight.y) {
                     link.label.visible = true;
-                    link.labelBg.visible = true;
+                    // link.labelBg.visible = true;
                 } else {
                     link.label.visible = false;
-                    link.labelBg.visible = false;
+                    // link.labelBg.visible = false;
                 }
             }
         } else {
@@ -1845,7 +1839,6 @@ export default function (settings) {
         }
 
         if (nodeSprite.ts) {
-            labelContainer.addChild(nodeSprite.bg);
             labelContainer.addChild(nodeSprite.ts);
         }
         nodeContainer.addChild(nodeSprite);
@@ -1894,8 +1887,7 @@ export default function (settings) {
         });
         const positionOffset = 0;
 
-        const l = new SimpleLineSprite(
-            (f.data.label ? f.data.label : ''), visualConfig.ui.line.width, visualConfig.ui.line.color, f.data.isMultiple, f.data.isDirected,
+        const l = new SimpleLineSprite(f.data, visualConfig.ui.line.width, visualConfig.ui.line.color,
             srcNodeSprite.position.x, srcNodeSprite.position.y,
             tgtNodeSprite.position.x, tgtNodeSprite.position.y,
             positionOffset, visualConfig);
@@ -1913,8 +1905,8 @@ export default function (settings) {
             adjustControlOffsets(sameTgtLink, false, true);
         }
 
-        l.data = f.data;
-        l.id = f.data.id;
+        // l.data = f.data;
+        // l.id = f.data.id;
         l.ngLink = f;
 
         l.setLineAttr();
@@ -1932,7 +1924,7 @@ export default function (settings) {
         if (l.label) {
             l.label.interactive = true;
             //l.label.fill= '#00FF00'
-            labelContainer.addChild(l.labelBg);
+            // labelContainer.addChild(l.labelBg);
             labelContainer.addChild(l.label);
             l.label.on('rightup', contextmenuListener);
         }
@@ -2041,9 +2033,6 @@ export default function (settings) {
             if (nodeSprite.ts) {
                 labelContainer.removeChild(nodeSprite.ts);
             }
-            if (nodeSprite.bg) {
-                labelContainer.removeChild(nodeSprite.bg);
-            }
 
             if (nodeSprite.gcs) {
                 for (let i = 0; i < nodeSprite.gcs.length; i++) {
@@ -2082,9 +2071,9 @@ export default function (settings) {
             if (l.label) {
                 labelContainer.removeChild(l.label);
             }
-            if (l.labelBg) {
-                labelContainer.removeChild(l.labelBg);
-            }
+            // if (l.labelBg) {
+            //     labelContainer.removeChild(l.labelBg);
+            // }
             // if (l.arrow) {
             //     lineContainer.removeChild(l.arrow);
             // }
