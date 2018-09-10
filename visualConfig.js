@@ -2,6 +2,7 @@ export const visualConfig = {
     factor: 0.20,
     backgroundColor: 0xf7f7f7,
     NODE_LABLE_OFFSET_Y: 46,
+    NODE_LABLE_OFFSET_BETWEEN_LINE: 50,
     LINK_LABLE_OFFSET_Y: 18,
     MAX_SCALE: 10,
     MAX_ADJUST: 3,

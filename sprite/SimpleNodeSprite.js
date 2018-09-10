@@ -35,32 +35,50 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         // 是否是未知类型的实体
         this.isUnknown = node.data.properties._$unknown || node.data.properties._$lazy;
 
-        this.createText(node, visualConfig);
+        this.ts = new PIXI.Container();
+        this.ts.position.set(this.position.x, this.position.y + this.visualConfig.NODE_LABLE_OFFSET_Y  * this.scale.y / this.visualConfig.factor);
+        this.ts.scale.set(this.visualConfig.ui.label.scale, this.visualConfig.ui.label.scale);
+        this.ts.visible = this.visualConfig.ui.label.visibleByDefault;
+        this.labelBgContainer = [];
+        if (!this.data.properties._$hideLabel) {
+            this.createText();
+        }
     }
 
-    createText(node, visualConfig) {
-        const t = new PIXI.extras.BitmapText((node.data.label ? node.data.label : ''), {
-            font: {
-                name : visualConfig.font.font,
-                size: visualConfig.ui.label.font.size
-            },
-            tint: visualConfig.ui.label.font.color
-        });
-        t.position.set(node.data.properties._$x, node.data.properties._$y + visualConfig.NODE_LABLE_OFFSET_Y);
-        t.anchor.x = 0.5;
-        t.anchor.y = 0.5;
-        t.scale.set(visualConfig.ui.label.scale, visualConfig.ui.label.scale);
-        this.ts = t;
+    createText() {
+        let labels = this.data.label;
+        if (this.data.properties._$customizedLabel && this.data.properties._$customizedLabel.length > 0) {
+            labels = this.data.properties._$customizedLabel;
+        }
 
-        const labelBg = new PIXI.Sprite(PIXI.Texture.WHITE);
-        labelBg.alpha = 1;
-        labelBg.tint = visualConfig.ui.label.background.color;
-        labelBg.width = t.width + 4;
-        labelBg.height = t.height + 2;
-        labelBg.position.set(t.position.x, t.position.y);
-        labelBg.anchor.x = 0.5;
-        labelBg.anchor.y = 0.5;
-        this.bg = labelBg;
+        labels = labels.split('\n');
+        labels.forEach((label, index) => {
+            const t = new PIXI.extras.BitmapText((label ? label : ''), {
+                font: {
+                    name : this.visualConfig.font.font,
+                    size: this.visualConfig.ui.label.font.size
+                },
+                tint: this.visualConfig.ui.label.font.color
+            });
+            t.position.set(0, this.visualConfig.NODE_LABLE_OFFSET_BETWEEN_LINE * index);
+            t.anchor.x = 0.5;
+            t.anchor.y = 0.5;
+
+            const labelBg = new PIXI.Sprite(PIXI.Texture.WHITE);
+            labelBg.alpha = 1;
+            labelBg.tint = this.visualConfig.ui.label.background.color;
+            labelBg.width = t.width + 4;
+            labelBg.height = t.height + 4;
+            labelBg.position.set(t.position.x, t.position.y);
+            labelBg.anchor.x = 0.5;
+            labelBg.anchor.y = 0.5;
+            labelBg.visible = t.visible;
+
+            this.ts.addChild(labelBg);
+            this.ts.addChild(t);
+
+            this.labelBgContainer.push(labelBg);
+        });
     }
 
     set selected(isSelected) {
@@ -77,12 +95,16 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         if (selected) {
             if (this.ts) {
                 this.ts.tint = vizConf.ui.label.font.highlight;
-                this.bg.tint = vizConf.ui.label.background.highlight;
+                this.labelBgContainer.forEach((labelBg) => {
+                    labelBg.tint = vizConf.ui.label.background.highlight;
+                });
             }
         } else {
             if (this.ts) {
                 this.ts.tint = vizConf.ui.label.font.color;
-                this.bg.tint = vizConf.ui.label.background.color;
+                this.labelBgContainer.forEach((labelBg) => {
+                    labelBg.tint = vizConf.ui.label.background.color;
+                });
             }
         }
     }
@@ -99,11 +121,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             this.scale.set(scaleValue, scaleValue);
             if (this.ts) {
                 this.ts.scale.set(labelScale, labelScale);
-                this.bg.scale.set(this.ts.scale.x, this.ts.scale.y);
                 this.ts.position.set(this.position.x, this.position.y +  vizConf.NODE_LABLE_OFFSET_Y * this.scale.y / vizConf.factor);
-                this.bg.position.set(this.ts.position.x, this.ts.position.y);
-                this.bg.width = this.ts.width + 4;
-                this.bg.height = this.ts.height + 2;
             }
 
             if (this.gcs) {
@@ -230,7 +248,6 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         if (this.ts) {
             this.ts.position.x = p.x;
             this.ts.position.y = p.y + vizConf.NODE_LABLE_OFFSET_Y * this.scale.y / vizConf.factor;
-            this.bg.position.set(this.ts.position.x, this.ts.position.y);
         }
 
         if (this.gcs && this.gcs.length > 0) {
@@ -280,12 +297,10 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     updateLabel() {
         const label = this.data.label;
         if (label) {
-            if (this.ts) {
-                this.ts.text = this.data.label;
-                this.bg.width = this.ts.width + 4;
-                this.bg.height = this.ts.height + 2;
-            } else {
-                this.createText(this, this.visualConfig);
+            this.labelBgContainer = [];
+            this.ts.removeChildren();
+            if (!this.data.properties._$hideLabel) {
+                this.createText();
             }
         }
     }
