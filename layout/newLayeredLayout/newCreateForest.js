@@ -57,7 +57,7 @@ function createFirstLevel(levelId, selectNodes, allNodes){
     if (!selectNodes.length){
         selectNodes = getMaxDegreeNode(allNodes)
     }
- 
+
     // 第一层节点不存在重复的可能性，所以将第一层的节点放在一个子树结构中，并放置在第一层
     thisLevelContainNodeIdSet = new Set()
     for (var node of selectNodes) {
@@ -76,10 +76,10 @@ function createFirstLevel(levelId, selectNodes, allNodes){
     for (var nodeId of thisLevelContainNodeIdSet){
         allNodes[nodeId].inTree = true;
         allNodes.notInTreeNum--;
-    } 
+    }
     return firstLevel
 }
-     
+
 function createLevel(levelId, upperLevel, allNodes){
     // 统计本层包含的节点
     var thisLevelContainNodeIdSet = new Set()
@@ -108,10 +108,10 @@ function createLevel(levelId, upperLevel, allNodes){
                         // 将子树加入本层
                         level.addChildTree(childTreeInThisLevel)
                         // 设置该子树的父节点的childTreeId属性
-                        treeNode.setchildTreeId(childTreeIdInThisLevel)
+                        treeNode.setChildTreeId(childTreeIdInThisLevel)
                         childTreeIdInThisLevel += 1
                         addedParentNodeIdset.add(treeNodeId)
-                    } 
+                    }
                 }
             }
         }
@@ -119,7 +119,7 @@ function createLevel(levelId, upperLevel, allNodes){
         // for (var nodeId of thisLevelContainNodeIdSet){
         //     allNodes[nodeId].inTree = true;
         //     allNodes.notInTreeNum--;
-        // }  
+        // }
         return level
     }
     return null
@@ -154,7 +154,7 @@ function createTreeNode(node, thisLevelContainNodeIdSet, allNodes, levelId){
                 parent.add(link.data.sourceEntity)
             } else {
                 children.add(link.data.sourceEntity)
-            }    
+            }
         }
     })
     _.each(node.outgoing, function (link) {
@@ -165,7 +165,7 @@ function createTreeNode(node, thisLevelContainNodeIdSet, allNodes, levelId){
                 parent.add(link.data.targetEntity)
             } else {
                 children.add(link.data.targetEntity)
-            }    
+            }
         }
     })
     treeNode.setChildren(children)
@@ -178,7 +178,7 @@ function createTreeNode(node, thisLevelContainNodeIdSet, allNodes, levelId){
 function getMaxDegreeNode(nodeList) {
     var maxDegree = -1;
     var maxDegreeNodes = []
-    var maxDegreeNodeIdSet = new Set();    
+    var maxDegreeNodeIdSet = new Set();
     _.each(nodeList, function (node) {
         if ((!node.inTree) && node.id) {
             var degree = 0;
@@ -197,7 +197,7 @@ function getMaxDegreeNode(nodeList) {
             } else if (degree == maxDegree) {
                 if (inSameTree(maxDegreeNodeIdSet, node, nodeList)){
                     maxDegreeNodes.push(node);
-                    maxDegreeNodeIdSet.add(node.id);                    
+                    maxDegreeNodeIdSet.add(node.id);
                 }
             }
         }
@@ -209,7 +209,7 @@ function inSameTree(maxDegreeNodeIdSet, node, nodeList) {
     var subGraphNodeIdSet = new Set();
     subGraphNodeIdSet.add(node.id);
     var newNodeIdSet = new Set();
-    newNodeIdSet.add(node.id);    
+    newNodeIdSet.add(node.id);
     while (newNodeIdSet.size !== 0){
         var tmpNewNodeIdSet = new Set();
         for (var nodeId of newNodeIdSet){
@@ -235,13 +235,13 @@ function getSubGraph(subGraphNodeIdSet, newNodeIdSet, node){
     _.each(node.incoming, function (link) {
         var anotherNodeId = link.data.sourceEntity;
         if (!subGraphNodeIdSet.has(anotherNodeId)){
-            newNodeIdSet.add(anotherNodeId)            
+            newNodeIdSet.add(anotherNodeId)
         }
     })
     _.each(node.outgoing, function (link) {
         var anotherNodeId = link.data.targetEntity;
         if (!subGraphNodeIdSet.has(anotherNodeId)){
-            newNodeIdSet.add(anotherNodeId)            
+            newNodeIdSet.add(anotherNodeId)
         }
     })
 }

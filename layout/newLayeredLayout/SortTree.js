@@ -27,7 +27,7 @@ function SortTree(tree){
 		var upperLevel = levelMap.get(i)
 		if (i != 0){
 			upperLevel = levelMap.get(i-1)
-		} 
+		}
 		removeDuplication(upperLevel, level)
 	}
 	sort(levelMap)
@@ -62,9 +62,9 @@ function removeDuplication(upperLevel, level){
         	var parentId = childTree.getParentId()
         	var childTreeInUpperLevel = upperLevel.getChildTreeMap().get(upperChildTreeId)
         	var parent = childTreeInUpperLevel.getNodeMap().get(parentId)
-        	parent.setchildTreeId("")
+        	parent.setChildTreeId("")
         	level.removeChildTree(childTreeId)
-		} 
+		}
     }
 }
 
@@ -75,7 +75,7 @@ function sort(levelMap){
 		// 要调整有子树内拥有子树的节点之间的顺序，所以也要改变下一层级中子树的顺序
 		var lowerLevelChildTreeMapNew = new Map()
 
-		var childTreeMap = level.getChildTreeMap() 
+		var childTreeMap = level.getChildTreeMap()
 		// 遍历各个子树
 		for (var childTree of childTreeMap.values()){
 			var nodeMap = childTree.getNodeMap()
@@ -155,14 +155,14 @@ function sort(levelMap){
 			lowerLevel.setChildTreeMap(lowerLevelChildTreeMapNew)
 		}
 	}
-	
+
 }
 
 function sortNodeHasChildTree(levelMap, nodeIdHasChildrenList, nodeMap, levelId){
 	var childTreeLevelOfNode = new Map()
 	for (var nodeId of nodeIdHasChildrenList){
 		var treeNode = nodeMap.get(nodeId)
-		var numOfLevels = 1 
+		var numOfLevels = 1
 		var levelIdtmp = levelId+1
 
 		var childTreeIdList = []
@@ -215,7 +215,7 @@ function sortNodeHasChildTree(levelMap, nodeIdHasChildrenList, nodeMap, levelId)
 		} else {
 			sorted.unshift(maxNumId)
 			tmp = 1
-		}	
+		}
 		childTreeLevelOfNode.delete(maxNumId)
 	}
 	return sorted

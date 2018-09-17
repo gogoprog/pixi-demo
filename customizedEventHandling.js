@@ -158,22 +158,19 @@ export const nodeCaptureListener = function (e) {
 
 // 选中节点处理
 const nodeReleaseListener = function (e) {
-    this.off('mousemove', this.moveListener);
-    // this.alpha = 1;
-    this.dragging = false;
-    this.parent.nodeReleased(this);
-    this.parent.isDirty = true;
-    this.interactionData = null;
-    this.parent.selectNode(this);
-    this.parent.nodeSelected(this);
-    this.parent.selectedNodesPosChanged();
-    this.moveListener = null;
-    this.off('mouseup', this.releaseListener);
-    this.releaseListener = null;
+    this.nodeClear = nodeClear.bind(this);
+    this.nodeClear();
 };
 
 //  移动节点处理
 const nodeMoveListener = function (e) {
+    const layoutType = this.parent.layoutType;
+    if (layoutType === 'FamilyLayout') {
+        this.nodeClear = nodeClear.bind(this);
+        this.nodeClear();
+        return;
+    }
+
     // console.log('node mouse move fired');
     this.parent.dragJustNow = false;
     this.parent.setPositionDirty(false);
@@ -186,6 +183,7 @@ const nodeMoveListener = function (e) {
             this.releaseListener(e);
         }
     }
+    let isBrokenLineLayerLayout = this.parent.layoutType === 'BrokenLineLayered';
     if (this.dragging && this.selected) {
         // newPosition=null;
         // this.updateNodePosition(newPosition);
@@ -196,7 +194,7 @@ const nodeMoveListener = function (e) {
             const np = new PIXI.Point();
             np.x = n.position.x + dx;
             np.y = n.position.y + dy;
-            n.updateNodePosition(np, true);
+            n.updateNodePosition(np, true, isBrokenLineLayerLayout);
             container.nodeMoved(n);
         });
         this.parent.isDirty = true;
@@ -209,7 +207,7 @@ const nodeMoveListener = function (e) {
         }
         this.parent.selectNode(this);
         this.parent.nodeSelected(this);
-        this.updateNodePosition(newPosition, true);
+        this.updateNodePosition(newPosition, true, isBrokenLineLayerLayout);
         this.parent.nodeMoved(this);
         this.parent.setPositionDirty(true);
     }
@@ -236,4 +234,19 @@ const linkReleaseListener = function (e) {
     this.off('mouseup', this.releaseListener);
     this.releaseListener = null;
     this.parent.isDirty = true;
+};
+
+const nodeClear = function (e) {
+    this.off('mousemove', this.moveListener);
+    // this.alpha = 1;
+    this.dragging = false;
+    this.parent.nodeReleased(this);
+    this.parent.isDirty = true;
+    this.interactionData = null;
+    this.parent.selectNode(this);
+    this.parent.nodeSelected(this);
+    this.parent.selectedNodesPosChanged();
+    this.moveListener = null;
+    this.off('mouseup', this.releaseListener);
+    this.releaseListener = null;
 };
