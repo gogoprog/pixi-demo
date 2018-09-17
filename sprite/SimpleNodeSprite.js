@@ -204,7 +204,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     /**
      * 更新顶点及其相关元素的位置.
      */
-    updateNodePosition(p, forceLinkUpdate = false) {
+    updateNodePosition(p, forceLinkUpdate = false, isBrokenLineLayerLayout = false) {
         this._updateNodeAttachPosition(p);
         if (this.timelineMode) {
             _.each(this.incoming, function (l) {
@@ -213,7 +213,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
                     y: p.y,
                 });
                 if(forceLinkUpdate) {
-                    l.updatePosition();
+                    l.updatePosition(isBrokenLineLayerLayout);
                 }
             });
             _.each(this.outgoing, function (l) {
@@ -222,20 +222,20 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
                     y: p.y
                 });
                 if(forceLinkUpdate) {
-                    l.updatePosition();
+                    l.updatePosition(isBrokenLineLayerLayout);
                 }
             });
         } else {
             _.each(this.incoming, function (l) {
                 l.setTo(p);
                 if(forceLinkUpdate) {
-                    l.updatePosition();
+                    l.updatePosition(isBrokenLineLayerLayout);
                 }
             });
             _.each(this.outgoing, function (l) {
                 l.setFrom(p);
                 if(forceLinkUpdate) {
-                    l.updatePosition();
+                    l.updatePosition(isBrokenLineLayerLayout);
                 }
             });
         }

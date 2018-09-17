@@ -4,6 +4,8 @@ import 'pixi.js';
 
 import LayeredLayout from './layout/LayeredLayout';
 import LayeredLayoutNew from './layout/newLayeredLayout/LayeredLayoutNew';
+import FamilyLayout from './layout/newLayeredLayout/FamilyLayout/FamilyLayout'
+import StandardFamilyTreeLayout from './layout/newLayeredLayout/StandardFamilyTreeLayout/StandardFamilyTreeLayout'
 import CircleLayout from './layout/CircleLayout';
 import StructuralLayout from './layout/StructuralLayout/StructuralLayout';
 import RadiateLayout from './layout/RadiateLayout';
@@ -14,6 +16,8 @@ import GraphLevelForceLayout from "./layout/ForceLayoutBaseFMMM/graphLevelForceL
 import GraphLevelForceLayoutOpt from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayoutOpt"
 import elpForceLayout from "./layout/elpLayout/ForceLayout"
 import personForceLayout from "./layout/personLayout/PersonForceLayout"
+import Person2PersonLayout from "./layout/Person2PersonLayout/Person2PersonLayout"
+import PersonRelationshipLayout from "./layout/PersonRelationshipLayout/PersonRelationshipLayout"
 
 import Graph from './Graph';
 
@@ -121,6 +125,7 @@ export default function (settings) {
     emptyTextContainer.zIndex = 22;
     root.addChild(lineGraphics);
     root.addChild(linkContainer);
+    root.addChild(linkContainer.lineGraphics);
     root.addChild(labelContainer);
     root.addChild(textContainer);
     root.addChild(emptyTextContainer);
@@ -184,6 +189,11 @@ export default function (settings) {
     };
 
     stage.selectAllNodesInRegion = function (x1, y1, x2, y2, flag, onlyNodeFlag) {
+        if (!isInteractiveLayout()) {
+            // 不可交互的布局，直接返回
+            return;
+        }
+
         isDirty = true;
         let xl;
         let xr;
@@ -233,6 +243,11 @@ export default function (settings) {
      * @param {*} y0
      */
     stage.selectSingleLink = function (x0, y0) {
+        if (!isInteractiveLayout()) {
+            // 不可交互的布局，直接返回
+            return;
+        }
+
         isDirty = true;
         const xl = x0 - 1;
         const xr = x0 + 1;
@@ -263,6 +278,10 @@ export default function (settings) {
         });
     };
 
+    function isInteractiveLayout() {
+        return layoutType !== 'FamilyLayout' && layoutType !== 'PersonRelationshipStructural' && layoutType !== 'Person2Person';
+    }
+
     /**
      * Very Very Important Variables
      * nodeSprites is for all of the nodes, their attribute can be found in initNode;
@@ -270,6 +289,8 @@ export default function (settings) {
      */
     let nodeSprites = {};
     let linkSprites = {};
+    // 将linkSprites设置进linkContainer以便画线
+    linkContainer.linkSprites = linkSprites;
 
     //let bfsQueue = [];
 
@@ -436,45 +457,22 @@ export default function (settings) {
          * draw circle layout
          */
         drawCircleLayout(disableAnimation, init) {
-            isDirty = true;
-            if (stage.isTimelineLayout) {
-                timelineLayout.disableTimelineLayout();
-            }
-            layoutType = 'Circular';
             layout = new CircleLayout(nodeSprites, nodeContainer, visualConfig, init);
             this.setNodesToFullScreen(disableAnimation);
         },
 
         drawPersonLayout(disableAnimation, init) {
-            isDirty = true;
-            if (stage.isTimelineLayout) {
-                timelineLayout.disableTimelineLayout();
-            }
-            layoutType = 'PersonLayout';
             layout = new personForceLayout(nodeSprites, nodeContainer, visualConfig);
             this.setNodesToFullScreen(disableAnimation);
         },
 
         drawStructuralLayout(disableAnimation, init) {
-            isDirty = true;
-            if (stage.isTimelineLayout) {
-                timelineLayout.disableTimelineLayout();
-            }
-            layoutType = 'Structural';
-            // layout = new StructuralLayout(nodeSprites, nodeContainer, visualConfig);
             layout = new GraphLevelForceLayoutOpt(nodeSprites, nodeContainer, visualConfig, init);
             this.setNodesToFullScreen(disableAnimation);
         },
-        /**
-         * draw layered layout
-         */
-        drawLayeredLayout(disableAnimation, init) {
-            isDirty = true;
-            layoutType = 'Layered';
-            layout = new LayeredLayoutNew(nodeSprites, nodeContainer, visualConfig, init);
-            if (stage.isTimelineLayout) {
-                timelineLayout.disableTimelineLayout();
-            }
+
+        drawStructuralLayoutForPersonRelationship(disableAnimation, init) {
+            layout = new PersonRelationshipLayout(nodeSprites, nodeContainer, visualConfig);
             this.setNodesToFullScreen(disableAnimation);
         },
 
@@ -482,12 +480,42 @@ export default function (settings) {
          * draw radiate layout
          */
         drawRadiateLayout(disableAnimation, init) {
-            isDirty = true;
-            layoutType = 'Radiate';
             layout = new RadiateLayout(nodeSprites, nodeContainer, visualConfig, init);
-            if (stage.isTimelineLayout) {
-                timelineLayout.disableTimelineLayout();
-            }
+            this.setNodesToFullScreen(disableAnimation);
+        },
+
+        /**
+         * draw layered layout
+         */
+        drawLayeredLayout(disableAnimation, init) {
+            layout = new LayeredLayoutNew(nodeSprites, nodeContainer, visualConfig, init);
+            this.setNodesToFullScreen(disableAnimation);
+        },
+
+        /**
+         * draw Broken Line Layered layout
+         * @param disableAnimation
+         * @param init
+         */
+        drawLBrokenLineLayeredLayout(disableAnimation, init) {
+            layout = new LayeredLayoutNew(nodeSprites, nodeContainer, visualConfig, init);
+            this.setNodesToFullScreen(disableAnimation);
+        },
+
+        setPerson2PersonNode(startNodeId, endNodeId) {
+            this.startNodeId = startNodeId;
+            this.endNodeId = endNodeId;
+        },
+
+        drawPerson2PersonLayout(disableAnimation){
+            // TODO 增加两个参数 startNodeId, endNodeId
+            layout = new Person2PersonLayout(nodeSprites, nodeContainer, visualConfig, this.startNodeId, this.endNodeId);
+            this.setNodesToFullScreen(disableAnimation);
+        },
+
+        drawFamilyLayout(disableAnimation, init) {
+            layout = new StandardFamilyTreeLayout(nodeSprites, nodeContainer, visualConfig, init);
+            linkContainer.mode = 'pixi';
             this.setNodesToFullScreen(disableAnimation);
         },
 
@@ -731,8 +759,9 @@ export default function (settings) {
                 nodeContainer.nodeMoved(n);
                 layout.setNodePosition(n.id, n.position.x, n.position.y);
             });
+            let isBrokenLineLayerLayout = layoutType === 'BrokenLineLayered';
             _.each(linkSprites, (l) => {
-                l.updatePosition();
+                l.updatePosition(isBrokenLineLayerLayout);
             });
         },
 
@@ -930,7 +959,11 @@ export default function (settings) {
             if (layoutType !== 'Network'
                 && layoutType !== 'Circular'
                 && layoutType !== 'Structural'
+                && layoutType !== 'PersonRelationshipStructural'
                 && layoutType !== 'Layered'
+                && layoutType !== 'BrokenLineLayered'
+                && layoutType !== 'Person2Person'
+                && layoutType !== 'FamilyLayout'
                 && layoutType !== 'Radiate'
                 && layoutType !== 'TimelineScale') {
                 layoutType = 'Network';
@@ -971,11 +1004,15 @@ export default function (settings) {
 
         performLayout(disableAnimation, init) {
             disableLayout = disableAnimation;
-            if (layoutType === 'Network') {
-                if (stage.isTimelineLayout) {
-                    timelineLayout.disableTimelineLayout();
-                }
+            // the default link drawing mode is webgl. However, when it's FamilyLayout, we use pixi to draw links.
+            linkContainer.mode = 'webgl';
+            nodeContainer.layoutType = layoutType;
 
+            isDirty = true;
+            if (stage.isTimelineLayout) {
+                timelineLayout.disableTimelineLayout();
+            }
+            if (layoutType === 'Network') {
                 if (!dynamicLayout) {
                     layout.step();
 
@@ -996,13 +1033,21 @@ export default function (settings) {
                 this.drawPersonLayout(disableAnimation, init);
             } else if (layoutType === 'Structural') {
                 this.drawStructuralLayout(disableAnimation, init);
+            } else if (layoutType === 'PersonRelationshipStructural') {
+                this.drawStructuralLayoutForPersonRelationship(disableAnimation, init);
             } else if (layoutType === 'Layered') {
                 this.drawLayeredLayout(disableAnimation, init);
+            } else if (layoutType === 'BrokenLineLayered') {
+                this.drawLBrokenLineLayeredLayout(disableAnimation, init);
+            } else if (layoutType === 'Person2Person'){
+                this.drawPerson2PersonLayout(disableAnimation);
             } else if (layoutType === 'Radiate') {
                 this.drawRadiateLayout(disableAnimation, init);
+            } else if (layoutType === 'FamilyLayout') {
+                this.drawFamilyLayout(disableAnimation, init);
             } else if (layoutType === 'TimelineScale') {
                 timelineLayout.drawTimelineLayout();
-            } else {
+            }  else {
                 return false;
             }
             isDirty = true;
@@ -1801,8 +1846,9 @@ export default function (settings) {
                 layout.pinNode(nodeSprite, false);
             }
         });
+        let isBrokenLineLayerLayout = layoutType === 'BrokenLineLayered';
         _.each(linkSprites, (l) => {
-            l.updatePosition();
+            l.updatePosition(isBrokenLineLayerLayout);
         });
     }
 

@@ -7,6 +7,7 @@ export default class TreeNode {
         this.children = new Set()  // 该节点的所有儿子节点id列表
         this.parent = new Set()    // 该节点的父节点id列表
         this.levelId = ""          // 该节点所在level
+        this.marriageNodeIds = new Set();    // 该节点的夫妻节点
     }
     getId(){
         return this.id
@@ -17,7 +18,7 @@ export default class TreeNode {
     getIdInChildTree(){
         return this.idInChildTree
     }
-    setchildTreeId(childTreeId){
+    setChildTreeId(childTreeId){
         this.childTreeId = childTreeId
     }
     getChildTreeId(){
@@ -40,5 +41,11 @@ export default class TreeNode {
     }
     getLevelId(){
         return this.levelId
+    }
+    setMarriageNodeIds(marriageNodeIds){
+        this.marriageNodeIds = marriageNodeIds;
+    }
+    getMarriageNodeIds(){
+        return this.marriageNodeIds;
     }
 }

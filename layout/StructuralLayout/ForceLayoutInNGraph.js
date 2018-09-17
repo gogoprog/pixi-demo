@@ -306,7 +306,29 @@ export default function createLayout(graph, physicsSettings) {
         //     springLength = springLength/2
         // }
 
-
+        let fromNodeGroupSize = graph.getNode(link.fromId).data.groups.size;
+        let fromRadiusGap = 300;
+        let formNodeCircleNum = Math.ceil(Math.sqrt(fromNodeGroupSize / 10 + 0.25) - 0.5);
+        if (fromNodeGroupSize < 20) {
+            fromRadiusGap = Math.max(fromNodeGroupSize * 15, 100);
+            formNodeCircleNum = 1;
+        }
+        if (!graph.getNode(link.fromId).data.centerId) {
+            formNodeCircleNum = Math.ceil(Math.sqrt(fromNodeGroupSize / 3 + 0.25) - 0.5);
+            fromRadiusGap = 100;
+        }
+        let toNodeGroupSize = graph.getNode(link.toId).data.groups.size;
+        let toRadiusGap = 300;
+        let toNodeCircleNum = Math.ceil(Math.sqrt(toNodeGroupSize / 10 + 0.25) - 0.5);
+        if (toNodeGroupSize < 20) {
+            toRadiusGap = Math.max(toNodeGroupSize * 15, 100);
+            toNodeCircleNum = 1;
+        }
+        if (!graph.getNode(link.toId).data.centerId) {
+            toNodeCircleNum = Math.ceil(Math.sqrt(toNodeGroupSize / 3 + 0.25) - 0.5);
+            toRadiusGap = 100;
+        }
+        springLength = springLength/2 + (toNodeCircleNum * toRadiusGap + formNodeCircleNum * fromRadiusGap);
         var spring = physicsSimulator.addSpring(fromBody, toBody, springLength, 1, physicsSimulator.settings.springCoeff / tmp1);
 
 
@@ -396,12 +418,12 @@ export default function createLayout(graph, physicsSettings) {
      * @returns {Number} recommended mass of the body;
     */
     function nodeMass(nodeId) {
-        var groupSize = graph.getNode(nodeId).data.groups.size;
-        return 1 + groupSize*3;
-        // var links = graph.getLinks(nodeId);
-        // if (!links) return 1;
+        // var groupSize = graph.getNode(nodeId).data.groups.size;
+        // return 1 + groupSize;
+        var links = graph.getLinks(nodeId);
+        if (!links) return 1;
         // return 1 + links.length / 3.0;
-        // return 1 + links.length * 2;
+        return 1 + links.length * 2;
     }
 }
 

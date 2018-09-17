@@ -24,6 +24,7 @@ export default class Layout {
                 id: n.id,
                 incoming: n.incoming,
                 outgoing: n.outgoing,
+                data: n.data,
                 inTree: false,
                 scale: n.scale.x,
                 layoutLevel: 0,
@@ -39,10 +40,10 @@ export default class Layout {
             }
             ns[n.id] = node;
         });
-    
+
         return ns;
     };
-    
+
     getSelectNodes() {
         let sn = [];
         let that = this;
@@ -64,14 +65,14 @@ export default class Layout {
         });
         return sn;
     };
-    
+
     draw(treeNode) {
         // let length = treeNode.child.length;
         let that = this;
         // for (let i = 0; i < length; i++) {
         //     that.draw(treeNode.child[i]);
         // }
-    
+
         let node = that.nodes[treeNode.id];
         // // console.log(treeNode.level,treeNode.levelId);
         // console.log(node.cluster);
@@ -79,11 +80,11 @@ export default class Layout {
             x: treeNode.positionx,
             y: treeNode.positiony
         };
-    
+
         // console.log("node.position.x",node.position.x,"node.position.y",node.position.y);
-    
+
     };
-    
+
     calStep(p1, p2, totalStep, thisStep) {
         let perX = (p2.x - p1.x) / totalStep;
         let perY = (p2.y - p1.y) / totalStep;
@@ -92,7 +93,7 @@ export default class Layout {
             y: p1.y + perY * thisStep
         };
     };
-    
+
     finalLayoutAvailable() {
         return true;
     };
@@ -124,9 +125,9 @@ export default class Layout {
                     }
                 }
             }
-        }   
+        }
     };
-   
+
     getGraphRect() {
         let that = this;
         for (let nodeId in that.nodes) {
@@ -147,14 +148,14 @@ export default class Layout {
                 that.bottom = node.position.y;
             }
         }
-    
-    
+
+
         return {
             x1: this.left, y1: this.top,
             x2: this.right, y2: this.bottom
         }
     };
-    
+
     /**
      * return if the layout is finished.
      */
@@ -171,7 +172,7 @@ export default class Layout {
                     }else {
                         that.currentPosition[node.id]= that.nodeSprites[node.id].position;
                     }
-    
+
                 }
             });
             return false;
@@ -179,7 +180,7 @@ export default class Layout {
         // this.thisStep = 0;
         return true;
     };
-    
+
     getNodePosition(nodeId) {
         let pos = this.currentPosition[nodeId];
         if (!pos || Object.keys(pos).length == 0) {
@@ -188,7 +189,7 @@ export default class Layout {
             return pos;
         }
     };
-    
+
     setNodePosition(id, x, y) {
         if (id !== "notInTreeNum") {
             this.nodeSprites[id].position.x = x;
@@ -196,15 +197,15 @@ export default class Layout {
             this.currentPosition[id]= this.nodeSprites[id].position;
         }
     };
-    
+
     pinNode(node, isPinned) {
         this.nodes[node.id].isPinned = !!isPinned;
     };
-    
+
     isNodePinned(node) {
         return this.nodes[node.id].isPinned;
     };
-    
+
     isNodeOriginallyPinned(node) {
         return (node.pinned && node.data.properties["_$lock"]);
     };

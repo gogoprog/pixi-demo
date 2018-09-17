@@ -156,8 +156,8 @@ export default class SimpleLineSprite {
         this.y2 = point.y;
     }
 
-    updatePosition() {
-        if (this.x1 !== this.x2 || this.y1 !== this.y2) {
+    updatePosition(isBrokenLineLayerLayout = false) {
+        // if (this.x1 !== this.x2 || this.y1 !== this.y2) {
             let dxCtl = this.visualConfig.LINK_MULTI_OFFSET;  // AC
             let dyCtl = this._controlOffsetIndex * this.visualConfig.LINK_MULTI_OFFSET;  // CD
 
@@ -168,36 +168,43 @@ export default class SimpleLineSprite {
             this.unitVector = [x / bevel, y / bevel];
             this.perpendicularVector = [- this.unitVector[1], this.unitVector[0]];
 
-            this.fx = this.x1 + this.unitVector[0] * dxCtl + this.perpendicularVector[0] * dyCtl;
-            this.fy = this.y1 + this.unitVector[1] * dxCtl + this.perpendicularVector[1] * dyCtl;
-            this.tx = this.x2 - this.unitVector[0] * dxCtl + this.perpendicularVector[0] * dyCtl;
-            this.ty = this.y2 - this.unitVector[1] * dxCtl + this.perpendicularVector[1] * dyCtl;
-
-            this.midX = (this.fx + this.tx) / 2;
-            this.midY = (this.fy + this.ty) / 2;
-
-            this.label.position.set(this.midX, this.midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
-        } else {
-            let dxCtl = this.visualConfig.SELF_LINK_OFFSET;  // AC
-            let dyCtl = this.visualConfig.SELF_LINK_OFFSET;  // CD
-            if (this._controlOffsetIndex !== 0) {
-                dxCtl = this.visualConfig.SELF_LINK_OFFSET;
-                dyCtl = Math.abs(this._controlOffsetIndex * this.visualConfig.SELF_LINK_OFFSET);
+            if (isBrokenLineLayerLayout) {
+                this.fx = this.x1;
+                this.fy = (this.y1 + this.y2) / 2;
+                this.tx = this.x2;
+                this.ty = this.fy;
+            } else {
+                this.fx = this.x1 + this.unitVector[0] * dxCtl + this.perpendicularVector[0] * dyCtl;
+                this.fy = this.y1 + this.unitVector[1] * dxCtl + this.perpendicularVector[1] * dyCtl;
+                this.tx = this.x2 - this.unitVector[0] * dxCtl + this.perpendicularVector[0] * dyCtl;
+                this.ty = this.y2 - this.unitVector[1] * dxCtl + this.perpendicularVector[1] * dyCtl;
             }
 
-            this.unitVector = [1, 0];
-            this.perpendicularVector = [0, 1];
-
-            this.fx = this.x1 - dxCtl / 2;
-            this.fy = this.y1 - dyCtl;
-
-            this.tx = this.x1 + dxCtl / 2;
-            this.ty = this.y1 - dyCtl;
-
             this.midX = (this.fx + this.tx) / 2;
             this.midY = (this.fy + this.ty) / 2;
+
             this.label.position.set(this.midX, this.midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
-        }
+        // } else {
+        //     let dxCtl = this.visualConfig.SELF_LINK_OFFSET;  // AC
+        //     let dyCtl = this.visualConfig.SELF_LINK_OFFSET;  // CD
+        //     if (this._controlOffsetIndex !== 0) {
+        //         dxCtl = this.visualConfig.SELF_LINK_OFFSET;
+        //         dyCtl = Math.abs(this._controlOffsetIndex * this.visualConfig.SELF_LINK_OFFSET);
+        //     }
+        //
+        //     this.unitVector = [1, 0];
+        //     this.perpendicularVector = [0, 1];
+        //
+        //     this.fx = this.x1 - dxCtl / 2;
+        //     this.fy = this.y1 - dyCtl;
+        //
+        //     this.tx = this.x1 + dxCtl / 2;
+        //     this.ty = this.y1 - dyCtl;
+        //
+        //     this.midX = (this.fx + this.tx) / 2;
+        //     this.midY = (this.fy + this.ty) / 2;
+        //     this.label.position.set(this.midX, this.midY + this.visualConfig.LINK_LABLE_OFFSET_Y);
+        // }
         if (this.parent) {
             this.parent.updatePosition(this);
         }
