@@ -20,10 +20,10 @@ void main(void){
 
     gl_Position = vec4((projectionMatrix * transformMatrix * vec3(position, 1.0)).xy, 0.0, 1.0);
 
-    float row = floor(aIconIndex / 10.0);
-    float column = aIconIndex - row * 10.0;
-    float x0 = column * 0.1;  // 0.1: width of every icon
-    float y0 = row * 0.1; // 0.083: height of every icon
+    float row = floor(aIconIndex / 20.0);
+    float column = aIconIndex - row * 20.0;
+    float x0 = column * 0.05;  // 0.1: width of every icon
+    float y0 = row * 0.05; // 0.083: height of every icon
 
     // first draw selected frame
     if(aVertexID == 0.0){
