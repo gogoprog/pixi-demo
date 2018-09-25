@@ -42,15 +42,15 @@ void main(void){
     } else if(aVertexID == 6.0){
         vTextureCoord = vec2(x0, y0);
     } else if(aVertexID == 7.0) {
-        vTextureCoord = vec2(x0 + 0.1, y0);
+        vTextureCoord = vec2(x0 + 0.05, y0);
     } else if(aVertexID == 8.0) {
-        vTextureCoord = vec2(x0 + 0.1, y0 + 0.1);
+        vTextureCoord = vec2(x0 + 0.05, y0 + 0.05);
     } else if(aVertexID == 9.0) {
         vTextureCoord = vec2(x0, y0);
     } else if(aVertexID == 10.0) {
-        vTextureCoord = vec2(x0 + 0.1, y0 + 0.1);
+        vTextureCoord = vec2(x0 + 0.05, y0 + 0.05);
     } else if(aVertexID == 11.0) {
-        vTextureCoord = vec2(x0, y0 + 0.1);
+        vTextureCoord = vec2(x0, y0 + 0.05);
     }
 
     vIsUnknown = aIsUnknown;
