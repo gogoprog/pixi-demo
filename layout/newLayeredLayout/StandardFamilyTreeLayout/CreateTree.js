@@ -165,7 +165,9 @@ function createLevel(levelId, upperLevel, allNodes) {
                                 let virtualNode = allNodes[virtualNodeId];
                                 virtualNode.mergedNodeIds = [marriageNodeId, nodeIdInUpperLevel];
                                 childTreeInUpperLevel.addNode(virtualTreeNode);
+                                let tmp = sortedIdListWithVirtualNode.pop();
                                 sortedIdListWithVirtualNode.push(virtualNodeId);
+                                sortedIdListWithVirtualNode.push(tmp);
                                 // 创建两个节点共同拥有的子树，子树的父节点是虚拟节点
                                 let childTreeInThisLevel = createChildTree(childTreeIdInUpperLevel, virtualNodeId, commonChildrenIdSet, allNodes, levelId, childTreeId);
                                 if (null == childTreeInThisLevel) {
