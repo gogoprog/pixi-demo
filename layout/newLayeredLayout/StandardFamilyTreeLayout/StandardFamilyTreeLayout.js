@@ -484,7 +484,20 @@ function moveBeforeNodeInThisChileTree(treeNodeId, sortIdList, nodeMap, position
         if (!isOneGroup(treeNode, nodeMap, isVirtual, mergedNodeIds, priorTreeNode)) {
             break;
         }
-        // 若前一个节点是当前节点的夫妻节点或当前虚拟节点的构成节点，则需要移动
+        // 前一个节点是当前虚拟节点构成节点的夫妻
+        if (mergedNodeIds){
+            let nodeId1 = mergedNodeIds[0];
+            let nodeId2 = mergedNodeIds[1];
+            let node1 = nodeMap.get(nodeId1);
+            let node1MarriageNodeIds = node1.getMarriageNodeIds();
+            let node2 = nodeMap.get(nodeId2);
+            let node2MarriageNodeIds = node2.getMarriageNodeIds();
+            if (node1MarriageNodeIds.contains(priorTreeNode.getId()) || node2MarriageNodeIds.contains(priorTreeNode.getId())) {
+                needMoveNodeList.push(priorTreeNode);
+                continue;
+            }
+        }
+        // 若前一个节点是当前节点的夫妻节点或当前虚拟节点的构成节点或虚拟节点构成节点的夫妻，则需要移动
         if ((isVirtual && mergedNodeIds.contains(priorTreeNodeId)) || priorTreeNodeMarriageNodeIds.contains(treeNodeId)) {
             needMoveNodeList.push(priorTreeNode);
             continue;
@@ -508,7 +521,7 @@ function moveBeforeNodeInThisChileTree(treeNodeId, sortIdList, nodeMap, position
 }
 
 /**
- * 判断指定节点treeNode和之前的节点priorTreeNode是否处于用一个组（拥有共同夫妻或为直接夫妻或虚拟节点的构成节点）中
+ * 判断指定节点treeNode和之前的节点priorTreeNode是否处于用一个组（拥有共同夫妻或为直接夫妻或虚拟节点的构成节点或虚拟节点构成节点的夫妻）中
  * @param treeNode
  * @param nodeMap
  * @param isVirtual
@@ -520,12 +533,24 @@ function isOneGroup(treeNode, nodeMap, isVirtual, mergedNodeIds, priorTreeNode) 
     let treeNodeMarriageNodeIds = treeNode.getMarriageNodeIds();
     let priorTreeNodeMarriageNodeIds = priorTreeNode.getMarriageNodeIds();
 
+    // 前一个节点是当前虚拟节点构成节点的夫妻
+    if (mergedNodeIds){
+        let nodeId1 = mergedNodeIds[0];
+        let nodeId2 = mergedNodeIds[1];
+        let node1 = nodeMap.get(nodeId1);
+        let node1MarriageNodeIds = node1.getMarriageNodeIds();
+        let node2 = nodeMap.get(nodeId2);
+        let node2MarriageNodeIds = node2.getMarriageNodeIds();
+        if (node1MarriageNodeIds.contains(priorTreeNode.getId()) || node2MarriageNodeIds.contains(priorTreeNode.getId())) {
+            return true;
+        }
+    }
     // 若前一个节点是直接夫妻或当前虚拟节点的构成节点, 则一定处于同一个组内
     if ((isVirtual && mergedNodeIds.contains(priorTreeNode.getId())) || priorTreeNodeMarriageNodeIds.contains(treeNode.getId())) {
         return true;
     }
     if (!isVirtual) {
-        // 连个节点拥有共同的夫妻，则处于一个组内
+        // 两个节点拥有共同的夫妻，则处于一个组内
         for (const id of treeNodeMarriageNodeIds) {
             if (priorTreeNodeMarriageNodeIds.contains(id)) {
                 return true;
