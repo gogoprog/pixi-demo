@@ -37,7 +37,7 @@ export default class SimpleLineSprite {
         if (labels && labels.length > 0) {
             labels = labels.split('\n');
         } else {
-            labels = '';
+            labels = [];
         }
         labels.forEach((label, index) => {
             const t = new PIXI.extras.BitmapText((label ? label : ''), {
