@@ -51,7 +51,11 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             labels = this.data.properties._$customizedLabel;
         }
 
-        labels = labels.split('\n');
+        if (labels && labels.length > 0) {
+            labels = labels.split('\n');
+        } else {
+            labels = '';
+        }
         labels.forEach((label, index) => {
             const t = new PIXI.extras.BitmapText((label ? label : ''), {
                 font: {
