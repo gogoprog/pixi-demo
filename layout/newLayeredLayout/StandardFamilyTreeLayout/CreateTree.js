@@ -316,7 +316,7 @@ function sortMarriageNodes(node, allNodes) {
         if (1 === marriageNodeIdsOfAnotherNode.length) {
             //若marriageNode也只有一个夫妻节点，按照男左女右排列
             sortedNodeIds = sortMonogamy(node, marriageNode);
-            if (null == sortedNodeIds){
+            if (null == sortedNodeIds) {
                 return null;
             }
         } else if (marriageNodeIdsOfAnotherNode.length > 1) {
@@ -382,11 +382,19 @@ function sortMonogamy(node1, node2) {
     let nodeIds = [];
     let node1Gender = node1.data.properties["性别"];
     let node2Gender = node2.data.properties["性别"];
-    if (!node1Gender || !node2Gender || node1Gender === node2Gender) {
-        console.error("Data error：gender of node [" + node1.id + "] is " + node1Gender + "and gender of node [" + node2.id + "] is " + node2Gender);
+    if (!node1Gender || node1Gender === '-') {
+        console.warn("Data error：gender of node [" + node1.id + "] is " + node1Gender);
+        node1Gender = "男";
+    }
+    if (!node2Gender || node2Gender === '-') {
+        console.warn("Data error： gender of node [" + node2.id + "] is " + node2Gender);
+        node2Gender = "男";
+    }
+    if (node1Gender === node2Gender || (node1Gender !== "男" && node1Gender !== "女") || (node2Gender !== "男" && node2Gender !== "女")) {
+        console.error("Data error：gender of node [" + node1.id + "] is " + node1Gender + " gender of node [" + node2.id + "] is " + node2Gender);
         return null;
     }
-    if (node1Gender === "男"){
+    if (node1Gender === "男") {
         nodeIds.push(node1.id);
         nodeIds.push(node2.id);
     } else {
