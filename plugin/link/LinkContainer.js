@@ -32,7 +32,7 @@ export default class LinkContainer extends PIXI.Container {
         this.isDirty = false;
 
         // drawing mode, maybe 'pixi' or 'webgl';
-        this.mode = 'pixi';
+        this.mode = 'webgl';
         // 使用PIXI画线
         this.lineGraphics = new PIXI.Graphics();
     }
