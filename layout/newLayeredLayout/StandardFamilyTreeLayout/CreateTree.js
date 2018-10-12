@@ -46,7 +46,29 @@ function createFirstLevel(allNodes) {
     let sortedNodeIds = sortMarriageNodes(rootNode, allNodes);
     if (null == sortedNodeIds) {
         return null;
+    } else if (sortedNodeIds.length === 2) {
+        let manId = sortedNodeIds[0];
+        let wifeId = sortedNodeIds[1];
+        let manNode = allNodes[manId];
+        let wifeNodeIds = getMarriageNodes(manNode);
+        if (wifeNodeIds.length === 2) {
+            for (const wifeNodeId of wifeNodeIds) {
+                if (wifeNodeId === wifeId) {
+                    continue;
+                }
+                sortedNodeIds.unshift(wifeNodeId);
+            }
+        } else if (wifeNodeIds.length > 2) {
+            for (const wifeNodeId of wifeNodeIds) {
+                if (wifeNodeId === wifeId) {
+                    continue;
+                }
+                sortedNodeIds.push(wifeNodeId);
+            }
+        }
+
     }
+
     // 将本层所有的节点存入子树结构中
     for (let nodeId of sortedNodeIds) {
         let node = allNodes[nodeId];
@@ -517,12 +539,16 @@ function getMarriageNodes(node) {
     let marriageNodeIds = [];
     for (const link of node.incoming) {
         if (!link.data.isDirected) {
-            marriageNodeIds.push(link.data.sourceEntity)
+            if (marriageNodeIds.indexOf(link.data.sourceEntity) < 0 ){
+                marriageNodeIds.push(link.data.sourceEntity)
+            }
         }
     }
     for (const link of node.outgoing) {
         if (!link.data.isDirected) {
-            marriageNodeIds.push(link.data.targetEntity)
+            if (marriageNodeIds.indexOf(link.data.targetEntity) < 0 ) {
+                marriageNodeIds.push(link.data.targetEntity)
+            }
         }
     }
     return marriageNodeIds;
