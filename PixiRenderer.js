@@ -1853,8 +1853,21 @@ export default function (settings) {
     }
 
     function initNode(p) {
-        const iconUrl = pixiGraphics.getEntitySemanticType(p.data.type);
-        // const texture = visualConfig.findIcon(`/static/256${iconUrl}`);
+        let iconUrl;
+        // 在专题分析时，男性用男的图标表示，女性用女的图标表示
+        if (layoutType === 'FamilyLayout' || layoutType === 'PersonRelationshipStructural' || layoutType === 'Person2Person') {
+            if (p.data.properties['性别']) {
+                if (p.data.properties['性别'] === '男') {
+                    iconUrl = "/Person/Man.png";
+                } else if (p.data.properties['性别'] === '女') {
+                    iconUrl = "/Person/Lady.png";
+                }
+            }
+        }
+
+        if (_.isNil(iconUrl)) {
+            iconUrl = pixiGraphics.getEntitySemanticType(p.data.type);
+        }
 
         const nodeSprite = new SimpleNodeSprite(visualConfig.defaultIcon, p, visualConfig, iconContainer);
         nodeSprite.iconUrl = iconUrl;
