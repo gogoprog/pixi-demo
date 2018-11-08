@@ -15,6 +15,7 @@ export default function StandardFamilyTreeLayout(nodeSprites, nodeContainer, vis
     Layout.call(this, nodeSprites, nodeContainer);
     this.NODE_WIDTH = visualConfig.NODE_WIDTH;
     this.deltaY = visualConfig.NODE_WIDTH + 10;
+    this.deltaYTop = visualConfig.NODE_WIDTH / 2 + 10;
     if (!init) {
         // initialize!
         let nodes = this.nodes;
@@ -36,7 +37,7 @@ export default function StandardFamilyTreeLayout(nodeSprites, nodeContainer, vis
                 maxTreeNodeNumberOfLevel = number;
             }
         }
-        let yAxisTmp = Math.max(Math.ceil(maxTreeNodeNumberOfLevel / 20) * that.NODE_WIDTH, that.NODE_WIDTH * 4);
+        let yAxisTmp = that.NODE_WIDTH * 2.5;
 
         // xAxisList中记录每层横坐标的游标位置
         let xAxisList = [];
@@ -219,8 +220,8 @@ StandardFamilyTreeLayout.prototype.computeLinkPosition = function (tree) {
                         positionList = [
                             {x: Xf, y: Yf},
                             {x: Xf, y: Yf},
-                            {x: Xf, y: (Yt - this.deltaY)},
-                            {x: Xt, y: (Yt - this.deltaY)},
+                            {x: Xf, y: (Yt - this.deltaYTop)},
+                            {x: Xt, y: (Yt - this.deltaYTop)},
                             {x: Xt, y: Yt},
                             {x: Xt, y: Yt}
                         ];
@@ -244,8 +245,8 @@ StandardFamilyTreeLayout.prototype.computeLinkPosition = function (tree) {
                             {x: Xf, y: Yf},
                             {x: Xf, y: (Yf + this.deltaY)},
                             {x: Xv, y: (Yf + this.deltaY)},
-                            {x: Xv, y: (Yt - this.deltaY)},
-                            {x: Xt, y: (Yt - this.deltaY)},
+                            {x: Xv, y: (Yt - this.deltaYTop)},
+                            {x: Xt, y: (Yt - this.deltaYTop)},
                             {x: Xt, y: Yt}
                         ];
                     }
@@ -323,8 +324,6 @@ StandardFamilyTreeLayout.prototype.computeTreePositionInLevel = function (xAxisL
         } else {
             // 记录游标的初始位置
             let initialX = xAxisList[idxOfThisLevel];
-            let lastStart = 0;
-            let lastEnd = 0;
             for (const treeNodeId of sortIdList) {
                 let treeNode = nodeMap.get(treeNodeId);
                 // 利用本层计算得到的节点位置
@@ -344,10 +343,7 @@ StandardFamilyTreeLayout.prototype.computeTreePositionInLevel = function (xAxisL
                         // 对应的底层节点要移动
                         detalX = initialX - treeNode.start;
                         move(tree, treeNode, detalX, nodes);
-                        treeNode.positionx = computePositionBaseLowerChildTree(lowerChildTree);
-                        // 则将该父节点的位置移动到positionByLowerLevel
-                        // positionInActually = positionByLowerLevel;
-                        positionInActually = treeNode.positionx;
+                        positionInActually = computePositionBaseLowerChildTree(lowerChildTree);
                         // 此时，本子树中该节点之前的所有叶子节点也要移动位置
                         // 若之前所有的节点都为叶子节点，则把这些节点整体右移，否则平均分布在两个拥有子树的节点之间
                         moveBeforeNodeInThisChileTree(treeNodeId, sortIdList, nodeMap, positionInActually, minGap, nodes);
@@ -356,35 +352,43 @@ StandardFamilyTreeLayout.prototype.computeTreePositionInLevel = function (xAxisL
                         // 父节点位置不变，底层所有节点进行移动
                         detalX = positionByThisLevel - positionByLowerLevel + initialX - treeNode.start;
                         move(tree, treeNode, detalX, nodes);
-                        treeNode.positionx = computePositionBaseLowerChildTree(lowerChildTree);
-                        positionInActually = treeNode.positionx;
+                        positionInActually = computePositionBaseLowerChildTree(lowerChildTree);
                     }
                     // 更新treeNode的start和end的坐标
                     treeNode.end = detalX + treeNode.end;
                     treeNode.start = detalX + treeNode.start;
-                    lastStart = treeNode.start;
-                    lastEnd = treeNode.end;
                     // 改变游标的初始位置，用于下一个子树的位置计算
-                    // initialX = initialX + minGap * 3 + treeNode.end - treeNode.start
                     initialX = minGap + treeNode.end;
                 } else {
                     // treeNode.start = lastStart;
                     // treeNode.end = Math.max(lastEnd, positionInActually + minGap);
-                    treeNode.start = positionInActually;
-                    treeNode.end = positionInActually;
+                    let indexOfNode = sortIdList.indexOf(treeNodeId);
+                    if (treeNode.getMarriageNodeIds().length && indexOfNode - 1 > 0) {
+                        treeNode.start = positionInActually;
+                        treeNode.end = Math.max(nodeMap.get(sortIdList[indexOfNode - 1]).end, positionInActually);
+                    } else {
+                        treeNode.start = positionInActually;
+                        treeNode.end = positionInActually;
+                    }
                 }
                 treeNode.positionx = positionInActually;
                 treeNode.positiony = yAxisList[idxOfThisLevel];
                 xAxisList[idxOfThisLevel] = treeNode.positionx + minGap;
             }
+            // xAxisList[idxOfThisLevel] = childTree.getLastTreeNode().end + minGap;
             // 计算该子树的位置信息
             if (upperLevel !== 0) {
+                // if (childTree.getParentId() === "people~`#210902199102152023"){
+                //     console.log("wait")
+                // }
                 let parentNode = upperLevel.getNodeById(childTree.getUpperChildTreeId(), childTree.getParentId());
                 // ParentNode的start和end表示该节点一下所有子树的最大起止范围
-                parentNode.start = Math.min(childTree.getFirstTreeNode().positionx, nodeMap.get(nodeIdHasChildrenList[0]).start);
-                parentNode.end = Math.max(childTree.getLastTreeNode().positionx, nodeMap.get(nodeIdHasChildrenList[numberOfNodeHasChildren - 1]).end);
+                parentNode.start = Math.min(childTree.getFirstTreeNode().start, nodeMap.get(nodeIdHasChildrenList[0]).start);
+                parentNode.end = Math.max(childTree.getLastTreeNode().end, nodeMap.get(nodeIdHasChildrenList[numberOfNodeHasChildren - 1]).end);
             }
         }
+        console.log(childTree);
+        console.log(xAxisList[idxOfThisLevel]);
         xAxisList[idxOfThisLevel] = xAxisList[idxOfThisLevel] + minGap;
     }
 };
@@ -485,7 +489,7 @@ function moveBeforeNodeInThisChileTree(treeNodeId, sortIdList, nodeMap, position
             break;
         }
         // 前一个节点是当前虚拟节点构成节点的夫妻
-        if (mergedNodeIds){
+        if (mergedNodeIds) {
             let nodeId1 = mergedNodeIds[0];
             let nodeId2 = mergedNodeIds[1];
             let node1 = nodeMap.get(nodeId1);
@@ -534,7 +538,7 @@ function isOneGroup(treeNode, nodeMap, isVirtual, mergedNodeIds, priorTreeNode) 
     let priorTreeNodeMarriageNodeIds = priorTreeNode.getMarriageNodeIds();
 
     // 前一个节点是当前虚拟节点构成节点的夫妻
-    if (mergedNodeIds){
+    if (mergedNodeIds) {
         let nodeId1 = mergedNodeIds[0];
         let nodeId2 = mergedNodeIds[1];
         let node1 = nodeMap.get(nodeId1);
