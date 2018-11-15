@@ -37,7 +37,7 @@ export default function StandardFamilyTreeLayout(nodeSprites, nodeContainer, vis
                 maxTreeNodeNumberOfLevel = number;
             }
         }
-        let yAxisTmp = that.NODE_WIDTH * 2.5;
+        let yAxisTmp = that.NODE_WIDTH * 2.25;
 
         // xAxisList中记录每层横坐标的游标位置
         let xAxisList = [];
@@ -282,7 +282,7 @@ StandardFamilyTreeLayout.prototype.computeTreePositionInLevel = function (xAxisL
         lowerLevel = levelMap.get(idxOfThisLevel + 1);
     }
     // 节点之间最小间距
-    let minGap = this.NODE_WIDTH * 2.5;
+    let minGapInit = this.NODE_WIDTH * 1.5;
 
     // 遍历本层所有子树
     for (const childTree of thisLevel.getChildTreeMap().values()) {
@@ -310,7 +310,7 @@ StandardFamilyTreeLayout.prototype.computeTreePositionInLevel = function (xAxisL
                 treeNode.positiony = yAxisList[idxOfThisLevel];
                 treeNode.start = xAxisList[idxOfThisLevel];
                 treeNode.end = xAxisList[idxOfThisLevel];
-                xAxisList[idxOfThisLevel] = treeNode.positionx + minGap;
+                xAxisList[idxOfThisLevel] = treeNode.positionx + minGapInit;
             }
             // 计算该子树的位置信息
             if (upperLevel !== 0) {
@@ -325,6 +325,10 @@ StandardFamilyTreeLayout.prototype.computeTreePositionInLevel = function (xAxisL
             // 记录游标的初始位置
             let initialX = xAxisList[idxOfThisLevel];
             for (const treeNodeId of sortIdList) {
+                let minGap = minGapInit;
+                if (checkNode(treeNodeId, nodes, sortIdList)) {
+                    minGap = minGapInit * 0.75;
+                }
                 let treeNode = nodeMap.get(treeNodeId);
                 // 利用本层计算得到的节点位置
                 let positionByThisLevel = xAxisList[idxOfThisLevel];
@@ -387,11 +391,26 @@ StandardFamilyTreeLayout.prototype.computeTreePositionInLevel = function (xAxisL
                 parentNode.end = Math.max(childTree.getLastTreeNode().end, nodeMap.get(nodeIdHasChildrenList[numberOfNodeHasChildren - 1]).end);
             }
         }
-        console.log(childTree);
-        console.log(xAxisList[idxOfThisLevel]);
-        xAxisList[idxOfThisLevel] = xAxisList[idxOfThisLevel] + minGap;
+        xAxisList[idxOfThisLevel] = xAxisList[idxOfThisLevel] + minGapInit;
     }
 };
+
+function checkNode(nodeId, nodes, sortIdList) {
+    let node = nodes[nodeId];
+    let mergedNodeIds = node.mergedNodeIds;
+    if (mergedNodeIds) {
+        return true;
+    }
+    let indexOfNode = sortIdList.indexOf(nodeId);
+    if (indexOfNode < sortIdList.length -1) {
+        let beforeNode = nodes[sortIdList[indexOfNode + 1]];
+        let beforeNodeMergedNodeIds = beforeNode.mergedNodeIds;
+        if (beforeNodeMergedNodeIds) {
+            return true;
+        }
+    }
+    return false;
+}
 
 /**
  * 基于底层子树计算当前节点的位置
@@ -417,7 +436,7 @@ function computePositionBaseLowerChildTree(lowerChildTree) {
 }
 
 /**
- * Move函数根据给定的根节点以及移动距离，将包括根节点在内的所有子树内的节点进行位置移动。
+ * Move函数根据给定的根节点以及移动距离，将包括根节点nodes在内的所有子树内的节点进行位置移动。
  * @param tree
  * @param rootNode
  * @param deltax
