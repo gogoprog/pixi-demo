@@ -6,15 +6,22 @@ export default class Person2PersonLayout extends Layout {
         let nodes = this.nodes;
 
         let startNode = nodes[startNodeId];
-        if (!startNode){
+        if (!startNode) {
             console.error("start node not exit");
+            return;
         }
         let endNode = nodes[endNodeId];
-        if (!endNode){
+        if (!endNode) {
             console.error("end node not exit");
+            return;
         }
+        let xIndex = 0;
+        let xGap1 = visualConfig.NODE_WIDTH * 6;
+        let xGap2 = visualConfig.NODE_WIDTH;
+        let yGap = visualConfig.NODE_WIDTH;
+        let colEntityNum = 10;
         startNode.position = {
-            x: 0,
+            x: xIndex,
             y: 0
         };
         this.left = 0;
@@ -28,58 +35,28 @@ export default class Person2PersonLayout extends Layout {
         firstNodesIdSet.add(startNodeId);
         let nextLevelNodeIds = this.getNextLevelNodeIds(firstNodesIdSet, nodes, processedNodeIdSet);
 
-        let lastRadius = 0;
-        let lastCenterPosX = 0;
         while (nextLevelNodeIds.size > 0) {
-            let num = nextLevelNodeIds.size;
-            // 计算最大圈数
-            let maxTurns = Math.ceil(Math.sqrt((num / 6.0) + 0.25) + 0.5);
-            // 计算中心坐标
-            let centerPosX = lastCenterPosX + lastRadius + 50 * maxTurns + 300;
-            let centerPos = {
-                x: centerPosX,
-                y: 0
-            };
-            lastCenterPosX = centerPosX;
-            lastRadius = maxTurns * 50;
+            xIndex += xGap1;
 
-            let idx = 1; // 圈数
-            let i = 0;   // 所有节点的索引
-            let j = 0;   // 一圈中节点的索引
+            let colEntityIds = [];
             for (let entityId of nextLevelNodeIds) {
                 processedNodeIdSet.add(entityId);
-                let n = 6 * idx; // 一圈中节点的数量
-                if (i + n > num) {
-                    n = num - i;
+                colEntityIds.push(entityId);
+                if (colEntityIds.length === colEntityNum) {
+                    this.positionColumn(xIndex, colEntityIds, nodes, yGap);
+                    xIndex += xGap2;
+                    colEntityIds = [];
                 }
-
-                let radius = 50 * idx;
-                let initialAngle = 360 / n;
-
-                let angle = j * initialAngle * Math.PI / 180;
-                let posNew = {};
-                posNew.x = centerPos.x - radius * Math.cos(angle);
-                posNew.y = centerPos.y + radius * Math.sin(angle);
-                let node = nodes[entityId];
-                node.position = posNew;
-                j += 1;
-
-                if (this.top > posNew.y) {
-                    this.top = posNew.y;
-                }
-                if (this.bottom < posNew.y) {
-                    this.bottom = posNew.y;
-                }
-                if (j === n) {
-                    j = 0;
-                    idx += 1;
-                    i += n;
-                }
+            }
+            if (colEntityIds.length > 0) {
+                this.positionColumn(xIndex, colEntityIds, nodes, yGap);
+            } else {
+                xIndex -= xGap2;
             }
             nextLevelNodeIds = this.getNextLevelNodeIds(nextLevelNodeIds, nodes, processedNodeIdSet);
         }
         endNode.position = {
-            x: lastCenterPosX + lastRadius + 300,
+            x: xIndex + xGap1,
             y: 0
         };
         this.right = endNode.position.x;
@@ -101,5 +78,29 @@ export default class Person2PersonLayout extends Layout {
             });
         }
         return nextLevelNodeIs;
+    };
+
+    positionColumn(xIndex, colEntityIds, nodes, minYGap) {
+        let maxY = minYGap * 4.5;
+        if (colEntityIds.length === 1) {
+            maxY = 0;
+        } else if (colEntityIds.length <= 3) {
+            maxY = minYGap * 2.5;
+        } else if (colEntityIds.length > 3 && colEntityIds.length <= 5) {
+            maxY = minYGap * 3.5;
+        }
+        let gap = 0;
+        if (colEntityIds.length > 1) {
+            gap = maxY * 2 / (colEntityIds.length - 1);
+        }
+        let i = 0;
+        for (let entityId of colEntityIds) {
+            let node = nodes[entityId];
+            node.position = {
+                x: xIndex,
+                y: maxY - i * gap
+            };
+            i += 1;
+        }
     }
 }
