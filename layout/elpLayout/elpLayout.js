@@ -270,7 +270,7 @@ export default function elpLayout(graph, physicsSettings) {
         if (!dynamic){
             if (addData){
                 let i = 0;
-                let n = 150;
+                let n = 5000;
                 while(i < n){
                     api.step();
                     i++;
@@ -286,7 +286,7 @@ export default function elpLayout(graph, physicsSettings) {
     }
 
     function updateSpringLength(){
-        var  springLength = 300;
+        var  springLength = physicsSimulator.settings.springLength;
         if (bodiesCount > 100){
             springLength = springLength + 50 * (bodiesCount/200);
         }

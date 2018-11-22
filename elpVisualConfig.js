@@ -23,8 +23,8 @@ export const elpVisualConfig = {
     LAYOUT_ANIMATION: true,
     ORIGINAL_FORCE_LAYOUT: true,
     forceLayout: {
-        springLength: 300,
-        springCoeff: 0.00008,
+        springLength: 800,
+        springCoeff: 0.000008,
         dragCoeff: 0.08,
         gravity: -1.2,
         theta: 0.9,
