@@ -2,7 +2,8 @@ export const elpVisualConfig = {
     factor: 0.20,
     backgroundColor: 0xFFFFFF,
     NODE_LABLE_OFFSET_Y: 50,
-    LINK_LABLE_OFFSET_Y: 18,
+    NODE_LABLE_OFFSET_BETWEEN_LINE: 50,
+    LINK_LABLE_OFFSET_Y: 30,
     MAX_SCALE: 5,
     MAX_ADJUST: 3,
     MIN_SCALE: 0.5,
@@ -14,7 +15,7 @@ export const elpVisualConfig = {
     NODE_ATTACH_ICON_WIDTH: 24, // 实体附属图标宽度
     NODE_STANDARD_SQUARE_WIDTH: 210, // 实体附属图标标准正方形宽度
     LINK_MULTI_OFFSET: 30, // 多重链接之间偏移量
-    SELF_LINK_OFFSET: 60, // 自链接偏移量
+    SELF_LINK_OFFSET: 80, // 自链接偏移量
     ELLIPSE_WIDTH: 40,
     ELLIPSE_HIEGHT: 25,
     ELLIPSE_Y_OFFSET: 0.4 * 32,
@@ -66,10 +67,10 @@ export const elpVisualConfig = {
             },
         },
         label: {
-            scale: 0.28,
+            scale: 0.5,
             visibleByDefault: true,
             font: {
-                size: 48,
+                size: 68,
                 color: 0x000000,
                 highlight: 0xffffff,
             },

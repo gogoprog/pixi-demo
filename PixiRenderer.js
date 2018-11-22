@@ -1808,7 +1808,7 @@ export default function (settings) {
      * 更新是否显示Label
      */
     function updateLabelVisibility() {
-        if (root.scale.x > 0.5) {
+        if (root.scale.x > 0.2) {
             labelContainer.visible = true;
 
             let topLeft = root.worldTransform.applyInverse({x: 0, y: 0});
