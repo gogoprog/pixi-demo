@@ -299,13 +299,10 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     }
 
     updateLabel() {
-        const label = this.data.label;
-        if (label) {
-            this.labelBgContainer = [];
-            this.ts.removeChildren();
-            if (!this.data.properties._$hideLabel) {
-                this.createText();
-            }
+        this.labelBgContainer = [];
+        this.ts.removeChildren();
+        if (!this.data.properties._$hideLabel) {
+            this.createText();
         }
     }
     _addIconToNode(collIdArr) {

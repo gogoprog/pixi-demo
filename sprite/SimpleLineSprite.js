@@ -116,14 +116,10 @@ export default class SimpleLineSprite {
     }
 
     updateLabel() {
-        const label = this.data.label;
-
-        if (label) {
-            this.labelBgContainer = [];
-            this.label.removeChildren();
-            if (!this.data.properties._$hideLabel) {
-                this.createText();
-            }
+        this.labelBgContainer = [];
+        this.label.removeChildren();
+        if (!this.data.properties._$hideLabel) {
+            this.createText();
         }
     }
 
