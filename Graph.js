@@ -328,7 +328,7 @@ export default function Graph(source, options) {
                             if (node) {
                                 node.data = change.entity;
                                 recordNodeChange(node, 'update');
-                            } else {
+                            } else if (!change.entity.properties._$hidden) {
                                 // console.warn('Node added through update event, ', change);
                                 self.addNode(change.entity.id, change.entity);
                             }
@@ -339,7 +339,7 @@ export default function Graph(source, options) {
                             if (link) {
                                 link.data = l;
                                 recordLinkChange(link, 'update');
-                            } else {
+                            } else if (!l.properties._$hidden) {
                                 self.addLink(l.sourceEntity, l.targetEntity, l);
                             }
                         }
