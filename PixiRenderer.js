@@ -968,6 +968,7 @@ export default function (settings) {
                 && layoutType !== 'TimelineScale') {
                 layoutType = 'Network';
             }
+
             if (!visualConfig.ORIGINAL_FORCE_LAYOUT) {
                 networkLayout.setLayoutType(layoutType)
             }
@@ -1009,7 +1010,7 @@ export default function (settings) {
             nodeContainer.layoutType = layoutType;
 
             isDirty = true;
-            if (stage.isTimelineLayout) {
+            if (stage.isTimelineLayout  && layoutType !== 'TimelineScale') {
                 timelineLayout.disableTimelineLayout();
             }
             if (layoutType === 'Network') {
@@ -1749,7 +1750,7 @@ export default function (settings) {
                 }
             }
         } else if (layoutType === 'TimelineScale') {
-            //
+            // updateNodeSpritesPosition();
         } else {
             // Circular, Layered, Radiate
             if (!disableLayout) {
@@ -2298,12 +2299,14 @@ export default function (settings) {
          */
 
         // mark the root position in the stage
+        // 标记为一个黑色的点
         selectRegionGraphics.beginFill(0x000000);
         selectRegionGraphics.lineStyle(1, 0xffffff);
         selectRegionGraphics.arc(root.position.x, root.position.y, 10, 0, 2 * Math.PI); // cx, cy, radius, startAngle, endAngle
         selectRegionGraphics.endFill();
 
         // draw the bounds of root with pixi.js in blue
+        // root 画布区域为 2000
         const rootRectInStage = root.getBounds();
         selectRegionGraphics.lineStyle(1, 0x0000ff);
         selectRegionGraphics.drawRect(rootRectInStage.x, rootRectInStage.y, rootRectInStage.width, rootRectInStage.height);
