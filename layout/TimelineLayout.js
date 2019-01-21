@@ -1,6 +1,7 @@
 import moment from "moment";
 import vis from "vis";
 
+const nodeXOffset = -80;
 let alineTimeline = function (zoomFactor) {
     if (zoomFactor) {
         this.msPerPix /= (1 + zoomFactor);
@@ -18,14 +19,20 @@ let alineTimeline = function (zoomFactor) {
     // console.log(stage.contentRoot.position);
     let pRoot = this.stage.contentRoot.position;
     // reposition the nodes;
-    if (pRoot.x > 160) {
+    let nc = this.nodeContainer;
+    // let leftMostLinkXOnScreen = this.leftMostLinkX *  this.stage.contentRoot.scale.x + pRoot.x;
+    // console.log("Timeline start on screen: ", leftMostLinkXOnScreen);
+    let nodeX = this.leftMostLinkX + nodeXOffset;
+    if (pRoot.x > 160 / this.stage.contentRoot.scale.x) {
         _.each(this.nodeSprites, function (ns) {
-            ns.updateNodePosition({x: -40, y: ns.position.y});
+            ns.updateNodePosition({x: nodeX, y: ns.position.y});
+            nc.nodeMoved(ns);
         });
     } else {
-        let newX = 200 - pRoot.x / this.stage.contentRoot.scale.x;
+        let newX = 60 - pRoot.x / this.stage.contentRoot.scale.x;
         _.each(this.nodeSprites, function (ns) {
             ns.updateNodePosition({x: newX, y: ns.position.y})
+            nc.nodeMoved(ns);
         });
     }
     this.stage.isDirty = true;
@@ -46,20 +53,26 @@ let zoomTimeFunction = function(config) {
     this.timelineWindow = this.timeline.getWindow();
     let rootOriginTimeDiff = this.originSpotTime - timelineStartMs;
     this.stage.contentRoot.position.x = rootOriginTimeDiff * this.timelineWidth / interval;
-    this.positionLinksByTime(this.linkSprites, timelineStartMs);
+    this.leftMostLinkX = this.positionLinksByTime(this.linkSprites, timelineStartMs);
     let pRoot = this.stage.contentRoot.position;
-    if (pRoot.x > 160) {
+    let nc = this.nodeContainer;
+    // let leftMostLinkXOnScreen = this.leftMostLinkX *  this.stage.contentRoot.scale.x + pRoot.x;
+    // console.log("Timeline start on screen: ", leftMostLinkXOnScreen);
+    if (pRoot.x > 160 / this.stage.contentRoot.scale.x) {
+        let nodeX = this.leftMostLinkX + nodeXOffset;
         _.each(this.nodeSprites, function (ns) {
-            ns.updateNodePosition({x: -40, y: ns.position.y});
+            ns.updateNodePosition({x: nodeX, y: ns.position.y});
+            nc.nodeMoved(ns);
         });
     } else {
-        let newX = 200 - pRoot.x / this.stage.contentRoot.scale.x;
-        _.each(nodeSprites, function (ns) {
-            ns.updateNodePosition({x: newX, y: ns.position.y})
+        let newX = 60 - pRoot.x / this.stage.contentRoot.scale.x;
+        _.each(this.nodeSprites, function (ns) {
+            ns.updateNodePosition({x: newX, y: ns.position.y});
+            nc.nodeMoved(ns);
         });
     }
     this.stage.isDirty = true;
-}
+};
 
 //var timeline, timelineWindow, msPerPix, originSpotTime, timelineWidth; // the timeline object.
 export default class TimelineLayout {
@@ -75,6 +88,7 @@ export default class TimelineLayout {
 
         this.timeline = null;
         this.timelineWindow = null;
+        this.leftMostLinkX = 0;
         this.msPerPix = 0;
         this.originSpotTime = 0;
         this.timelineWidth = 0; // the timeline object.
@@ -95,13 +109,15 @@ export default class TimelineLayout {
         let timelineItems = [];
         let now = moment().format('YYYY-MM-DDTHH:mm:ss');
         _.each(this.linkSprites, function (l) {
-            if (!l.visible) {
-                return;
+            let data = l.data;
+            if( typeof data.datetime === 'undefined' || data.datetime === null) {
+                // time value not set
+                data.datetime = data.properties['开始时间'] || now;
             }
             timelineItems.push({
-                id: l.data.id,
-                content: l.data.label,
-                start: l.data.datetime || now,
+                id: data.id,
+                content: data.label,
+                start: data.datetime
                 // type: 'point'
             });
         });
@@ -156,14 +172,16 @@ export default class TimelineLayout {
         // var sortedLinkSprites = sortLinksByDateTime();
         let timelineStartMs = this.timelineWindow.start.valueOf();
         this.originSpotTime = timelineStartMs;
-        let minX = 10000;
-        this.positionLinksByTime(this.linkSprites, timelineStartMs);
-        let nodeX = -40;
+        // nodeXAdj is the minimum x position of all links
+        this.leftMostLinkX = this.positionLinksByTime(this.linkSprites, timelineStartMs);
+        let nodeX = this.leftMostLinkX  + nodeXOffset;
+        const nc = this.nodeContainer;
         _.each(this.nodeSprites, function (ns) {
             ns.updateNodePosition({
                 x: nodeX,
                 y: ns.position.y,
             });
+            nc.nodeMoved(ns);
         });
         // if nodeX is too much left, try to move it to center
         this.stage.isTimelineLayout = true;
@@ -175,21 +193,21 @@ export default class TimelineLayout {
      * draw lines between nodes
      */
     drawNodeTimelines() {
+        this.lineGraphics.clear();
         let nodeTimelineStyle = this.visualConfig.ui.timeline;
         let endX = (this.timelineWidth - this.stage.contentRoot.position.x) / this.stage.contentRoot.scale.x + 200;
         this.lineGraphics.lineStyle(nodeTimelineStyle.width, nodeTimelineStyle.color, 1);
         const layout = this;
+        let timelineStartX = this.leftMostLinkX - 140;
         _.each(this.nodeSprites, function (ns) {
-            if (ns.visible) {
-                layout.lineGraphics.beginFill(nodeTimelineStyle.color, 1);
-                layout.lineGraphics.drawCircle(-100, ns.position.y, 5);
-                layout.lineGraphics.endFill();
-                layout.lineGraphics.moveTo(-100, ns.position.y);
-                layout.lineGraphics.lineTo(endX, ns.position.y);
-                layout.lineGraphics.beginFill(nodeTimelineStyle.color, 1);
-                layout.lineGraphics.drawCircle(endX, ns.position.y, 5);
-                layout.lineGraphics.endFill();
-            }
+            layout.lineGraphics.beginFill(nodeTimelineStyle.color, 1);
+            layout.lineGraphics.drawCircle(timelineStartX, ns.position.y, 5);
+            layout.lineGraphics.endFill();
+            layout.lineGraphics.moveTo(timelineStartX, ns.position.y);
+            layout.lineGraphics.lineTo(endX, ns.position.y);
+            layout.lineGraphics.beginFill(nodeTimelineStyle.color, 1);
+            layout.lineGraphics.drawCircle(endX, ns.position.y, 5);
+            layout.lineGraphics.endFill();
         });
     }
 
@@ -226,11 +244,8 @@ export default class TimelineLayout {
 
     positionLinksByTime(linkSprites, screenStartTime) {
         const layout = this;
+        let minX = 100000;
         _.each(linkSprites, function (ls) {
-            if (!ls.visible) {
-                return;
-            }
-
             let linkDatetime = ls.data.datetime;
             let ms = moment(linkDatetime).valueOf();
             let viewX = Math.floor((ms - screenStartTime) / layout.msPerPix);
@@ -242,6 +257,7 @@ export default class TimelineLayout {
                 fromY = srcNodeSprite.position.y;
             let toX = x,
                 toY = tgtNodeSprite.position.y;
+            if (x < minX) minX = x;
             ls.forceStraightLine = true;
             ls.setFrom({
                 x: fromX,
@@ -256,5 +272,7 @@ export default class TimelineLayout {
         _.each(linkSprites, function (ls) {
            ls.updatePosition();
         });
+        // console.log("min x for links is ", minX);
+        return minX;
     }
 }
