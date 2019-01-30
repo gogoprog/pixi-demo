@@ -98,9 +98,6 @@ export default function (settings) {
     const labelContainer = new PIXI.Container();
     labelContainer.interactive = false;
     labelContainer.interactiveChildren = false;
-    const emptyTextContainer = new PIXI.Container();
-    emptyTextContainer.interactive = false;
-    emptyTextContainer.interactiveChildren = false;
     const emptyText = new PIXI.Text('分析结果为空', { fontFamily: 'Arial', fontSize: 24, fill: 0x1469a8, align: 'center' });
     const selectRegionGraphics = new PIXI.Graphics();
     const lineGraphics = new PIXI.Graphics();
@@ -122,13 +119,11 @@ export default function (settings) {
     textContainer.zIndex = 15;
     nodeContainer.zIndex = 20;
 
-    emptyTextContainer.zIndex = 22;
     root.addChild(lineGraphics);
     root.addChild(linkContainer);
     root.addChild(linkContainer.lineGraphics);
     root.addChild(labelContainer);
     root.addChild(textContainer);
-    root.addChild(emptyTextContainer);
     root.addChild(nodeContainer);
     root.addChild(iconContainer);
 
@@ -1201,13 +1196,6 @@ export default function (settings) {
         resize(width, height) {
             isDirty = true;
             renderer.resize(width, height);
-        },
-        showEmptyText(isEmpty) {
-            if (isEmpty) {
-                emptyTextContainer.addChild(emptyText);
-            } else {
-                emptyTextContainer.removeChild(emptyText);
-            }
         },
 
         /**
