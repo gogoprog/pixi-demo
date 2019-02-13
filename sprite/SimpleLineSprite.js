@@ -159,7 +159,7 @@ export default class SimpleLineSprite {
     updatePosition(isBrokenLineLayerLayout = false) {
         if (this.x1 !== this.x2 || this.y1 !== this.y2) {
             let dxCtl = this.visualConfig.LINK_MULTI_OFFSET;  // AC
-            let dyCtl = this._controlOffsetIndex * this.visualConfig.LINK_MULTI_OFFSET;  // CD
+            let dyCtl = this.forceStraightLine ? 0 : this._controlOffsetIndex * this.visualConfig.LINK_MULTI_OFFSET;  // CD
 
             const x = this.x2 - this.x1;
             const y = this.y2 - this.y1;
