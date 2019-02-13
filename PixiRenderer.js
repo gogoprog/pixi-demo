@@ -1009,6 +1009,7 @@ export default function (settings) {
                 timelineLayout.disableTimelineLayout();
             }
             if (layoutType === 'Network') {
+                layout = networkLayout;
                 if (!dynamicLayout) {
                     layout.step();
 
@@ -1042,7 +1043,8 @@ export default function (settings) {
             } else if (layoutType === 'FamilyLayout') {
                 this.drawFamilyLayout(disableAnimation, init);
             } else if (layoutType === 'TimelineScale') {
-                timelineLayout.drawTimelineLayout();
+                layout = timelineLayout;
+                layout.drawTimelineLayout();
             }  else {
                 return false;
             }

@@ -242,6 +242,10 @@ export default class TimelineLayout {
         })
     }
 
+    setNodePosition(id, x, y) {
+        // ignored.
+    }
+
     positionLinksByTime(linkSprites, screenStartTime) {
         const layout = this;
         let minX = 100000;
