@@ -998,7 +998,7 @@ export default function (settings) {
             layout.updateDynamicLayout(dynamic);
         },
 
-        performLayout(disableAnimation, init) {
+        performLayout(disableAnimation = false, init = false, needReflow = true) {
             disableLayout = disableAnimation;
             // the default link drawing mode is webgl. However, when it's FamilyLayout, we use pixi to draw links.
             linkContainer.mode = 'webgl';
@@ -1023,7 +1023,9 @@ export default function (settings) {
 
                     renderer.render(stage);
                 }
-                 this.setNodesToFullScreen(disableAnimation);
+                if (needReflow) {
+                    this.setNodesToFullScreen(disableAnimation);
+                }
             } else if (layoutType === 'Circular') {
                 this.drawCircleLayout(disableAnimation, init);
             } else if (layoutType === 'PersonLayout'){
@@ -2233,7 +2235,7 @@ export default function (settings) {
 
         if (!added && !updated) {   // 删除时触发selectionChanged
             if(!visualConfig.ORIGINAL_FORCE_LAYOUT) {
-                pixiGraphics.performLayout();
+                pixiGraphics.performLayout(false, false, false);
             }
             selectionChanged();
         }
