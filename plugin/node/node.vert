@@ -20,10 +20,10 @@ void main(void){
 
     gl_Position = vec4((projectionMatrix * transformMatrix * vec3(position, 1.0)).xy, 0.0, 1.0);
 
-    float row = floor(aIconIndex / 20.0);
-    float column = aIconIndex - row * 20.0;
-    float x0 = column * 0.05;  // 0.1: width of every icon
-    float y0 = row * 0.05; // 0.083: height of every icon
+    float row = floor(aIconIndex / 16.0);
+    float column = aIconIndex - row * 16.0;
+    float x0 = column * 0.0625;  // width of every icon
+    float y0 = row * 0.0625; // height of every icon
 
     // first draw selected frame
     if(aVertexID == 0.0){
@@ -42,15 +42,15 @@ void main(void){
     } else if(aVertexID == 6.0){
         vTextureCoord = vec2(x0, y0);
     } else if(aVertexID == 7.0) {
-        vTextureCoord = vec2(x0 + 0.05, y0);
+        vTextureCoord = vec2(x0 + 0.0625, y0);
     } else if(aVertexID == 8.0) {
-        vTextureCoord = vec2(x0 + 0.05, y0 + 0.05);
+        vTextureCoord = vec2(x0 + 0.0625, y0 + 0.0625);
     } else if(aVertexID == 9.0) {
         vTextureCoord = vec2(x0, y0);
     } else if(aVertexID == 10.0) {
-        vTextureCoord = vec2(x0 + 0.05, y0 + 0.05);
+        vTextureCoord = vec2(x0 + 0.0625, y0 + 0.0625);
     } else if(aVertexID == 11.0) {
-        vTextureCoord = vec2(x0, y0 + 0.05);
+        vTextureCoord = vec2(x0, y0 + 0.0625);
     }
 
     vIsUnknown = aIsUnknown;
