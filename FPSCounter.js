@@ -33,6 +33,5 @@ export default class FPSCounter {
 
     destroy() {
         $("#"+this.infoId).remove();
-        //this.$info.remove();
     }
 }

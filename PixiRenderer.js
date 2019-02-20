@@ -98,11 +98,9 @@ export default function (settings) {
     const labelContainer = new PIXI.Container();
     labelContainer.interactive = false;
     labelContainer.interactiveChildren = false;
-    const emptyText = new PIXI.Text('分析结果为空', { fontFamily: 'Arial', fontSize: 24, fill: 0x1469a8, align: 'center' });
     const selectRegionGraphics = new PIXI.Graphics();
     const lineGraphics = new PIXI.Graphics();
     const linkContainer = new LinkContainer();
-    // const iconContainer = new PIXI.ParticleContainer(5000, { scale: true, position: true, rotation: true, uvs: false, alpha: true }, 16384,true);
     const iconContainer = new PIXI.Container();
     iconContainer.interactive = false;
     iconContainer.interactiveChildren = false;
@@ -1781,17 +1779,13 @@ export default function (settings) {
 
             renderer.render(stage);
 
-            // trigger bird view update
-            // if (root.getBounds().width > 0) { // the getBounds method is too heavy;
-            // if (graph.getNodesCount() > 0) {
             pixiGraphics.fireBirdViewChangeEvent();
-            // }
+
             isDirty = false;
             nodeContainer.isDirty = false;
             stage.isDirty = false;
             linkContainer.isDirty = false;
             nodeContainer.positionDirty = false;
-            // linkContainer.styleDirty = false;
         }
         counter.nextFrame();
         requestAnimationFrame(animationLoop);
@@ -1801,7 +1795,7 @@ export default function (settings) {
      * 更新是否显示Label
      */
     function updateLabelVisibility() {
-        if (root.scale.x > 0.2) {
+        if (root.scale.x > 0.5) {
             labelContainer.visible = true;
 
             let topLeft = root.worldTransform.applyInverse({x: 0, y: 0});
@@ -1819,10 +1813,8 @@ export default function (settings) {
                 const midY = (link.fy + link.ty) / 2;
                 if ( topLeft.x < midX && midX < bottomRight.x && topLeft.y < midY && midY < bottomRight.y) {
                     link.label.visible = true;
-                    // link.labelBg.visible = true;
                 } else {
                     link.label.visible = false;
-                    // link.labelBg.visible = false;
                 }
             }
         } else {
@@ -1957,8 +1949,6 @@ export default function (settings) {
             adjustControlOffsets(sameTgtLink, false, true);
         }
 
-        // l.data = f.data;
-        // l.id = f.data.id;
         l.ngLink = f;
 
         l.setLineAttr();
@@ -1966,17 +1956,9 @@ export default function (settings) {
         srcNodeSprite.outgoing.push(l);
         tgtNodeSprite.incoming.push(l);
         linkSprites[l.id] = l;
-        // if (f.data.isDirected) {
-        //     l.arrow.interactive = true;
-        //     l.arrow.buttonMode = true;
-        //     lineContainer.addChild(l.arrow);
-        //     l.arrow.on('rightup', contextmenuListener);
-        // }
 
         if (l.label) {
             l.label.interactive = true;
-            //l.label.fill= '#00FF00'
-            // labelContainer.addChild(l.labelBg);
             labelContainer.addChild(l.label);
             l.label.on('rightup', contextmenuListener);
         }
@@ -2123,12 +2105,6 @@ export default function (settings) {
             if (l.label) {
                 labelContainer.removeChild(l.label);
             }
-            // if (l.labelBg) {
-            //     labelContainer.removeChild(l.labelBg);
-            // }
-            // if (l.arrow) {
-            //     lineContainer.removeChild(l.arrow);
-            // }
             const srcEntitySprite = nodeSprites[l.data.sourceEntity];
             const tgtEntitySprite = nodeSprites[l.data.targetEntity];
             const outLinkIndex = srcEntitySprite.outgoing.indexOf(l);
@@ -2158,7 +2134,6 @@ export default function (settings) {
         nodeSprite.updateLabel();
         nodeSprite.updateScale();
         nodeContainer.updateScale(nodeSprite);
-        // nodeContainer.selectionContainer.updateScale(nodeSprite.id, nodeSprite.selectionFrame);
         nodeSprite.updateBorder(textContainer);
         nodeSprite.setNodeIcon(decodeCollectionFlag(node.data.properties._$collectionIds));
     }
