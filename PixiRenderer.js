@@ -2209,9 +2209,6 @@ export default function (settings) {
         }
 
         if (!added && !updated) {   // 删除时触发selectionChanged
-            if(!visualConfig.ORIGINAL_FORCE_LAYOUT) {
-                pixiGraphics.performLayout(false, false, false);
-            }
             selectionChanged();
         }
 
