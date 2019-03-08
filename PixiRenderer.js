@@ -1,98 +1,129 @@
 import createForceLayout from 'ngraph.forcelayout';
-import physicsSimulator from "ngraph.physics.simulator";
-import eventify from "ngraph.events";
-// import {visualConfig} from "./visualConfig.js";
-import Graph from "./Graph.js";
-import { SelectionManager } from "./SelectionManager.js";
-import "./pixi.es5.js";
-import { FPSCounter } from "./FPSCounter.js";
-import { addWheelListener } from "./WheelListener.js";
-import { zoom, rootCaptureHandler, nodeCaptureListener } from "./customizedEventHandling.js";
-// import rootCaptureHandler from "./customizedEventHandling.js";
-import lodash from 'lodash';
-import SimpleLineSprite from "./SimpleLineSprite.js";
-import "./pixiSpriteAugment.js";
-import moment from "moment";
-import vis from "vis";
-// import vis from "./vis.min.js";
+import eventify from 'ngraph.events';
+import 'pixi.js';
 
+import LayeredLayout from './layout/LayeredLayout';
+import LayeredLayoutNew from './layout/newLayeredLayout/LayeredLayoutNew';
+import FamilyLayout from './layout/newLayeredLayout/FamilyLayout/FamilyLayout'
+import StandardFamilyTreeLayout from './layout/newLayeredLayout/StandardFamilyTreeLayout/StandardFamilyTreeLayout'
+import CircleLayout from './layout/CircleLayout';
+import StructuralLayout from './layout/StructuralLayout/StructuralLayout';
+import RadiateLayout from './layout/RadiateLayout';
+import TimelineLayout from './layout/TimelineLayout';
+// import ForceLayoutBaseNgraph from "./layout/ForceLayoutBaseNgraph/ForceLayout"
+import createLayout from "./layout/ForceLayoutBaseNgraph/ForceLayoutInNGraph"
+import GraphLevelForceLayout from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayout"
+import GraphLevelForceLayoutOpt from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayoutOpt"
+import elpForceLayout from "./layout/elpLayout/ForceLayout"
+import personForceLayout from "./layout/personLayout/PersonForceLayout"
+import Person2PersonLayout from "./layout/Person2PersonLayout/Person2PersonLayout"
+import PersonRelationshipLayout from "./layout/PersonRelationshipLayout/PersonRelationshipLayout"
 
-export default function(settings) {
+import Graph from './Graph';
 
-    var isDirty = true;
+import SelectionManager from './SelectionManager';
+import { zoom, rootCaptureHandler, nodeCaptureListener } from './customizedEventHandling';
 
-    var graphType;
-    var graphData;
-    var graphEntities = {};
-    var graphLinks = {};
-    var graphLinkTypes = {}; // TODO make a count of each type, instead of just flagging
-    var graphEntityTypes = {};
-    var graph = settings.graph;
-    if (!graph) {
-        graph = Graph();
-    }
+import SimpleLineSprite from './sprite/SimpleLineSprite';
+import SimpleNodeSprite from './sprite/SimpleNodeSprite';
+import NodeContainer from './plugin/node/NodeContainer';
+import LinkContainer from './plugin/link/LinkContainer';
 
-    var mode = settings.mode;
+import AnimationAgent from './AnimationAgent';
+import FPSCounter from './FPSCounter';
+import { getMyBounds } from './boundsHelper';
+import extract from './extract';
+
+export default function (settings) {
+    let isDirty = true;
+    let graphType = { entityTypes: [], linkTypes: [] };
+    let graph = Graph();
+    const mode = settings.mode;
     // Where do we render our graph?
     if (typeof settings.container === 'undefined') {
         settings.container = document.body;
     }
 
+    const visualConfig = settings.visualConfig;
+
     // If client does not need custom layout algorithm, let's create default one:
-    var layout = settings.layout;
-    if (!layout) {
-        layout = createForceLayout(graph, physicsSimulator(settings.physics));
+    // let networkLayout = createForceLayout(graph, visualConfig.forceLayout);
+    // let networkLayout = ForceLayoutBaseNgraph(graph, visualConfig.forceLayout);
+    let networkLayout = null;
+    if (visualConfig.ORIGINAL_FORCE_LAYOUT) {
+        networkLayout = elpForceLayout(graph, visualConfig.forceLayout);
+    } else {
+        networkLayout = createLayout(graph, visualConfig.forceLayout);
     }
-    var layoutIterationsStore = 1500;
-    var visConfig = settings.visualConfig;
-    if (visConfig) {
-        var visualConfig = visConfig;
+
+    networkLayout.on('stable', (isStable) => {
+        if(isStable) {
+            layoutStabilized();
+        }
+    });
+
+    let layout = networkLayout;
+    let layoutType = 'Network';
+    if (visualConfig.PERSON_LAYOUT){
+        layoutType = 'PersonLayout';
+        layout = new personForceLayout(nodeSprites, nodeContainer, visualConfig);
     }
 
-    var layoutType = "Network";
-    var canvas = settings.container;
-    var viewWidth = settings.container.clientWidth,
-        viewHeight = settings.container.clientHeight;
-    var timeline, timelineWindow, msPerPix, originSpotTime, timelineWidth; // the timeline object.
+    let textAnalysis = visualConfig.TEXT_ANALYSIS;
 
-    var renderer = new PIXI.autoDetectRenderer(viewWidth, viewHeight, {
-            view: settings.container,
-            transparent: true,
-            autoResize: true,
-            antialias: true,
-            forceFXAA: false
-        }),
+    const showDebugMarkup = false;
 
-        stage = new PIXI.Container(),
-        root = new PIXI.Container(),
-        nodeContainer = new PIXI.Container();
+    const canvas = settings.container;
+    // 下一行好像是多余的
+    const disabledWheel = settings.disabledWheel; // disabled addWheelListener
 
-    // var lineContainer = new PIXI.ParticleContainer(5000, { scale: true, position: true, rotation: true, uvs: false, alpha: true });
-    var lineContainer = nodeContainer;
-    var textContainer = new PIXI.Container();
-    var boarderGraphics = new PIXI.Graphics();
-    var selectRegionGraphics = new PIXI.Graphics();
-    var lineGraphics = new PIXI.Graphics();
+    const viewWidth = settings.container.clientWidth;
+    const viewHeight = settings.container.clientHeight;
 
-    //set the subTreeCenter
-    var subTree = {};
+    PIXI.settings.SPRITE_BATCH_SIZE = 4098 * 2;
+    const renderer = new PIXI.autoDetectRenderer(viewWidth, viewHeight, {
+        view: settings.container,
+        transparent: false,
+        autoResize: true,
+        antialias: true,
+        forceFXAA: false,
+        preserveDrawingBuffer: true,
+    });
+    const stage = new PIXI.Container();   // the view port, same size as canvas, used to capture mouse action
+    const root = new PIXI.Container();   // the content root
+    const nodeContainer = new NodeContainer(visualConfig);
+    const textContainer = new PIXI.Container();
+    textContainer.interactive = false;
+    textContainer.interactiveChildren = false;
+    const labelContainer = new PIXI.Container();
+    labelContainer.interactive = false;
+    labelContainer.interactiveChildren = false;
+    const selectRegionGraphics = new PIXI.Graphics();
+    const lineGraphics = new PIXI.Graphics();
+    const linkContainer = new LinkContainer();
+    const iconContainer = new PIXI.Container();
+    iconContainer.interactive = false;
+    iconContainer.interactiveChildren = false;
+    let destroyed = false;
 
     root.width = viewWidth;
     root.height = viewHeight;
     root.parent = stage;
     stage.addChild(root);
+    stage.addChild(selectRegionGraphics);
 
     lineGraphics.zIndex = 6;
-    boarderGraphics.zIndex = 10;
     selectRegionGraphics.zIndex = 11;
     textContainer.zIndex = 15;
     nodeContainer.zIndex = 20;
 
     root.addChild(lineGraphics);
-    root.addChild(boarderGraphics);
-    stage.addChild(selectRegionGraphics);
+    root.addChild(linkContainer);
+    root.addChild(linkContainer.lineGraphics);
+    root.addChild(labelContainer);
     root.addChild(textContainer);
     root.addChild(nodeContainer);
+    root.addChild(iconContainer);
 
     stage.contentRoot = root;
 
@@ -100,67 +131,67 @@ export default function(settings) {
     stage.width = viewWidth;
     stage.height = viewHeight;
 
-    //TODO here set the canvas as 20000*20000
-    nodeContainer.hitArea = new PIXI.Rectangle(-10000, -10000, 20000, 20000);
+    // TODO here set the canvas as 20000*20000
+    root.hitArea = new PIXI.Rectangle(-1000000, -1000000, 2000000, 2000000);
+    root.interactive = true;
 
-    nodeContainer.interactive = true;
+    // renderer.backgroundColor = 0xFFFFFF;
+    renderer.backgroundColor = visualConfig.backgroundColor;
 
-    renderer.backgroundColor = 0xFFFFFF;
-    SelectionManager.call(nodeContainer);
+    SelectionManager.call(root, nodeContainer, linkContainer);
 
-    nodeContainer.on('mouseup', function(e) {
+    root.on('mouseup', function (e) {
         isDirty = true;
-        nodeContainer.handleMouseUp(e);
+        root.handleMouseUp(e);
         selectionChanged();
     });
 
-    nodeContainer.nodeCaptured = function(node) {
+    root.on('rightup', contextmenuListener);
+
+    nodeContainer.on('nodeCaptured', (node) => {
         stage.hasNodeCaptured = true;
-        isDirty = true;
-        if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
-            layout.pinNode(node, true);
+        if (layoutType === 'Network' && dynamicLayout) {
+            if (!node.pinned) {
+                layout.pinNode(node, true);
+            }
         }
-    };
+    });
 
-    nodeContainer.nodeMoved = function(node) {
-        isDirty = true;
-        if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
-            layout.setNodePosition(node.id, node.position.x, node.position.y);
-            layoutIterations += 60;
-        }
+    nodeContainer.on('nodeMoved', (node) => {
+        layout.setNodePosition(node.id, node.position.x, node.position.y);
+    });
 
-    };
-
-    nodeContainer.nodeReleased = function(node) {
-        isDirty = true;
+    nodeContainer.on('nodeReleased', (node) => {
         stage.hasNodeCaptured = false;
-        if (layoutType == "Network" && visualConfig.LAYOUT_ANIMATION) {
-            if (node.pinned) {
+        if (layoutType === 'Network' && dynamicLayout) {
+            if (node.pinned && !node.data.properties._$lock) {
                 node.pinned = false;
                 layout.pinNode(node, false);
             } else {
                 node.pinned = true;
             }
-            layoutIterations = 300;
         }
-    };
+    });
 
-    //layout 相关,把移动位置同步到layout内部
-    nodeContainer.selectedNodesPosChanged = function() {
+    // layout 相关,把移动位置同步到layout内部
+    nodeContainer.selectedNodesPosChanged = function () {
         isDirty = true;
-        _.each(nodeContainer.nodes, function(node) {
-            var pos = layout.setNodePosition(node.id, node.position.x, node.position.y);
+        _.each(nodeContainer.nodes, (node) => {
+            layout.setNodePosition(node.id, node.position.x, node.position.y);
         });
-
     };
 
+    stage.selectAllNodesInRegion = function (x1, y1, x2, y2, flag, onlyNodeFlag) {
+        if (!isInteractiveLayout()) {
+            // 不可交互的布局，直接返回
+            return;
+        }
 
-    stage.selectAllNodesInRegion = function(x1, y1, x2, y2, flag) {
         isDirty = true;
-        var xl;
-        var xr;
-        var yt;
-        var yb;
+        let xl;
+        let xr;
+        let yt;
+        let yb;
         if (x1 > x2) {
             xl = x2;
             xr = x1;
@@ -168,7 +199,6 @@ export default function(settings) {
             xr = x2;
             xl = x1;
         }
-
         if (y1 > y2) {
             yt = y2;
             yb = y1;
@@ -177,29 +207,85 @@ export default function(settings) {
             yb = y2;
         }
         if (flag) {
-            nodeContainer.deselectAll();
+            root.deselectAll();
         }
-        _.each(nodeSprites, function(n) {
-            //console.log(n.position.x+" "+n.position.y);
-            if (!n.visible) {
-                return;
-            }
+        _.each(nodeSprites, (n) => {
+            // console.log(n.position.x+" "+n.position.y);
             if ((n.position.x <= xr) && (n.position.x >= xl) && (n.position.y >= yt) && (n.position.y <= yb)) {
-                //console.log("here i come!!");
+                // console.log("here i come!!");
                 nodeContainer.selectNode(n);
             }
         });
+
+        if (onlyNodeFlag) {
+            return;
+        }
+
+        const rectBox = {xl, xr, yt, yb};
+        _.each(linkSprites, (link) => {
+            let detectFlag = pixiGraphics.detectLinkSelect(link, rectBox);
+            if (detectFlag) {
+                linkContainer.selectLink(link);
+            }
+        });
     };
+
+    /**
+     * {x0, y0} click point
+     * @param {*} x0
+     * @param {*} y0
+     */
+    stage.selectSingleLink = function (x0, y0) {
+        if (!isInteractiveLayout()) {
+            // 不可交互的布局，直接返回
+            return;
+        }
+
+        isDirty = true;
+        const xl = x0 - 1;
+        const xr = x0 + 1;
+        const yt = y0 - 1;
+        const yb = y0 + 1;
+        const rectBox = {xl, xr, yt, yb};   // {x0, y0} as a center point to construct a rectangle
+
+        _.each(linkSprites, (link) => {
+            let detectFlag = pixiGraphics.detectLinkSelect(link, rectBox);
+            // 判断是否点击在链接箭头上
+            if (!detectFlag) {
+                const height = 3.2 * link.thickness;
+                const width = 9.6 * link.thickness;
+
+                let leftTopX = link.perpendicularVector[0] * height + link.midX;
+                let leftTopY = link.perpendicularVector[1] * height + link.midY;
+                let leftBottomX = -link.perpendicularVector[0] * height + link.midX;
+                let leftBottomY = -link.perpendicularVector[1] * height + link.midY;
+                let rightX = link.unitVector[0] * width + link.midX;
+                let rightY = link.unitVector[1] * width + link.midY;
+
+                detectFlag = pixiGraphics.isPointInTriangle(x0, y0, leftTopX, leftTopY, leftBottomX, leftBottomY, rightX, rightY);
+            }
+
+            if (detectFlag) {
+                linkContainer.linkSelected(link);
+            }
+        });
+    };
+
+    function isInteractiveLayout() {
+        return layoutType !== 'FamilyLayout' && layoutType !== 'PersonRelationshipStructural' && layoutType !== 'Person2Person';
+    }
+
     /**
      * Very Very Important Variables
      * nodeSprites is for all of the nodes, their attribute can be found in initNode;
      * linkSprites is for all of the links, their attribute can be found in SimpleLineSprite;
      */
-    var nodeSprites = {},
-        linkSprites = {};
+    let nodeSprites = {};
+    let linkSprites = {};
+    // 将linkSprites设置进linkContainer以便画线
+    linkContainer.linkSprites = linkSprites;
 
-    var bfsQueue = [];
-
+    //let bfsQueue = [];
 
     /**
      * now we vindicate a map for nodes to draw boundary.
@@ -207,13 +293,14 @@ export default function(settings) {
      *  one is for the selected node, now we draw these nodes by default attribute.
      *  the other is for the nodes that given by IDArray.
      */
-    var nodeNeedBoundary = {};
+    const nodeNeedBoundary = {};
 
     graph.forEachNode(initNode);
     graph.forEachLink(initLink);
     // setupWheelListener(canvas, root); // wheel listener 现在在外部模板内设置，通过zoom接口来调用renderer的缩放方法。
-    var layoutIterations = 0,
-        counter = new FPSCounter();
+    const counter = new FPSCounter();
+    let dynamicLayout = false;
+    let disableLayout = false;
 
     listenToGraphEvents();
     stage.interactive = true;
@@ -222,67 +309,29 @@ export default function(settings) {
         stage.on('mousedown', stage.downListener);
     }
 
-    var alineTimeline = function(zoomFactor) {
-        if (zoomFactor) {
-            msPerPix /= (1 + zoomFactor);
-        }
-        if (this.isTimelineLayout) {
-            let leftSpan = this.contentRoot.position.x;
-            let leftTimeSpan = leftSpan * msPerPix;
-            var start = originSpotTime - leftTimeSpan;
-            var end = start + msPerPix * timelineWidth;
-            timeline.setWindow(
-                start,
-                end, { animation: false }
-            );
-        }
-        // console.log(stage.contentRoot.position);
-        let pRoot = stage.contentRoot.position;
-        // reposition the nodes;
-        if (pRoot.x > 160) {
-            _.each(nodeSprites, function(ns) {
-                ns.updateNodePosition({ x: -40, y: ns.position.y });
-            });
-        } else {
-            let newX = 200 - pRoot.x / stage.contentRoot.scale.x;
-            _.each(nodeSprites, function(ns) {
-                ns.updateNodePosition({ x: newX, y: ns.position.y })
-            });
-        }
-        stage.isDirty = true;
-    };
-    stage.contentRootMoved = _.throttle(alineTimeline.bind(stage), 25);
-    var zoomTimelineThrottled = _.throttle(function(config) {
-        timeline.setWindow(
-            config.start,
-            config.end,
-            config.option
-        );
-        timeline.redraw();
-        // calculate the position of root layer and each lines;
-        let timelineStartMs = config.start,
-            timelineEndMs = config.end;
-        let interval = timelineEndMs - timelineStartMs;
-        msPerPix = Math.floor(interval / timelineWidth);
-        timelineWindow = timeline.getWindow();
-        let rootOriginTimeDiff = originSpotTime - timelineStartMs;
-        root.position.x = rootOriginTimeDiff * timelineWidth / interval;
-        positionLinksByTime(linkSprites, timelineStartMs);
-        let pRoot = stage.contentRoot.position;
-        if (pRoot.x > 160) {
-            _.each(nodeSprites, function(ns) {
-                ns.updateNodePosition({ x: -40, y: ns.position.y });
-            });
-        } else {
-            let newX = 200 - pRoot.x / stage.contentRoot.scale.x;
-            _.each(nodeSprites, function(ns) {
-                ns.updateNodePosition({ x: newX, y: ns.position.y })
-            });
-        }
-        stage.isDirty = true;
-    }, 200);
+    const timelineLayout = new TimelineLayout(nodeSprites, nodeContainer, linkSprites, lineGraphics, visualConfig, stage, layoutType, settings);
 
-    var pixiGraphics = {
+    // add animation
+    let animationAgent = new AnimationAgent();
+
+    const COLLECTION_FLAG_MASK = [0, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024];
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // Public API is begin
+    ///////////////////////////////////////////////////////////////////////////////
+    const pixiGraphics = {
+        /**
+         * [Read only] Current layout algorithm. If you want to pass custom layout
+         * algorithm, do it via `settings` argument of ngraph.pixi.
+         */
+        layout,
+        root,
+        stage,
+        mode,
+
+        getLayoutType() {
+            return layoutType;
+        },
 
         /**
          * Allows client to start animation loop, without worrying about RAF stuff.
@@ -292,864 +341,484 @@ export default function(settings) {
         /**
          * Cancel global Interactive
          */
-        cancelGlobalInteractive: function() {
-            nodeContainer.interactive = false;
+        cancelGlobalInteractive() {
             stage.interactive = false;
-            // stage.interactiveChildren=false;
-            nodeContainer.interactiveChildren = false;
-
+            root.interactive = false;
+            root.interactiveChildren = false;
         },
 
         /**
          * recover global Interactive
          */
-        recoverGlobalInteractive: function() {
+        recoverGlobalInteractive() {
             stage.interactive = true;
-            if (this.mode == "picking") {
-                nodeContainer.interactive = true;
-                nodeContainer.interactiveChildren = true;
-
+            if (this.mode === 'picking') {
+                root.interactive = true;
+                root.interactiveChildren = true;
             } else {
-                nodeContainer.interactive = false;
-                nodeContainer.interactiveChildren = false;
-
+                root.interactive = false;
+                root.interactiveChildren = false;
             }
         },
 
         /**
          * adjust the initial display location to center of the scene
          */
-        adjustInitialDisplayLocation: function() {
-            this.performLayout();
-            this.setNodesToFullScreen();
-        },
-
-        /*
-         * For the forcelayout Algorithm do not have the fixed cycles.
-         * To arrange the nodes quickly, we need add the cycles manually.
-         **/
-        addLayoutCycles: function(n) {
-            isDirty = true;
-            if (stage.isTimelineLayout) {
-                disableTimelineLayout();
-            }
-            layoutType = "Network";
-            layoutIterations += n;
-        },
-
-        /**
-         * zoom in and zoom out for the node
-         */
-        nodeZoomByID: zoomNodesById,
-
-        /**
-         * change the boundary style of the nodes by ID
-         **/
-        changeBoundaryStyleByID: function(nodeIDArray, boundAttr) {
-            isDirty = true;
-            _.each(nodeIDArray, function(nodeID) {
-                nodeSprites[nodeID].boundaryAttr = boundAttr;
-            });
-        },
-
-        /**
-         * change the style of the link by ID
-         */
-        changeLinkStyleByID: function(linkIDArray, linkAttr) {
-            isDirty = true;
-            _.each(linkIDArray, function(linkID) {
-                //console.log(linkID);
-                if (!linkAttr.color) {
-                    linkAttr.color = linkSprites[linkID].coustomSettingColor;
-                }
-                if (!linkAttr.alpha) {
-                    linkAttr.alpha = linkSprites[linkID].coustomSettingAlpha;
-                }
-                if (!linkAttr.thickness) {
-                    linkAttr.thickness = linkSprites[linkID].coustomSettingThickness;
-                } else {
-                    linkAttr.thickness = Math.round(linkAttr.thickness); // Make sure its integer;
-                }
-                linkSprites[linkID].setLineAttr(linkAttr);
-            });
-        },
-
-        /**
-         * reset the style of the link by ID
-         */
-        resetLinkStyleByID: function(linkIDArray) {
-            isDirty = true;
-            _.each(linkIDArray, function(linkID) {
-                var styleResetLink = linkSprites[linkID];
-                var linkAttr = {};
-                linkAttr.alpha = visualConfig.ui.line.alpha;
-                linkAttr.color = visualConfig.ui.line.color;
-                linkAttr.thickness = visualConfig.ui.line.width;
-                styleResetLink.setLineAttr(linkAttr);
-            });
-        },
-
-        /**
-         * get the number of hidden nodes
-         */
-        getHiddenNodesNumber: function() {
-            var number = 0;
-            _.each(nodeSprites, function(n) {
-                if (n.visible == false) {
-                    number++;
-                }
-            });
-            // console.log(number + " nodes are hidden!!");
-            return number;
-        },
-        /**
-         * get the number of hidden lines
-         */
-        getHiddenLinesNumber: function() {
-            var number = 0;
-            _.each(linkSprites, function(l) {
-                if (l.visible == false) {
-                    number++;
-                }
-            });
-            // console.log(number + " lines are hidden!!");
-            return number;
-        },
-
-        /**
-         * hide nodes by ID
-         */
-        hideSubGraph: function(nodeIdArray, linkIdArray) {
-            isDirty = true;
-            _.each(nodeIdArray, function(node) {
-                var hiddenNode = nodeSprites[node];
-                if (hiddenNode.selected) {
-                    nodeContainer.deselectNode(hiddenNode);
-                }
-                hiddenNode.visible = false;
-                hiddenNode.ts.visible = false;
-                if (hiddenNode.circleBorder) {
-                    hiddenNode.circleBorder.visible = false;
-                }
-
-                //when we hide the nodes we should also hide the texture, arrow and the link.
-                _.each(hiddenNode.outgoing, function(olink) {
-                    if (olink.selected) {
-                        nodeContainer.deselectLink(olink);
-                    }
-                    olink.hide();
-
-                });
-                _.each(hiddenNode.incoming, function(ilink) {
-                    if (ilink.selected) {
-                        nodeContainer.deselectLink(ilink);
-                    }
-                    ilink.hide();
-                });
-            });
-
-            _.each(linkIdArray, function(linkId) {
-                var linkToHide = linkSprites[linkId];
-                if (linkToHide.selected) {
-                    nodeContainer.deselectLink(linkToHide);
-                }
-                linkToHide.hide();
-            });
-
-            selectionChanged();
-            hiddenStatusChanged();
-
-        },
-
-        showAll: function() {
-            isDirty = true;
-            _.each(nodeSprites, function(ns) {
-                ns.visible = true;
-                ns.ts.visible = true;
-                if (ns.circleBorder) {
-                    ns.circleBorder.visible = true;
-                }
-            });
-            _.each(linkSprites, function(ls) {
-                ls.show();
-            });
-            hiddenStatusChanged();
-        },
-        /**
-         * show nodes by ID
-         */
-        showNodesByID: function(idArray) {
-            isDirty = true;
-            _.each(idArray, function(node) {
-                var showNode = nodeSprites[node];
-                showNode.visible = true;
-                showNode.ts.visible = true;
-                if (showNode.circleBorder) {
-                    showNode.circleBorder.visible = true;
-                }
-
-                /**when we hide the nodes, we also hide the texture, arrow and the link.
-                 * Now we should set them visible
-                 */
-                //console.log(showNode.outgoing.targetEntity);
-
-                _.each(showNode.outgoing, function(link) {
-                    if (!link.visible && nodeSprites[link.data.targetEntity].visible) {
-                        link.show();
-                    }
-                });
-
-                _.each(showNode.incoming, function(link) {
-                    if (!link.visible && nodeSprites[link.data.sourceEntity].visible) {
-                        link.show();
-                    }
-                });
-            });
-        },
-
-        /**
-         * set which node need boundary.
-         * when call this function, you should give me a group of ID and the attribute for this group
-         */
-        setBoundaryNeededNodes: function(idArray, boundaryAttr) {
-            isDirty = true;
-            //this part is for performance test
-            _.each(idArray, function(node) {
-                // nodeNeedBoundary[node] = nodeSprites[node];
-                // nodeNeedBoundary[node].boundaryAttr = boundaryAttr;
-                let nodeSprite = nodeSprites[node];
-                nodeSprite.boundaryAttr = boundaryAttr;
-                if (!nodeSprite.circleBorder) {
-                    nodeSprite.circleBorder = new CircleBorderTexture(nodeSprite.boundaryAttr, visualConfig.NODE_WIDTH * 1.4 / 2);
-                    nodeSprite.circleBorder.scale.x = nodeSprite.scale.x;
-                    nodeSprite.circleBorder.scale.y = nodeSprite.scale.y;
-                    nodeSprite.circleBorder.anchor.x = 0.5;
-                    nodeSprite.circleBorder.anchor.y = 0.5;
-                    nodeSprite.circleBorder.position.x = nodeSprite.position.x;
-                    nodeSprite.circleBorder.position.y = nodeSprite.position.y;
-                    nodeSprite.circleBorder.visible = nodeSprite.visible;
-                    textContainer.addChild(nodeSprite.circleBorder);
-                } else {
-                    nodeSprite.circleBorder.setNewStyle(nodeSprite.boundaryAttr, visualConfig.NODE_WIDTH * 1.4 / 2);
-                }
-            });
-        },
-
-        /**
-         * delete the nodes don't need boundary.
-         * when call this function, you should give me a group of ID
-         */
-        deleteBoundaryOfNodes: function(idArray) {
-            isDirty = true;
-            _.each(idArray, function(id) {
-                let nodeSprite = nodeSprites[id];
-                if (nodeSprite) {
-                    if (nodeSprite.circleBorder) {
-                        textContainer.removeChild(nodeSprite.circleBorder);
-                        nodeSprite.circleBorder = null;
-                        nodeSprite.boundaryAttr = null;
-                    }
-                }
-            });
+        adjustInitialDisplayLocation(disableAnimation) {
+            this.performLayout(disableAnimation, true);
         },
 
         /**
          * Allow switching between picking and panning modes;
          */
-        setMode: function(newMode) {
-            if (this.mode == newMode) {
+        setMode(newMode) {
+            if (this.mode === newMode) {
                 return;
             }
-            if (this.mode == "panning") {
+            if (this.mode === 'panning') {
                 this.mode = 'picking';
                 stage.mode = this.mode;
-                nodeContainer.interactive = true;
-                nodeContainer.interactiveChildren = true;
-                // stage.interactive = false;
+                root.interactive = true;
+                root.interactiveChildren = true;
                 stage.buttonMode = false;
-
             } else {
                 this.mode = 'panning';
-                // stage.interactive = true;
                 stage.buttonMode = true;
                 stage.mode = this.mode;
-                nodeContainer.interactiveChildren = false;
-                nodeContainer.interactive = false;
-
+                root.interactiveChildren = false;
+                root.interactive = false;
             }
         },
 
-        toggleMode: function() {
-            if (this.mode == 'panning') {
+        toggleMode() {
+            if (this.mode === 'panning') {
                 this.setMode('picking');
             } else {
                 this.setMode('panning');
             }
         },
 
-        panningMode: function() {
+        pickingMode() {
+            this.setMode('picking');
+        },
+
+        panningMode() {
             this.setMode('panning');
         },
 
-        /*
+        /**
          * get selected nodes,
          * nodes of nodeContainer are selected @SelectionManager.js
-         **/
-        getSelectedNodes: function() {
-            // return _.values(nodeContainer.selectedNodes);
+         */
+        getSelectedNodes() {
             return nodeContainer.nodes;
         },
 
-        /*
+        /**
          * get selected Links,
          * links of nodeContainer are selected @SelectionManager.js
-         **/
-
-        getSelectedLinks: function() {
-            // return _.values(nodeContainer.selectedLinks);
-            return nodeContainer.links;
-        },
-
-        //mark the subtree!
-        getSubTree: function() {
-            var tid = 0;
-            _.each(nodeSprites, function(node) {
-                node.treeID = 0;
-            });
-            _.each(nodeSprites, function(node) {
-                if (!node.treeID) {
-                    tid++;
-                    findSubGraph(node, tid);
-                }
-            });
-
-            subTree = {};
-            //init the subTree Structure
-            _.each(nodeSprites, function(node) {
-                if (node.visible) {
-                    if (!subTree[node.treeID]) {
-                        subTree[node.treeID] = {};
-                        subTree[node.treeID].nodes = new Array();
-                    }
-                    subTree[node.treeID].nodes.push(node);
-
-                    //console.log(node.id+"被放进了树"+node.treeID);
-                }
-            });
+         */
+        getSelectedLinks() {
+            return linkContainer.links;
         },
 
         /**
-         * I must address one thing, here.
-         * the node which is in subTree{}, is visible.
-         * in another word, the subTree{} do not contains invisible nodes.
+         * get selected nodes data,
+         * nodes of nodeContainer are selected @SelectionManager.js
          */
-        subTreeInitForCircleLayout: function() {
-            pixiGraphics.getSubTree();
-
-            /**init the center for each subTree
-             * init the radius for each subTree
-             * init the angle for each subTree, here ,angle is for every node-center line
-             */
-            _.each(subTree, function(st, stID) {
-                var xSum = 0;
-                var ySum = 0;
-                var maxScale = 0;
-
-                _.each(st.nodes, function(node) {
-                    xSum = xSum + node.position.x;
-                    ySum = ySum + node.position.y;
-                    if (node.scale.x > maxScale) {
-                        maxScale = node.scale.x;
-                    }
-                });
-
-                st.radius = (visualConfig.NODE_WIDTH * 2 * maxScale * st.nodes.length * 1.5) / (2 * Math.PI);
-
-                st.angle = 360 / st.nodes.length;
-                st.positionx = xSum / st.nodes.length;
-                st.positiony = ySum / st.nodes.length;
-
+        getSelectedNodesData() {
+            const selectedNodes = [];
+            _.each(nodeContainer.nodes, (ns) => {
+                selectedNodes.push(Object.assign({}, ns.data));
             });
-
-            _.each(subTree, function(st, stID) {
-
-                if (subTree[parseInt(stID) + 1]) {
-                    subTree[parseInt(stID) + 1].positionx = st.positionx + st.radius + subTree[parseInt(stID) + 1].radius + visualConfig.NODE_WIDTH;
-                    subTree[parseInt(stID) + 1].positiony = st.positiony;
-                }
-            });
+            return selectedNodes;
         },
 
         /**
-         * here we do not need to consider the listeners and so many other things,
-         * draw a circle
+         * get selected Links,
+         * links of nodeContainer are selected @SelectionManager.js
          */
-        drawCircleLayout: function() {
+        getSelectedLinksData() {
+            const selectedLinks = [];
+            _.each(linkContainer.links, (ls) => {
+                selectedLinks.push(Object.assign({}, ls.data));
+            });
+            return selectedLinks;
+        },
+
+        /**
+         * draw circle layout
+         */
+        drawCircleLayout(disableAnimation, init) {
+            layout = new CircleLayout(nodeSprites, nodeContainer, visualConfig, init);
+            this.setNodesToFullScreen(disableAnimation);
+        },
+
+        drawPersonLayout(disableAnimation, init) {
+            layout = new personForceLayout(nodeSprites, nodeContainer, visualConfig);
+            this.setNodesToFullScreen(disableAnimation);
+        },
+
+        drawStructuralLayout(disableAnimation, init) {
+            layout = new GraphLevelForceLayoutOpt(nodeSprites, nodeContainer, visualConfig, init);
+            this.setNodesToFullScreen(disableAnimation);
+        },
+
+        drawStructuralLayoutForPersonRelationship(disableAnimation, init) {
+            layout = new PersonRelationshipLayout(nodeSprites, nodeContainer, visualConfig);
+            this.setNodesToFullScreen(disableAnimation);
+        },
+
+        /**
+         * draw radiate layout
+         */
+        drawRadiateLayout(disableAnimation, init) {
+            layout = new RadiateLayout(nodeSprites, nodeContainer, visualConfig, init);
+            this.setNodesToFullScreen(disableAnimation);
+        },
+
+        /**
+         * draw layered layout
+         */
+        drawLayeredLayout(disableAnimation, init) {
+            layout = new LayeredLayoutNew(nodeSprites, nodeContainer, visualConfig, init);
+            this.setNodesToFullScreen(disableAnimation);
+        },
+
+        /**
+         * draw Broken Line Layered layout
+         * @param disableAnimation
+         * @param init
+         */
+        drawLBrokenLineLayeredLayout(disableAnimation, init) {
+            layout = new LayeredLayoutNew(nodeSprites, nodeContainer, visualConfig, init);
+            this.setNodesToFullScreen(disableAnimation);
+        },
+
+        setPerson2PersonNode(startNodeId, endNodeId) {
+            this.startNodeId = startNodeId;
+            this.endNodeId = endNodeId;
+        },
+
+        drawPerson2PersonLayout(disableAnimation){
+            // TODO 增加两个参数 startNodeId, endNodeId
+            layout = new Person2PersonLayout(nodeSprites, nodeContainer, visualConfig, this.startNodeId, this.endNodeId);
+            this.setNodesToFullScreen(disableAnimation);
+        },
+
+        drawFamilyLayout(disableAnimation, init) {
+            layout = new StandardFamilyTreeLayout(nodeSprites, nodeContainer, visualConfig, init);
+            linkContainer.mode = 'pixi';
+            this.setNodesToFullScreen(disableAnimation);
+        },
+
+        /**
+         * set actual size of layout
+         */
+        setActualSize() {
             isDirty = true;
-            if (stage.isTimelineLayout) {
-                disableTimelineLayout();
-            }
-            layoutIterations = 0;
-            layoutType = "Circular";
-
-            pixiGraphics.subTreeInitForCircleLayout();
-            _.each(subTree, function(st, stID) {
-                _.each(st.nodes, function(node, nodeID) {
-                    var p = {};
-                    p.x = subTree[node.treeID].positionx - Math.cos(subTree[node.treeID].angle * nodeID * Math.PI / 180) * subTree[node.treeID].radius;
-                    p.y = subTree[node.treeID].positiony + Math.sin(subTree[node.treeID].angle * nodeID * Math.PI / 180) * subTree[node.treeID].radius;
-                    node.updateNodePosition(p);
-                    layout.setNodePosition(node.id, node.position.x, node.position.y);
-                });
-            });
-            this.setNodesToFullScreen();
-        },
-
-        dataResetForTreeLayout: function() {
-            _.each(nodeSprites, function(n) {
-                n.isPutInTree = false;
-                n.treeLayoutLevel = null;
-            });
-            _.each(subTree, function(st) {
-                st.isSelectedNode = false;
-                st.selectedNode = null;
-            });
-        },
-
-
-        subTreeInitForTreeLayout: function() {
-            pixiGraphics.getSubTree();
-            //获取当前被选中的节点
-            //here we address the random point of each subtree
-            pixiGraphics.dataResetForTreeLayout();
-            _.each(nodeContainer.nodes, function(node) {
-                if (!subTree[node.treeID].selection) {
-                    subTree[node.treeID].isSelectedNode = true;
-                    subTree[node.treeID].selectedNode = node;
-                    // console.log(node.id);
-                }
-            });
-
-            _.each(subTree, function(st) {
-                if (!st.isSelectedNode) {
-                    pixiGraphics.findRootOfEachTree(st);
-                }
-            });
-
-            _.each(subTree, function(st, stID) {
-                if (st.isSelectedNode) {
-                    st.selectedNode.treeLayoutLevel = 1;
-                    st.selectedNode.isPutInTree = true;
-                    bfsQueue.unshift(st.selectedNode);
-                    var templength = bfsQueue.length;
-                    while (templength !== 0) {
-                        var p = bfsQueue.pop();
-
-                        if (p !== null) {
-                            findATree(p);
-                        }
-                        templength = bfsQueue.length;
-                    }
-                }
-
-            });
-
-            //compute the max width of each subTree
-            _.each(subTree, function(st) {
-                if (st.isSelectedNode) {
-                    var stMaxWidth = 0;
-                    var eachLevelNodeNumb = {};
-                    _.each(st.nodes, function(node) {
-                        if (!eachLevelNodeNumb[node.treeLayoutLevel]) {
-                            eachLevelNodeNumb[node.treeLayoutLevel] = 1;
-                        } else {
-                            eachLevelNodeNumb[node.treeLayoutLevel]++;
-                        }
-                    });
-                    st.treeLayoutEachLevelNumb = {};
-                    _.each(eachLevelNodeNumb, function(numb, level) {
-                        st.treeLayoutEachLevelNumb[level] = numb;
-                        if (numb > stMaxWidth) {
-                            stMaxWidth = numb;
-                        }
-                    });
-
-                    st.treeLayoutMaxWidth = stMaxWidth * visualConfig.NODE_WIDTH;
-                }
-            });
-
-            //compute the root position for each tree
-            //here positionx is for the x of root
-            //here positiony is for the y of root
-            _.each(subTree, function(st, stID) {
-                if (st.isSelectedNode) {
-                    if (parseInt(stID) == 1) {
-                        st.positionx = st.selectedNode.position.x;
-                        st.positiony = st.selectedNode.position.y;
-                    } else {
-                        st.positionx = subTree[parseInt(stID) - 1].positionx + subTree[parseInt(stID) - 1].treeLayoutMaxWidth + st.treeLayoutMaxWidth + visualConfig.NODE_WIDTH;
-                        st.positiony = subTree[parseInt(stID) - 1].positiony;
-                    }
-                }
-            });
-
-        },
-
-        findRootOfEachTree: function(eachSubTree) {
-
-            _.each(eachSubTree.nodes, function(n) {
-                n.degree = 0;
-                _.each(n.incoming, function(l) {
-                    n.degree++;
-                });
-                _.each(n.outgoing, function(l) {
-                    n.degree++;
-                });
-            });
-
-            eachSubTree.isSelectedNode = true;
-            eachSubTree.selectedNode = null;
-            _.each(eachSubTree.nodes, function(n) {
-                if (!eachSubTree.selectedNode) {
-                    eachSubTree.selectedNode = n;
-                } else {
-                    if (eachSubTree.selectedNode.degree < n.degree) {
-                        eachSubTree.selectedNode = n;
-                    }
-                }
-            });
-        },
-
-        drawTreeLayout: function() {
-            isDirty = true;
-            if (stage.isTimelineLayout) {
-                disableTimelineLayout();
-            }
-            layoutIterations = 0;
-            layoutType = "Layered";
-
-            pixiGraphics.subTreeInitForTreeLayout();
-            _.each(subTree, function(st, stID) {
-                if (st.isSelectedNode) {
-                    _.each(st.nodes, function(node) {
-                        if (stID != 1 || node.treeLayoutLevel != 1) {
-                            var p = {};
-                            p.x = st.positionx - (st.treeLayoutEachLevelNumb[node.treeLayoutLevel] - 1) * visualConfig.NODE_WIDTH;
-                            st.treeLayoutEachLevelNumb[node.treeLayoutLevel] = st.treeLayoutEachLevelNumb[node.treeLayoutLevel] - 2;
-                            p.y = st.positiony + visualConfig.NODE_WIDTH * 4 * (node.treeLayoutLevel - 1);
-                            node.updateNodePosition(p);
-                        } else {
-                            node.updateNodePosition({
-                                x: node.position.x,
-                                y: node.position.y
-                            });
-                        }
-                        layout.setNodePosition(node.id, node.position.x, node.position.y);
-                    });
-                }
-            });
-            this.setNodesToFullScreen();
-        },
-
-        setActualSize: function() {
-            isDirty = true;
-            var root = this.root;
+            nodeContainer.positionDirty = true;
+            const root = this.root;
             root.scale.x = 1;
             root.scale.y = 1;
-            root.position.x = viewWidth / 2;
-            root.position.y = viewHeight / 2;
-            var sumx = 0;
-            var sumy = 0;
-            var count = 0;
-            _.each(nodeSprites, function(n) {
-                sumx += n.position.x;
-                sumy += n.position.y;
-                count++;
-            });
-            if (count != 0) {
-                sumx = sumx / count;
-                sumy = sumy / count;
+            if (layoutType === 'TimelineScale') {
+                root.position.x = viewWidth / 2;
+                root.position.y = viewHeight / 2;
+                let sumx = 0;
+                let sumy = 0;
+                let count = 0;
+                _.each(nodeSprites, (n) => {
+                    sumx += n.position.x;
+                    sumy += n.position.y;
+                    count++;
+                });
+                if (count !== 0) {
+                    sumx /= count;
+                    sumy /= count;
+                }
+                _.each(nodeSprites, (n) => {
+                    n.position.x -= sumx;
+                    n.position.y -= sumy;
+                    n.updateNodePosition(n.position);
+                    nodeContainer.nodeMoved(n);
+                    layout.setNodePosition(n.id, n.position.x, n.position.y);
+                });
+                _.each(linkSprites, (l) => {
+                    l.updatePosition();
+                });
+            } else {
+                const rootPlacement = this.calculateRootPosition(1);
+                if (rootPlacement) {
+                    animationAgent.move(root, rootPlacement.position);
+                } else {
+                    console.error('Center graph action not supported in current layout.');
+                }
             }
-            _.each(nodeSprites, function(n) {
-                n.position.x = n.position.x - sumx + 0
-                n.position.y = n.position.y - sumy + 0;
-                n.updateNodePosition(n.position);
-                layout.setNodePosition(n.id, n.position.x, n.position.y);
-            });
         },
 
-        setNodesToFullScreen: function() {
-            isDirty = true;
-            var root = this.root;
-            var x1 = -10000000,
-                y1, x2, y2;
-            var sumx = 0;
-            var sumy = 0;
-            var count = 0;
-            _.each(nodeSprites, function(n) {
-                sumx += n.position.x;
-                sumy += n.position.y;
-                count++;
-                if (x1 == -10000000) {
-                    x1 = n.position.x;
-                    y1 = n.position.y;
-                    x2 = n.position.x;
-                    y2 = n.position.y;
-                } else {
-                    if (n.position.x < x1) {
-                        x1 = n.position.x;
-                    }
-                    if (n.position.x > x2) {
-                        x2 = n.position.x;
-                    }
-                    if (n.position.y > y1) {
-                        y1 = n.position.y;
-                    }
-                    if (n.position.y < y2) {
-                        y2 = n.position.y;
-                    }
-                }
-            });
-
-            if (count != 0) {
-                sumx = sumx / count;
-                sumy = sumy / count;
-            } else {
-                return;
-            }
-            let rootWidth = Math.abs(x2 - x1),
-                rootHeight = Math.abs(y1 - y2);
-            var xScale;
-            var yScale;
-
-            xScale = visualConfig.MAX_ADJUST;
-            yScale = visualConfig.MAX_ADJUST;
-            if (rootHeight != 0) {
-
-                var border;
-                if (viewHeight / rootHeight > 10) {
-                    border = 500;
-                } else {
-                    border = (viewHeight / rootHeight) * 50;
-                }
-                yScale = (viewHeight - border) / rootHeight;
-            }
-            if (rootWidth != 0) {
-                var border0;
-                if (viewWidth / rootWidth > 10) {
-                    border0 = 350;
-                } else {
-                    border0 = (viewWidth / rootWidth) * 35;
-                }
-                xScale = (viewWidth - border0) / rootWidth;
-            }
-            if (xScale > yScale && yScale < visualConfig.MAX_ADJUST) {
-                root.scale.x = yScale * 0.8;
-                root.scale.y = yScale * 0.8;
-            } else if (yScale >= xScale && xScale < visualConfig.MAX_ADJUST) {
-                root.scale.x = xScale * 0.8;
-                root.scale.y = xScale * 0.8;
-            } else {
-                root.scale.x = visualConfig.MAX_ADJUST * 0.8;
-                root.scale.y = visualConfig.MAX_ADJUST * 0.8;
-            }
-
-            root.position.x = viewWidth / 2;
-            root.position.y = viewHeight / 2;
-
-            _.each(nodeSprites, function(n) {
-                n.position.x = n.position.x - sumx;
-                n.position.y = n.position.y - sumy;
-                n.updateNodePosition(n.position);
-                layout.setNodePosition(n.id, n.position.x, n.position.y);
-            });
-
+        // This method is to move the graph scene center to the specified postion
+        alignContentCenterToCanvasPosition(canvasX, canvasY) {
+            // actually I prefer refresh manually
+            // isDirty = true;
+            const rect = getMyBounds.call(root);
+            const graphCenterInStage = {
+                x: rect.x + rect.width / 2,
+                y: rect.y + rect.height / 2,
+            };
+            const rootPositionTransform = {
+                x: canvasX - graphCenterInStage.x,
+                y: canvasY - graphCenterInStage.y,
+            };
+            // sometimes you may need a smooth move
+            // animationAgent.move(root, {
+            //     x: root.position.x + rootPositionTransform.x,
+            //     y: root.position.y + rootPositionTransform.y,
+            // });
+            root.position.x += rootPositionTransform.x;
+            root.position.y += rootPositionTransform.y;
         },
 
-        setSelectedNodesToFullScreen: function() {
+        getMyBoundsWrap() {
+            return getMyBounds.call(root);
+        },
+
+        calculateRootPosition(scaleFactor) {
             isDirty = true;
-            var root = this.root;
-            var x1 = -1000000,
-                y1, x2, y2;
-            var sumx = 0;
-            var sumy = 0;
-            var count = 0;
-            _.each(nodeContainer.selectedNodes, function(n) {
-                sumx += n.position.x;
-                sumy += n.position.y;
-                count++;
-                if (x1 == -1000000) {
-                    x1 = n.position.x;
-                    y1 = n.position.y;
-                    x2 = n.position.x;
-                    y2 = n.position.y;
-                } else {
-                    if (n.position.x < x1) {
-                        x1 = n.position.x;
-                    }
-                    if (n.position.x > x2) {
-                        x2 = n.position.x;
-                    }
-                    if (n.position.y > y1) {
-                        y1 = n.position.y;
-                    }
-                    if (n.position.y < y2) {
-                        y2 = n.position.y;
-                    }
-                }
-            });
+            const root = this.root;
+            const graphRect = layout.getGraphRect();
+            if (!graphRect) {
+                console.error('No valid graph rectangle available from layout algorithm');
+                return null;
+            }
+            const targetRectWidth = viewWidth * 0.8;
+            const targetRectHeight = viewHeight * 0.65;
+            // console.info("Target rectange to place graph", {x: targetRectWidth, y: targetRectHeight});
+            const rootWidth = Math.abs(graphRect.x2 - graphRect.x1);
+            const rootHeight = Math.abs(graphRect.y1 - graphRect.y2);
+            const scaleX = targetRectWidth / rootWidth;
+            const scaleY = targetRectHeight / rootHeight;
+            // the actuall scale that should be applied to root so that it will fit into the target rectangle
+            const scale = Math.min(scaleX, scaleY, scaleFactor);
+            const graphCenterInStage = {
+                //(graphRect.x1 + rootWidth / 2 ) 是contentRoot坐标系，转换到stage的坐标系时需要进行scale处理， 下同
+                x: (graphRect.x1 + rootWidth / 2) * scale + root.position.x,
+                y: (graphRect.y1 + rootHeight / 2) * scale + root.position.y,
+            };
+            // console.log("Graph center in content root", {
+            //     x: graphRect.x1 + rootWidth / 2,
+            //     y: graphRect.y1 + rootHeight / 2
+            // });
+            // console.log("Graph center in stage", graphCenterInStage);
+            // console.log("Root position", {
+            //     x: root.position.x,
+            //     y: root.position.y
+            // });
+            const rootPositionTransform = {
+                x: viewWidth / 2 - graphCenterInStage.x,
+                y: viewHeight / 2 - graphCenterInStage.y,
+            };
+            // console.log("Root transform", rootPositionTransform);
+            return {
+                scale: {
+                    x: scale,
+                    y: scale,
+                },
+                position: {
+                    x: root.position.x + rootPositionTransform.x,
+                    y: root.position.y + rootPositionTransform.y,
+                },
+            };
+        },
 
-            if (count != 0) {
-                sumx = sumx / count;
-                sumy = sumy / count;
+        setNodesToFullScreen(disableAnimation) {
+            const rootPlacement = this.calculateRootPosition(1);
+            if (rootPlacement) {
+                // console.log("Root target position: ", rootPlacement.position);
+                // console.log("Root target scale: ", rootPlacement.scale);
+                if (rootPlacement.scale.x > 1 || rootPlacement.scale.y > 1) {
+                    root.scale.x = 1;
+                    root.scale.y = 1;
+                } else {
+                    root.scale.x = rootPlacement.scale.x;
+                    root.scale.y = rootPlacement.scale.y;
+                }
+                if (disableAnimation) {
+                    if (rootPlacement.scale.x > 1 || rootPlacement.scale.y > 1) {
+                        root.scale.x = 1;
+                        root.scale.y = 1;
+                        rootPlacement.position.x /= rootPlacement.scale.x;
+                        rootPlacement.position.y /= rootPlacement.scale.y;
+                    }
+                    root.position.x = rootPlacement.position.x;
+                    root.position.y = rootPlacement.position.y;
+                } else {
+                    animationAgent.move(root, rootPlacement.position);
+                }
+                nodeContainer.positionDirty = true;
             } else {
-                console.log("no nodes selected!");
-                return;
+                console.error('Center graph action not supported in current layout.');
             }
-            let rootWidth = Math.abs(x2 - x1),
-                rootHeight = Math.abs(y1 - y2);
-            var xScale;
-            var yScale;
-            xScale = visualConfig.MAX_ADJUST;
-            yScale = visualConfig.MAX_ADJUST;
-            if (rootHeight != 0) {
-
-                var border;
-                if (viewHeight / rootHeight > 10) {
-                    border = 500;
-                } else {
-                    border = (viewHeight / rootHeight) * 50;
-                }
-                yScale = (viewHeight - border) / rootHeight;
-            }
-            if (rootWidth != 0) {
-                var border0;
-                if (viewWidth / rootWidth > 10) {
-                    border0 = 350;
-                } else {
-                    border0 = (viewWidth / rootWidth) * 35;
-                }
-                xScale = (viewWidth - border0) / rootWidth;
-            }
-
-            if (xScale > yScale && yScale < visualConfig.MAX_ADJUST) {
-                root.scale.x = yScale * 0.8;
-                root.scale.y = yScale * 0.8;
-            } else if (yScale >= xScale && xScale < visualConfig.MAX_ADJUST) {
-                root.scale.x = xScale * 0.8;
-                root.scale.y = xScale * 0.8;
-            } else {
-                root.scale.x = visualConfig.MAX_ADJUST * 0.8;
-                root.scale.y = visualConfig.MAX_ADJUST * 0.8;
-
-            }
-
-            root.position.x = viewWidth / 2;
-            root.position.y = viewHeight / 2;
-
-            _.each(nodeSprites, function(n) {
-                n.position.x = n.position.x - sumx;
-                n.position.y = n.position.y - sumy;
-                n.updateNodePosition(n.position);
-                layout.setNodePosition(n.id, n.position.x, n.position.y);
-            });
         },
 
         /**
-         * [Read only] Current layout algorithm. If you want to pass custom layout
-         * algorithm, do it via `settings` argument of ngraph.pixi.
+         * FIXME, performance issue, updating all nodes, which is not necessary
          */
-        layout: layout,
-        getLayoutType: function() {
-            return layoutType;
-        },
-        nodeContainer: nodeContainer,
-        root: root,
-        stage: stage,
-        lineContainer: lineContainer,
-        mode: mode,
-        counter: counter,
+        setSelectedNodesToFullScreen() {
+            isDirty = true;
+            nodeContainer.positionDirty = true;
+            const root = this.root;
+            let x1 = -1000000;
+            let y1;
+            let x2;
+            let y2;
+            let sumx = 0;
+            let sumy = 0;
+            let count = 0;
+            nodeContainer.selectedNodes.forEach((n) => {
+                sumx += n.position.x;
+                sumy += n.position.y;
+                count++;
+                if (x1 === -1000000) {
+                    x1 = n.position.x;
+                    y1 = n.position.y;
+                    x2 = n.position.x;
+                    y2 = n.position.y;
+                } else {
+                    if (n.position.x < x1) {
+                        x1 = n.position.x;
+                    }
+                    if (n.position.x > x2) {
+                        x2 = n.position.x;
+                    }
+                    if (n.position.y > y1) {
+                        y1 = n.position.y;
+                    }
+                    if (n.position.y < y2) {
+                        y2 = n.position.y;
+                    }
+                }
+            });
 
-        unSelectSubGraph: function(nodeIdArray, linkIdArray) {
+            if (count !== 0) {
+                sumx /= count;
+                sumy /= count;
+            } else {
+                console.log('no nodes selected!');
+                return;
+            }
+            const rootWidth = Math.abs(x2 - x1);
+            const rootHeight = Math.abs(y1 - y2);
+            let xScale;
+            let yScale;
+            xScale = visualConfig.MAX_ADJUST;
+            yScale = visualConfig.MAX_ADJUST;
+            if (rootHeight !== 0) {
+                let border;
+                if (viewHeight / rootHeight > 10) {
+                    border = 500;
+                } else {
+                    border = (viewHeight / rootHeight) * 50;
+                }
+                yScale = (viewHeight - border) / rootHeight;
+            }
+            if (rootWidth !== 0) {
+                let border0;
+                if (viewWidth / rootWidth > 10) {
+                    border0 = 350;
+                } else {
+                    border0 = (viewWidth / rootWidth) * 35;
+                }
+                xScale = (viewWidth - border0) / rootWidth;
+            }
+
+            if (xScale > yScale && yScale < visualConfig.MAX_ADJUST) {
+                root.scale.x = yScale * 0.8;
+                root.scale.y = yScale * 0.8;
+            } else if (yScale >= xScale && xScale < visualConfig.MAX_ADJUST) {
+                root.scale.x = xScale * 0.8;
+                root.scale.y = xScale * 0.8;
+            } else {
+                root.scale.x = visualConfig.MAX_ADJUST * 0.8;
+                root.scale.y = visualConfig.MAX_ADJUST * 0.8;
+            }
+
+            root.position.x = viewWidth / 2;
+            root.position.y = viewHeight / 2;
+
+            _.each(nodeSprites, (n) => {
+                n.position.x -= sumx;
+                n.position.y -= sumy;
+                n.updateNodePosition(n.position);
+                nodeContainer.nodeMoved(n);
+                layout.setNodePosition(n.id, n.position.x, n.position.y);
+            });
+            let isBrokenLineLayerLayout = layoutType === 'BrokenLineLayered';
+            _.each(linkSprites, (l) => {
+                l.updatePosition(isBrokenLineLayerLayout);
+            });
+        },
+
+        unSelectSubGraph(nodeIdArray, linkIdArray) {
             isDirty = true;
             if (nodeIdArray) {
-                _.each(nodeIdArray, function(nodeId) {
-                    var nodeSprite = nodeSprites[nodeId];
+                _.each(nodeIdArray, (nodeId) => {
+                    const nodeSprite = nodeSprites[nodeId];
                     if (nodeSprite.selected) {
                         nodeContainer.deselectNode(nodeSprite);
                     }
-                })
+                });
             }
             if (linkIdArray) {
-                _.each(linkSprites, function(linkSprite, lid) {
-                    var actualId = linkSprite.id;
+                _.each(linkSprites, (linkSprite) => {
+                    const actualId = linkSprite.id;
                     if (_.indexOf(linkIdArray, actualId) >= 0) {
-                        nodeContainer.deselectLink(linkSprite);
+                        linkContainer.deselectLink(linkSprite);
                     }
                 });
             }
+            selectionChanged();
         },
 
-        selectSubGraph: function(nodeIdArray, linkIdArray) {
+        selectSubGraph(nodeIdArray, linkIdArray) {
             isDirty = true;
             if (nodeIdArray) {
-                _.each(nodeIdArray, function(nodeId) {
-                    var nodeSprite = nodeSprites[nodeId];
+                _.each(nodeIdArray, (nodeId) => {
+                    const nodeSprite = nodeSprites[nodeId];
                     if (nodeSprite) {
                         nodeContainer.selectNode(nodeSprite);
-                        // _.each(nodeSprite.outgoing, function(linkSprite) {
-                        //     if (linkIdArray.indexOf(linkSprite.id) >= 0) {
-                        //         nodeContainer.selectLink(linkSprite);
-                        //     }
-                        // });
                     }
                 });
             }
-            _.each(linkSprites, function(linkSprite, lid) {
-                var actualId = linkSprite.id;
+            _.each(linkSprites, (linkSprite) => {
+                const actualId = linkSprite.id;
                 if (_.indexOf(linkIdArray, actualId) >= 0) {
-                    nodeContainer.selectLink(linkSprite);
+                    linkContainer.selectLink(linkSprite);
                 }
             });
             selectionChanged();
         },
 
-        clearSelection: function() {
-            isDirty = true;
-            nodeContainer.deselectAll();
+        clearSelection() {
+            root.deselectAll();
             selectionChanged();
         },
 
-        selectLinks: function(linkIdArray) {
+        selectLinksFromNodes(startingNodes, direction, alsoSelectNodes) {
             isDirty = true;
-            // _.each(linkSprites, function(linkSprite,lid){
-            //     var actualId = linkSprite.data.data.id
-            //     if( _.indexOf(linkIdArray, actualId) >=0){
-            //         nodeContainer.selectLink(linkSprite);
-            //     }
-            // });
-        },
-
-        selectLinksFromNodes: function(startingNodes, direction, alsoSelectNodes) {
-            isDirty = true;
-            _.each(startingNodes, function(n) {
-                if (direction === "both" || direction == "in") {
-                    _.each(n.incoming, function(l) {
-                        if (l.visible) {
-                            nodeContainer.selectLink(l);
-                            if (alsoSelectNodes && nodeSprites[l.data.sourceEntity].visible) {
-                                nodeContainer.selectNode(nodeSprites[l.data.sourceEntity]);
-                            }
+            _.each(startingNodes, (n) => {
+                if (direction === 'both' || direction === 'in') {
+                    _.each(n.incoming, (l) => {
+                        linkContainer.selectLink(l);
+                        if (alsoSelectNodes) {
+                            nodeContainer.selectNode(nodeSprites[l.data.sourceEntity]);
                         }
                     });
                 }
-                if (direction === "both" || direction == "out") {
-                    _.each(n.outgoing, function(l) {
-                        if (l.visible) {
-                            nodeContainer.selectLink(l);
-                            if (alsoSelectNodes && nodeSprites[l.data.targetEntity].visible) {
-                                nodeContainer.selectNode(nodeSprites[l.data.targetEntity]);
-                            }
+                if (direction === 'both' || direction === 'out') {
+                    _.each(n.outgoing, (l) => {
+                        linkContainer.selectLink(l);
+                        if (alsoSelectNodes) {
+                            nodeContainer.selectNode(nodeSprites[l.data.targetEntity]);
                         }
                     });
                 }
@@ -1157,12 +826,12 @@ export default function(settings) {
             selectionChanged();
         },
 
-        selectNodesOfLinks: function(selectedLinks) {
+        selectNodesOfLinks(selectedLinks) {
             isDirty = true;
-            _.each(selectedLinks, function(l) {
-                var d = l.data;
-                var srcNode = nodeSprites[d.sourceEntity];
-                var tgtNode = nodeSprites[d.targetEntity];
+            _.each(selectedLinks, (l) => {
+                const d = l.data;
+                const srcNode = nodeSprites[d.sourceEntity];
+                const tgtNode = nodeSprites[d.targetEntity];
                 if (srcNode) {
                     nodeContainer.selectNode(srcNode);
                 }
@@ -1173,675 +842,1060 @@ export default function(settings) {
             selectionChanged();
         },
 
-        selectAll: function() {
+        /**
+         * 选择端点和链接
+         * @param {[]} selectedNodes nodeSprite
+         * @param {[]} selectedLinks linkSprite
+         */
+        selectNodesAndLinks(selectedNodes, selectedLinks) {
             isDirty = true;
-            _.each(linkSprites, function(l) {
-                if (l.visible) {
-                    nodeContainer.selectLink(l);
+            this.selectLinksFromNodes(selectedNodes, 'both', true);
+            this.selectNodesOfLinks(selectedLinks);
+        },
+
+        selectAll() {
+            isDirty = true;
+            _.each(linkSprites, (l) => {
+                linkContainer.selectLink(l);
+            });
+            _.each(nodeSprites, (n) => {
+                nodeContainer.selectNode(n);
+            });
+            selectionChanged();
+        },
+
+        selectReverseSelection() {
+            isDirty = true;
+            _.each(linkSprites, (l) => {
+                if (l.selected) {
+                    linkContainer.deselectLink(l);
+                } else {
+                    linkContainer.selectLink(l);
                 }
             });
-            _.each(nodeSprites, function(n) {
-                if (n.visible) {
+            _.each(nodeSprites, (n) => {
+                if (n.selected) {
+                    nodeContainer.deselectNode(n);
+                } else {
                     nodeContainer.selectNode(n);
                 }
             });
             selectionChanged();
         },
 
-        selectReverseSelection: function() {
+        zoomIn() {
             isDirty = true;
-            _.each(linkSprites, function(l) {
-                if (l.selected || l.visible == false) {
-                    nodeContainer.deselectLink(l);
-                } else {
-                    nodeContainer.selectLink(l);
-                }
-
-            });
-            _.each(nodeSprites, function(n) {
-                if (n.selected || n.visible == false) {
-                    nodeContainer.deselectNode(n)
-                } else {
-                    nodeContainer.selectNode(n);
-                }
-            });
-            selectionChanged();
+            const x = viewWidth / 2;
+            const y = viewHeight / 2;
+            zoom(x, y, true, root);
         },
 
-        hideSelectedLinks: function() {
+        zoomOut() {
             isDirty = true;
-            _.each(nodeContainer.links, function(link) {
-                link.hide();
-            });
+            const x = viewWidth / 2;
+            const y = viewHeight / 2;
+            zoom(x, y, false, root);
         },
 
-        zoomIn: function() {
-            isDirty = true;
-            var x = viewWidth / 2;
-            var y = viewHeight / 2;
-            zoom(x, y, true, root, visualConfig);
-        },
-
-        zoomOut: function() {
-            isDirty = true;
-            var x = viewWidth / 2;
-            var y = viewHeight / 2;
-            zoom(x, y, false, root, visualConfig);
-        },
-
-        zoom: function(x, y, zoomingIn) {
+        zoom(x, y, zoomingIn) {
             isDirty = true;
             if (stage.isTimelineLayout) {
+                nodeContainer.positionDirty = true;
                 if (zoomingIn) {
-                    zoomTimeline(-0.1);
+                    timelineLayout.zoomTimeline(-0.1);
                 } else {
-                    zoomTimeline(0.1);
+                    timelineLayout.zoomTimeline(0.1);
                 }
             } else {
-                zoom(x, y, zoomingIn, root, visualConfig);
+                zoom(x, y, zoomingIn, root);
             }
         },
 
-        drawTimelineLayout: function(leftSpacing) {
-            isDirty = true;
-            layoutIterations = 0;
-            layoutType = "TimelineScale";
-            var timelineItems = [];
-            var now = moment().format('YYYY-MM-DDTHH:mm:ss');
-            _.each(linkSprites, function(l) {
-                if (!l.visible) {
-                    return;
-                }
-                timelineItems.push({
-                    id: l.data.id,
-                    content: l.data.label,
-                    start: l.data.datetime || now,
-                    // type: 'point'
-                });
-            });
-            if (!timeline) {
-                var container = document.getElementById(settings.timelineContainer);
-                if (!container) {
-                    throw "时间标尺容器未指定";
-                }
-                var items = new vis.DataSet(timelineItems);
-                var options = {
-                    height: "100px",
-                    locales: {
-                        "zh-cn": {
-                            current: 'current',
-                            time: 'time',
-                        }
-                    },
-                    stack: false,
-                    locale: 'zh-cn',
-                    zoomMin: 1000 * 60 * 15,
-                    moveable: false,
-                    zoomable: false,
-                    showCurrentTime: false
-                        // throttleRedraw: 100
-                };
-                // Create a Timeline
-                timeline = new vis.Timeline(container, items, options);
-                timelineWindow = timeline.getWindow();
-                var interval = timelineWindow.end - timelineWindow.start;
-                timelineWidth = $("#" + settings.timelineContainer).width();
-                msPerPix = Math.floor(interval / timelineWidth);
-            }
-
-            root.scale.x = 1;
-            root.scale.y = 1;
-            root.position.x = 0;
-            root.position.y = 120; // 与时间标尺高度保持一致
-            root.scalable = false;
-            var posX = 50, // local position in root;
-                posY = 50; //starting point to layout nodes.
-            var iconSize = visualConfig.NODE_WIDTH,
-                marginY = 30;
-            _.each(nodeSprites, function(ns) {
-                ns.updateNodePosition({
-                    x: posX,
-                    y: posY
-                });
-                ns.timelineMode = true;
-                // layout.setNodePosition(ns.id, posX, posY);
-                posY += (iconSize + marginY);
-            });
-            // var sortedLinkSprites = sortLinksByDateTime();
-            var timelineStartMs = timelineWindow.start.valueOf();
-            originSpotTime = timelineStartMs;
-            var minX = 10000;
-            positionLinksByTime(linkSprites, timelineStartMs);
-            var nodeX = -40;
-            _.each(nodeSprites, function(ns) {
-                ns.updateNodePosition({
-                    x: nodeX,
-                    y: ns.position.y
-                });
-            });
-            // if nodeX is too much left, try to move it to center
-            stage.isTimelineLayout = true;
-            root.position.x = leftSpacing || visualConfig.timelineLayout['margin-left'] + 60;
-            stage.contentRootMoved();
-        },
-
-        destroy: function() {
-            isDirty = true;
+        destroy() {
+            destroyed = true;
+            isDirty = false;
+            document.removeEventListener('mousedown', this._mouseDownListener);
+            canvas.removeEventListener('mousewheel', this._zoomActionListener);
             graph.off('changed', onGraphChanged);
-            stage.destroy();
-            stage.destroyed = true;
-            renderer.destroy();
-            nodeSprites = [];
-            linkSprites = [];
-        },
-        removeSubGraph: function(subGraph) {
-            //FIXME
-            // subgraph ={ entities: [], links:[]}
+            animationAgent.destroy();
+            _.each(nodeSprites, (ns) => {
+                ns.destroy();
+            });
+            _.each(linkSprites, (ls) => {
+                ls.destroy();
+            });
+            nodeSprites = null;
+            linkSprites = null;
+            layout = null;
+            networkLayout = null;
+            animationAgent = null;
+            graph.clear();
+            graph = null;
+            counter.destroy();
 
-        },
-        removeAllLinks: function() {
-            isDirty = true;
-            _.each(nodeSprites, function(n) {
-                n.incoming = [];
-                n.outgoing = [];
-            });
-            _.each(linkSprites, function(l) {
-                if (l.selected) {
-                    nodeContainer.deselectLink(l);
-                }
-                if (l.label) {
-                    lineContainer.removeChild(l.label);
-                }
-                if (l.arrow) {
-                    lineContainer.removeChild(l.arrow);
-                }
-                delete linkSprites[l.id];
-            });
+            selectRegionGraphics.destroy(false);
+            lineGraphics.destroy(false);
+            textContainer.destroy(false);
+            linkContainer.destroy(false);
+            nodeContainer.destroy(false);
+            // lineContainer.destroy(false);
+            root.destroy(false);
+            stage.destroy(false);   // false to not let pixi containers destroy sprites.
+            renderer.destroy(true); // true for removing the underlying view(canvas)
         },
 
-        resetStyle: function(entities, links) {
-            isDirty = true;
-            if (!entities && !links) {
-                entities = nodeSprites;
-                links = linkSprites;
-            }
-            _.each(entities, function(entity) {
-                let nodeSprite = nodeSprites[entity] || nodeSprites[entity.id];
-                if (nodeSprite) {
-                    zoomNodesById([nodeSprite.id], 1)
-                    if (nodeSprite.circleBorder) {
-                        textContainer.removeChild(nodeSprite.circleBorder);
-                        nodeSprite.circleBorder = null;
-                        nodeSprite.boundaryAttr = null;
-                    }
-                }
-            });
+        setLayoutType(layoutTypeStr) {
+            lineGraphics.visible = layoutTypeStr === 'TimelineScale';
 
-            _.each(links, function(link) {
-                let linkSprite = linkSprites[link] || linkSprites[link.id];
-                if (linkSprite) {
-                    linkSprite.thickness = visualConfig.ui.line.width;
-                    linkSprite.color = visualConfig.ui.line.color;
-                }
-            });
-        },
-
-        setLayoutType: function(layoutTypeStr) {
+            console.info(`Setting layout type to ${layoutTypeStr}`);
             layoutType = layoutTypeStr || 'Network';
-            if (layoutType != 'Network' && layoutType != 'Circular' && layoutType != 'Layered' && layoutType != 'TimelineScale') {
+            if (layoutType !== 'Network'
+                && layoutType !== 'Circular'
+                && layoutType !== 'Structural'
+                && layoutType !== 'PersonRelationshipStructural'
+                && layoutType !== 'Layered'
+                && layoutType !== 'BrokenLineLayered'
+                && layoutType !== 'Person2Person'
+                && layoutType !== 'FamilyLayout'
+                && layoutType !== 'Radiate'
+                && layoutType !== 'TimelineScale') {
                 layoutType = 'Network';
             }
+
+            if (!visualConfig.ORIGINAL_FORCE_LAYOUT) {
+                networkLayout.setLayoutType(layoutType)
+            }
+            if (layoutType === 'Network') {
+                layout = networkLayout;
+                _.each(nodeSprites, (nodeSprite, nodeId) => {
+                    if (nodeSprite.data.properties._$lock) {
+                        layout.setNodePosition(nodeId, nodeSprite.position.x, nodeSprite.position.y);
+                        layout.pinNode(nodeSprite, true);
+                    }
+                });
+            }
         },
 
-        setTwoNodeLayoutInXDireaction: function (nodeIDArray) {
+        setTwoNodeLayoutInXDireaction(nodeIDArray) {
             if (nodeSprites.length === 0) {
                 return;
             }
-            let renderer = this;
-            let nodeMarginX = viewWidth / (_.keys(nodeSprites).length + 1);
+            const renderer = this;
+            const nodeMarginX = viewWidth / (_.keys(nodeSprites).length + 1);
             let currentX = 0;
-            _.each(nodeSprites, function (nodeSprite, nodeId) {
+            _.each(nodeSprites, (nodeSprite, nodeId) => {
                 renderer.setNodePosition(nodeId, currentX, 0);
-                nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+                nodeSprite.updateNodePosition(layout.getNodePosition(nodeId), true);
+                nodeContainer.nodeMoved(nodeSprite);
                 currentX += nodeMarginX;
             });
         },
-        pauseAnimation: function() {
-            visualConfig.LAYOUT_ANIMATION = !visualConfig.LAYOUT_ANIMATION;
-            if (!visualConfig.LAYOUT_ANIMATION) {
-                layoutIterationsStore = layoutIterations;
-                layoutIterations = -1;
-            } else {
-                layoutIterations = layoutIterationsStore;
-                this.performLayout();
-            }
-        },
-        performLayout: function() {
 
-            if (layoutType == 'Network') {
-                if (stage.isTimelineLayout) {
-                    disableTimelineLayout();
-                }
-                if (layoutIterationsStore == 1500) {
-                    layoutIterations = 1500;
-                }
-                if (!visualConfig.LAYOUT_ANIMATION) {
-                    while (layoutIterations > 0) {
-                        layout.step();
-                        layoutIterations -= 1;
-                    }
-                    _.each(nodeSprites, function(nodeSprite, nodeId) {
+        updateDynamicLayout(dynamic) {
+            dynamicLayout = dynamic;
+            layout.updateDynamicLayout(dynamic);
+        },
+
+        performLayout(disableAnimation = false, init = false, needReflow = true) {
+            disableLayout = disableAnimation;
+            // the default link drawing mode is webgl. However, when it's FamilyLayout, we use pixi to draw links.
+            linkContainer.mode = 'webgl';
+            nodeContainer.layoutType = layoutType;
+
+            isDirty = true;
+            if (stage.isTimelineLayout  && layoutType !== 'TimelineScale') {
+                timelineLayout.disableTimelineLayout();
+            }
+            if (layoutType === 'Network') {
+                layout = networkLayout;
+                if (!dynamicLayout) {
+                    layout.step();
+
+                    _.each(nodeSprites, (nodeSprite, nodeId) => { //大开销计算
                         nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+                        nodeContainer.nodeMoved(nodeSprite);
                     });
+                    _.each(linkSprites, (l) => {
+                        l.updatePosition();
+                    });
+
+                    renderer.render(stage);
                 }
-            } else if (layoutType == 'Circular') {
-                this.drawCircleLayout();
-            } else if (layoutType == 'Layered') {
-                this.drawTreeLayout();
-            } else if (layoutType == 'TimelineScale') {
-                this.drawTimelineLayout();
-            } else {
+                if (needReflow) {
+                    this.setNodesToFullScreen(disableAnimation);
+                }
+            } else if (layoutType === 'Circular') {
+                this.drawCircleLayout(disableAnimation, init);
+            } else if (layoutType === 'PersonLayout'){
+                this.drawPersonLayout(disableAnimation, init);
+            } else if (layoutType === 'Structural') {
+                this.drawStructuralLayout(disableAnimation, init);
+            } else if (layoutType === 'PersonRelationshipStructural') {
+                this.drawStructuralLayoutForPersonRelationship(disableAnimation, init);
+            } else if (layoutType === 'Layered') {
+                this.drawLayeredLayout(disableAnimation, init);
+            } else if (layoutType === 'BrokenLineLayered') {
+                this.drawLBrokenLineLayeredLayout(disableAnimation, init);
+            } else if (layoutType === 'Person2Person'){
+                this.drawPerson2PersonLayout(disableAnimation);
+            } else if (layoutType === 'Radiate') {
+                this.drawRadiateLayout(disableAnimation, init);
+            } else if (layoutType === 'FamilyLayout') {
+                this.drawFamilyLayout(disableAnimation, init);
+            } else if (layoutType === 'TimelineScale') {
+                layout = timelineLayout;
+                layout.drawTimelineLayout();
+            }  else {
                 return false;
             }
-            // this.setNodesToFullScreen();
             isDirty = true;
         },
 
-        getGraph: function() {
+        getGraph() {
             return graph;
         },
 
-        getLayout: function() {
+        getLayout() {
             return layout;
         },
-        getNodesCount: function() {
+        getNodesCount() {
             return graph.getNodesCount();
         },
-        getLinksCount: function() {
+        getLinksCount() {
             return graph.getLinksCount();
         },
-        getNode: function(nodeId) {
+        getNode(nodeId) {
             return graph.getNode(nodeId);
         },
-        removeNode: function(nodeId) {
-            return graph.removeNode(nodeId);
-        },
-        removeLink: function(link) {
+        removeLink(link) {
             return graph.removeLink(link);
         },
-        forEachNode: function(func) {
+        forEachNode(func) {
             return graph.forEachNode(func);
         },
-        forEachLink: function(func) {
+        forEachLink(func) {
             return graph.forEachLink(func);
         },
-        beginUpdate: function() {
+        beginUpdate() {
             return graph.beginUpdate();
         },
-        endUpdate: function() {
+        endUpdate() {
             return graph.endUpdate();
         },
-        addNode: function(nodeId, data) {
+        addNode(nodeId, data) {
             return graph.addNode(nodeId, data);
         },
-        addLink: function(fromId, toId, data) {
+        updateNode: function (nodeId, data) {
+            return graph.addNode(nodeId, data);
+        },
+        addLink(fromId, toId, data) {
             return graph.addLink(fromId, toId, data);
         },
-        clearGraph: function() {
+        clearGraph() {
             graph.beginUpdate();
             graph.clear();
             graph.endUpdate();
         },
 
-        disposeLayout: function() {
-            layout.dispose();
-        },
-
-        setNodePosition: function(nodeId, x, y, z) {
+        setNodePosition(nodeId, x, y, z) {
             layout.setNodePosition(nodeId, x, y, z);
         },
-        getNodePosition: function(nodeId) {
-            return layout.getNodePosition(nodeId);
-        },
-        setGraphType: function(gType) {
+        setGraphType(gType) {
             graphType = gType;
         },
-        getGraphType: function() {
-            return graphType;
-        },
-        setGraphData: function(gData) {
-            graphData = gData;
-        },
-        getGraphData: function() {
-            return graphData;
-        },
-        getGraphEntities: function() {
-            return graphEntities;
-        },
-        setGraphEntities: function(gEntities) {
-            graphEntities = gEntities;
-        },
-        getGraphLinks: function() {
-            return graphLinks;
-        },
-        setGraphLinks: function(gLinks) {
-            graphLinks = gLinks;
-        },
-        getGraphLinkTypes: function() {
-            return graphLinkTypes;
-        },
-        getGraphEntityTypes: function() {
-            return graphEntityTypes;
+        setGraphData(gData) {
+            graph.setEntityGraphSource(gData);
         },
 
-        fillGraphData: function(gData) {
-            if (!graphType) {
-                console.log("please call setGraphType");
-            }
-
-            graph.beginUpdate();
-
-            _.each(gData.entities, function(p) {
-                if (!_.has(graphEntities, p.id)) {
-                    graph.addNode(p.id, p);
-                    graphEntities[p.id] = p;
-                    graphEntityTypes[p.type] = 1;
-                }
-            });
-            _.each(gData.links, function(f) {
-                if (!_.has(graphLinks, f.id)) {
-                    graph.addLink(f.sourceEntity, f.targetEntity, f);
-                    graphLinks[f.id] = f;
-                    graphLinkTypes[f.type] = 1;
-                }
-            });
-
-            graph.endUpdate();
-        },
-
-        getEntitySemanticType: function(nodeUuid) {
+        getEntitySemanticType(nodeUuid) {
             let type;
-            _.each(graphType.entityTypes, function(f) {
-                if (f.uuid == nodeUuid) {
+            _.each(graphType.entityTypes, (f) => {
+                if (f.uuid === nodeUuid) {
                     type = f.iconUrl;
                 }
             });
             return type;
         },
 
-        getLinkSemanticType: function(linkUuid) {
-            let type;
-            _.each(graphType.linkTypes, function(f) {
-                if (f.uuid == linkUuid) {
-                    type = f.semanticType;
-                }
-            });
-            return type;
+        onGraphInit(func) {
+            graph.on('init', func);
         },
 
-        getEntityType: function(nodeUuid) {
-            var type;
-            _.each(graphType.entityTypes, function(f) {
-                if (f.uuid == nodeUuid) {
-                    type = f;
-                }
-            });
-            return type;
-        },
-
-        getLinkType: function(linkUuid) {
-            var type;
-            _.each(graphType.linkTypes, function(f) {
-                if (f.uuid == linkUuid) {
-                    type = f;
-                }
-            });
-            return type;
-        },
-
-        //事件
-        // onGraphChanged: function() {
-        //      graph.on('changed', function(changes) {
-        //         console.log("changed === " + changes);
-        //     }); 
-        // },
-
-        onGraphChanged: function(func) {
+        onGraphChanged(func) {
             graph.on('changed', func);
         },
 
-        addCanvasEventListener: function(eventName, func, state) {
+        onGraphElpChanged(func) {
+            graph.on('elp-changed', func);
+        },
+
+        addCanvasEventListener(eventName, func, state) {
             canvas.addEventListener(eventName, func, state);
         },
 
-        modifyNodeLabel: function(nodeLabelsObj) {
-            for (let nodeId in nodeLabelsObj) {
-                let nodeSprite = nodeSprites[nodeId];
-                nodeSprite.ts.text = nodeLabelsObj[nodeId];
+        modifyNodeLabel(nodeLabelsObj) {
+            for (const nodeId in nodeLabelsObj) {
+                const nodeSprite = nodeSprites[nodeId];
+                nodeSprite.updateLabel();
             }
+        },
+
+        // convert the canvas drawing buffer into base64 encoded image url
+        exportImage(width, height) {
+            return new Promise((resolve, reject) => {
+                let imageCanvas;
+                if (renderer.gl) {
+                    imageCanvas = extract.webglExport(renderer, root, width, height);
+                } else {
+                    imageCanvas = extract.canvasExport(renderer, root, width, height);
+                }
+                const displayCanvas = new PIXI.CanvasRenderTarget(width, height);
+                const hRatio = width / imageCanvas.width;
+                const vRatio = height / imageCanvas.height;
+                const ratio = Math.min(hRatio, vRatio);
+                const shiftX = (width - imageCanvas.width * ratio) / 2;
+                const shiftY = (height - imageCanvas.height * ratio) / 2;
+
+                displayCanvas.context.fillStyle = `#${visualConfig.backgroundColor.toString(16)}`;
+                displayCanvas.context.fillRect(0, 0, width, height);
+                if (imageCanvas.width || imageCanvas.height) {
+                    displayCanvas.context.drawImage(imageCanvas, 0, 0, imageCanvas.width, imageCanvas.height, shiftX, shiftY, imageCanvas.width * ratio, imageCanvas.height * ratio);
+                }
+
+                resolve(displayCanvas.canvas.toDataURL());
+            });
+        },
+
+        // the default parameter is double size of bird view
+        getBirdViewCanvas(width = 340, height = 260) {
+            return renderer.gl ? extract.webglExport(renderer, root, width, height) : extract.canvasExport(renderer, root, width, height);
+        },
+
+        lock(nodes) {
+            isDirty = true;
+            for (const node of nodes) {
+                if (!node.pinned) {
+                    node.pinned = true;
+                    layout.pinNode(node, true);
+                    node.setNodeLockIcon();
+                    node.data.properties._$lock = true;
+                }
+            }
+        },
+
+        unlock(nodes) {
+            isDirty = true;
+            for (const node of nodes) {
+                if (node.pinned) {
+                    node.pinned = false;
+                    layout.pinNode(node, false);
+                    node.removeNodeLockIcon();
+                    delete node.data.properties._$lock;
+                }
+            }
+        },
+
+        resize(width, height) {
+            isDirty = true;
+            renderer.resize(width, height);
+        },
+
+        /**
+         * 左对齐
+         * @param {[]} nodes nodeSprite
+         */
+        alignLeft(nodes) {
+            this._checkNodes(nodes);
+
+            isDirty = true;
+            let minPositionX = Number.MAX_SAFE_INTEGER;
+            for (const node of nodes) {
+                const leftBorder = node.position.x - node.scale.x * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+                if (leftBorder < minPositionX) {
+                    minPositionX = leftBorder;
+                }
+            }
+
+            for (const node of nodes) {
+                node.position.x = minPositionX + node.scale.x *  visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+                node.updateNodePosition(node.position, true);
+                nodeContainer.nodeMoved(node);
+            }
+        },
+
+        /**
+         * 右对齐
+         * @param {[]} nodes nodeSprite
+         */
+        alignRight(nodes) {
+            this._checkNodes(nodes);
+
+            isDirty = true;
+            let maxPositionX = Number.MIN_SAFE_INTEGER;
+            for (const node of nodes) {
+                const rightBorder = node.position.x + node.scale.x * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+                if (rightBorder > maxPositionX) {
+                    maxPositionX = rightBorder;
+                }
+            }
+
+            for (const node of nodes) {
+                node.position.x = maxPositionX - node.scale.x * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+                node.updateNodePosition(node.position, true);
+                nodeContainer.nodeMoved(node);
+            }
+        },
+
+        /**
+         * 垂直对齐
+         * @param {[]} nodes nodeSprite
+         */
+        alignVertical(nodes) {
+            this._checkNodes(nodes);
+
+            isDirty = true;
+            let sumPositionX = 0;
+            for (const node of nodes) {
+                sumPositionX += node.position.x;
+            }
+            const avgPositionX = sumPositionX / nodes.length;
+
+            for (const node of nodes) {
+                node.position.x = avgPositionX;
+                node.updateNodePosition(node.position, true);
+                nodeContainer.nodeMoved(node);
+            }
+        },
+
+        /**
+         * 水平对齐
+         * @param {[]} nodes nodeSprite
+         */
+        alignHorizontal(nodes) {
+            this._checkNodes(nodes);
+
+            isDirty = true;
+            let sumPositionY = 0;
+            for (const node of nodes) {
+                sumPositionY += node.position.y;
+            }
+            const avgPositionY = sumPositionY / nodes.length;
+
+            for (const node of nodes) {
+                node.position.y = avgPositionY;
+                node.updateNodePosition(node.position, true);
+                nodeContainer.nodeMoved(node);
+            }
+        },
+
+        /**
+         * 底端对齐
+         * @param {[]]} nodes nodeSprite
+         */
+        alignBottom(nodes) {
+            this._checkNodes(nodes);
+
+            isDirty = true;
+            let maxPositionY = Number.MIN_SAFE_INTEGER;
+            for (const node of nodes) {
+                const bottomBorder = node.position.y + node.scale.y * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+                if (bottomBorder > maxPositionY) {
+                    maxPositionY = bottomBorder;
+                }
+            }
+
+            for (const node of nodes) {
+                node.position.y = maxPositionY - node.scale.y * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+                node.updateNodePosition(node.position, true);
+                nodeContainer.nodeMoved(node);
+            }
+        },
+
+        /**
+         * 顶端对齐
+         * @param {[]} nodes nodeSprite
+         */
+        alignTop(nodes) {
+            this._checkNodes(nodes);
+
+            isDirty = true;
+            let minPositionY = Number.MAX_SAFE_INTEGER;
+            for (const node of nodes) {
+                const topBorder = node.position.y - node.scale.y * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+                if (topBorder < minPositionY) {
+                    minPositionY = topBorder;
+                }
+            }
+
+            for (const node of nodes) {
+                node.position.y = minPositionY + node.scale.y * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+                node.updateNodePosition(node.position, true);
+                nodeContainer.nodeMoved(node);
+            }
+        },
+
+        /**
+         * 横向分布
+         * @param {[]} nodes nodeSprite
+         */
+        horizontalDistribution(nodes) {
+            this._checkNodes(nodes);
+
+            const topLeft = root.worldTransform.applyInverse({x: 0, y: 0});
+            const bottomRight = root.worldTransform.applyInverse({x: viewWidth, y: viewHeight});
+            isDirty = true;
+            nodes.sort((a, b) => {
+                return a.position.x - b.position.x;
+            });
+
+            const nodesSize = nodes.length - 1;
+            const minPositionX = nodes[0].position.x;
+            const maxPositionX = nodes[nodesSize].position.x;
+            let stepSize = (maxPositionX - minPositionX) / nodesSize;
+            const distance = nodes[0].scale.x * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5 + nodes[nodesSize].scale.x * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+            if (stepSize < distance && (minPositionX > topLeft.x || maxPositionX < bottomRight.x)) { // 选择的实体之间距离过小，并且X轴最小或最大位置在可视范围内，则尝试移动X轴最小、最大的位置以分布其中的其它元素
+                const diff = (distance - stepSize) * nodesSize;
+                let hasmoved = false;
+                if (minPositionX - topLeft.x > bottomRight.x - maxPositionX) { // X轴位置最小 离左边距距离 大于 X轴位置最大 离右边距距离
+                    if (minPositionX - diff > topLeft.x) { // X轴位置最小 向左移动diff后还在图表可视范围内
+                        nodes[0].position.x = minPositionX - diff;
+                        stepSize = distance;
+                        hasmoved = true;
+                        nodes[0].updateNodePosition(nodes[0].position, true);
+                        nodeContainer.nodeMoved(nodes[0]);
+                    }
+                } else {
+                    if (maxPositionX + diff < bottomRight.x) { // X轴位置最大 向右移动diff后还在图表可视范围内
+                        nodes[nodesSize].position.x = maxPositionX + diff;
+                        stepSize = distance;
+                        hasmoved = true;
+                        nodes[nodesSize].updateNodePosition(nodes[nodesSize].position, true);
+                        nodeContainer.nodeMoved(nodes[nodesSize]);
+                    }
+                }
+
+                if (!hasmoved) {
+                    if (minPositionX - diff / 2 > topLeft.x && maxPositionX + diff / 2 < bottomRight.x) { // X轴 向左移动或向右移动diff后不在图表可视范围内，则X轴位置最小 向左移动diff/2后在图表可视范围内并且X轴位置最大 向右移动diff/2后在图表可视范围内
+                        nodes[0].position.x = minPositionX - diff / 2;
+                        nodes[nodesSize].position.x = maxPositionX + diff / 2;
+                        stepSize = distance;
+                        nodes[0].updateNodePosition(nodes[0].position, true);
+                        nodeContainer.nodeMoved(nodes[0]);
+                        nodes[nodesSize].updateNodePosition(nodes[nodesSize].position, true);
+                        nodeContainer.nodeMoved(nodes[nodesSize]);
+                    }
+                }
+            }
+
+            for (let i = 1; i < nodesSize; i++) { // 横向分布，其它实体均匀分布之间
+                const node = nodes[i];
+                node.position.x = nodes[i-1].position.x + stepSize;
+                node.updateNodePosition(node.position, true);
+                nodeContainer.nodeMoved(node);
+            }
+        },
+
+        /**
+         * 纵向分布
+         * @param {[]} nodes nodeSprite
+         */
+        verticalDistribution(nodes) {
+            this._checkNodes(nodes);
+
+            const topLeft = root.worldTransform.applyInverse({x: 0, y: 0});
+            const bottomRight = root.worldTransform.applyInverse({x: viewWidth, y: viewHeight});
+            isDirty = true;
+            nodes.sort((a, b) => {
+                return a.position.y - b.position.y;
+            });
+
+            const nodesSize = nodes.length - 1;
+            const minPositionY = nodes[0].position.y;
+            const maxPositionY = nodes[nodesSize].position.y;
+            let stepSize = (maxPositionY - minPositionY) / nodesSize;
+            const distance = nodes[0].scale.y * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5 + nodes[nodesSize].scale.y * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
+            if (stepSize < distance && (minPositionY > topLeft.y || maxPositionY < bottomRight.y)) { // 选择的实体之间距离过小，并且Y轴最小或最大位置在可视范围内，则尝试移动Y轴最小、最大的位置以分布其中的其它元素
+                const diff = (distance - stepSize) * nodesSize;
+                let hasmoved = false;
+                if (minPositionY - topLeft.y > bottomRight.y - maxPositionY) { // Y轴位置最小 离顶部距距离 大于 Y轴位置最大 离底部距距离
+                    if (minPositionY - diff > topLeft.y) { // Y轴位置最小 向上移动diff后还在图表可视范围内
+                        nodes[0].position.y = minPositionY - diff;
+                        stepSize = distance;
+                        hasmoved = true;
+                        nodes[0].updateNodePosition(nodes[0].position, true);
+                        nodeContainer.nodeMoved(nodes[0]);
+                    }
+                } else {
+                    if (maxPositionY + diff < bottomRight.y) { // Y轴位置最大 向下移动diff后还在图表可视范围内
+                        nodes[nodesSize].position.y = maxPositionY + diff;
+                        stepSize = distance;
+                        hasmoved = true;
+                        nodes[nodesSize].updateNodePosition(nodes[nodesSize].position, true);
+                        nodeContainer.nodeMoved(nodes[nodesSize]);
+                    }
+                }
+
+                if (!hasmoved) {
+                    if (minPositionY - diff / 2 > topLeft.y && maxPositionY + diff / 2 < bottomRight.y) { // Y轴 向上移动或向下移动diff后不在图表可视范围内，则Y轴位置最小 向左移动diff/2后在图表可视范围内并且Y轴位置最大 向右移动diff/2后在图表可视范围内
+                        nodes[0].position.y = minPositionY - diff / 2;
+                        nodes[nodesSize].position.y = maxPositionY + diff / 2;
+                        stepSize = distance;
+                        nodes[0].updateNodePosition(nodes[0].position, true);
+                        nodeContainer.nodeMoved(nodes[0]);
+                        nodes[nodesSize].updateNodePosition(nodes[nodesSize].position, true);
+                        nodeContainer.nodeMoved(nodes[nodesSize]);
+                    }
+                }
+            }
+
+            for (let i = 1; i < nodesSize; i++) { // 纵向分布，其它实体均匀分布之间
+                const node = nodes[i];
+                node.position.y = nodes[i-1].position.y + stepSize;
+                node.updateNodePosition(node.position, true);
+                nodeContainer.nodeMoved(node);
+            }
+        },
+
+        /**
+         * 向上移动
+         * @param nodes
+         * @param direction
+         */
+        move(nodes, direction) {
+            nodes.forEach((node) => {
+                if (direction === 'up') {
+                    node.position.y--;
+                } else if (direction === 'down'){
+                    node.position.y++;
+                } else if (direction === 'left'){
+                    node.position.x--;
+                } else if (direction === 'right'){
+                    node.position.x++;
+                }
+                node.updateNodePosition(node.position, true);
+                nodeContainer.nodeMoved(node);
+            });
+        },
+
+        /**
+         * 检查参数是否合法
+         * @param {[]} nodes nodeSprite
+         */
+        _checkNodes(nodes) {
+            if (!nodes || !nodes.length || nodes.length < 2) {
+                throw new Error('select nodes must exists and length must greater than 1');
+            }
+        },
+
+        // 判断点P(x, y)与有向直线P1P2的关系. 小于0表示点在直线左侧，等于0表示点在直线上，大于0表示点在直线右侧
+        evaluatePointToLine(x, y, x1, y1, x2, y2) {
+            const a = y2 - y1;
+            const b = x1 - x2;
+            const c = x2 * y1 - x1 * y2;
+            return a * x + b * y + c;
+        },
+
+        // 判断点P(x, y)是否在点P1(x1, y1), P2(x2, y2), P3(x3, y3)构成的三角形内（包括边）
+        isPointInTriangle(x, y, x1, y1, x2, y2, x3, y3) {
+            // 分别计算点P与有向直线P1P2, P2P3, P3P1的关系，如果都在同一侧则可判断点在三角形内
+            // 注意三角形有可能是顺时针(d>0)，也可能是逆时针(d<0)。
+            const d1 = pixiGraphics.evaluatePointToLine(x, y, x1, y1, x2, y2);
+            const d2 = pixiGraphics.evaluatePointToLine(x, y, x2, y2, x3, y3);
+            if (d1 * d2 < 0) {
+                return false;
+            }
+            const d3 = pixiGraphics.evaluatePointToLine(x, y, x3, y3, x1, y1);
+            if (d2 * d3 < 0) {
+                return false;
+            }
+            return true;
+        },
+
+        /**
+         * detect whether the linkSprite is selected.
+         * @param {*} linkSprite link sprite object
+         * @param {*} rectBox rectBox select region as a rectangle or click point spread as a rectangle;
+         */
+        detectLinkSelect(linkSprite, rectBox) {
+            const link = linkSprite;
+
+            // linkPosition x1, y1 as straight line's from point,  x2, y2 as straight line's end point
+            let detectFlag = false;
+            let linkPosition = {};
+            if (link._controlOffsetIndex === 0 && link.data.sourceEntity !== link.data.targetEntity) { // straight line and not self link
+                linkPosition = {x1: link.x1, y1: link.y1, x2: link.x2, y2: link.y2};
+                detectFlag = pixiGraphics.linkCollisionDetect(link, rectBox);
+            } else {    // polyline consist of three strainght lines, when one of three strainght lines is detect as true, it is not necessary to detect other strainght line
+                linkPosition = {x1: link.x1, y1: link.y1, x2: link.fx, y2: link.fy};  // first strainght line
+                detectFlag = pixiGraphics.linkCollisionDetect(linkPosition, rectBox);
+
+                if (!detectFlag) {
+                    linkPosition = {x1: link.fx, y1: link.fy, x2: link.tx, y2: link.ty};  // second strainght line
+                    detectFlag = pixiGraphics.linkCollisionDetect(linkPosition, rectBox);
+                }
+
+                if (!detectFlag) {
+                    linkPosition = {x1: link.tx, y1: link.ty, x2: link.x2, y2: link.y2};  // third strainght line
+                    detectFlag = pixiGraphics.linkCollisionDetect(linkPosition, rectBox);
+                }
+            }
+
+            return detectFlag;
+        },
+
+        /**
+         * link and rectangle collision detect.
+         * @param {*} linkPosition link graph link position;
+         * @param {*} rectBox rectBox select region as a rectangle or click point spread as a rectangle;
+         */
+        linkCollisionDetect(linkPosition, rectBox) {
+            const link = linkPosition;
+            const xl = rectBox.xl;
+            const xr = rectBox.xr;
+            const yt = rectBox.yt;
+            const yb = rectBox.yb;
+            let linkXl;
+            let linkXr;
+            let linkYt;
+            let linkYb;
+            if (link.x1 > link.x2) {
+                linkXl = link.x2;
+                linkXr = link.x1;
+            } else {
+                linkXl = link.x1;
+                linkXr = link.x2;
+            }
+            if (link.y1 > link.y2) {
+                linkYt = link.y2;
+                linkYb = link.y1;
+            } else {
+                linkYt = link.y1;
+                linkYb = link.y2;
+            }
+
+            if (linkXl <= xr && linkXr >= xl && linkYt <= yb && linkYb >= yt) { // 矩形碰撞检测  https://silentmatt.com/rectangle-intersection/
+                let x = link.x2 - link.x1;
+                x = x === 0 ? 1 : x;
+                if (linkXl === linkXr) {    // 垂直的链接 水平设置1像素的偏移量
+                    linkXr = linkXl + 1;
+                }
+                const y = link.y2 - link.y1;
+                const rectLeft = Math.max(linkXl, xl);
+                const rectRight = Math.min(linkXr, xr);
+                const rectLeftY = link.y1 + (rectLeft - link.x1) * y / x;
+                const rectRightY = link.y1 + (rectRight - link.x1) * y / x;
+                const rectBottom = Math.max(rectLeftY, rectRightY);
+                const rectTop =  Math.min(rectLeftY, rectRightY);
+
+                if (rectLeft <= xr && rectRight >= xl && rectTop <= yb && rectBottom >= yt) {
+                    return true;
+                }
+            }
+
+            return false;
+        },
+        /**
+         * config change and set
+         * @param {*} newSetting settings update
+         */
+        updateNetworkLayoutSetting(newSetting){
+            networkLayout.simulator.updateSetting(newSetting.forceLayout);
+            visualConfig.speed = newSetting.speed;
+            visualConfig.rate = newSetting.rate;
         }
-
-
     };
 
-    addWheelListener(canvas, _.throttle(function(e) {
-        // pixiGraphics.zoom(e.offsetX, e.offsetY, e.deltaY < 0);
-        pixiGraphics.zoom(e.offsetX || (e.originalEvent ? e.originalEvent.offsetX : null), e.offsetY || (e.originalEvent ? e.originalEvent.offsetY : null), e.deltaY < 0);
-    }, 50), true);
+    if (!disabledWheel) {
+        canvas.addEventListener('mousewheel', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            pixiGraphics.zoom(e.offsetX || (e.originalEvent ? e.originalEvent.offsetX : null), e.offsetY || (e.originalEvent ? e.originalEvent.offsetY : null), e.deltaY < 0);
+        }, { passive: false });
+    }
 
-    var lastDownTarget;
-    //FIXME, remove listener when renderer is destroyed.
-    document.addEventListener('mousedown', function(event) {
-        lastDownTarget = event.target;
-    }, false);
+    pixiGraphics._lastDownTarget = null;
+    pixiGraphics._mouseDownListener = function (event) {
+        pixiGraphics._lastDownTarget = event.target;
+    };
 
-    document.addEventListener('keydown', function(event) {
-        if (lastDownTarget == canvas) {
-            if (event.code === "Space") {
-                pixiGraphics.toggleMode();
-                event.stopPropagation();
-                event.preventDefault();
-            } else if (event.code === 'Delete') {
-                console.log("Need to delete selected item"); // FIXME
-            } else if (event.code === 'KeyA' && event.ctrlKey) {
-                pixiGraphics.selectAll();
-                event.stopPropagation();
-                event.preventDefault();
-            }
-        }
-    }, false);
+    document.addEventListener('mousedown', pixiGraphics._mouseDownListener, { passive: true });
+
+    pixiGraphics._contextmenuHandler = function (event) {
+        event.preventDefault();
+        return false;
+    };
+
+    pixiGraphics.fireBirdViewChangeEvent = _.throttle(()=>{
+        pixiGraphics.fire('adjust-bird-view');
+    }, 1000);
+
+    pixiGraphics.addCanvasEventListener('contextmenu', pixiGraphics._contextmenuHandler, false);
+
     eventify(pixiGraphics);
     return pixiGraphics;
-
     ///////////////////////////////////////////////////////////////////////////////
     // Public API is over
     ///////////////////////////////////////////////////////////////////////////////
-    function zoomNodesById(nodeIDArray, zoomValue) {
-        isDirty = true;
-        _.each(nodeIDArray, function(nodeID) {
-            let nodeSprite = nodeSprites[nodeID];
-            if (nodeSprite) {
-                nodeSprite.scale.set(zoomValue);
-                nodeSprite.ts.scale.set(0.5 * zoomValue);
-                nodeSprite.ts.position.set(nodeSprites[nodeID].position.x, nodeSprites[nodeID].position.y + visualConfig.NODE_LABLE_OFFSET_Y * zoomValue);
-                if (nodeSprite.circleBorder) {
-                    nodeSprite.circleBorder.scale.set(zoomValue);
-                }
-            }
-        });
+    function layoutStabilized() {
+        pixiGraphics.fire('layout-stable');
     }
 
     function selectionChanged() {
         isDirty = true;
         pixiGraphics.fire('selectionChanged');
-        drawBorders();
     }
 
-    function hiddenStatusChanged() {
-        isDirty = true;
-        pixiGraphics.fire('hiddenStatusChanged');
-    }
+    /**
+     * Context menu event is sourced from rightup event on
+     * 1. node sprite
+     * 2. link label sprite
+     * 3. the root container.
+     * PIXI will handle the detection of which one is hit and put it in the target property of event;
+     * @param e
+     */
+    function contextmenuListener(e) {
 
-
-    function animationLoop() {
-
-        if (stage.destroyed) {
-            return;
+        if( e.target instanceof SimpleNodeSprite) {
+            // console.log('Right up on node');
+            if(!e.target.selected) {
+                nodeContainer.selectNode(e.target);
+            }
+            selectionChanged();
+        } else if( e.target instanceof PIXI.Sprite) {
+            // console.log('rightup on link label');
+            const lineSprite = e.target.lineSprite;
+            if(!lineSprite.selected) {
+                linkContainer.selectLink(lineSprite);
+            }
+            selectionChanged();
         }
 
-        requestAnimationFrame(animationLoop);
-
-        if (isDirty || nodeContainer.isDirty || stage.isDirty) {
-            if (layoutIterations > 0) {
-                layout.step();
-                layout.step();
-                //大开销计算
-                _.each(nodeSprites, function(nodeSprite, nodeId) {
-                    nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
-                });
-                layoutIterations -= 2;
+        let mouseOnSelectedNode = false;
+        let mouseOnSelectedLink = false;
+        const selectedNodes = pixiGraphics.getSelectedNodes();
+        const selectedLinks = pixiGraphics.getSelectedLinks();
+        let event = {};
+        if (!selectedNodes.length && !selectedLinks.length) {
+            event = { type: 'blank', original: e , target: null};
+        } else {
+            for (const nodeSprite of selectedNodes) {
+                if (nodeSprite === e.target) {
+                    mouseOnSelectedNode = true;
+                    break;
+                }
             }
+            if (mouseOnSelectedNode) {
+                event = { type: 'node', original: e , target: e.target.data };
+            } else {
+                for (const linkSprite of selectedLinks) {
+                    // if (linkSprite.arrow === e.target || linkSprite.label === e.target) {
+                    if (linkSprite.label === e.target) {
+                        mouseOnSelectedLink = true;
+                        break;
+                    }
+                }
+                if (mouseOnSelectedLink) {
+                    event = { type: 'link', original: e , target: e.target.lineSprite.data};
+                } else {
+                    event = { type: 'blank', original: e, target: null};
+                }
+            }
+        }
+        fireContextmenu(event);
+    }
+
+    function fireContextmenu(event) {
+        isDirty = true;
+        pixiGraphics.fire('contextmenu', event);
+    }
+
+    let lastScanTime = null;
+    function animationLoop(timestamp) {
+        let speed = ('speed' in visualConfig) ? visualConfig.speed : 1;
+        if (!lastScanTime) lastScanTime = timestamp;
+
+        if (destroyed) {
+            console.info('Renderer destroyed, exiting animation loop');
+            return;
+        }
+        let n = speed > 1 ? 2 * speed : 2;
+        if (graph.getNodesCount() < 100){
+            n = speed > 1 ? 10 * speed : 10;
+        } else if (graph.getNodesCount() < 500){
+            n = speed > 1 ? 8 * speed : 8;
+        } else if (graph.getNodesCount() < 1000){
+            n = speed > 1 ? 5 * speed : 5;
+        }
+        animationAgent.step();
+        let layoutPositionChanged = false;
+        if (layoutType === 'Network') {
+            if (dynamicLayout) {
+                layoutPositionChanged = true;
+                for (let tmp = 0; tmp < n; tmp++){
+                    layout.step();
+                }
+                updateNodeSpritesPosition();
+                if (visualConfig.isScale) {
+                    pixiGraphics.setNodesToFullScreen(true);
+                }
+            }
+        } else if (layoutType === 'TimelineScale') {
+            // updateNodeSpritesPosition();
+        } else {
+            // Circular, Layered, Radiate
+            if (!disableLayout) {
+                const layoutFreeze = layout.step();
+                layoutPositionChanged = !layoutFreeze;
+                if (layoutPositionChanged) {
+                    updateNodeSpritesPosition();
+                }
+            } else {
+                updateNodeSpritesPosition();
+            }
+        }
+
+        // Every 0.5 second, we check whether to change label's visible property.
+        if (timestamp - lastScanTime > 500) {
+            lastScanTime = timestamp;
+            updateLabelVisibility();
+            isDirty = true;
+        }
+
+        if (layoutPositionChanged || isDirty || nodeContainer.isDirty || stage.isDirty || linkContainer.isDirty
+            || nodeContainer.positionDirty || animationAgent.needRerender()) {
 
             selectRegionGraphics.clear();
             if (stage.selectRegion && stage.selectingArea) {
                 drawSelectionRegion();
             }
 
-            drawBorders();
-            drawLines();
+            if(showDebugMarkup) {
+                drawDebugMarkup();
+            }
+
             if (stage.isTimelineLayout) {
-                drawNodeTimelines();
+                timelineLayout.drawNodeTimelines();
             }
+
             renderer.render(stage);
-            counter.nextFrame();
-        }
-        if (layoutIterations == 0) {
+
+            pixiGraphics.fireBirdViewChangeEvent();
+
             isDirty = false;
+            nodeContainer.isDirty = false;
+            stage.isDirty = false;
+            linkContainer.isDirty = false;
+            nodeContainer.positionDirty = false;
         }
-        nodeContainer.isDirty = false;
-        stage.isDirty = false;
+        counter.nextFrame();
+        requestAnimationFrame(animationLoop);
     }
 
+    /**
+     * 更新是否显示Label
+     */
+    function updateLabelVisibility() {
+        if (root.scale.x > 0.5) {
+            labelContainer.visible = true;
 
-    //TODO 画边框,查看drawRoudedRect性能
-    function drawBorders() {
-        boarderGraphics.clear();
+            let topLeft = root.worldTransform.applyInverse({x: 0, y: 0});
+            let bottomRight = root.worldTransform.applyInverse({x: viewWidth, y: viewHeight});
+            // simple render children!
+            for (const nodeId in nodeSprites)
+            {
+                const node = nodeSprites[nodeId];
+                node.ts.visible = topLeft.x < node.x && node.x < bottomRight.x && topLeft.y < node.y && node.y < bottomRight.y;
+            }
+            for (const linkId in linkSprites)
+            {
+                const link = linkSprites[linkId];
+                const midX = (link.fx + link.tx) / 2;
+                const midY = (link.fy + link.ty) / 2;
+                if ( topLeft.x < midX && midX < bottomRight.x && topLeft.y < midY && midY < bottomRight.y) {
+                    link.label.visible = true;
+                } else {
+                    link.label.visible = false;
+                }
+            }
+        } else {
+            labelContainer.visible = false;
+        }
+    }
 
-        _.each(nodeContainer.selectedNodes, function(n2) {
-
-            boarderGraphics.lineStyle(visualConfig.ui.frame.border.width, visualConfig.ui.frame.border.color, visualConfig.ui.frame.border.alpha);
-            // boarderGraphics.beginFill(visualConfig.ui.frame.fill.color, visualConfig.ui.frame.fill.alpha);
-            // boarderGraphics.lineStyle(n2.boundaryAttr.border.width, n2.boundaryAttr.border.color, n2.boundaryAttr.border.alpha);
-            // boarderGraphics.beginFill(n2.boundaryAttr.fill.color, n2.boundaryAttr.fill.alpha);
-
-            //if the node is invisible, we don't need draw is boundary
-            //TODO here we should consider the performance.
-            if (n2.visible) {
-                // var length=n2.ts.text.width;
-                // console.log(length);
-                //console.log("text width < 40 ");
-                boarderGraphics.drawRect(n2.position.x - 24 * n2.scale.x, n2.position.y - 24 * n2.scale.y, 48 * n2.scale.x, (60) * n2.scale.y);
-
+    function updateNodeSpritesPosition() {
+        _.each(nodeSprites, (nodeSprite, nodeId) => { // 大开销计算
+            nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+            nodeContainer.nodeMoved(nodeSprite);
+            if (nodeSprite.pinned && !nodeSprite.data.properties._$lock) {
+                nodeSprite.pinned = false;
+                layout.pinNode(nodeSprite, false);
             }
         });
-        boarderGraphics.endFill();
-    }
-
-    function drawLines() {
-        lineGraphics.clear();
-        _.each(linkSprites, function(link) {
-            if (link.visible) {
-                link.renderLine(lineGraphics);
-            }
+        let isBrokenLineLayerLayout = layoutType === 'BrokenLineLayered';
+        _.each(linkSprites, (l) => {
+            l.updatePosition(isBrokenLineLayerLayout);
         });
     }
-
-    function drawNodeTimelines() {
-        var nodeTimelineStyle = visualConfig.ui.timeline;
-        let endX = (timelineWidth - root.position.x) / root.scale.x + 200;
-        lineGraphics.lineStyle(nodeTimelineStyle.width, nodeTimelineStyle.color, 1);
-        _.each(nodeSprites, function(ns) {
-            if (ns.visible) {
-                lineGraphics.beginFill(nodeTimelineStyle.color, 1);
-                lineGraphics.drawCircle(-100, ns.position.y, 5);
-                lineGraphics.endFill();
-                lineGraphics.moveTo(-100, ns.position.y);
-                lineGraphics.lineTo(endX, ns.position.y);
-                lineGraphics.beginFill(nodeTimelineStyle.color, 1);
-                lineGraphics.drawCircle(endX, ns.position.y, 5);
-                lineGraphics.endFill();
-            }
-        });
-    }
-
-    function disableTimelineLayout() {
-        timeline.destroy();
-        timeline = null;
-        stage.isTimelineLayout = false;
-        _.each(nodeSprites, function(ns) {
-            ns.timelineMode = false;
-        });
-        _.each(linkSprites, function(ls) {
-            ls.forceStraightLine = false;
-        });
-    }
-
 
     function initNode(p) {
-        let semanticType = pixiGraphics.getEntitySemanticType(p.data.type);
-        var texture = visualConfig.findIcon(semanticType);
-        // var texture = visualConfig.findIcon(p.data.type);
-        var n = new PIXI.Sprite(texture);
-
-        //textContainer.addChild(n.circleBorder);
-        n.visible = true; //add for hide the node and line
-        if (p.data.properties && p.data.properties._$hidden) {
-            n.visible = false;
+        let iconUrl;
+        // 在专题分析时，男性用男的图标表示，女性用女的图标表示
+        if (layoutType === 'FamilyLayout' || layoutType === 'PersonRelationshipStructural' || layoutType === 'Person2Person') {
+            if (p.data.properties['性别']) {
+                if (p.data.properties['性别'] === '男') {
+                    iconUrl = "/Person/Man.png";
+                } else if (p.data.properties['性别'] === '女') {
+                    iconUrl = "/Person/Lady.png";
+                }
+            }
         }
-        n.id = p.id;
-        n.parent = nodeContainer;
-        n.anchor.x = 0.5;
-        n.anchor.y = 0.5;
-        n.position.x = p.data.properties._$x || Math.random();
-        n.position.y = p.data.properties._$y || Math.random();
-        // console.log("get == " + p.data.label + " :x: " + p.data.properties._$x  + " :y: " + p.data.properties._$y);
-        n.incoming = [];
-        n.outgoing = [];
 
-        n.nodeScale = 1;
+        if (_.isNil(iconUrl)) {
+            iconUrl = pixiGraphics.getEntitySemanticType(p.data.type);
+        }
 
-        n.scale.set(n.nodeScale);
+        const nodeSprite = new SimpleNodeSprite(visualConfig.defaultIcon, p, visualConfig, iconContainer);
+        nodeSprite.iconUrl = iconUrl;
 
-        n.boundaryAttr = {};
+        nodeSprite.setNodeIcon(decodeCollectionFlag(p.data.properties._$collectionIds));
 
-        n.boundaryAttr.border = {};
-        n.boundaryAttr.fill = {};
-        n.boundaryAttr.border.color = 0x0077b3;
-        n.boundaryAttr.border.width = 1;
-        n.boundaryAttr.border.alpha = 0.6;
-        n.boundaryAttr.fill.color = 0xff6666;
-        n.boundaryAttr.fill.alpha = 0.3;
+        // 设置unknown图标
+        if (nodeSprite.isUnknown) {
+            nodeSprite.setNodeUnknownIcon();
+        }
 
-        n.visualConfig = visualConfig;
-        n.interactive = true;
-        n.buttonMode = true;
-        var t = new PIXI.Text((p.data.label ? p.data.label : ""), visualConfig.ui.label.font);
-        t.position.set(p.data.x, p.data.y + visualConfig.NODE_LABLE_OFFSET_Y);
-        t.anchor.x = 0.5;
-        t.scale.set(0.5, 0.5);
-        t.visible = n.visible;
-        n.ts = t;
-        textContainer.addChild(t);
-        nodeContainer.addChild(n);
+        if (p.data.properties._$lock) {
+            nodeSprite.pinned = true;
+            layout.pinNode(nodeSprite, true);
+            nodeSprite.setNodeLockIcon();
+        }
 
-        nodeSprites[p.id] = n;
-        n.on('mousedown', nodeCaptureListener);
+        // 更新缩放
+        nodeSprite.updateScale();
+
+        if (p.data.properties._$merge) {
+            nodeSprite.setMultiple(true);
+        }
+
+        //添加边框
+        if(p.data.properties._$showBorder) {
+            nodeSprite.updateBorder(textContainer);
+        }
+
+        if (nodeSprite.ts) {
+            labelContainer.addChild(nodeSprite.ts);
+        }
+        nodeContainer.addChild(nodeSprite);
+        nodeSprites[p.id] = nodeSprite;
+
+        nodeSprite.on('mousedown', nodeCaptureListener);
+        nodeSprite.on('rightup', contextmenuListener);
     }
 
     function adjustControlOffsets(linkSpriteArray, arrangeOnBothSides, avoidZero) {
-        var linkCount = linkSpriteArray.length,
-            start = 0,
-            end = linkCount + start;
+        const linkCount = linkSpriteArray.length;
+        let start = 0;
+        let end = linkCount + start;
 
         if (arrangeOnBothSides) {
             start = -Math.floor(linkCount / 2);
@@ -1852,37 +1906,35 @@ export default function(settings) {
                 end = linkCount + start;
             }
         }
-        var controlOffsets = _.range(start, end);
+        const controlOffsets = _.range(start, end);
         // console.log("Link count: " + linkCount+" controls" + controlOffsets)
         for (let i = 0; i < linkSpriteArray.length; i++) {
-            let l = linkSpriteArray[i];
+            const l = linkSpriteArray[i];
             l.controlOffsetIndex = controlOffsets[i];
         }
     }
 
     function initLink(f) {
-        var srcNodeSprite = nodeSprites[f.fromId];
-        var tgtNodeSprite = nodeSprites[f.toId];
-        let sameTgtLink = [],
-            reverseLink = [];
-        _.each(srcNodeSprite.outgoing, function(link) {
+        const srcNodeSprite = nodeSprites[f.fromId];
+        const tgtNodeSprite = nodeSprites[f.toId];
+        const sameTgtLink = [];
+        const reverseLink = [];
+        _.each(srcNodeSprite.outgoing, (link) => {
             if (link.data.targetEntity === f.toId) {
                 sameTgtLink.push(link);
             }
         });
-        _.each(tgtNodeSprite.outgoing, function(link) {
+        _.each(tgtNodeSprite.outgoing, (link) => {
             if (link.data.targetEntity === f.fromId) {
                 reverseLink.push(link);
             }
         });
-        let positionOffset = 0;
-        //f.data.isMultiple,f.data.isDirected,
+        const positionOffset = 0;
 
-        var l = new SimpleLineSprite(
-            (f.data.label ? f.data.label : ""), visualConfig.ui.line.width, visualConfig.ui.line.color, f.data.isMultiple, f.data.isDirected,
+        const l = new SimpleLineSprite(f.data, visualConfig.ui.line.width, visualConfig.ui.line.color,
             srcNodeSprite.position.x, srcNodeSprite.position.y,
             tgtNodeSprite.position.x, tgtNodeSprite.position.y,
-            positionOffset, visualConfig.ui.label.font, visualConfig);
+            positionOffset, visualConfig);
 
         if (sameTgtLink.length > 0 && reverseLink.length === 0) {
             sameTgtLink.push(l);
@@ -1897,71 +1949,111 @@ export default function(settings) {
             adjustControlOffsets(sameTgtLink, false, true);
         }
 
-        l.data = f.data;
-        l.id = f.data.id;
         l.ngLink = f;
-        l.visible = true;
-        if (f.data.properties && f.data.properties._$hidden) {
-            l.visible = false;
-        }
+
+        l.setLineAttr();
 
         srcNodeSprite.outgoing.push(l);
         tgtNodeSprite.incoming.push(l);
         linkSprites[l.id] = l;
-        l.label.interactive = true;
-        l.label.visible = l.visible;
-        //l.label.fill= '#00FF00'
-        lineContainer.addChild(l.label);
-        if (f.data.isDirected) {
-            l.arrow.interactive = true;
-            l.arrow.buttonMode = true;
-            l.arrow.visible = l.visible;
-            lineContainer.addChild(l.arrow);
+
+        if (l.label) {
+            l.label.interactive = true;
+            labelContainer.addChild(l.label);
+            l.label.on('rightup', contextmenuListener);
         }
-    }
 
-    function defaultNodeRenderer(node) {
-        var x = node.pos.x - NODE_WIDTH / 2,
-            y = node.pos.y - NODE_WIDTH / 2;
-
-        graphics.beginFill(0xFF3300);
-        graphics.drawRect(x, y, NODE_WIDTH, NODE_WIDTH);
-    }
-
-    function defaultLinkRenderer(link) {
-        graphics.lineStyle(1, 0xcccccc, 1);
-        graphics.moveTo(link.from.x, link.from.y);
-        graphics.lineTo(link.to.x, link.to.y);
-    }
-
-    function getNodeAt(x, y) {
-        var half = NODE_WIDTH / 2;
-        // currently it's a linear search, but nothing stops us from refactoring
-        // this into spatial lookup data structure in future:
-        for (var nodeId in nodeUI) {
-            if (nodeUI.hasOwnProperty(nodeId)) {
-                var node = nodeUI[nodeId];
-                var pos = node.pos;
-                var width = node.width || NODE_WIDTH;
-                half = width / 2;
-                var insideNode = pos.x - half < x && x < pos.x + half &&
-                    pos.y - half < y && y < pos.y + half;
-
-                if (insideNode) {
-                    return graph.getNode(nodeId);
-                }
-            }
-        }
+        linkContainer.addLink(l);
+        l.parent = linkContainer;
     }
 
     function listenToGraphEvents() {
         graph.on('changed', onGraphChanged);
+        graph.on('elp-changed', onGraphElpChanged);
+        graph.on('init', onGraphInit);
+        graph.on('collection', onGraphDataCollectionUpdate);
+        graph.on('control', onGraphControlUpdate);
+        graph.on('texture', onGraphTextureUpdate);
+        graph.on('lock', onGraphLockUpdate);
+    }
 
+    function decodeCollectionFlag(flag) {
+        flag = flag || 0;
+        const collectionIds = [];
+        for (let i = 1; i <= COLLECTION_FLAG_MASK.length; i++) {
+            if (COLLECTION_FLAG_MASK[i] > flag) {
+                break;
+            } else if ((COLLECTION_FLAG_MASK[i] & flag) > 0) {
+                collectionIds.push(i);
+            }
+        }
+        return collectionIds;
+    }
+
+    function onGraphDataCollectionUpdate(changes) {
+        _.each(changes, (c)=>{
+            if(c.node) {
+                const nodeSprite = nodeSprites[c.node.id];
+                // hard coding the collection id property name
+                const collIdArr = decodeCollectionFlag(c.node.data.properties._$collectionIds);
+                nodeSprite.setNodeIcon(collIdArr);
+            }
+            // we don't have collection icon for links
+        });
+        isDirty = true;
+    }
+
+    function onGraphControlUpdate(changes) {
+        _.each(changes, (c)=>{
+            if(c.node) {
+                const nodeSprite = nodeSprites[c.node.id];
+                if (nodeSprite.data.properties._$control) {
+                    nodeSprite.setControlIcon();
+                } else {
+                    nodeSprite.removeControlIcon();
+                }
+            }
+            // links is not need control
+        });
+        isDirty = true;
+    }
+
+    function onGraphTextureUpdate(changes) {
+        _.each(changes, (c)=>{
+            if(c.node) {
+                const nodeSprite = nodeSprites[c.node.id];
+
+                nodeSprite.updateLabel();
+
+                nodeSprite.isUnknown = nodeSprite.data.properties._$unknown || nodeSprite.data.properties._$lazy;
+                if (nodeSprite.isUnknown) {
+                    nodeSprite.setNodeUnknownIcon();
+                } else {
+                    nodeSprite.removeNodeUnknownIcon();
+                }
+            }
+        });
+        isDirty = true;
+    }
+
+    function onGraphLockUpdate(changes) {
+        _.each(changes, (c)=>{
+            if(c.node) {
+                const nodeSprite = nodeSprites[c.node.id];
+                if (nodeSprite.data.properties._$lock) {
+                    pixiGraphics.lock([nodeSprite]);
+                } else {
+                    pixiGraphics.unlock([nodeSprite]);
+                }
+            }
+            // links is not need unknown
+        });
+        isDirty = true;
     }
 
     function removeNode(node) {
         isDirty = true;
-        var nodeSprite = nodeSprites[node.id];
+        const nodeSprite = nodeSprites[node.id];
         if (nodeSprite) {
             if (_.has(nodeNeedBoundary, node.id)) {
                 delete nodeNeedBoundary[node.id];
@@ -1973,55 +2065,167 @@ export default function(settings) {
                 nodeContainer.deselectNode(nodeSprite);
             }
             if (nodeSprite.ts) {
-                textContainer.removeChild(nodeSprite.ts);
+                labelContainer.removeChild(nodeSprite.ts);
             }
+
+            if (nodeSprite.gcs) {
+                for (let i = 0; i < nodeSprite.gcs.length; i++) {
+                    iconContainer.removeChild(nodeSprite.gcs[i]);
+                }
+            }
+            if (nodeSprite.unknownSprite) {
+                iconContainer.removeChild(nodeSprite.unknownSprite);
+            }
+
+            if (nodeSprite.os) {
+                for (let i = 0; i < nodeSprite.os.length; i++) {
+                    iconContainer.removeChild(nodeSprite.os[i]);
+                }
+            }
+
+            if (nodeSprite.cs) {
+                iconContainer.removeChild(nodeSprite.cs);
+            }
+
             nodeContainer.removeChild(nodeSprite);
             delete nodeSprites[node.id];
-            delete graphEntities[node.data.id];
             // console.log("Removed node: " + node.id);
         } else {
-            console.log("Could not find node sprite: " + node.id);
+            console.log(`Could not find node sprite:${node.id}`);
         }
     }
 
-
     function removeLink(link) {
         isDirty = true;
-        var l = linkSprites[link.data.id];
+        const l = linkSprites[link.id];
         if (l) {
             if (l.selected) {
-                nodeContainer.deselectLink(l);
+                linkContainer.deselectLink(l);
             }
             if (l.label) {
-                lineContainer.removeChild(l.label);
+                labelContainer.removeChild(l.label);
             }
-            if (l.arrow) {
-                lineContainer.removeChild(l.arrow);
-            }
-            let srcEntitySprite = nodeSprites[l.data.sourceEntity];
-            let tgtEntitySprite = nodeSprites[l.data.targetEntity];
-            let outLinkIndex = srcEntitySprite.outgoing.indexOf(l);
+            const srcEntitySprite = nodeSprites[l.data.sourceEntity];
+            const tgtEntitySprite = nodeSprites[l.data.targetEntity];
+            const outLinkIndex = srcEntitySprite.outgoing.indexOf(l);
             if (outLinkIndex >= 0) {
                 // console.log("Removing link " + l.data.id + "from outgoing links of node: " + srcEntitySprite.id);
                 srcEntitySprite.outgoing.splice(outLinkIndex, 1);
             }
-            let inLinkIndex = tgtEntitySprite.incoming.indexOf(l);
+            const inLinkIndex = tgtEntitySprite.incoming.indexOf(l);
             if (inLinkIndex >= 0) {
                 // console.log("Removing link " + l.data.id + "from incoming links of node: " + tgtEntitySprite.id);
                 tgtEntitySprite.incoming.splice(inLinkIndex, 1);
             }
             delete linkSprites[l.id];
-            delete graphLinks[l.data.id];
+            l.destroy();
+
+            linkContainer.removeLink(l.id);
+
             // console.log("Removed link: " + link.id);
         } else {
-            console.log("Could not find link sprite: " + link.id);
+            console.log(`Could not find link sprite: ${link.id}`);
         }
     }
 
+    function updateNode(node) {
+        const nodeSprite = nodeSprites[node.id];
+        nodeSprite.data = node.data;
+        nodeSprite.updateLabel();
+        nodeSprite.updateScale();
+        nodeContainer.updateScale(nodeSprite);
+        nodeSprite.updateBorder(textContainer);
+        nodeSprite.setNodeIcon(decodeCollectionFlag(node.data.properties._$collectionIds));
+    }
+
+    function updateLink(link) {
+        const linkSprite = linkSprites[link.id];
+        linkSprite.data = link.data;
+        linkSprite.setLineAttr();
+        linkSprite.updateLabel();
+    }
+
+    function onGraphElpChanged(elpData) {
+        graphType.entityTypes = elpData.elpEntities;
+        graphType.linkTypes = elpData.elpLinks;
+    }
+
     function onGraphChanged(changes) {
+        console.log(`Graph changed ${new Date()}`);
+        const nodeIdArray = [];
+        const linkIdArray = [];
+        const updateNodeIdArray = [];
+        const updateLinkIdArray = [];
         isDirty = true;
-        for (var i = 0; i < changes.length; ++i) {
-            var change = changes[i];
+        for (let i = 0; i < changes.length; ++i) {
+            const change = changes[i];
+            const changeNode = change.node;
+            const changeLink = change.link;
+            if (change.changeType === 'add') {
+                if (changeNode) {
+                    initNode(changeNode);
+                    nodeIdArray.push(changeNode.id);
+                }
+                if (changeLink) {
+                    initLink(changeLink);
+                    linkIdArray.push(changeLink.id);
+                }
+            } else if (change.changeType === 'remove') {
+                if (changeNode) {
+                    removeNode(changeNode);
+                }
+                if (changeLink) {
+                    removeLink(changeLink);
+                }
+            } else if (change.changeType === 'update') {
+                if (changeNode) {
+                    updateNode(changeNode);
+                    updateNodeIdArray.push(changeNode.id);
+                }
+                if (changeLink) {
+                    updateLink(changeLink);
+                    updateLinkIdArray.push(changeLink.id);
+                }
+            }
+        }
+
+        let added = false;
+        if (nodeIdArray.length > 0 || linkIdArray.length > 0) {
+            if(!visualConfig.ORIGINAL_FORCE_LAYOUT) {
+                pixiGraphics.performLayout();
+            }
+            pixiGraphics.clearSelection();
+            pixiGraphics.selectSubGraph(nodeIdArray, linkIdArray);
+            added = true;
+        }
+
+        let updated = false;
+        if (updateNodeIdArray.length > 0 || updateLinkIdArray.length > 0) {
+            if (!added) {
+                pixiGraphics.clearSelection();
+            }
+            pixiGraphics.selectSubGraph(updateNodeIdArray, updateLinkIdArray);
+            updated = true;
+        }
+
+        if (!added && !updated) {   // 删除时触发selectionChanged
+            selectionChanged();
+        }
+
+        if (textAnalysis){
+            for (let tmp = 0; tmp < 10000; tmp++){
+                layout.step();
+            }
+            updateNodeSpritesPosition();
+        }
+
+        console.log(`Graph change process complete ${new Date()}`);
+    }
+
+    function onGraphInit(changes) {
+        isDirty = true;
+        for (let i = 0; i < changes.length; ++i) {
+            const change = changes[i];
             if (change.changeType === 'add') {
                 if (change.node) {
                     initNode(change.node);
@@ -2029,129 +2233,72 @@ export default function(settings) {
                 if (change.link) {
                     initLink(change.link);
                 }
-            } else if (change.changeType === 'remove') {
-                if (change.node) {
-                    removeNode(change.node);
-                }
-                if (change.link) {
-                    removeLink(change.link);
-                }
             }
         }
     }
-
-    /**
-     * function: find the subtree recursively
-     * @param node
-     * @param tid
-     */
-    function findSubGraph(node, tid) {
-
-        if (!node.treeID) {
-            node.treeID = tid;
-
-            _.each(node.incoming, function(link) {
-                if (!nodeSprites[link.data.sourceEntity].treeID) {
-                    findSubGraph(nodeSprites[link.data.sourceEntity], tid);
-                }
-            });
-            _.each(node.outgoing, function(link) {
-                if (!nodeSprites[link.data.targetEntity].treeID) {
-                    findSubGraph(nodeSprites[link.data.targetEntity], tid);
-                }
-            });
-        } else {
-            return;
-
-        }
-    }
-
 
     function drawSelectionRegion() {
+        const frameCfg = visualConfig.ui.frame;
+        selectRegionGraphics.lineStyle(frameCfg.border.width, frameCfg.border.color, frameCfg.border.alpha);
+        selectRegionGraphics.beginFill(frameCfg.fill.color, frameCfg.fill.alpha);
+        const width = stage.selectRegion.x2 - stage.selectRegion.x1;
+        const height = stage.selectRegion.y2 - stage.selectRegion.y1;
+        const x = stage.selectRegion.x1;
+        const y = stage.selectRegion.y1;
+        selectRegionGraphics.drawRect(x, y, width, height);
+        // console.log('drawSelectionRegion ' + ' x ' +  x + ' y ' + y + ' width '+ width + ' height' + height);
 
-        if (stage.selectRegion) {
-            var frameCfg = visualConfig.ui.frame;
-            selectRegionGraphics.lineStyle(frameCfg.border.width, frameCfg.border.color, frameCfg.border.alpha);
-            selectRegionGraphics.beginFill(frameCfg.fill.color, frameCfg.fill.alpha);
-            var width = stage.selectRegion.x2 - stage.selectRegion.x1,
-                height = stage.selectRegion.y2 - stage.selectRegion.y1;
-            var x = stage.selectRegion.x1;
-            var y = stage.selectRegion.y1;
-            // var x = stage.selectRegion.x1-stage.contentRoot.position.x;
-            // var y = stage.selectRegion.y1-stage.contentRoot.position.y;
-            //selectRegionGraphics.drawRect(stage.selectRegion.x1, stage.selectRegion.y1, width, height);
-            selectRegionGraphics.drawRect(x, y, width, height);
+        if (layoutType === 'TimelineScale') {
+            selectRegionGraphics.isDirty = true;
+        } else {
+            selectRegionGraphics.isDirty = false;
         }
     }
 
+    function drawDebugMarkup(){
 
-    function findATree(node) {
+        /**
+         * The following code is to draw guidelines for debug
+         * selectRegionGraphics is a child of stage, a sibling of root, that's why we are here
+         */
 
-        _.each(node.incoming, function(link) {
-            if (!nodeSprites[link.data.sourceEntity].isPutInTree) {
-                nodeSprites[link.data.sourceEntity].treeLayoutLevel = node.treeLayoutLevel + 1;
-                nodeSprites[link.data.sourceEntity].isPutInTree = true;
-                bfsQueue.unshift(nodeSprites[link.data.sourceEntity]);
-            }
-        });
-        _.each(node.outgoing, function(link) {
-            if (!nodeSprites[link.data.targetEntity].isPutInTree) {
-                nodeSprites[link.data.targetEntity].treeLayoutLevel = node.treeLayoutLevel + 1;
-                nodeSprites[link.data.targetEntity].isPutInTree = true;
-                bfsQueue.unshift(nodeSprites[link.data.targetEntity]);
-            }
-        });
+        // mark the root position in the stage
+        // 标记为一个黑色的点
+        selectRegionGraphics.beginFill(0x000000);
+        selectRegionGraphics.lineStyle(1, 0xffffff);
+        selectRegionGraphics.arc(root.position.x, root.position.y, 10, 0, 2 * Math.PI); // cx, cy, radius, startAngle, endAngle
+        selectRegionGraphics.endFill();
+
+        // draw the bounds of root with pixi.js in blue
+        // root 画布区域为 2000
+        const rootRectInStage = root.getBounds();
+        selectRegionGraphics.lineStyle(1, 0x0000ff);
+        selectRegionGraphics.drawRect(rootRectInStage.x, rootRectInStage.y, rootRectInStage.width, rootRectInStage.height);
+
+        // draw the local bounds of root
+        const myBoundsRect = getMyBounds.call(root);
+        selectRegionGraphics.lineStyle(1, 0x000000);
+        selectRegionGraphics.drawRect(myBoundsRect.x, myBoundsRect.y, myBoundsRect.width, myBoundsRect.height);
+
+        // draw the bounds of root with layout in green
+        const rootRectInStageByLayout = layout.getGraphRect();
+        const rootRectInStageByLayoutWidth = Math.abs(rootRectInStageByLayout.x2 - rootRectInStageByLayout.x1);
+        const rootRectInStageByLayoutHeight = Math.abs(rootRectInStageByLayout.y2 - rootRectInStageByLayout.y1);
+        const scale = root.scale.x;
+        selectRegionGraphics.lineStyle(1, 0xeeee00);
+        selectRegionGraphics.drawRect(
+            rootRectInStageByLayout.x1 * scale + root.position.x,
+            rootRectInStageByLayout.y1 * scale + root.position.y,
+            rootRectInStageByLayoutWidth * scale,
+            rootRectInStageByLayoutHeight * scale,
+        );
+
+        // draw the X in stage canvas
+        selectRegionGraphics.lineStyle(1, 0xff0000);
+        selectRegionGraphics.moveTo(0, 0);
+        selectRegionGraphics.lineTo(viewWidth, viewHeight);
+        selectRegionGraphics.moveTo(0, viewHeight);
+        selectRegionGraphics.lineTo(viewWidth, 0);
     }
 
-    function moveTimeline(percentage) {
-        var range = timeline.getWindow();
-        var interval = range.end - range.start;
-
-        timeline.setWindow({
-            start: range.start.valueOf() - interval * percentage,
-            end: range.end.valueOf() - interval * percentage
-        });
-    }
-
-    function positionLinksByTime(linkSprites, screenStartTime) {
-        _.each(linkSprites, function(ls) {
-            if (!ls.visible) {
-                return;
-            }
-            var linkDatetime = ls.data.datetime;
-            var ms = moment(linkDatetime).valueOf();
-            let viewX = Math.floor((ms - screenStartTime) / msPerPix);
-            let x = (viewX - root.position.x) / root.scale.x; // FIXME, assuming root is not scaled.
-            // console.log(linkDatetime + "@ " + x + "(" + viewX + ")");
-            var srcNodeSprite = nodeSprites[ls.data.sourceEntity];
-            var tgtNodeSprite = nodeSprites[ls.data.targetEntity];
-            var fromX = x,
-                fromY = srcNodeSprite.position.y;
-            var toX = x,
-                toY = tgtNodeSprite.position.y;
-            ls.forceStraightLine = true;
-            ls.setFrom({
-                x: fromX,
-                y: fromY
-            });
-            ls.setTo({
-                x: toX,
-                y: toY
-            });
-        });
-    }
-
-    function zoomTimeline(percentage) {
-        var range = timeline.getWindow();
-        var interval = range.end - range.start;
-        zoomTimelineThrottled({
-            start: range.start.valueOf() - interval * percentage,
-            end: range.end.valueOf() + interval * percentage,
-            option: {
-                animation: false
-            }
-        })
-    }
-
-
-};
+}

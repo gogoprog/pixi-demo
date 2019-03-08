@@ -1,120 +1,57 @@
-export const SelectionManager = function() {
-    this.nodes = [];
-    this.links = [];
-    this.selectedNodes = {};
-    this.selectedLinks = {};
-    this.recentlySelected = null;
-    this.isDirty = true;
+// 在PixiRenderer中的调用方式： SelectionManager.call(root, nodeContainer, lineContainer);
+export default function SelectionManager(nodeContainer, linkContainer) {
+    this.nodeContainer = nodeContainer;
+    this.linkContainer = linkContainer;
+    // root中有isDirty
+    this.isDirty = false;
 
-    this.nodeSelected = function(node) {
-        this.isDirty=true;
-        this.recentlySelected = node;
-    };
-
-    this.linkSelected = function(link) {
-        //console.log("here");
-        this.isDirty=true;
-        this.recentlySelected = link;
+    this.deselectAll = function () {
+        this.nodeContainer.deselectAllNodes();
+        this.linkContainer.deselectAllLinks();
     };
 
-    this.selectNode = function(node) {
-        this.isDirty=true;
-        if (node) {
-            if(!_.has(this.selectedNodes, node.id)){
-                this.selectedNodes[node.id] = node;
-                this.nodes.push(node);
-                node.selectionChanged(true);
-            }
-        }
-    };
-    this.deselectNode = function(node) {
-        this.isDirty=true;
-        if (node.selected) {
-            var index = this.nodes.indexOf(this.selectedNodes[node.id]);
-            if (index > -1) {
-                this.nodes.splice(index, 1);
-            }
-            node.selectionChanged(false);
-            delete this.selectedNodes[node.id];
-        }
-    };
-    this.selectLink = function(link) {
-        this.isDirty=true;
-        if (link) {
-            if(!_.has(this.selectedLinks, link.id)){
-                this.selectedLinks[link.id] = link;
-                this.links.push(link);
-                link.selectionChanged(true);
-            }
-        }
-    };
-    this.deselectLink = function(link) {
-        this.isDirty=true;
-        if (link.selected) {
-            var index = this.links.indexOf(this.selectedLinks[link.id]);
-            if (index > -1) {
-                this.links.splice(index, 1);
-            }
-            link.selectionChanged(false);
-            delete this.selectedLinks[link.id];
-        }
-    };
-
-    this.deselectAll = function() {
-        this.isDirty=true;
-        _.each(this.selectedNodes, function(node, id) {
-            node.selectionChanged(false);
-            // console.log("Deselect node " + id);
-        });
-        this.selectedNodes = {};
-        this.nodes=[];
-        _.each(this.selectedLinks, function(link, id) {
-            link.selectionChanged(false);
-            // console.log("Deselect link " + id);
-        });
-        this.selectedLinks = {};
-        this.links=[];
-    };
-
-    this.handleMouseUp = function(e) {
-        this.isDirty=true;
-        var mouseEvent = e.data.originalEvent;
-        if (this.recentlySelected) {
-            var n = this.recentlySelected; // could be a node or a link
-            if (mouseEvent.ctrlKey || mouseEvent.shiftKey) {
-                // multi-selecting
-                let container = n.isLink ? this.selectedLinks : this.selectedNodes;
-                if (n.isLink) {
-                    if (n.selected) {
-                        this.deselectLink(n);
+    this.handleMouseUp = function (e) {
+        this.isDirty = true;
+        const mouseEvent = e.data.originalEvent;
+        if (this.nodeContainer.recentlySelected) {
+            const node = this.nodeContainer.recentlySelected;
+            if (mouseEvent.ctrlKey) {
+                if (node.selected) {   // multi-selecting
+                    if (node.hadSelected) { // ctrl 已经选择的取消选择
+                        this.nodeContainer.deselectNode(node);
                     } else {
-                        this.selectLink(n);
+                        this.nodeContainer.selectNode(node);
                     }
                 } else {
-                    if (n.selected) {
-                        this.deselectNode(n);
-                    } else {
-                        this.selectNode(n);
-                    }
+                    this.nodeContainer.deselectNode(node);
                 }
             } else {
-                //console.log(this.dragJustNow);
-                if(!this.dragJustNow){
+                if (!this.nodeContainer.dragJustNow) {
                     this.deselectAll();
-                }else{
-                    this.dragJustNow=false;
-                }
-                if (n.isLink) {
-                    this.selectLink(n);
                 } else {
-                    this.selectNode(n);
+                    this.nodeContainer.dragJustNow = false;
                 }
+                this.nodeContainer.selectNode(node);
             }
-            this.recentlySelected = null;
+            this.nodeContainer.recentlySelected = null;
+        } else if (this.linkContainer.recentlySelected) {
+            const line = this.linkContainer.recentlySelected;
+            if (mouseEvent.ctrlKey) {
+                if (line.selected) {   // multi-selecting
+                    this.linkContainer.deselectLink(line);
+                } else {
+                    this.linkContainer.selectLink(line);
+                }
+            } else {
+                this.deselectAll();
+                this.linkContainer.selectLink(line);
+            }
+            this.linkContainer.recentlySelected = null;
         } else {
-            if(!this.parent.parent.selectRegion ){
+            // ?
+            if (!this.parent.selectRegion) {
                 this.deselectAll();
             }
         }
     };
-};
+}
