@@ -10,7 +10,6 @@ import LinkMergingGraph from './graph/LinkMergingGraph';
 import EntityMergingGraph from './graph/EntityMergingGraph';
 import RemoteGraph from './graph/RemoteGraph';
 import FinalGraph from './graph/FinalGraph';
-import elpModelApi from '../../../../../module/main/public/js/elpModelApi';
 import Utility from './Utility';
 import { search, cache, chart, analyticGraph } from '../../../../../api';
 import Command from './undoredo/Command';
@@ -633,7 +632,9 @@ export default class Chart extends EventEmitter {
                         links: result.addedLinks,
                     };
 
-                    const elpModels = elpModelApi.getElpModels();
+                    // get global elp model
+                    const elpModels = localStorage.globalElpModel ? JSON.parse(localStorage.globalElpModel) : { entities: [], links: [] };
+
                     const chartGraph = new Chart(chartMetadata, chartData, elpModels);
                     resolve({
                         chart: chartGraph,
