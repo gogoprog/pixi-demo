@@ -12,7 +12,7 @@ import LinkSearch from './search/LinkSearch';
 
 import Constant from './Constant';
 
-import TaskManager from '../../../../../module/main/public/js/TaskManager';
+import TaskManager from '../../../../../common/js/TaskManager';
 import { analyticGraph } from '../../../../../api';
 
 /**
