@@ -5,7 +5,6 @@ import LinkMergeFilter from './linkMerging/LinkMergeFilter';
 import Graph from './Graph';
 import Constant from '../Constant';
 import Chart from '../Chart';
-import elpModelApi from '../../../../../../module/main/public/js/elpModelApi';
 
 export default class LinkMergingGraph extends Graph {
     /**
@@ -286,11 +285,18 @@ export default class LinkMergingGraph extends Graph {
         this.computeLinkLabelVal(mergeLinkTypeMap, true);
     }
 
+    getLinkType(uuid) {
+        const elpModels = localStorage.globalElpModel ? JSON.parse(localStorage.globalElpModel) : { entities: [], links: [] };
+        return elpModels.links.find((e) => {
+            return e.uuid === uuid;
+        });
+    }
+
     // 记录图表中elp链接类型
     setElpLink(linkType) {
         let elpLink = this.elpData.elpLinks[linkType];
         if (!elpLink) {
-            elpLink = elpModelApi.getLinkType(linkType);
+            elpLink = this.getLinkType(linkType);
             this.elpData.elpLinks[linkType] = elpLink;
             return true;
         }
