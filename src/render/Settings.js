@@ -42,8 +42,6 @@ export default class Settings {
         visConfig.controlTexture = PIXI.Texture.fromImage(controlIconUrl);
         visConfig.arrowTexture = PIXI.Texture.fromImage('/static/256/other/Arrow.png');
 
-        visConfig.allentities = PIXI.Texture.fromImage('/static/256/allentities.png');
-
         visConfig = Object.assign({}, visConfig);
         this.visualConfig = visConfig;
     }
@@ -53,9 +51,40 @@ export default class Settings {
 
         const loader = new PIXI.loaders.Loader();
         loader.add('fontXML', '/static/font/noto.fnt');
+        loader.add('allEntities', '/static/256/allentities.json');
         loader.load((loader, resources) => {
+            loader.reset();
+
             visConfig.font = resources.fontXML.bitmapFont;
-            callback();
+
+            const allEntities  = resources.allEntities.data;
+            allEntities.forEach((entity, index) => {
+                loader.add(entity.url, `/static/256${entity.url}`);
+            });
+
+            loader.load((loader, resources) => {
+                const canvas = document.createElement("canvas");
+                const context = canvas.getContext("2d");
+                // the canvas size is 2048x2048, and icon size is 16 * 16
+                context.canvas.width  = 2048;
+                context.canvas.height = 2048;
+                context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+
+                const iconMap = {};
+                Object.keys(resources).forEach((resourceKey, index) => {
+                    iconMap[resourceKey] = index;
+
+                    const row = Math.floor(index / 16.0);
+                    const column = index - row * 16;
+                    context.drawImage(resources[resourceKey].data, column * 128, row * 128, 128, 128);
+                });
+
+
+                visConfig.iconMap = iconMap;
+                visConfig.allentities = PIXI.Texture.fromCanvas(canvas);
+
+                callback();
+            });
         });
     }
 }

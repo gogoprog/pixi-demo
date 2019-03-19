@@ -1,16 +1,12 @@
 import NodeRenderer from './NodeRenderer';
 import Bimap from '../Bimap';
 import { getBufferSize } from '../Utility';
-import allentities from 'static/256/allentities.json';
 
 export default class NodeContainer extends PIXI.Container {
     constructor(visualConfig) {
         super();
 
-        this.iconMap = allentities.reduce((map, entity) => {
-            map[entity.url] = entity.iconIndex;
-            return map;
-        }, {});
+        this.iconMap = visualConfig.iconMap;
 
         this.texture = visualConfig.allentities;
 
