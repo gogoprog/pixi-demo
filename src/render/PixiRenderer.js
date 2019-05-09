@@ -100,7 +100,7 @@ export default function (settings) {
     labelContainer.interactiveChildren = false;
     const selectRegionGraphics = new PIXI.Graphics();
     const lineGraphics = new PIXI.Graphics();
-    const linkContainer = new LinkContainer();
+    const linkContainer = new LinkContainer(visualConfig);
     const iconContainer = new PIXI.Container();
     iconContainer.interactive = false;
     iconContainer.interactiveChildren = false;
