@@ -328,8 +328,8 @@ export default class CommandManager {
                     const originalGraph = Object.assign({}, graph);
 
                     if ((graph.entityIds && graph.entityIds.length > 0) || (graph.linkIds && graph.linkIds.length > 0)) {
-                        entityIds = graph.entityIds;
-                        linkIds = graph.linkIds;
+                        entityIds = graph.entityIds || [];
+                        linkIds = graph.linkIds || [];
                     } else {
                         entityIds = Object.keys(this.graphForRender.getEntities());
                         linkIds = Object.keys(this.graphForRender.getLinks());
