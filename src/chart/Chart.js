@@ -640,6 +640,7 @@ export default class Chart extends EventEmitter {
                         chart: chartGraph,
                         changed,
                         onlyViewCaseChart,
+                        isTemporary: data.temporary || false
                     });
                 } else {
                     reject(response.body.message || '');
@@ -662,6 +663,7 @@ export default class Chart extends EventEmitter {
             thumbnail: '',
             layout: metaData.getLayout(),
             category: metaData.getCategory(),
+            caseId: metaData.getCaseId(),
             needEntityMerge: needEntityMerge,
             needLinkMerge: needLinkMerge,
             operation: operation,
@@ -1552,6 +1554,7 @@ export default class Chart extends EventEmitter {
 
     setCaseId(caseId) {
         console.info(`Current chart belongs to case:${caseId}`);
+        this.chartMetadata.setCategory('CaseGraph');
         this.chartMetadata.setCaseId(caseId);
     }
 
