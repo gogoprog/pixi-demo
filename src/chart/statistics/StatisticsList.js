@@ -1,4 +1,5 @@
 import Utility from '../Utility';
+import Constant from '../Constant';
 
 class StatisticsData {
     constructor(id, type) {
@@ -105,7 +106,7 @@ export default class StatisticsList {
                     columns.linkLabel = link.label;
                     break;
                 case 'linkDate':
-                    columns.linkDate = linkProperties._$linkDate;
+                    columns.linkDate = link.properties[Constant.PROP_MERGE] ? linkProperties[Constant.PROP_LINKDATE] : linkProperties[Constant.PROP_BEGINTIME];
                     break;
                 case 'linkValue':
                     columns.linkValue = Utility.convertToNumWithThousandSeparator(link.label); // linkProperties['_$linkValue'];
@@ -177,7 +178,7 @@ export default class StatisticsList {
                     columns.linkLabel = link.label;
                     break;
                 case 'linkDate':
-                    columns.linkDate = linkProperties._$linkDate;
+                    columns.linkDate = link.properties[Constant.PROP_MERGE] ? linkProperties[Constant.PROP_LINKDATE] : linkProperties[Constant.PROP_BEGINTIME];
                     break;
                 case 'linkValue':
                     columns.linkValue = linkProperties._$linkValue;

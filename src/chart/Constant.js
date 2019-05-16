@@ -16,6 +16,7 @@ export default {
     PROP_CENTRIALITY: '_$centriality',
     PROP_DATE: '_$date',
     PROP_LINKDATE: '_$linkDate',
+    PROP_BEGINTIME: '开始时间',
     PROP_MERGE: '_$merge',
     ENTITY_MERGE_UPDATE_LINK: '_$update_link',
     MERGE_TIMES_PROP_NAME: '_$times',
