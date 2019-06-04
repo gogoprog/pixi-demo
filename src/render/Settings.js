@@ -62,6 +62,14 @@ export default class Settings {
                 loader.add(entity.url, `/static/256${entity.url}`);
             });
 
+            loader.pre((resource, next) => {
+                if (PIXI.utils.TextureCache[resource.name]) {
+                    resource.data = PIXI.utils.TextureCache[resource.name].baseTexture.source;
+                    resource.complete();
+                }
+                next();
+            });
+
             loader.load((loader, resources) => {
                 const canvas = document.createElement("canvas");
                 const context = canvas.getContext("2d");
