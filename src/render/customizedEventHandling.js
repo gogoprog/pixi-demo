@@ -39,6 +39,18 @@ export const zoom = function (x, y, isZoomIn, contentRoot) {
     }
 };
 
+
+// 右键点击事件处理, 被调用时this被绑定到stage
+export const rootRightupHandler = function (e) {
+    if (!this.interactive || this.hasNodeCaptured) {
+        return;
+    }
+
+    const newPosition = e.data.global;
+    let tnp = this.contentRoot.worldTransform.applyInverse(newPosition);
+    this.rightSelectHandler(e, tnp.x, tnp.y);
+};
+
 // 被调用时this被绑定到stage
 export const rootCaptureHandler = function (e) {
     if (!this.interactive || this.hasNodeCaptured) {

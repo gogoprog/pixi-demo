@@ -22,7 +22,7 @@ import PersonRelationshipLayout from "./layout/PersonRelationshipLayout/PersonRe
 import Graph from './Graph';
 
 import SelectionManager from './SelectionManager';
-import { zoom, rootCaptureHandler, nodeCaptureListener } from './customizedEventHandling';
+import { zoom, rootCaptureHandler, nodeCaptureListener, rootRightupHandler } from './customizedEventHandling';
 
 import SimpleLineSprite from './sprite/SimpleLineSprite';
 import SimpleNodeSprite from './sprite/SimpleNodeSprite';
@@ -146,7 +146,7 @@ export default function (settings) {
         selectionChanged();
     });
 
-    root.on('rightup', contextmenuListener);
+    // root.on('rightup', contextmenuListener);
 
     nodeContainer.on('nodeCaptured', (node) => {
         stage.hasNodeCaptured = true;
@@ -271,6 +271,79 @@ export default function (settings) {
         });
     };
 
+    /**
+     * {x0, y0} rightup click point
+     * @param {*} x0
+     * @param {*} y0
+     */
+    stage.rightSelectHandler = function (e, x0, y0) {
+        if (!isInteractiveLayout()) {
+            // 不可交互的布局，直接返回
+            return;
+        }
+
+        isDirty = true;
+
+        let detectedNode = null;
+        let detectedLink = null;
+
+        if( e.target instanceof SimpleNodeSprite) {
+            // console.log('Right up on node');
+            if (!e.target.selected) {
+                nodeContainer.selectNode(e.target);
+            }
+            selectionChanged();
+            detectedNode = e.target;
+        } else {
+            const xl = x0 - 1;
+            const xr = x0 + 1;
+            const yt = y0 - 1;
+            const yb = y0 + 1;
+            const rectBox = {xl, xr, yt, yb};   // {x0, y0} as a center point to construct a rectangle
+
+
+            for (const linkId in linkSprites)
+            {
+                const link = linkSprites[linkId];
+
+                let detectFlag = pixiGraphics.detectLinkSelect(link, rectBox);
+                // 判断是否点击在链接箭头上
+                if (!detectFlag) {
+                    const height = 3.2 * link.thickness;
+                    const width = 9.6 * link.thickness;
+
+                    let leftTopX = link.perpendicularVector[0] * height + link.midX;
+                    let leftTopY = link.perpendicularVector[1] * height + link.midY;
+                    let leftBottomX = -link.perpendicularVector[0] * height + link.midX;
+                    let leftBottomY = -link.perpendicularVector[1] * height + link.midY;
+                    let rightX = link.unitVector[0] * width + link.midX;
+                    let rightY = link.unitVector[1] * width + link.midY;
+
+                    detectFlag = pixiGraphics.isPointInTriangle(x0, y0, leftTopX, leftTopY, leftBottomX, leftBottomY, rightX, rightY);
+                }
+
+                if (detectFlag) {
+                    // linkContainer.linkSelected(link);
+                    linkContainer.selectLink(link);
+                    selectionChanged();
+                    detectedLink = link;
+                    break;
+                }
+            }
+        }
+
+        let event = {};
+        if (detectedNode) {
+            event = { type: 'node', original: e , target: e.target.data };
+        } else if (detectedLink) {
+            event = { type: 'link' , original: e, target: detectedLink.data};
+        } else {
+            event = { type: 'blank', original: e , target: null};
+        }
+
+        fireContextmenu(event);
+    };
+
     function isInteractiveLayout() {
         return layoutType !== 'FamilyLayout' && layoutType !== 'PersonRelationshipStructural' && layoutType !== 'Person2Person';
     }
@@ -307,6 +380,10 @@ export default function (settings) {
     if (!stage.downListener) {
         stage.downListener = rootCaptureHandler.bind(stage);
         stage.on('mousedown', stage.downListener);
+    }
+    if (!stage.rightupListener) {
+        stage.rightupListener = rootRightupHandler.bind(stage);
+        stage.on('rightup', stage.rightupListener);
     }
 
     const timelineLayout = new TimelineLayout(nodeSprites, nodeContainer, linkSprites, lineGraphics, visualConfig, stage, layoutType, settings);
@@ -1653,56 +1730,56 @@ export default function (settings) {
      * PIXI will handle the detection of which one is hit and put it in the target property of event;
      * @param e
      */
-    function contextmenuListener(e) {
-
-        if( e.target instanceof SimpleNodeSprite) {
-            // console.log('Right up on node');
-            if(!e.target.selected) {
-                nodeContainer.selectNode(e.target);
-            }
-            selectionChanged();
-        } else if( e.target instanceof PIXI.Sprite) {
-            // console.log('rightup on link label');
-            const lineSprite = e.target.lineSprite;
-            if(!lineSprite.selected) {
-                linkContainer.selectLink(lineSprite);
-            }
-            selectionChanged();
-        }
-
-        let mouseOnSelectedNode = false;
-        let mouseOnSelectedLink = false;
-        const selectedNodes = pixiGraphics.getSelectedNodes();
-        const selectedLinks = pixiGraphics.getSelectedLinks();
-        let event = {};
-        if (!selectedNodes.length && !selectedLinks.length) {
-            event = { type: 'blank', original: e , target: null};
-        } else {
-            for (const nodeSprite of selectedNodes) {
-                if (nodeSprite === e.target) {
-                    mouseOnSelectedNode = true;
-                    break;
-                }
-            }
-            if (mouseOnSelectedNode) {
-                event = { type: 'node', original: e , target: e.target.data };
-            } else {
-                for (const linkSprite of selectedLinks) {
-                    // if (linkSprite.arrow === e.target || linkSprite.label === e.target) {
-                    if (linkSprite.label === e.target) {
-                        mouseOnSelectedLink = true;
-                        break;
-                    }
-                }
-                if (mouseOnSelectedLink) {
-                    event = { type: 'link', original: e , target: e.target.lineSprite.data};
-                } else {
-                    event = { type: 'blank', original: e, target: null};
-                }
-            }
-        }
-        fireContextmenu(event);
-    }
+    // function contextmenuListener(e) {
+    //
+    //     if( e.target instanceof SimpleNodeSprite) {
+    //         // console.log('Right up on node');
+    //         if(!e.target.selected) {
+    //             nodeContainer.selectNode(e.target);
+    //         }
+    //         selectionChanged();
+    //     } else if( e.target instanceof PIXI.Sprite) {
+    //         // console.log('rightup on link label');
+    //         const lineSprite = e.target.lineSprite;
+    //         if(!lineSprite.selected) {
+    //             linkContainer.selectLink(lineSprite);
+    //         }
+    //         selectionChanged();
+    //     }
+    //
+    //     let mouseOnSelectedNode = false;
+    //     let mouseOnSelectedLink = false;
+    //     const selectedNodes = pixiGraphics.getSelectedNodes();
+    //     const selectedLinks = pixiGraphics.getSelectedLinks();
+    //     let event = {};
+    //     if (!selectedNodes.length && !selectedLinks.length) {
+    //         event = { type: 'blank', original: e , target: null};
+    //     } else {
+    //         for (const nodeSprite of selectedNodes) {
+    //             if (nodeSprite === e.target) {
+    //                 mouseOnSelectedNode = true;
+    //                 break;
+    //             }
+    //         }
+    //         if (mouseOnSelectedNode) {
+    //             event = { type: 'node', original: e , target: e.target.data };
+    //         } else {
+    //             for (const linkSprite of selectedLinks) {
+    //                 // if (linkSprite.arrow === e.target || linkSprite.label === e.target) {
+    //                 if (linkSprite.label === e.target) {
+    //                     mouseOnSelectedLink = true;
+    //                     break;
+    //                 }
+    //             }
+    //             if (mouseOnSelectedLink) {
+    //                 event = { type: 'link', original: e , target: e.target.lineSprite.data};
+    //             } else {
+    //                 event = { type: 'blank', original: e, target: null};
+    //             }
+    //         }
+    //     }
+    //     fireContextmenu(event);
+    // }
 
     function fireContextmenu(event) {
         isDirty = true;
@@ -1889,7 +1966,7 @@ export default function (settings) {
         nodeSprites[p.id] = nodeSprite;
 
         nodeSprite.on('mousedown', nodeCaptureListener);
-        nodeSprite.on('rightup', contextmenuListener);
+        // nodeSprite.on('rightup', stage.rightSelectHandler);
     }
 
     function adjustControlOffsets(linkSpriteArray, arrangeOnBothSides, avoidZero) {
@@ -1958,9 +2035,9 @@ export default function (settings) {
         linkSprites[l.id] = l;
 
         if (l.label) {
-            l.label.interactive = true;
+            // l.label.interactive = true;
             labelContainer.addChild(l.label);
-            l.label.on('rightup', contextmenuListener);
+            // l.label.on('rightup', contextmenuListener);
         }
 
         linkContainer.addLink(l);
