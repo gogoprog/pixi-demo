@@ -113,28 +113,30 @@ export default class LinkContainer extends PIXI.Container {
 
             for (const id in this.linkSprites) {
                 const child = this.linkSprites[id];
-                if (child.selected) {
-                    this.lineGraphics.lineStyle(child.thickness, this.visualConfig.ui.line.highlight.color, 1);
-                } else {
-                    this.lineGraphics.lineStyle(child.thickness, child.color, 1);
-                }
-
-                this.lineGraphics.moveTo(child.familyLayoutPositionList[0].x, child.familyLayoutPositionList[0].y);
-                let lastx = child.familyLayoutPositionList[0].x;
-                let lasty = child.familyLayoutPositionList[0].y;
-                for (let i = 1; i < 6; i++) {
-                    if (child.familyLayoutPositionList[i].x === lastx && child.familyLayoutPositionList[i].y === lasty) {
-                        continue;
+                if (child && child.familyLayoutPositionList) {
+                    if (child.selected) {
+                        this.lineGraphics.lineStyle(child.thickness, this.visualConfig.ui.line.highlight.color, 1);
+                    } else {
+                        this.lineGraphics.lineStyle(child.thickness, child.color, 1);
                     }
-                    this.lineGraphics.lineTo(child.familyLayoutPositionList[i].x, child.familyLayoutPositionList[i].y);
-                    lastx = child.familyLayoutPositionList[i].x;
-                    lasty = child.familyLayoutPositionList[i].y;
-                }
 
-                // this.lineGraphics.moveTo(child.x1, child.y1);
-                // this.lineGraphics.lineTo(child.fx, child.fy);
-                // this.lineGraphics.lineTo(child.tx, child.ty);
-                // this.lineGraphics.lineTo(child.x2, child.y2);
+                    this.lineGraphics.moveTo(child.familyLayoutPositionList[0].x, child.familyLayoutPositionList[0].y);
+                    let lastx = child.familyLayoutPositionList[0].x;
+                    let lasty = child.familyLayoutPositionList[0].y;
+                    for (let i = 1; i < 6; i++) {
+                        if (child.familyLayoutPositionList[i].x === lastx && child.familyLayoutPositionList[i].y === lasty) {
+                            continue;
+                        }
+                        this.lineGraphics.lineTo(child.familyLayoutPositionList[i].x, child.familyLayoutPositionList[i].y);
+                        lastx = child.familyLayoutPositionList[i].x;
+                        lasty = child.familyLayoutPositionList[i].y;
+                    }
+
+                    // this.lineGraphics.moveTo(child.x1, child.y1);
+                    // this.lineGraphics.lineTo(child.fx, child.fy);
+                    // this.lineGraphics.lineTo(child.tx, child.ty);
+                    // this.lineGraphics.lineTo(child.x2, child.y2);
+                }
             }
         }
     }
