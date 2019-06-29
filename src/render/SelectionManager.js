@@ -48,8 +48,8 @@ export default function SelectionManager(nodeContainer, linkContainer) {
             }
             this.linkContainer.recentlySelected = null;
         } else {
-            // ?
-            if (!this.parent.selectRegion) {
+            // 非ctrl键时，取消选中
+            if (!this.parent.selectRegion && !mouseEvent.ctrlKey) {
                 this.deselectAll();
             }
         }
