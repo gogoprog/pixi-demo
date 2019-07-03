@@ -282,7 +282,7 @@ StandardFamilyTreeLayout.prototype.computeTreePositionInLevel = function (xAxisL
         lowerLevel = levelMap.get(idxOfThisLevel + 1);
     }
     // 节点之间最小间距
-    let minGapInit = this.NODE_WIDTH * 1.5;
+    let minGapInit = this.NODE_WIDTH * 2;
 
     // 遍历本层所有子树
     for (const childTree of thisLevel.getChildTreeMap().values()) {
