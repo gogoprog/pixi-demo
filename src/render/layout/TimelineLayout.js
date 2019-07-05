@@ -242,6 +242,19 @@ export default class TimelineLayout {
         })
     }
 
+
+    getNodePosition(nodeId) {
+        const node = this.nodeSprites[nodeId];
+        if (node) {
+            return node.position;
+        } else {
+            return {
+                x: 0,
+                y: 0
+            }
+        }
+    };
+
     setNodePosition(id, x, y) {
         // ignored.
     }
