@@ -1917,7 +1917,7 @@ export default function (settings) {
     function initNode(p) {
         let iconUrl;
         // 在专题分析时，男性用男的图标表示，女性用女的图标表示
-        if (layoutType === 'FamilyLayout' || layoutType === 'PersonRelationshipStructural' || layoutType === 'Person2Person') {
+        if (layoutType === 'FamilyLayout' || layoutType === 'PersonRelationshipStructural' || layoutType === 'Person2Person' || visualConfig.showIconBasedOnGender) {
             if (p.data.properties['性别']) {
                 if (p.data.properties['性别'] === '男') {
                     iconUrl = "/Person/Man.png";
