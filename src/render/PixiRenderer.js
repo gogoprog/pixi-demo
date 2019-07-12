@@ -346,7 +346,7 @@ export default function (settings) {
     };
 
     function isInteractiveLayout() {
-        return layoutType !== 'FamilyLayout' && layoutType !== 'PersonRelationshipStructural' && layoutType !== 'Person2Person';
+        return layoutType !== 'FamilyLayout' && layoutType !== 'SimpleFamilyLayout' && layoutType !== 'PersonRelationshipStructural' && layoutType !== 'Person2Person';
     }
 
     /**
@@ -1040,6 +1040,7 @@ export default function (settings) {
                 && layoutType !== 'BrokenLineLayered'
                 && layoutType !== 'Person2Person'
                 && layoutType !== 'FamilyLayout'
+                && layoutType !== 'SimpleFamilyLayout'
                 && layoutType !== 'Radiate'
                 && layoutType !== 'TimelineScale') {
                 layoutType = 'Network';
@@ -1125,6 +1126,8 @@ export default function (settings) {
                 this.drawRadiateLayout(disableAnimation, init);
             } else if (layoutType === 'FamilyLayout') {
                 this.drawFamilyLayout(disableAnimation, init);
+            } else if (layoutType === 'SimpleFamilyLayout') {
+                this.drawSimpleFamilyLayout(disableAnimation, init);
             } else if (layoutType === 'TimelineScale') {
                 layout = timelineLayout;
                 layout.drawTimelineLayout();
@@ -1923,7 +1926,7 @@ export default function (settings) {
     function initNode(p) {
         let iconUrl;
         // 在专题分析时，男性用男的图标表示，女性用女的图标表示
-        if (layoutType === 'FamilyLayout' || layoutType === 'PersonRelationshipStructural' || layoutType === 'Person2Person' || visualConfig.showIconBasedOnGender) {
+        if (layoutType === 'FamilyLayout' || layoutType === 'SimpleFamilyLayout' || layoutType === 'PersonRelationshipStructural' || layoutType === 'Person2Person' || visualConfig.showIconBasedOnGender) {
             if (p.data.properties['性别']) {
                 if (p.data.properties['性别'] === '男') {
                     iconUrl = "/Person/Man.png";
