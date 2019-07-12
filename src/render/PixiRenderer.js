@@ -6,6 +6,7 @@ import LayeredLayout from './layout/LayeredLayout';
 import LayeredLayoutNew from './layout/newLayeredLayout/LayeredLayoutNew';
 import FamilyLayout from './layout/newLayeredLayout/FamilyLayout/FamilyLayout'
 import StandardFamilyTreeLayout from './layout/newLayeredLayout/StandardFamilyTreeLayout/StandardFamilyTreeLayout'
+import SimpleFamilyLayout from './layout/newLayeredLayout/SimpleFamilyLayout/SimpleFamilyLayout'
 import CircleLayout from './layout/CircleLayout';
 import StructuralLayout from './layout/StructuralLayout/StructuralLayout';
 import RadiateLayout from './layout/RadiateLayout';
@@ -586,6 +587,11 @@ export default function (settings) {
         drawFamilyLayout(disableAnimation, init) {
             layout = new StandardFamilyTreeLayout(nodeSprites, nodeContainer, visualConfig, init);
             linkContainer.mode = 'pixi';
+            this.setNodesToFullScreen(disableAnimation);
+        },
+
+        drawSimpleFamilyLayout(disableAnimation, init) {
+            layout = new SimpleFamilyLayout(nodeSprites, nodeContainer, visualConfig, init);
             this.setNodesToFullScreen(disableAnimation);
         },
 
