@@ -18,6 +18,7 @@ export default {
     PROP_LINKDATE: '_$linkDate',
     PROP_BEGINTIME: '开始时间',
     PROP_MERGE: '_$merge',
+    PROP_ORIGIN: '_$origin', // 来源: 来自手工作图时值为: "manual", 来自于图库时值为: "graphdb"
     ENTITY_MERGE_UPDATE_LINK: '_$update_link',
     MERGE_TIMES_PROP_NAME: '_$times',
     HIDE_LABEL: '_$hideLabel', // 隐藏标签

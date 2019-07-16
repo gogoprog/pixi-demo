@@ -665,6 +665,10 @@ export default function (settings) {
             return getMyBounds.call(root);
         },
 
+        getPositionInCanvas(position) {
+            return this.root.worldTransform.applyInverse(position);
+        },
+
         calculateRootPosition(scaleFactor) {
             isDirty = true;
             const root = this.root;
