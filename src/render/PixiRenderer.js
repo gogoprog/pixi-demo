@@ -100,6 +100,7 @@ export default function (settings) {
     labelContainer.interactive = false;
     labelContainer.interactiveChildren = false;
     const selectRegionGraphics = new PIXI.Graphics();
+    const connectLineGraphics = new PIXI.Graphics();
     const lineGraphics = new PIXI.Graphics();
     const linkContainer = new LinkContainer(visualConfig);
     const iconContainer = new PIXI.Container();
@@ -112,9 +113,11 @@ export default function (settings) {
     root.parent = stage;
     stage.addChild(root);
     stage.addChild(selectRegionGraphics);
+    stage.addChild(connectLineGraphics);
 
     lineGraphics.zIndex = 6;
     selectRegionGraphics.zIndex = 11;
+    connectLineGraphics.zIndex = 11;
     textContainer.zIndex = 15;
     nodeContainer.zIndex = 20;
 
@@ -182,6 +185,25 @@ export default function (settings) {
         });
     };
 
+    stage.releaseConnectLine = function(oldPosition, newPosition) {
+        let startNode = null;
+        let endNode = null;
+        _.each(nodeSprites, (n) => {
+            const size = 128 * n.scale.x;
+
+            if (oldPosition.x > n.x - size && oldPosition.x < n.x + size && oldPosition.y > n.y - size && oldPosition.y < n.y + size) {
+                startNode = n;
+            }
+
+            if (newPosition.x > n.x - size && newPosition.x < n.x + size && newPosition.y > n.y - size && newPosition.y < n.y + size) {
+                endNode = n;
+            }
+        });
+        if (startNode && endNode && startNode.id !== endNode.id) {
+            pixiGraphics.fire('connect-line', startNode.data, endNode.data);
+        }
+    };
+
     stage.selectAllNodesInRegion = function (x1, y1, x2, y2, flag, onlyNodeFlag) {
         if (!isInteractiveLayout()) {
             // 不可交互的布局，直接返回
@@ -228,6 +250,20 @@ export default function (settings) {
             if (detectFlag) {
                 linkContainer.selectLink(link);
             }
+        });
+    };
+
+    /**
+     * {x0, y0} click point
+     * @param {*} x0
+     * @param {*} y0
+     */
+    stage.selectSingleNode = function (x0, y0) {
+        isDirty = true;
+
+        _.each(nodeSprites, (n) => {
+            const size = 128 * n.scale.x;
+            console.log(`size: ${size}`);
         });
     };
 
@@ -450,38 +486,49 @@ export default function (settings) {
          * Allow switching between picking and panning modes;
          */
         setMode(newMode) {
-            if (this.mode === newMode) {
-                return;
+            if (this.mode !== newMode) {
+                if (newMode === 'picking') {
+                    this.mode = 'picking';
+                    stage.buttonMode = false;
+                    stage.mode = this.mode;
+                    root.interactive = true;
+                    root.interactiveChildren = true;
+                } else if (newMode === 'panning'){
+                    this.mode = 'panning';
+                    stage.buttonMode = true;
+                    stage.mode = this.mode;
+                    root.interactiveChildren = false;
+                    root.interactive = false;
+                } else if (newMode === 'connecting') {
+                    this.mode = 'connecting';
+                    stage.buttonMode = true;
+                    stage.mode = this.mode;
+                    root.interactiveChildren = false;
+                    root.interactive = false;
+                }
             }
-            if (this.mode === 'panning') {
-                this.mode = 'picking';
-                stage.mode = this.mode;
-                root.interactive = true;
-                root.interactiveChildren = true;
-                stage.buttonMode = false;
-            } else {
-                this.mode = 'panning';
-                stage.buttonMode = true;
-                stage.mode = this.mode;
-                root.interactiveChildren = false;
-                root.interactive = false;
-            }
+
+            return this.mode;
         },
 
         toggleMode() {
-            if (this.mode === 'panning') {
-                this.setMode('picking');
+            if (this.mode === 'panning' || this.mode === 'connecting') {
+                return this.setMode('picking');
             } else {
-                this.setMode('panning');
+                return this.setMode('panning');
             }
         },
 
         pickingMode() {
-            this.setMode('picking');
+            return this.setMode('picking');
         },
 
         panningMode() {
-            this.setMode('panning');
+            return this.setMode('panning');
+        },
+
+        connectingMode() {
+            return this.setMode('connecting');
         },
 
         /**
@@ -1002,7 +1049,7 @@ export default function (settings) {
             destroyed = true;
             isDirty = false;
             document.removeEventListener('mousedown', this._mouseDownListener);
-            canvas.removeEventListener('mousewheel', this._zoomActionListener);
+            // canvas.removeEventListener('mousewheel', this._zoomActionListener);
             graph.off('changed', onGraphChanged);
             animationAgent.destroy();
             _.each(nodeSprites, (ns) => {
@@ -1021,6 +1068,7 @@ export default function (settings) {
             counter.destroy();
 
             selectRegionGraphics.destroy(false);
+            connectLineGraphics.destroy(false);
             lineGraphics.destroy(false);
             textContainer.destroy(false);
             linkContainer.destroy(false);
@@ -1859,6 +1907,11 @@ export default function (settings) {
                 drawSelectionRegion();
             }
 
+            connectLineGraphics.clear();
+            if (stage.connectLine && stage.connectingLine) {
+                drawConnectionLine();
+            }
+
             if(showDebugMarkup) {
                 drawDebugMarkup();
             }
@@ -2343,6 +2396,14 @@ export default function (settings) {
         } else {
             selectRegionGraphics.isDirty = false;
         }
+    }
+
+    function drawConnectionLine() {
+        const frameCfg = visualConfig.ui.frame;
+        connectLineGraphics.lineStyle(frameCfg.border.width, frameCfg.border.color, frameCfg.border.alpha);
+        connectLineGraphics.beginFill(frameCfg.fill.color, frameCfg.fill.alpha);
+        connectLineGraphics.moveTo(stage.connectLine.x1, stage.connectLine.y1);
+        connectLineGraphics.lineTo(stage.connectLine.x2, stage.connectLine.y2);
     }
 
     function drawDebugMarkup(){

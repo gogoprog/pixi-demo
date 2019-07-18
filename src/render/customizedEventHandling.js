@@ -59,22 +59,19 @@ export const rootCaptureHandler = function (e) {
     this.isDirty = true;
     this.data = e.data;
 
+    this.mouseLocation = {
+        x: e.data.global.x,
+        y: e.data.global.y,
+    };
     if (this.mode === 'panning') {
-        this.mouseLocation = {
-            x: e.data.global.x,
-            y: e.data.global.y,
-        };
-        // console.log('Root captured @' + JSON.stringify(this.mouseLocation));
         this.dragging = true;
-    } else {
-        this.mouseLocation = {
-            x: e.data.global.x,
-            y: e.data.global.y,
-        };
+    } else if (this.mode === 'picking') {
         this.selectingArea = true;
 
         let tnp = this.contentRoot.worldTransform.applyInverse(this.mouseLocation);
         this.selectSingleLink(tnp.x, tnp.y);
+    } else if (this.mode === 'connecting') {
+        this.connectingLine = true;
     }
     if (!this.moveListener) {
         this.moveListener = rootMoveHandler.bind(this);
@@ -96,6 +93,16 @@ const rootReleaseHandler = function (e) {
     this.upListener = null;
     this.selectingArea = false;
     this.selectRegion = null;
+
+    if (this.connectingLine && this.connectLine) {
+        const oldPosition = this.contentRoot.worldTransform.applyInverse({ x: this.connectLine.x1, y: this.connectLine.y1 });
+        const newPosition = this.contentRoot.worldTransform.applyInverse({ x: this.connectLine.x2, y: this.connectLine.y2 });
+
+        this.releaseConnectLine(oldPosition, newPosition);
+    }
+    this.connectingLine = false;
+    this.connectLine = null;
+
     if (this.isTimelineLayout) {
         this.contentRootMoved();
     }
@@ -142,6 +149,16 @@ const rootMoveHandler = function (e) {
             }
             this.selectAllNodesInRegion(top.x, top.y, tnp.x, tnp.y, flag, onlyNodeFlag);
         }
+    } else if (this.connectingLine) {
+        if (Math.abs(dx) > 5 && Math.abs(dy) > 5) {
+            this.connectLine = {
+                x1: oldPosition.x,
+                y1: oldPosition.y,
+                x2: newPosition.x,
+                y2: newPosition.y,
+            };
+        }
+        this.isDirty = true;
     }
 };
 
