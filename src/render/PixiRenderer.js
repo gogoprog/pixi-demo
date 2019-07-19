@@ -39,7 +39,7 @@ export default function (settings) {
     let isDirty = true;
     let graphType = { entityTypes: [], linkTypes: [] };
     let graph = Graph();
-    const mode = settings.mode;
+
     // Where do we render our graph?
     if (typeof settings.container === 'undefined') {
         settings.container = document.body;
@@ -134,6 +134,9 @@ export default function (settings) {
     stage.hitArea = new PIXI.Rectangle(0, 0, viewWidth, viewHeight);
     stage.width = viewWidth;
     stage.height = viewHeight;
+
+    const mode = settings.mode;
+    stage.mode = mode;
 
     // TODO here set the canvas as 20000*20000
     root.hitArea = new PIXI.Rectangle(-1000000, -1000000, 2000000, 2000000);
