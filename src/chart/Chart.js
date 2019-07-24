@@ -542,6 +542,10 @@ export default class Chart extends EventEmitter {
         this.finalGraph.updateEntityProperties(entityData);
     }
 
+    updateLinkData(linkData) {
+        this.finalGraph.updateLinkProperties(linkData);
+    }
+
     /**
      * 创建临时图表
      * @param chartId
