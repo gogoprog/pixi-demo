@@ -494,20 +494,27 @@ export default function (settings) {
                     this.mode = 'picking';
                     stage.buttonMode = false;
                     stage.mode = this.mode;
-                    root.interactive = true;
                     root.interactiveChildren = true;
+                    root.interactive = true;
+                    root.cursor = 'default';
                 } else if (newMode === 'panning'){
                     this.mode = 'panning';
                     stage.buttonMode = true;
                     stage.mode = this.mode;
+                    stage.interactive = true;
+                    stage.cursor = 'grab';
                     root.interactiveChildren = false;
-                    root.interactive = false;
+                    root.interactive = true;
+                    root.cursor = 'grab';
                 } else if (newMode === 'connecting') {
                     this.mode = 'connecting';
                     stage.buttonMode = true;
                     stage.mode = this.mode;
+                    stage.interactive = true;
+                    stage.cursor = 'crosshair';
                     root.interactiveChildren = false;
-                    root.interactive = false;
+                    root.interactive = true;
+                    root.cursor = 'crosshair';
                 }
             }
 
