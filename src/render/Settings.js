@@ -19,7 +19,6 @@ export default class Settings {
 
         visConfig.defaultIcon = PIXI.Texture.fromImage('/static/256/other/Unknown.png');
 
-
         const graphCollIcons = visConfig.graphCollIcons || [];
         for (let i = 0; i < 10; i++) {
             const iconUrl = `/static/256/GraphColl/graph_coll${i + 1}.png`;
@@ -27,6 +26,12 @@ export default class Settings {
             graphCollIcons.push(texture);
         }
         visConfig.graphCollIcons = graphCollIcons;
+
+        const remarkColors = ['ff0000', 'ff8000', 'f9ec1e', '13e013', '1ef2dc', '1a29f4', '8000ff', '999999',];
+        visConfig.remarkColors = remarkColors.reduce((result, color) => {
+            result[`#${color}`] = PIXI.Texture.fromImage(`/static/256/remark/${color}.png`);
+            return result;
+        }, {});
 
         const lockIconUrl = '/static/256/subscript/lock_state.png';
         const unknownIconUrl = '/static/256/subscript/unknown.png';

@@ -464,6 +464,24 @@ export default function Graph(source, options) {
                 });
                 graphPart.fire('lock', localChanges);
             });
+
+            entityGraphSource.on('remark', (changes) => {
+                let localChanges = [];
+                _.each(changes, (change) => {
+                    if (change.entity) {
+                        const node = self.getNode(change.entity.id);
+                        if (node) {
+                            localChanges.push({
+                                node: node,
+                                changeType: 'remark'
+                            });
+                        } else {
+                            console.warn('lock change for unknown node ', change);
+                        }
+                    }
+                });
+                graphPart.fire('remark', localChanges);
+            });
         },
     };
 

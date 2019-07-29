@@ -27,6 +27,8 @@ export default class Graph extends EventEmitter {
     static CHANGE_TYPE_CONTROL = 'control';
     static CHANGE_TYPE_TEXTURE = 'texture';
 
+    static CHANGE_TYPE_REMARK = 'remark';
+
     static CHANGE_TYPE_LOCK= 'lock';
 
     static ELP_CHANGE_EVENT = 'elp-changed';

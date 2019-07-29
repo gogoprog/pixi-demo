@@ -10,6 +10,7 @@ export default {
         'getViewData',
         'updateLabelStatus',
         'updateLabelsByType',
+        'updateEntityRemark',
     ],
 
     /**

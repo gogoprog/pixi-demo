@@ -2017,10 +2017,16 @@ export default function (settings) {
             nodeSprite.setNodeUnknownIcon();
         }
 
+        // 设置锁定图标
         if (p.data.properties._$lock) {
             nodeSprite.pinned = true;
             layout.pinNode(nodeSprite, true);
             nodeSprite.setNodeLockIcon();
+        }
+
+        // 设置备注图标
+        if (p.data.properties._$note_message) {
+            nodeSprite.setNodeRemarkIcon();
         }
 
         // 更新缩放
@@ -2128,6 +2134,7 @@ export default function (settings) {
         graph.on('control', onGraphControlUpdate);
         graph.on('texture', onGraphTextureUpdate);
         graph.on('lock', onGraphLockUpdate);
+        graph.on('remark', onGraphRemarkUpdate);
     }
 
     function decodeCollectionFlag(flag) {
@@ -2197,6 +2204,21 @@ export default function (settings) {
                     pixiGraphics.lock([nodeSprite]);
                 } else {
                     pixiGraphics.unlock([nodeSprite]);
+                }
+            }
+            // links is not need unknown
+        });
+        isDirty = true;
+    }
+
+    function onGraphRemarkUpdate(changes) {
+        _.each(changes, (c)=>{
+            if(c.node) {
+                const nodeSprite = nodeSprites[c.node.id];
+                if (nodeSprite.data.properties._$note_message) {
+                    nodeSprite.setNodeRemarkIcon();
+                } else {
+                    nodeSprite.removeNodeRemarkIcon();
                 }
             }
             // links is not need unknown

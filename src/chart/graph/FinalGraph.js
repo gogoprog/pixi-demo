@@ -446,6 +446,24 @@ export default class FinalGraph extends Graph {
     }
 
     /**
+     * 设置实体备注
+     */
+    updateEntityRemark(entityId, remarkParams) {
+        this.beginUpdate();
+        const currentEntity = this.getEntity(entityId);
+        if (remarkParams && remarkParams.message) {
+            currentEntity.properties[Constant.NOTE_MESSAGE] = remarkParams.message;
+            currentEntity.properties[Constant.NOTE_COLOR] = remarkParams.color;
+        } else {
+            delete currentEntity.properties[Constant.NOTE_MESSAGE];
+            delete currentEntity.properties[Constant.NOTE_COLOR];
+        }
+
+        this._recordEntityChange(currentEntity, Graph.CHANGE_TYPE_REMARK);
+        this.endUpdate(Graph.CHANGE_TYPE_REMARK);
+    }
+
+    /**
      * 更新实体属性
      * @param {} entity
      */

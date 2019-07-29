@@ -25,6 +25,8 @@ export default {
     CUSTOMIZED_LABEL: '_$customizedLabel', // 自定义标签
     COLLECTIONS: '_$collectionIds',
     NEED_TRANSMIT_PROPERTY: ['_$showBorder', '_$borderColor', '_$scale', '_$color', '_$thickness'],
+    NOTE_MESSAGE: '_$note_message',
+    NOTE_COLOR: '_$note_color',
 
     ENABLE_BACKEND_ANALYSIS: true,
     ENTITY_SWITCH_THRESHOLD: 300,

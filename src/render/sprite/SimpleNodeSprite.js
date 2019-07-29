@@ -1,3 +1,5 @@
+import Constant from "../../chart/Constant";
+
 const COLLECTION_SCALE_FACTOR = 0.5;
 export default class SimpleNodeSprite extends PIXI.Sprite {
     constructor(texture, node, visualConfig, iconContainer) {
@@ -408,6 +410,37 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     removeNodeUnknownIcon() {
         this.iconContainer.removeChild(this.unknownSprite);
         this.unknownSprite = null;
+    }
+
+    setNodeRemarkIcon() {
+        const nodeSprite = this;
+        if (!nodeSprite.remarkSprite) {
+            const message = this.data.properties[Constant.NOTE_MESSAGE];
+            const color = this.data.properties[Constant.NOTE_COLOR];
+            const remarkTexture = this.visualConfig.remarkColors[color];
+            const iconSprite = new PIXI.Sprite(remarkTexture);
+            iconSprite.anchor.x = 0.5;
+            iconSprite.anchor.y = 0.5;
+
+            const vizConf = this.visualConfig;
+            iconSprite.scale.set(0.5 * nodeSprite.scale.x / vizConf.factor, 0.5 * nodeSprite.scale.y / vizConf.factor);
+            this.iconContainer.addChild(iconSprite);
+            nodeSprite.remarkSprite = iconSprite;
+
+            const osArr = nodeSprite.os || [];
+            osArr.unshift(iconSprite);
+            nodeSprite.os = osArr;
+            this.relayoutNodeOtherIcon();
+        }
+    }
+
+    removeNodeRemarkIcon() {
+        if (this.os && this.remarkSprite) {
+            this.os.shift();
+            this.relayoutNodeOtherIcon();
+        }
+        this.iconContainer.removeChild(this.remarkSprite);
+        this.remarkSprite = null;
     }
 
     destroy() {
