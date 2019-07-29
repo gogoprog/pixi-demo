@@ -369,6 +369,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         if (!nodeSprite.ls) {
             const vizConf = this.visualConfig;
             const iconSprite = new PIXI.Sprite(this.visualConfig.lockIcon);
+            iconSprite.name = 'lockSprite';
             iconSprite.anchor.x = 0.5;
             iconSprite.anchor.y = 0.5;
             iconSprite.scale.set(0.5 * nodeSprite.scale.x / vizConf.factor, 0.5 * nodeSprite.scale.y / vizConf.factor);
@@ -384,8 +385,11 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
 
     removeNodeLockIcon() {
         if (this.os && this.ls) {
-            this.os.shift();
-            this.relayoutNodeOtherIcon();
+            const spriteIndex = this.os.findIndex(sprite => sprite.name === 'lockSprite');
+            if (spriteIndex >= 0) {
+                this.os.splice(spriteIndex, 1);
+                this.relayoutNodeOtherIcon();
+            }
         }
         this.iconContainer.removeChild(this.ls);
         this.ls = null;
@@ -415,10 +419,10 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     setNodeRemarkIcon() {
         const nodeSprite = this;
         if (!nodeSprite.remarkSprite) {
-            const message = this.data.properties[Constant.NOTE_MESSAGE];
             const color = this.data.properties[Constant.NOTE_COLOR];
             const remarkTexture = this.visualConfig.remarkColors[color];
             const iconSprite = new PIXI.Sprite(remarkTexture);
+            iconSprite.name = 'remarkSprite';
             iconSprite.anchor.x = 0.5;
             iconSprite.anchor.y = 0.5;
 
@@ -436,8 +440,11 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
 
     removeNodeRemarkIcon() {
         if (this.os && this.remarkSprite) {
-            this.os.shift();
-            this.relayoutNodeOtherIcon();
+            const spriteIndex = this.os.findIndex(sprite => sprite.name === 'remarkSprite');
+            if (spriteIndex >= 0) {
+                this.os.splice(spriteIndex, 1);
+                this.relayoutNodeOtherIcon();
+            }
         }
         this.iconContainer.removeChild(this.remarkSprite);
         this.remarkSprite = null;
@@ -455,6 +462,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         const nodeSprite = this;
         const iconTexture = this.visualConfig.multiIcon;
         const iconSprite = new PIXI.Sprite(iconTexture);
+        iconSprite.name = 'multipleSprite';
         iconSprite.anchor.x = 0.5;
         iconSprite.anchor.y = 0.5;
         iconSprite.scale.set(0.5 * nodeSprite.scale.x / vizConf.factor, 0.5 * nodeSprite.scale.y / vizConf.factor);
@@ -468,8 +476,11 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     }
     disableMultipleIcon() {
         if (this.os && this.ms) {
-            this.os.pop();
-            this.relayoutNodeOtherIcon();
+            const spriteIndex = this.os.findIndex(sprite => sprite.name === 'multipleSprite');
+            if (spriteIndex >= 0) {
+                this.os.splice(spriteIndex, 1);
+                this.relayoutNodeOtherIcon();
+            }
         }
         this.iconContainer.removeChild(this.ms);
         this.ms = null;
