@@ -418,24 +418,25 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
 
     setNodeRemarkIcon() {
         const nodeSprite = this;
-        if (!nodeSprite.remarkSprite) {
-            const color = this.data.properties[Constant.NOTE_COLOR];
-            const remarkTexture = this.visualConfig.remarkColors[color];
-            const iconSprite = new PIXI.Sprite(remarkTexture);
-            iconSprite.name = 'remarkSprite';
-            iconSprite.anchor.x = 0.5;
-            iconSprite.anchor.y = 0.5;
-
-            const vizConf = this.visualConfig;
-            iconSprite.scale.set(0.5 * nodeSprite.scale.x / vizConf.factor, 0.5 * nodeSprite.scale.y / vizConf.factor);
-            this.iconContainer.addChild(iconSprite);
-            nodeSprite.remarkSprite = iconSprite;
-
-            const osArr = nodeSprite.os || [];
-            osArr.unshift(iconSprite);
-            nodeSprite.os = osArr;
-            this.relayoutNodeOtherIcon();
+        if (nodeSprite.remarkSprite) {
+            this.removeNodeRemarkIcon();
         }
+
+        const color = this.data.properties[Constant.NOTE_COLOR];
+        const remarkTexture = this.visualConfig.remarkColors[color];
+        const iconSprite = new PIXI.Sprite(remarkTexture);
+        iconSprite.name = 'remarkSprite';
+        iconSprite.anchor.x = 0.5;
+        iconSprite.anchor.y = 0.5;
+        iconSprite.scale.set(0.5 * nodeSprite.scale.x / this.visualConfig.factor, 0.5 * nodeSprite.scale.y / this.visualConfig.factor);
+
+        this.iconContainer.addChild(iconSprite);
+        nodeSprite.remarkSprite = iconSprite;
+
+        const osArr = nodeSprite.os || [];
+        osArr.unshift(iconSprite);
+        nodeSprite.os = osArr;
+        this.relayoutNodeOtherIcon();
     }
 
     removeNodeRemarkIcon() {
