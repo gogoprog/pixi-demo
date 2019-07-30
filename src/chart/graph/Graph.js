@@ -248,22 +248,36 @@ export default class Graph extends EventEmitter {
      * @param {更新的实体} entity
      */
     updateEntityProperties(entity) {
-        if (!entity || !this.entities[entity.id]) {
+        const oldEntity = this.entities[entity.id];
+
+        if (!entity || !oldEntity) {
             console.error("entity can't be null or undefined, entity update must exists");
             return;
         }
+        // 如果要新增加的实体为手工做图的实体，则其属性不覆盖图表上现有的实体
+        if (entity.properties[Constant.PROP_ORIGIN] && entity.properties[Constant.PROP_ORIGIN] === 'manual') {
+            console.log("We won't override a entity using a manual entity");
+            return;
+        }
+
         this.enterModification();
-        const oldEntity = this.entities[entity.id];
         _.each(entity.properties, (value, key) => {
             oldEntity.properties[key] = value;
         });
 
         for (const prop of Graph.INTERNAL_PROPS_TO_IGNORE) {
             const propValue = entity.properties[prop];
-            if (!propValue) {
+            if (propValue) {
                 delete oldEntity.properties[prop];
             }
         }
+
+        // 如果新增加的的系统实体，图表上的是手动做图添加的实体，则更新替换为系统实体
+        if ((!(Constant.PROP_ORIGIN in entity.properties) || entity.properties[Constant.PROP_ORIGIN] === 'graphdb')
+            && (Constant.PROP_ORIGIN in oldEntity.properties || oldEntity.properties[Constant.PROP_ORIGIN] === 'manual')) {
+            delete oldEntity.properties[Constant.PROP_ORIGIN];
+        }
+
         this._recordEntityChange(oldEntity, Graph.CHANGE_TYPE_UPDATE);
         this.exitModification();
     }
