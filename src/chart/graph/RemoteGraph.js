@@ -483,6 +483,21 @@ export default class RemoteGraph extends Graph {
         });
     }
 
+    getPreMergeLinks(chartId, mergedLink) {
+        const param = { mergedLinkId: mergedLink.id };
+        return new Promise((resolve, reject) => {
+            chart.getPreMergeLinks(chartId, param)
+                .then((response) => {
+                    if (response.body.code === 200) {
+                        const result = response.body.result;
+                        resolve(result);
+                    } else {
+                        reject(response.body.message);
+                    }
+                });
+        });
+    }
+
     entityUnmerge(mergedEntity, cacheId) {
         const chartId = this.chart.getChartMetadata().getChartId();
         const param = {

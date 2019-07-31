@@ -291,6 +291,12 @@ export default class FinalGraph extends Graph {
         });
     }
 
+    getPreMergeLinks(chartId, mergedLink) {
+        return new Promise((resolve) => {
+            resolve(this.source.execute('getPreMergeLinks', chartId, mergedLink));
+        });
+    }
+
     getOriginalData(chartId, graphData) {
         return new Promise((resolve) => {
             resolve(this.source.execute('getOriginalData', chartId, graphData));

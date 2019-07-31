@@ -214,6 +214,20 @@ export default class LinkMergingGraph extends Graph {
         this.source.execute('setLinkColor', linkIdArr, originalColors);
     }
 
+    getPreMergeLinks(chartId, mergedLink) {
+        const mergedLinkId = mergedLink.id;
+        const originalLinkIdArray = this.linkMergeMap[mergedLinkId];
+        const preMergeLinks = [];
+        if (originalLinkIdArray) {
+            for (const linkId of originalLinkIdArray) {
+                const link = this.source.getLink(linkId);
+                preMergeLinks.push(link);
+            }
+        }
+
+        return preMergeLinks;
+    }
+
     /**
      * 设置链接宽度
      * @param linkIds
