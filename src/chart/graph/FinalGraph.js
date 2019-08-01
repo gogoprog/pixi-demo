@@ -474,6 +474,7 @@ export default class FinalGraph extends Graph {
      * @param {} entity
      */
     updateEntityProperties(entity) {
+        this.beginUpdate();
         if (!entity || !this.entities[entity.id]) {
             console.error("entity can't be null or undefined, entity update must exists");
             return;
@@ -489,6 +490,39 @@ export default class FinalGraph extends Graph {
                 delete oldEntity.properties[prop];
             }
         }
+
+        oldEntity.label = entity.label;
+
+        this.updateEntity(oldEntity);
+        this.endUpdate();
+    }
+
+    /**
+     * 更新链接属性
+     * @param {} link
+     */
+    updateLinkProperties(link) {
+        this.beginUpdate();
+        if (!link || !this.links[link.id]) {
+            console.error("link can't be null or undefined, link update must exists");
+            return;
+        }
+        const oldLink = this.links[link.id];
+        _.each(link.properties, (value, key) => {
+            oldLink.properties[key] = value;
+        });
+
+        for (const prop of Graph.INTERNAL_PROPS_TO_IGNORE) {
+            const propValue = link.properties[prop];
+            if (!propValue) {
+                delete oldLink.properties[prop];
+            }
+        }
+
+        oldLink.label = link.label;
+
+        this.updateLink(oldLink);
+        this.endUpdate();
     }
 
     /**
