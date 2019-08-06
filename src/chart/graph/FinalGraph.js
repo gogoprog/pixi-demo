@@ -474,7 +474,7 @@ export default class FinalGraph extends Graph {
      * @param {} entity
      */
     updateEntityProperties(entity) {
-        this.beginUpdate();
+
         if (!entity || !this.entities[entity.id]) {
             console.error("entity can't be null or undefined, entity update must exists");
             return;
@@ -491,10 +491,12 @@ export default class FinalGraph extends Graph {
             }
         }
 
-        oldEntity.label = entity.label;
-
-        this.updateEntity(oldEntity);
-        this.endUpdate();
+        if (oldEntity.label !== entity.label) {
+            this.beginUpdate();
+            oldEntity.label = entity.label;
+            this.updateEntity(oldEntity);
+            this.endUpdate();
+        }
     }
 
     /**
@@ -502,7 +504,7 @@ export default class FinalGraph extends Graph {
      * @param {} link
      */
     updateLinkProperties(link) {
-        this.beginUpdate();
+
         if (!link || !this.links[link.id]) {
             console.error("link can't be null or undefined, link update must exists");
             return;
@@ -519,10 +521,12 @@ export default class FinalGraph extends Graph {
             }
         }
 
-        oldLink.label = link.label;
-
-        this.updateLink(oldLink);
-        this.endUpdate();
+        if (oldLink.label !== link.label) {
+            this.beginUpdate();
+            oldLink.label = link.label;
+            this.updateLink(oldLink);
+            this.endUpdate();
+        }
     }
 
     /**
