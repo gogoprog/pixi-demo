@@ -174,7 +174,8 @@ export default class LinkAlgorithm {
                     continue;
                 }
 
-                const entityLabel = entity.label;
+                const useCustomizedLabel = entity.properties._$customizedLabel && entity.properties._$customizedLabel.length > 0;
+                const entityLabel = useCustomizedLabel ? entity.properties._$customizedLabel : entity.label;
                 if (entityLabel && entityLabel.includes(queryText)) {
                     resultEntities.push(entity);
                     // continue;
@@ -211,7 +212,8 @@ export default class LinkAlgorithm {
                     continue;
                 }
 
-                const linkLabel = link.label;
+                const useCustomizedLabel = link.properties._$customizedLabel && link.properties._$customizedLabel.length > 0;
+                const linkLabel = useCustomizedLabel ? link.properties._$customizedLabel : link.label;
                 if (linkLabel && linkLabel.includes(queryText)) {
                     resultLinks.push(link);
                     // continue;
