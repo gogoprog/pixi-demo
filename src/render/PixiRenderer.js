@@ -1,4 +1,3 @@
-import createForceLayout from 'ngraph.forcelayout';
 import eventify from 'ngraph.events';
 import 'pixi.js';
 
