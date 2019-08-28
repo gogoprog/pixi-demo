@@ -22,7 +22,7 @@ export default class EntityMergingGraph extends Graph {
         this.entityMergeReverseIndex = {}; // {entityId, mergeEntityId}
         this.exceptionEntityIdSet = exceptions || new Set(); // Set<String>
         this.leafEntityIdSet = new Set(); // Set<String>
-        this.autoMerge = true;
+        this.autoMerge = false;
 
         this.listenToSourceGraph();
     }
