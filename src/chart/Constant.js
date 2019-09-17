@@ -40,6 +40,7 @@ export default {
     SNAPSHOT_CHART: 'SNAPSHOT', // 快照
     CASE_CHART: 'CASE', // 案件图表
     CACHE_CHART: 'CACHE', // 缓存图表
+    FORMAT_KEY_COUNT_CHART: 'FOTMATKEYCOUNT', // 账单主账号样式格式化图表
 
     THUMBNAIL_WIDTH: 360,
     THUMBNAIL_HEIGHT: 240,
