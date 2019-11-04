@@ -2,7 +2,7 @@ import Graph from './Graph';
 import Constant from '../Constant';
 import Utility from '../Utility';
 import Chart from '../Chart';
-import { visualConfig } from '../../render/visualConfig';
+import visualConfig from '../../render/visualConfig';
 
 export default class OriginalGraph extends Graph {
     constructor(entities, links, elpData) {

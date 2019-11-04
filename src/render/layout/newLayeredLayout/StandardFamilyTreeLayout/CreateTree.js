@@ -3,9 +3,9 @@ import ChildTree from "../ChildTree.js"
 import Level from "../Level.js"
 import Tree from "../Tree.js"
 
-module.exports = createTree;
+// module.exports = createTree;
 
-function createTree(allNodes) {
+export default function createTree(allNodes) {
     let tree = new Tree(0);
     // 第一层
     let levelId = 0;

@@ -1,18 +1,18 @@
 import eventify from 'ngraph.events';
 import 'pixi.js';
 
-import LayeredLayout from './layout/LayeredLayout';
+// import LayeredLayout from './layout/LayeredLayout';
 import LayeredLayoutNew from './layout/newLayeredLayout/LayeredLayoutNew';
 import FamilyLayout from './layout/newLayeredLayout/FamilyLayout/FamilyLayout'
 import StandardFamilyTreeLayout from './layout/newLayeredLayout/StandardFamilyTreeLayout/StandardFamilyTreeLayout'
 import SimpleFamilyLayout from './layout/newLayeredLayout/SimpleFamilyLayout/SimpleFamilyLayout'
 import CircleLayout from './layout/CircleLayout';
-import StructuralLayout from './layout/StructuralLayout/StructuralLayout';
+// import StructuralLayout from './layout/StructuralLayout/StructuralLayout';
 import RadiateLayout from './layout/RadiateLayout';
 import TimelineLayout from './layout/TimelineLayout';
 // import ForceLayoutBaseNgraph from "./layout/ForceLayoutBaseNgraph/ForceLayout"
 import createLayout from "./layout/ForceLayoutBaseNgraph/ForceLayoutInNGraph"
-import GraphLevelForceLayout from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayout"
+// import GraphLevelForceLayout from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayout"
 import GraphLevelForceLayoutOpt from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayoutOpt"
 import elpForceLayout from "./layout/elpLayout/ForceLayout"
 import personForceLayout from "./layout/personLayout/PersonForceLayout"

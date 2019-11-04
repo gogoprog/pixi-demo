@@ -11,8 +11,8 @@ Set.prototype.union = function(setB) {
     return union;
 }
 
-module.exports = cretatForestNew;
-function cretatForestNew(selectNodes, allNodes){
+// module.exports = cretatForestNew;
+export default function cretatForestNew(selectNodes, allNodes){
     var forest = []
     // 构建树结构，直到所有的节点都处于树结构中
     var numOfTree = 0

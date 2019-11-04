@@ -11,7 +11,7 @@ import EntityMergingGraph from './graph/EntityMergingGraph';
 import RemoteGraph from './graph/RemoteGraph';
 import FinalGraph from './graph/FinalGraph';
 import Utility from './Utility';
-import { search, cache, chart, analyticGraph } from '../../../../../api';
+// import { search, cache, chart, analyticGraph } from '../../../../../api';
 import Command from './undoredo/Command';
 import CommandManager from './undoredo/CommandManager';
 import Constant from './Constant';

@@ -2,8 +2,8 @@ import Graph from './Graph';
 import Chart from '../Chart';
 import ElpData from '../elp/ElpData';
 import Utility from '../Utility';
-import { analyticGraph, chart } from '../../../../../../api';
-import { visualConfig } from '../../render/visualConfig';
+// import { analyticGraph, chart } from '../../../../../../api';
+import visualConfig from '../../render/visualConfig';
 
 export default class RemoteGraph extends Graph {
     constructor(entities, links, elpData) {
@@ -28,27 +28,28 @@ export default class RemoteGraph extends Graph {
 
     addSubGraph(graph, isCaseScope) {
         return new Promise((resolve, reject) => {
-            let addedEntities = graph.entities;
-            let addedLinks = graph.links;
-            addedEntities = (typeof addedEntities === 'object') ? Object.values(addedEntities) : addedEntities;
-            addedLinks = (typeof addedEntities === 'object') ? Object.values(addedLinks) : addedLinks;
-            const chartId = this.chart.getChartMetadata().getChartId();
-            const graphData = { entities: addedEntities, links: addedLinks };
-            const param = { graphData, needSave: false };
-            param.useGlobalDomain = !isCaseScope;
-            chart.addChartData(chartId, param).then((response) => {
-                if (response.body.code === 200) {
-                    const result = response.body.result;
-                    this.updateSubGraph(result);
-                    resolve({
-                        entities: result.origianlEntities,
-                        links: result.origianlLinks,
-                        elpData: this.elpData,
-                    });
-                } else {
-                    reject();
-                }
-            });
+            // let addedEntities = graph.entities;
+            // let addedLinks = graph.links;
+            // addedEntities = (typeof addedEntities === 'object') ? Object.values(addedEntities) : addedEntities;
+            // addedLinks = (typeof addedEntities === 'object') ? Object.values(addedLinks) : addedLinks;
+            // const chartId = this.chart.getChartMetadata().getChartId();
+            // const graphData = { entities: addedEntities, links: addedLinks };
+            // const param = { graphData, needSave: false };
+            // param.useGlobalDomain = !isCaseScope;
+            // chart.addChartData(chartId, param).then((response) => {
+            //     if (response.body.code === 200) {
+            //         const result = response.body.result;
+            //         this.updateSubGraph(result);
+            //         resolve({
+            //             entities: result.origianlEntities,
+            //             links: result.origianlLinks,
+            //             elpData: this.elpData,
+            //         });
+            //     } else {
+            //         reject();
+            //     }
+            // });
+            resolve();
         });
     }
     updateSubGraph(result) {
@@ -105,291 +106,292 @@ export default class RemoteGraph extends Graph {
 
     updatePasteSubGraph(value, isCaseScope) {
         return new Promise((resolve, reject) => {
-            Promise.resolve(value).then((result) => {
-                if (result.entities && result.entities.length > 0) {
-                    let addedEntities = result.entities;
-                    let addedLinks = result.links;
-                    addedEntities = (typeof addedEntities === 'object') ? Object.values(addedEntities) : addedEntities;
-                    addedLinks = (typeof addedEntities === 'object') ? Object.values(addedLinks) : addedLinks;
-                    const chartId = this.chart.getChartMetadata().getChartId();
-                    const graphData = { entities: addedEntities, links: addedLinks };
-                    const param = { graphData, needSave: false };
-                    param.useGlobalDomain = !isCaseScope;
-                    chart.addChartData(chartId, param).then((response) => {
-                        if (response.body.code === 200) {
-                            const res = response.body.result;
-                            this.updateSubGraph(res);
-                            resolve({ entities: res.origianlEntities, links: res.origianlLinks });
-                        } else {
-                            reject();
-                        }
-                    });
-                } else {
-                    const res = this.updateSubGraph(result);
-                    resolve({ entities: res.entities, links: res.links });
-                }
-            });
+            // Promise.resolve(value).then((result) => {
+            //     if (result.entities && result.entities.length > 0) {
+            //         let addedEntities = result.entities;
+            //         let addedLinks = result.links;
+            //         addedEntities = (typeof addedEntities === 'object') ? Object.values(addedEntities) : addedEntities;
+            //         addedLinks = (typeof addedEntities === 'object') ? Object.values(addedLinks) : addedLinks;
+            //         const chartId = this.chart.getChartMetadata().getChartId();
+            //         const graphData = { entities: addedEntities, links: addedLinks };
+            //         const param = { graphData, needSave: false };
+            //         param.useGlobalDomain = !isCaseScope;
+            //         chart.addChartData(chartId, param).then((response) => {
+            //             if (response.body.code === 200) {
+            //                 const res = response.body.result;
+            //                 this.updateSubGraph(res);
+            //                 resolve({ entities: res.origianlEntities, links: res.origianlLinks });
+            //             } else {
+            //                 reject();
+            //             }
+            //         });
+            //     } else {
+            //         const res = this.updateSubGraph(result);
+            //         resolve({ entities: res.entities, links: res.links });
+            //     }
+            // });
+            Promise.resolve("1");
         });
     }
 
     removePasteSubGraph(value) { // TODO add data when merge entity
         return new Promise((resolve, reject) => {
-            Promise.resolve(value).then((graph) => {
-                let removedEntities = graph.entities;
-                let removedLinks = graph.links;
-                removedEntities = (typeof removedEntities === 'object') ? Object.values(removedEntities) : removedEntities;
-                removedLinks = (typeof removedLinks === 'object') ? Object.values(removedLinks) : removedLinks;
-                const chartId = this.chart.getChartMetadata().getChartId();
-                const param = { entities: removedEntities, links: removedLinks };
-                chart.deleteChartData(chartId, param).then((response) => {
-                    if (response.body.code === 200) {
-                        const result = response.body.result;
-                        const elpData = new ElpData(result.elpEntities, result.elpLinks);
-                        this.setElpData(elpData);
-                        this.bubbleELpData();
-
-                        let needDelEntities = response.body.result.needDelEntities;
-                        let needDelLinks = response.body.result.needDelLinks;
-                        needDelEntities = (typeof needDelEntities === 'object') ? Object.values(needDelEntities) : needDelEntities;
-                        needDelLinks = (typeof needDelLinks === 'object') ? Object.values(needDelLinks) : needDelLinks;
-
-                        this.beginUpdate();
-                        for (const entity of needDelEntities) {
-                            this.removeEntity(entity);
-                        }
-
-                        for (const link of needDelLinks) {
-                            this.removeLink(link);
-                        }
-                        this.endUpdate();
-
-                        let entities = response.body.result.newEntities;
-                        let links = response.body.result.newLinks;
-                        entities = (typeof entities === 'object') ? Object.values(entities) : entities;
-                        links = (typeof links === 'object') ? Object.values(links) : links;
-
-                        this.beginUpdate();
-                        for (const entity of entities) {
-                            this.addEntity(entity);
-                        }
-
-                        for (const link of links) {
-                            this.addLink(link);
-                        }
-
-                        let needUpdateEntities = response.body.result.needUpdateEntities;
-                        let needUpdateLinks = response.body.result.needUpdateLinks;
-                        needUpdateEntities = (typeof needUpdateEntities === 'object') ? Object.values(needUpdateEntities) : needUpdateEntities;
-                        needUpdateLinks = (typeof needUpdateLinks === 'object') ? Object.values(needUpdateLinks) : needUpdateLinks;
-
-                        for (const entity of needUpdateEntities) {
-                            this.updateEntity(entity);
-                        }
-
-                        for (const link of needUpdateLinks) {
-                            this.updateLink(link);
-                        }
-                        this.endUpdate();
-
-                        resolve({ entities: result.origianlEntities, links: result.origianlLinks });
-                    } else {
-                        reject();
-                    }
-                });
-            });
+            // Promise.resolve(value).then((graph) => {
+            //     let removedEntities = graph.entities;
+            //     let removedLinks = graph.links;
+            //     removedEntities = (typeof removedEntities === 'object') ? Object.values(removedEntities) : removedEntities;
+            //     removedLinks = (typeof removedLinks === 'object') ? Object.values(removedLinks) : removedLinks;
+            //     const chartId = this.chart.getChartMetadata().getChartId();
+            //     const param = { entities: removedEntities, links: removedLinks };
+            //     chart.deleteChartData(chartId, param).then((response) => {
+            //         if (response.body.code === 200) {
+            //             const result = response.body.result;
+            //             const elpData = new ElpData(result.elpEntities, result.elpLinks);
+            //             this.setElpData(elpData);
+            //             this.bubbleELpData();
+            //
+            //             let needDelEntities = response.body.result.needDelEntities;
+            //             let needDelLinks = response.body.result.needDelLinks;
+            //             needDelEntities = (typeof needDelEntities === 'object') ? Object.values(needDelEntities) : needDelEntities;
+            //             needDelLinks = (typeof needDelLinks === 'object') ? Object.values(needDelLinks) : needDelLinks;
+            //
+            //             this.beginUpdate();
+            //             for (const entity of needDelEntities) {
+            //                 this.removeEntity(entity);
+            //             }
+            //
+            //             for (const link of needDelLinks) {
+            //                 this.removeLink(link);
+            //             }
+            //             this.endUpdate();
+            //
+            //             let entities = response.body.result.newEntities;
+            //             let links = response.body.result.newLinks;
+            //             entities = (typeof entities === 'object') ? Object.values(entities) : entities;
+            //             links = (typeof links === 'object') ? Object.values(links) : links;
+            //
+            //             this.beginUpdate();
+            //             for (const entity of entities) {
+            //                 this.addEntity(entity);
+            //             }
+            //
+            //             for (const link of links) {
+            //                 this.addLink(link);
+            //             }
+            //
+            //             let needUpdateEntities = response.body.result.needUpdateEntities;
+            //             let needUpdateLinks = response.body.result.needUpdateLinks;
+            //             needUpdateEntities = (typeof needUpdateEntities === 'object') ? Object.values(needUpdateEntities) : needUpdateEntities;
+            //             needUpdateLinks = (typeof needUpdateLinks === 'object') ? Object.values(needUpdateLinks) : needUpdateLinks;
+            //
+            //             for (const entity of needUpdateEntities) {
+            //                 this.updateEntity(entity);
+            //             }
+            //
+            //             for (const link of needUpdateLinks) {
+            //                 this.updateLink(link);
+            //             }
+            //             this.endUpdate();
+            //
+            //             resolve({ entities: result.origianlEntities, links: result.origianlLinks });
+            //         } else {
+            //             reject();
+            //         }
+            //     });
+            // });
         });
     }
 
     removeSubGraph(graph) { // TODO add data when merge entity
         return new Promise((resolve, reject) => {
-            let removedEntities = graph.entities;
-            let removedLinks = graph.links;
-            removedEntities = (typeof removedEntities === 'object') ? Object.values(removedEntities) : removedEntities;
-            removedLinks = (typeof removedLinks === 'object') ? Object.values(removedLinks) : removedLinks;
-            const chartId = this.chart.getChartMetadata().getChartId();
-            const param = { entities: removedEntities, links: removedLinks };
-            const oldElpData = Object.assign(this.elpData);
-            chart.deleteChartData(chartId, param).then((response) => {
-                if (response.body.code === 200) {
-                    const result = response.body.result;
-                    const elpData = new ElpData(result.elpEntities, result.elpLinks);
-                    this.setElpData(elpData);
-                    this.bubbleELpData();
-
-                    let needDelEntities = response.body.result.needDelEntities;
-                    let needDelLinks = response.body.result.needDelLinks;
-                    needDelEntities = (typeof needDelEntities === 'object') ? Object.values(needDelEntities) : needDelEntities;
-                    needDelLinks = (typeof needDelLinks === 'object') ? Object.values(needDelLinks) : needDelLinks;
-
-                    this.beginUpdate();
-                    for (const entity of needDelEntities) {
-                        this.removeEntity(entity);
-                    }
-
-                    for (const link of needDelLinks) {
-                        this.removeLink(link);
-                    }
-                    this.endUpdate();
-
-                    let entities = response.body.result.newEntities;
-                    let links = response.body.result.newLinks;
-                    entities = (typeof entities === 'object') ? Object.values(entities) : entities;
-                    links = (typeof links === 'object') ? Object.values(links) : links;
-
-                    this.beginUpdate();
-                    for (const entity of entities) {
-                        this.addEntity(entity);
-                    }
-
-                    for (const link of links) {
-                        this.addLink(link);
-                    }
-
-                    let needUpdateEntities = response.body.result.needUpdateEntities;
-                    let needUpdateLinks = response.body.result.needUpdateLinks;
-                    needUpdateEntities = (typeof needUpdateEntities === 'object') ? Object.values(needUpdateEntities) : needUpdateEntities;
-                    needUpdateLinks = (typeof needUpdateLinks === 'object') ? Object.values(needUpdateLinks) : needUpdateLinks;
-
-                    for (const entity of needUpdateEntities) {
-                        this.updateEntity(entity);
-                    }
-
-                    for (const link of needUpdateLinks) {
-                        this.updateLink(link);
-                    }
-                    this.endUpdate();
-
-                    resolve({
-                        entities: result.origianlEntities,
-                        links: result.origianlLinks,
-                        elpData: oldElpData, // this remove for eliminate add need elpdata
-                    });
-                } else {
-                    reject();
-                }
-            });
+            // let removedEntities = graph.entities;
+            // let removedLinks = graph.links;
+            // removedEntities = (typeof removedEntities === 'object') ? Object.values(removedEntities) : removedEntities;
+            // removedLinks = (typeof removedLinks === 'object') ? Object.values(removedLinks) : removedLinks;
+            // const chartId = this.chart.getChartMetadata().getChartId();
+            // const param = { entities: removedEntities, links: removedLinks };
+            // const oldElpData = Object.assign(this.elpData);
+            // chart.deleteChartData(chartId, param).then((response) => {
+            //     if (response.body.code === 200) {
+            //         const result = response.body.result;
+            //         const elpData = new ElpData(result.elpEntities, result.elpLinks);
+            //         this.setElpData(elpData);
+            //         this.bubbleELpData();
+            //
+            //         let needDelEntities = response.body.result.needDelEntities;
+            //         let needDelLinks = response.body.result.needDelLinks;
+            //         needDelEntities = (typeof needDelEntities === 'object') ? Object.values(needDelEntities) : needDelEntities;
+            //         needDelLinks = (typeof needDelLinks === 'object') ? Object.values(needDelLinks) : needDelLinks;
+            //
+            //         this.beginUpdate();
+            //         for (const entity of needDelEntities) {
+            //             this.removeEntity(entity);
+            //         }
+            //
+            //         for (const link of needDelLinks) {
+            //             this.removeLink(link);
+            //         }
+            //         this.endUpdate();
+            //
+            //         let entities = response.body.result.newEntities;
+            //         let links = response.body.result.newLinks;
+            //         entities = (typeof entities === 'object') ? Object.values(entities) : entities;
+            //         links = (typeof links === 'object') ? Object.values(links) : links;
+            //
+            //         this.beginUpdate();
+            //         for (const entity of entities) {
+            //             this.addEntity(entity);
+            //         }
+            //
+            //         for (const link of links) {
+            //             this.addLink(link);
+            //         }
+            //
+            //         let needUpdateEntities = response.body.result.needUpdateEntities;
+            //         let needUpdateLinks = response.body.result.needUpdateLinks;
+            //         needUpdateEntities = (typeof needUpdateEntities === 'object') ? Object.values(needUpdateEntities) : needUpdateEntities;
+            //         needUpdateLinks = (typeof needUpdateLinks === 'object') ? Object.values(needUpdateLinks) : needUpdateLinks;
+            //
+            //         for (const entity of needUpdateEntities) {
+            //             this.updateEntity(entity);
+            //         }
+            //
+            //         for (const link of needUpdateLinks) {
+            //             this.updateLink(link);
+            //         }
+            //         this.endUpdate();
+            //
+            //         resolve({
+            //             entities: result.origianlEntities,
+            //             links: result.origianlLinks,
+            //             elpData: oldElpData, // this remove for eliminate add need elpdata
+            //         });
+            //     } else {
+            //         reject();
+            //     }
+            // });
         });
     }
 
     fullLinkMerge(linkMergeFilter) {
         return new Promise((resolve, reject) => {
-            const chartId = this.chart.getChartMetadata().getChartId();
-            this.getMergeFilter(linkMergeFilter.linkType, chartId).then((oldLinkMergeFilter) => {
-                oldLinkMergeFilter.linkType = linkMergeFilter.linkType;
-                chart.linkMerge(chartId, linkMergeFilter)
-                    .then((response) => {
-                        if (response.body.code === 200) {
-                            let delEntities = response.body.result.needDelEntities;
-                            let delLinks = response.body.result.needDelLinks;
-                            delEntities = (typeof delEntities === 'object') ? Object.values(delEntities) : delEntities;
-                            delLinks = (typeof delLinks === 'object') ? Object.values(delLinks) : delLinks;
-
-                            let newEntities = response.body.result.newEntities;
-                            let newLinks = response.body.result.newLinks;
-                            newEntities = (typeof newEntities === 'object') ? Object.values(newEntities) : newEntities;
-                            newLinks = (typeof newLinks === 'object') ? Object.values(newLinks) : newLinks;
-
-                            this.beginUpdate();
-                            for (const entity of delEntities) {
-                                this.removeEntity(entity);
-                            }
-
-                            for (const link of delLinks) {
-                                this.removeLink(link);
-                            }
-                            this.endUpdate();
-
-                            this.beginUpdate();
-                            for (const entity of newEntities) {
-                                this.addEntity(entity);
-                            }
-
-                            for (const link of newLinks) {
-                                this.addLink(link);
-                            }
-                            this.endUpdate();
-
-                            resolve(oldLinkMergeFilter);
-                        } else {
-                            reject();
-                        }
-                    });
-            });
+            // const chartId = this.chart.getChartMetadata().getChartId();
+            // this.getMergeFilter(linkMergeFilter.linkType, chartId).then((oldLinkMergeFilter) => {
+            //     oldLinkMergeFilter.linkType = linkMergeFilter.linkType;
+            //     chart.linkMerge(chartId, linkMergeFilter)
+            //         .then((response) => {
+            //             if (response.body.code === 200) {
+            //                 let delEntities = response.body.result.needDelEntities;
+            //                 let delLinks = response.body.result.needDelLinks;
+            //                 delEntities = (typeof delEntities === 'object') ? Object.values(delEntities) : delEntities;
+            //                 delLinks = (typeof delLinks === 'object') ? Object.values(delLinks) : delLinks;
+            //
+            //                 let newEntities = response.body.result.newEntities;
+            //                 let newLinks = response.body.result.newLinks;
+            //                 newEntities = (typeof newEntities === 'object') ? Object.values(newEntities) : newEntities;
+            //                 newLinks = (typeof newLinks === 'object') ? Object.values(newLinks) : newLinks;
+            //
+            //                 this.beginUpdate();
+            //                 for (const entity of delEntities) {
+            //                     this.removeEntity(entity);
+            //                 }
+            //
+            //                 for (const link of delLinks) {
+            //                     this.removeLink(link);
+            //                 }
+            //                 this.endUpdate();
+            //
+            //                 this.beginUpdate();
+            //                 for (const entity of newEntities) {
+            //                     this.addEntity(entity);
+            //                 }
+            //
+            //                 for (const link of newLinks) {
+            //                     this.addLink(link);
+            //                 }
+            //                 this.endUpdate();
+            //
+            //                 resolve(oldLinkMergeFilter);
+            //             } else {
+            //                 reject();
+            //             }
+            //         });
+            // });
         });
     }
 
     linkUnmerge(unmergeLinkFilter) {
         return new Promise((resolve, reject) => {
-            const chartId = this.chart.getChartMetadata().getChartId();
-            const unmergeLinkType = unmergeLinkFilter.linkType;
-            this.getMergeFilter(unmergeLinkType, chartId).then((oldLinkMergeFilter) => {
-                oldLinkMergeFilter.linkType = unmergeLinkType;
-                chart.linkUnmerge(chartId, unmergeLinkType).then((response) => {
-                    if (response.body.code === 200) {
-                        let delEntities = response.body.result.needDelEntities;
-                        let delLinks = response.body.result.needDelLinks;
-                        delEntities = (typeof delEntities === 'object') ? Object.values(delEntities) : delEntities;
-                        delLinks = (typeof delLinks === 'object') ? Object.values(delLinks) : delLinks;
-
-                        let newEntities = response.body.result.newEntities;
-                        let newLinks = response.body.result.newLinks;
-                        newEntities = (typeof newEntities === 'object') ? Object.values(newEntities) : newEntities;
-                        newLinks = (typeof newLinks === 'object') ? Object.values(newLinks) : newLinks;
-
-                        this.beginUpdate();
-                        for (const entity of delEntities) {
-                            this.removeEntity(entity);
-                        }
-
-                        for (const link of delLinks) {
-                            this.removeLink(link);
-                        }
-                        this.endUpdate();
-
-                        this.beginUpdate();
-                        for (const entity of newEntities) {
-                            this.addEntity(entity);
-                        }
-
-                        for (const link of newLinks) {
-                            this.addLink(link);
-                        }
-                        this.endUpdate();
-
-                        resolve(oldLinkMergeFilter);
-                    } else {
-                        reject();
-                    }
-                });
-            });
+            // const chartId = this.chart.getChartMetadata().getChartId();
+            // const unmergeLinkType = unmergeLinkFilter.linkType;
+            // this.getMergeFilter(unmergeLinkType, chartId).then((oldLinkMergeFilter) => {
+            //     oldLinkMergeFilter.linkType = unmergeLinkType;
+            //     chart.linkUnmerge(chartId, unmergeLinkType).then((response) => {
+            //         if (response.body.code === 200) {
+            //             let delEntities = response.body.result.needDelEntities;
+            //             let delLinks = response.body.result.needDelLinks;
+            //             delEntities = (typeof delEntities === 'object') ? Object.values(delEntities) : delEntities;
+            //             delLinks = (typeof delLinks === 'object') ? Object.values(delLinks) : delLinks;
+            //
+            //             let newEntities = response.body.result.newEntities;
+            //             let newLinks = response.body.result.newLinks;
+            //             newEntities = (typeof newEntities === 'object') ? Object.values(newEntities) : newEntities;
+            //             newLinks = (typeof newLinks === 'object') ? Object.values(newLinks) : newLinks;
+            //
+            //             this.beginUpdate();
+            //             for (const entity of delEntities) {
+            //                 this.removeEntity(entity);
+            //             }
+            //
+            //             for (const link of delLinks) {
+            //                 this.removeLink(link);
+            //             }
+            //             this.endUpdate();
+            //
+            //             this.beginUpdate();
+            //             for (const entity of newEntities) {
+            //                 this.addEntity(entity);
+            //             }
+            //
+            //             for (const link of newLinks) {
+            //                 this.addLink(link);
+            //             }
+            //             this.endUpdate();
+            //
+            //             resolve(oldLinkMergeFilter);
+            //         } else {
+            //             reject();
+            //         }
+            //     });
+            // });
         });
     }
 
     hideSubGraph(graph) {
         return new Promise((resolve, reject) => {
-            chart.hideSubGraph(this.chart.getChartMetadata().getChartId(), graph)
-                .then((response) => {
-                    if (response.body.code === 200) {
-                        let needUpdateEntities = response.body.result.needUpdateEntities;
-                        let needUpdateLinks = response.body.result.needUpdateLinks;
-                        needUpdateEntities = (typeof needUpdateEntities === 'object') ? Object.values(needUpdateEntities) : needUpdateEntities;
-                        needUpdateLinks = (typeof needUpdateLinks === 'object') ? Object.values(needUpdateLinks) : needUpdateLinks;
-
-                        this.beginUpdate();
-                        for (const entity of needUpdateEntities) {
-                            this.hideEntity(entity);
-                        }
-
-                        for (const link of needUpdateLinks) {
-                            this.hideLink(link);
-                        }
-                        this.endUpdate();
-
-                        resolve(graph);
-                    } else {
-                        reject();
-                    }
-                });
+            // chart.hideSubGraph(this.chart.getChartMetadata().getChartId(), graph)
+            //     .then((response) => {
+            //         if (response.body.code === 200) {
+            //             let needUpdateEntities = response.body.result.needUpdateEntities;
+            //             let needUpdateLinks = response.body.result.needUpdateLinks;
+            //             needUpdateEntities = (typeof needUpdateEntities === 'object') ? Object.values(needUpdateEntities) : needUpdateEntities;
+            //             needUpdateLinks = (typeof needUpdateLinks === 'object') ? Object.values(needUpdateLinks) : needUpdateLinks;
+            //
+            //             this.beginUpdate();
+            //             for (const entity of needUpdateEntities) {
+            //                 this.hideEntity(entity);
+            //             }
+            //
+            //             for (const link of needUpdateLinks) {
+            //                 this.hideLink(link);
+            //             }
+            //             this.endUpdate();
+            //
+            //             resolve(graph);
+            //         } else {
+            //             reject();
+            //         }
+            //     });
         });
     }
 
@@ -400,101 +402,101 @@ export default class RemoteGraph extends Graph {
      */
     showSubGraph(graph) {
         return new Promise((resolve, reject) => {
-            chart.showSubGraph(this.chart.getChartMetadata().getChartId(), graph)
-                .then((response) => {
-                    if (response.body.code === 200) {
-                        let needUpdateEntities = response.body.result.needUpdateEntities;
-                        let needUpdateLinks = response.body.result.needUpdateLinks;
-                        needUpdateEntities = (typeof needUpdateEntities === 'object') ? Object.values(needUpdateEntities) : needUpdateEntities;
-                        needUpdateLinks = (typeof needUpdateLinks === 'object') ? Object.values(needUpdateLinks) : needUpdateLinks;
-
-                        this.beginUpdate();
-                        for (const entity of needUpdateEntities) {
-                            this.showEntity(entity);
-                        }
-
-                        for (const link of needUpdateLinks) {
-                            this.showLink(link);
-                        }
-                        this.endUpdate();
-
-                        resolve(graph);
-                    } else {
-                        reject();
-                    }
-                });
+            // chart.showSubGraph(this.chart.getChartMetadata().getChartId(), graph)
+            //     .then((response) => {
+            //         if (response.body.code === 200) {
+            //             let needUpdateEntities = response.body.result.needUpdateEntities;
+            //             let needUpdateLinks = response.body.result.needUpdateLinks;
+            //             needUpdateEntities = (typeof needUpdateEntities === 'object') ? Object.values(needUpdateEntities) : needUpdateEntities;
+            //             needUpdateLinks = (typeof needUpdateLinks === 'object') ? Object.values(needUpdateLinks) : needUpdateLinks;
+            //
+            //             this.beginUpdate();
+            //             for (const entity of needUpdateEntities) {
+            //                 this.showEntity(entity);
+            //             }
+            //
+            //             for (const link of needUpdateLinks) {
+            //                 this.showLink(link);
+            //             }
+            //             this.endUpdate();
+            //
+            //             resolve(graph);
+            //         } else {
+            //             reject();
+            //         }
+            //     });
         });
     }
 
     showAll() {
         return new Promise((resolve, reject) => {
-            chart.showAll(this.chart.getChartMetadata().getChartId())
-                .then((response) => {
-                    if (response.body.code === 200) {
-                        let needUpdateEntities = response.body.result.needUpdateEntities;
-                        let needUpdateLinks = response.body.result.needUpdateLinks;
-                        needUpdateEntities = (typeof needUpdateEntities === 'object') ? Object.values(needUpdateEntities) : needUpdateEntities;
-                        needUpdateLinks = (typeof needUpdateLinks === 'object') ? Object.values(needUpdateLinks) : needUpdateLinks;
-
-                        this.beginUpdate();
-                        for (const entity of needUpdateEntities) {
-                            this.showEntity(entity);
-                        }
-
-                        for (const link of needUpdateLinks) {
-                            this.showLink(link);
-                        }
-                        this.endUpdate();
-
-                        resolve();
-                    } else {
-                        reject();
-                    }
-                });
+            // chart.showAll(this.chart.getChartMetadata().getChartId())
+            //     .then((response) => {
+            //         if (response.body.code === 200) {
+            //             let needUpdateEntities = response.body.result.needUpdateEntities;
+            //             let needUpdateLinks = response.body.result.needUpdateLinks;
+            //             needUpdateEntities = (typeof needUpdateEntities === 'object') ? Object.values(needUpdateEntities) : needUpdateEntities;
+            //             needUpdateLinks = (typeof needUpdateLinks === 'object') ? Object.values(needUpdateLinks) : needUpdateLinks;
+            //
+            //             this.beginUpdate();
+            //             for (const entity of needUpdateEntities) {
+            //                 this.showEntity(entity);
+            //             }
+            //
+            //             for (const link of needUpdateLinks) {
+            //                 this.showLink(link);
+            //             }
+            //             this.endUpdate();
+            //
+            //             resolve();
+            //         } else {
+            //             reject();
+            //         }
+            //     });
         });
     }
 
     getMergeFilter(linkType, chartId) {
         return new Promise((resolve, reject) => {
-            chart.getMergeFilter(chartId, linkType)
-                .then((response) => {
-                    if (response.body.code === 200) {
-                        const linkMergeFilter = response.body.result;
-                        resolve(linkMergeFilter);
-                    } else {
-                        reject();
-                    }
-                });
+            // chart.getMergeFilter(chartId, linkType)
+            //     .then((response) => {
+            //         if (response.body.code === 200) {
+            //             const linkMergeFilter = response.body.result;
+            //             resolve(linkMergeFilter);
+            //         } else {
+            //             reject();
+            //         }
+            //     });
         });
     }
 
     getPreMergeEntities(chartId, mergedEntity) {
         const param = { mergedEntityId: mergedEntity.id };
         return new Promise((resolve, reject) => {
-            chart.getPreMergeEntities(chartId, param)
-                .then((response) => {
-                    if (response.body.code === 200) {
-                        const result = response.body.result;
-                        resolve(result);
-                    } else {
-                        reject(response.body.message);
-                    }
-                });
+            // chart.getPreMergeEntities(chartId, param)
+            //     .then((response) => {
+            //         if (response.body.code === 200) {
+            //             const result = response.body.result;
+            //             resolve(result);
+            //         } else {
+            //             reject(response.body.message);
+            //         }
+            //     });
         });
     }
 
     getPreMergeLinks(chartId, mergedLink) {
         const param = { mergedLinkId: mergedLink.id };
         return new Promise((resolve, reject) => {
-            chart.getPreMergeLinks(chartId, param)
-                .then((response) => {
-                    if (response.body.code === 200) {
-                        const result = response.body.result;
-                        resolve(result);
-                    } else {
-                        reject(response.body.message);
-                    }
-                });
+            // chart.getPreMergeLinks(chartId, param)
+            //     .then((response) => {
+            //         if (response.body.code === 200) {
+            //             const result = response.body.result;
+            //             resolve(result);
+            //         } else {
+            //             reject(response.body.message);
+            //         }
+            //     });
         });
     }
 
@@ -505,57 +507,57 @@ export default class RemoteGraph extends Graph {
             cacheId: cacheId,
         };
         return new Promise((resolve, reject) => {
-            const before = Date.now();
-            chart.entityUnmerge(chartId, param)
-                .then((response) => {
-                    if (response.body.code === 200) {
-                        console.log(`Call backend entity un-merge took  ${(Date.now() - before) / 1000} seconds`);
-                        let delEntities = response.body.result.needDelEntities;
-                        let delLinks = response.body.result.needDelLinks;
-                        delEntities = (typeof delEntities === 'object') ? Object.values(delEntities) : delEntities;
-                        delLinks = (typeof delLinks === 'object') ? Object.values(delLinks) : delLinks;
-
-                        let updateEntities = response.body.result.needUpdateEntities;
-                        let updateLinks = response.body.result.needUpdateLinks;
-                        updateEntities = (typeof updateEntities === 'object') ? Object.values(updateEntities) : updateEntities;
-                        updateLinks = (typeof updateLinks === 'object') ? Object.values(updateLinks) : updateLinks;
-
-                        let newEntities = response.body.result.newEntities;
-                        let newLinks = response.body.result.newLinks;
-                        newEntities = (typeof newEntities === 'object') ? Object.values(newEntities) : newEntities;
-                        newLinks = (typeof newLinks === 'object') ? Object.values(newLinks) : newLinks;
-
-                        const before2 = Date.now();
-                        this.beginUpdate();
-                        for (const entity of delEntities) {
-                            this.removeEntity(entity);
-                        }
-                        for (const link of delLinks) {
-                            this.removeLink(link);
-                        }
-
-                        for (const entity of updateEntities) {
-                            this.updateEntity(entity);
-                        }
-                        for (const link of updateLinks) {
-                            this.updateLink(link);
-                        }
-
-                        for (const entity of newEntities) {
-                            this.addEntity(entity);
-                        }
-                        for (const link of newLinks) {
-                            this.addLink(link);
-                        }
-                        this.endUpdate();
-
-                        console.log(`Process entity un-merge result took ${(Date.now() - before2) / 1000}`);
-
-                        resolve(newEntities);
-                    } else {
-                        reject();
-                    }
-                });
+            // const before = Date.now();
+            // chart.entityUnmerge(chartId, param)
+            //     .then((response) => {
+            //         if (response.body.code === 200) {
+            //             console.log(`Call backend entity un-merge took  ${(Date.now() - before) / 1000} seconds`);
+            //             let delEntities = response.body.result.needDelEntities;
+            //             let delLinks = response.body.result.needDelLinks;
+            //             delEntities = (typeof delEntities === 'object') ? Object.values(delEntities) : delEntities;
+            //             delLinks = (typeof delLinks === 'object') ? Object.values(delLinks) : delLinks;
+            //
+            //             let updateEntities = response.body.result.needUpdateEntities;
+            //             let updateLinks = response.body.result.needUpdateLinks;
+            //             updateEntities = (typeof updateEntities === 'object') ? Object.values(updateEntities) : updateEntities;
+            //             updateLinks = (typeof updateLinks === 'object') ? Object.values(updateLinks) : updateLinks;
+            //
+            //             let newEntities = response.body.result.newEntities;
+            //             let newLinks = response.body.result.newLinks;
+            //             newEntities = (typeof newEntities === 'object') ? Object.values(newEntities) : newEntities;
+            //             newLinks = (typeof newLinks === 'object') ? Object.values(newLinks) : newLinks;
+            //
+            //             const before2 = Date.now();
+            //             this.beginUpdate();
+            //             for (const entity of delEntities) {
+            //                 this.removeEntity(entity);
+            //             }
+            //             for (const link of delLinks) {
+            //                 this.removeLink(link);
+            //             }
+            //
+            //             for (const entity of updateEntities) {
+            //                 this.updateEntity(entity);
+            //             }
+            //             for (const link of updateLinks) {
+            //                 this.updateLink(link);
+            //             }
+            //
+            //             for (const entity of newEntities) {
+            //                 this.addEntity(entity);
+            //             }
+            //             for (const link of newLinks) {
+            //                 this.addLink(link);
+            //             }
+            //             this.endUpdate();
+            //
+            //             console.log(`Process entity un-merge result took ${(Date.now() - before2) / 1000}`);
+            //
+            //             resolve(newEntities);
+            //         } else {
+            //             reject();
+            //         }
+            //     });
         });
     }
 
@@ -563,88 +565,88 @@ export default class RemoteGraph extends Graph {
         const chartId = this.chart.getChartMetadata().getChartId();
         const paramEntities = [...specifiedEntities];
         return new Promise((resolve, reject) => {
-            chart.specifiedEntityMerge(chartId, paramEntities)
-                .then((response) => {
-                    if (response.body.code === 200) {
-                        let delEntities = response.body.result.needDelEntities;
-                        let delLinks = response.body.result.needDelLinks;
-                        delEntities = (typeof delEntities === 'object') ? Object.values(delEntities) : delEntities;
-                        delLinks = (typeof delLinks === 'object') ? Object.values(delLinks) : delLinks;
-
-                        let updateEntities = response.body.result.needUpdateEntities;
-                        let updateLinks = response.body.result.needUpdateLinks;
-                        updateEntities = (typeof updateEntities === 'object') ? Object.values(updateEntities) : updateEntities;
-                        updateLinks = (typeof updateLinks === 'object') ? Object.values(updateLinks) : updateLinks;
-
-                        let newEntities = response.body.result.newEntities;
-                        let newLinks = response.body.result.newLinks;
-                        newEntities = (typeof newEntities === 'object') ? Object.values(newEntities) : newEntities;
-                        newLinks = (typeof newLinks === 'object') ? Object.values(newLinks) : newLinks;
-
-                        this.beginUpdate();
-                        for (const entity of delEntities) {
-                            this.removeEntity(entity);
-                        }
-
-                        for (const link of delLinks) {
-                            this.removeLink(link);
-                        }
-                        this.endUpdate();
-
-                        this.beginUpdate();
-                        for (const entity of updateEntities) {
-                            this.updateEntity(entity);
-                        }
-
-                        for (const link of updateLinks) {
-                            this.updateLink(link);
-                        }
-                        this.endUpdate();
-
-                        this.beginUpdate();
-                        for (const entity of newEntities) {
-                            this.addEntity(entity);
-                        }
-
-                        for (const link of newLinks) {
-                            this.addLink(link);
-                        }
-                        this.endUpdate();
-
-                        resolve();
-                    } else {
-                        reject();
-                    }
-                });
+            // chart.specifiedEntityMerge(chartId, paramEntities)
+            //     .then((response) => {
+            //         if (response.body.code === 200) {
+            //             let delEntities = response.body.result.needDelEntities;
+            //             let delLinks = response.body.result.needDelLinks;
+            //             delEntities = (typeof delEntities === 'object') ? Object.values(delEntities) : delEntities;
+            //             delLinks = (typeof delLinks === 'object') ? Object.values(delLinks) : delLinks;
+            //
+            //             let updateEntities = response.body.result.needUpdateEntities;
+            //             let updateLinks = response.body.result.needUpdateLinks;
+            //             updateEntities = (typeof updateEntities === 'object') ? Object.values(updateEntities) : updateEntities;
+            //             updateLinks = (typeof updateLinks === 'object') ? Object.values(updateLinks) : updateLinks;
+            //
+            //             let newEntities = response.body.result.newEntities;
+            //             let newLinks = response.body.result.newLinks;
+            //             newEntities = (typeof newEntities === 'object') ? Object.values(newEntities) : newEntities;
+            //             newLinks = (typeof newLinks === 'object') ? Object.values(newLinks) : newLinks;
+            //
+            //             this.beginUpdate();
+            //             for (const entity of delEntities) {
+            //                 this.removeEntity(entity);
+            //             }
+            //
+            //             for (const link of delLinks) {
+            //                 this.removeLink(link);
+            //             }
+            //             this.endUpdate();
+            //
+            //             this.beginUpdate();
+            //             for (const entity of updateEntities) {
+            //                 this.updateEntity(entity);
+            //             }
+            //
+            //             for (const link of updateLinks) {
+            //                 this.updateLink(link);
+            //             }
+            //             this.endUpdate();
+            //
+            //             this.beginUpdate();
+            //             for (const entity of newEntities) {
+            //                 this.addEntity(entity);
+            //             }
+            //
+            //             for (const link of newLinks) {
+            //                 this.addLink(link);
+            //             }
+            //             this.endUpdate();
+            //
+            //             resolve();
+            //         } else {
+            //             reject();
+            //         }
+            //     });
         });
     }
 
 
     getOriginalData(chartId, graphData) {
         return new Promise((resolve, reject) => {
-            chart.getOriginalData(chartId, graphData)
-                .then((response) => {
-                    if (response.body.code === 200) {
-                        const result = response.body.result;
-                        resolve(result);
-                    } else {
-                        reject();
-                    }
-                });
+            // chart.getOriginalData(chartId, graphData)
+            //     .then((response) => {
+            //         if (response.body.code === 200) {
+            //             const result = response.body.result;
+            //             resolve(result);
+            //         } else {
+            //             reject();
+            //         }
+            //     });
         });
     }
 
     getViewData(chartId, graphData) {
         return new Promise((resolve, reject) => {
-            chart.getViewData(chartId, graphData)
-                .then((response) => {
-                    if (response.body.code === 200) {
-                        const result = response.body.result;
-                        resolve(result);
-                    } else {
-                        reject();
-                    }
-                });
+            // chart.getViewData(chartId, graphData)
+            //     .then((response) => {
+            //         if (response.body.code === 200) {
+            //             const result = response.body.result;
+            //             resolve(result);
+            //         } else {
+            //             reject();
+            //         }
+            //     });
         });
     }
 
@@ -673,10 +675,10 @@ export default class RemoteGraph extends Graph {
                 entities.push(entity);
             }
         });
-        chart.saveFormat(this.chart.getChartMetadata().getChartId(), { entities })
-            .then((response) => {
-                console.log(response.status.code);
-            });
+        // chart.saveFormat(this.chart.getChartMetadata().getChartId(), { entities })
+        //     .then((response) => {
+        //         console.log(response.status.code);
+        //     });
         this.endUpdate();
     }
 
@@ -695,10 +697,10 @@ export default class RemoteGraph extends Graph {
                 entities.push(entity);
             }
         });
-        chart.saveFormat(this.chart.getChartMetadata().getChartId(), { entities })
-            .then((response) => {
-                console.log(response.status.code);
-            });
+        // chart.saveFormat(this.chart.getChartMetadata().getChartId(), { entities })
+        //     .then((response) => {
+        //         console.log(response.status.code);
+        //     });
         this.endUpdate();
     }
 
@@ -717,10 +719,10 @@ export default class RemoteGraph extends Graph {
                 links.push(link);
             }
         });
-        chart.saveFormat(this.chart.getChartMetadata().getChartId(), { links })
-            .then((response) => {
-                console.log(response.status.code);
-            });
+        // chart.saveFormat(this.chart.getChartMetadata().getChartId(), { links })
+        //     .then((response) => {
+        //         console.log(response.status.code);
+        //     });
         this.endUpdate();
     }
 
@@ -739,10 +741,10 @@ export default class RemoteGraph extends Graph {
                 links.push(link);
             }
         });
-        chart.saveFormat(this.chart.getChartMetadata().getChartId(), { links })
-            .then((response) => {
-                console.log(response.status.code);
-            });
+        // chart.saveFormat(this.chart.getChartMetadata().getChartId(), { links })
+        //     .then((response) => {
+        //         console.log(response.status.code);
+        //     });
         this.endUpdate();
     }
 
@@ -830,17 +832,17 @@ export default class RemoteGraph extends Graph {
 
             const chartMetadata = this.chart.getChartMetadata();
             const chartId = chartMetadata.getChartId();
-            chart.addOriginDataToChartCollection(chartId, collectionId, data, type).then((response) => {
-                if (response.body.code === 200) {
-                    const collectionAddResponse = response.body.result;
-                    this.parseGraphRemoveResponse(collectionAddResponse);
-                    this.parseGraphAddResponse(collectionAddResponse);
-                    this.parseGraphDataUpdateResponse(collectionAddResponse, [Chart.COLLECTION_PROPERTY, Chart.COLLECTION_ENTITY_NUM, Chart.COLLECTION_LINK_NUM], Graph.CHANGE_TYPE_COLLECTION, Graph.CHANGE_TYPE_COLLECTION_ADD, collectionId);
-                    resolve();
-                } else {
-                    reject();
-                }
-            });
+            // chart.addOriginDataToChartCollection(chartId, collectionId, data, type).then((response) => {
+            //     if (response.body.code === 200) {
+            //         const collectionAddResponse = response.body.result;
+            //         this.parseGraphRemoveResponse(collectionAddResponse);
+            //         this.parseGraphAddResponse(collectionAddResponse);
+            //         this.parseGraphDataUpdateResponse(collectionAddResponse, [Chart.COLLECTION_PROPERTY, Chart.COLLECTION_ENTITY_NUM, Chart.COLLECTION_LINK_NUM], Graph.CHANGE_TYPE_COLLECTION, Graph.CHANGE_TYPE_COLLECTION_ADD, collectionId);
+            //         resolve();
+            //     } else {
+            //         reject();
+            //     }
+            // });
         });
     }
 
@@ -853,21 +855,21 @@ export default class RemoteGraph extends Graph {
      * @param isCaseScope
      * @returns {Promise<any>}
      */
-    addCachedDataToGraphCollection(chartId, collectionId, cacheId, cacheType, isCaseScope) {
-        return new Promise((resolve, reject) => {
-            analyticGraph.addCachedDataToChartCollection(chartId, collectionId, cacheId, cacheType, isCaseScope).then((response) => {
-                if (response.body.code === 200) {
-                    const collectionAddResponse = response.body.result;
-                    this.parseGraphRemoveResponse(collectionAddResponse);
-                    this.parseGraphAddResponse(collectionAddResponse);
-                    this.parseGraphDataUpdateResponse(collectionAddResponse, [Chart.COLLECTION_PROPERTY, Chart.COLLECTION_ENTITY_NUM, Chart.COLLECTION_LINK_NUM], Graph.CHANGE_TYPE_COLLECTION, Graph.CHANGE_TYPE_COLLECTION_ADD, collectionId);
-                    resolve();
-                } else {
-                    reject();
-                }
-            });
-        });
-    }
+    // addCachedDataToGraphCollection(chartId, collectionId, cacheId, cacheType, isCaseScope) {
+    //     return new Promise((resolve, reject) => {
+    //         analyticGraph.addCachedDataToChartCollection(chartId, collectionId, cacheId, cacheType, isCaseScope).then((response) => {
+    //             if (response.body.code === 200) {
+    //                 const collectionAddResponse = response.body.result;
+    //                 this.parseGraphRemoveResponse(collectionAddResponse);
+    //                 this.parseGraphAddResponse(collectionAddResponse);
+    //                 this.parseGraphDataUpdateResponse(collectionAddResponse, [Chart.COLLECTION_PROPERTY, Chart.COLLECTION_ENTITY_NUM, Chart.COLLECTION_LINK_NUM], Graph.CHANGE_TYPE_COLLECTION, Graph.CHANGE_TYPE_COLLECTION_ADD, collectionId);
+    //                 resolve();
+    //             } else {
+    //                 reject();
+    //             }
+    //         });
+    //     });
+    // }
 
     /**
      * Fixme chart id move to property;
@@ -879,17 +881,17 @@ export default class RemoteGraph extends Graph {
      */
     addCachedDataToGraph(chartId, cacheId, cacheType, isCaseScope) {
         return new Promise((resolve, reject) => {
-            chart.addCachedDataToChart(chartId, cacheId, cacheType, isCaseScope).then((response) => {
-                if (response.body.code === 200) {
-                    const collectionAddResponse = response.body.result;
-                    this.parseGraphRemoveResponse(collectionAddResponse);
-                    this.parseGraphAddResponse(collectionAddResponse);
-                    this.parseGraphDataUpdateResponse(collectionAddResponse, [], Graph.CHANGE_TYPE_COLLECTION, Graph.CHANGE_TYPE_COLLECTION_ADD, chartId);
-                    resolve();
-                } else {
-                    reject();
-                }
-            });
+            // chart.addCachedDataToChart(chartId, cacheId, cacheType, isCaseScope).then((response) => {
+            //     if (response.body.code === 200) {
+            //         const collectionAddResponse = response.body.result;
+            //         this.parseGraphRemoveResponse(collectionAddResponse);
+            //         this.parseGraphAddResponse(collectionAddResponse);
+            //         this.parseGraphDataUpdateResponse(collectionAddResponse, [], Graph.CHANGE_TYPE_COLLECTION, Graph.CHANGE_TYPE_COLLECTION_ADD, chartId);
+            //         resolve();
+            //     } else {
+            //         reject();
+            //     }
+            // });
         });
     }
 
@@ -1006,45 +1008,45 @@ export default class RemoteGraph extends Graph {
     /**
      * 清空图表集合数据
      */
-    clearChartCollection(chartId, collectionId) {
-        return new Promise((resolve, reject) => {
-            analyticGraph.clearChartCollection(chartId, collectionId).then((response) => {
-                if (response.body.code === 200) {
-                    const collectionClearResponse = response.body.result;
-                    this.parseGraphDataUpdateResponse(collectionClearResponse, [], Graph.CHANGE_TYPE_COLLECTION, Graph.CHANGE_TYPE_COLLECTION_ADD, collectionId);
-                    resolve();
-                } else {
-                    console.error(`Could not clear chart${chartId} collection ${collectionId} data in backend.`);
-                    reject();
-                }
-            });
-        });
-    }
-
-    removeCachedDataFromChartCollection(chartId, collectionId, cacheId) {
-        return new Promise((resolve, reject) => {
-            analyticGraph.removeCachedDataFromChartCollection(chartId, collectionId, cacheId).then((response) => {
-                if (response.body.code === 200) {
-                    const collectionRemoveResponse = response.body.result;
-                    this.parseGraphDataUpdateResponse(collectionRemoveResponse, [], Graph.CHANGE_TYPE_COLLECTION, Graph.CHANGE_TYPE_COLLECTION_ADD, collectionId);
-                    resolve();
-                } else {
-                    reject();
-                }
-            });
-        });
-    }
+    // clearChartCollection(chartId, collectionId) {
+    //     return new Promise((resolve, reject) => {
+    //         analyticGraph.clearChartCollection(chartId, collectionId).then((response) => {
+    //             if (response.body.code === 200) {
+    //                 const collectionClearResponse = response.body.result;
+    //                 this.parseGraphDataUpdateResponse(collectionClearResponse, [], Graph.CHANGE_TYPE_COLLECTION, Graph.CHANGE_TYPE_COLLECTION_ADD, collectionId);
+    //                 resolve();
+    //             } else {
+    //                 console.error(`Could not clear chart${chartId} collection ${collectionId} data in backend.`);
+    //                 reject();
+    //             }
+    //         });
+    //     });
+    // }
+    //
+    // removeCachedDataFromChartCollection(chartId, collectionId, cacheId) {
+    //     return new Promise((resolve, reject) => {
+    //         analyticGraph.removeCachedDataFromChartCollection(chartId, collectionId, cacheId).then((response) => {
+    //             if (response.body.code === 200) {
+    //                 const collectionRemoveResponse = response.body.result;
+    //                 this.parseGraphDataUpdateResponse(collectionRemoveResponse, [], Graph.CHANGE_TYPE_COLLECTION, Graph.CHANGE_TYPE_COLLECTION_ADD, collectionId);
+    //                 resolve();
+    //             } else {
+    //                 reject();
+    //             }
+    //         });
+    //     });
+    // }
 
     setEntityAutoMerge(chartId, autoMerge) {
         const leafEntityAutoMerge = { autoMerge };
         return new Promise((resolve, reject) => {
-            chart.setEntityAutoMerge(chartId, leafEntityAutoMerge).then((res) => {
-                if (res.body.code === 200) {
-                    resolve();
-                } else {
-                    reject();
-                }
-            });
+            // chart.setEntityAutoMerge(chartId, leafEntityAutoMerge).then((res) => {
+            //     if (res.body.code === 200) {
+            //         resolve();
+            //     } else {
+            //         reject();
+            //     }
+            // });
         });
     }
 }

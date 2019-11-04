@@ -3,7 +3,7 @@ import ChildTree from "../ChildTree.js"
 import Level from "../Level.js"
 import Tree from "../Tree.js"
 
-module.exports = createForest;
+// module.exports = createForest;
 
 
 /**
@@ -12,7 +12,7 @@ module.exports = createForest;
  * @param allNodes
  * @returns {*}
  */
-function createForest(selectNodes, allNodes) {
+export default function createForest(selectNodes, allNodes) {
     // allNodes is a object
     // if (!selectNodes || selectNodes.length !== 1) {
     //     console.error("family layout must select one node as center");

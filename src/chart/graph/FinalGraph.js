@@ -1,7 +1,7 @@
 import Utility from '../Utility';
 import Graph from './Graph';
 import Constant from '../Constant';
-import { analyticGraph } from '../../../../../../api';
+// import { analyticGraph } from '../../../../../../api';
 
 export default class FinalGraph extends Graph {
     constructor(source, multiLabelTemplates = {}, disabledLabels = []) {
@@ -359,33 +359,34 @@ export default class FinalGraph extends Graph {
      */
     addDataToUserCollection(collectionId, selectedNodes, selectedLinks) {
         return new Promise((resolve, reject) => {
-            const entities = {};
-            for (const ns of selectedNodes) {
-                entities[ns.id] = ns;
-            }
-
-            for (const ls of selectedLinks) {
-                const targetEntityId = ls.targetEntity;
-                const sourceEntityId = ls.sourceEntity;
-                if (!entities[targetEntityId]) {
-                    entities[targetEntityId] = this.getEntity(targetEntityId);
-                }
-                if (!entities[sourceEntityId]) {
-                    entities[sourceEntityId] = this.getEntity(sourceEntityId);
-                }
-            }
-
-            const param = { entities: Object.values(entities), links: selectedLinks };
-            // FIXME, should not have reference to chart.
-            const chartMetadata = this.chart.getChartMetadata();
-            const chartId = chartMetadata.getChartId();
-            const originalDataTask = this.getOriginalData(chartId, param);
-            originalDataTask.then((result) => {
-                resolve(analyticGraph.addDataToCollection([collectionId], result));
-            }).catch((reason) => {
-                console.warn(`获取合并前数据异常 ${reason}`);
-                reject(reason);
-            });
+            // const entities = {};
+            // for (const ns of selectedNodes) {
+            //     entities[ns.id] = ns;
+            // }
+            //
+            // for (const ls of selectedLinks) {
+            //     const targetEntityId = ls.targetEntity;
+            //     const sourceEntityId = ls.sourceEntity;
+            //     if (!entities[targetEntityId]) {
+            //         entities[targetEntityId] = this.getEntity(targetEntityId);
+            //     }
+            //     if (!entities[sourceEntityId]) {
+            //         entities[sourceEntityId] = this.getEntity(sourceEntityId);
+            //     }
+            // }
+            //
+            // const param = { entities: Object.values(entities), links: selectedLinks };
+            // // FIXME, should not have reference to chart.
+            // const chartMetadata = this.chart.getChartMetadata();
+            // const chartId = chartMetadata.getChartId();
+            // const originalDataTask = this.getOriginalData(chartId, param);
+            // originalDataTask.then((result) => {
+            //     resolve(analyticGraph.addDataToCollection([collectionId], result));
+            // }).catch((reason) => {
+            //     console.warn(`获取合并前数据异常 ${reason}`);
+            //     reject(reason);
+            // });
+            resolve();
         });
     }
 

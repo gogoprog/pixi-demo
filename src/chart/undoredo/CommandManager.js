@@ -1,5 +1,5 @@
-import { visualConfig } from '../../render/visualConfig';
-import { search } from '../../../../../../api';
+import visualConfig from '../../render/visualConfig';
+// import { search } from '../../../../../../api';
 import Command from './Command';
 
 const MAX_STACK_SIZE = 5;
@@ -186,94 +186,94 @@ export default class CommandManager {
                     return this.graphForRender.execute('fullLinkMerge', linkMergeFilter);
                 },
             },
-            linkEliminate: {
-                _do: (value, isCaseScope) => {
-                    return new Promise((resolve) => {
-                        Promise.resolve(value).then((eliminateLinkType) => {
-                            const removeEntities = [];
-                            const removeLinks = [];
-                            const viewLinks = this.graphForRender.getLinks();
-                            for (const viewLinkId in viewLinks) {
-                                const viewLink = viewLinks[viewLinkId];
-                                if (eliminateLinkType === viewLink.type) {
-                                    removeLinks.push(viewLink);
-                                }
-                            }
-                            const removeGraph = { entities: removeEntities, links: removeLinks };
-
-                            const addEntities = [];
-                            let addLinks = [];
-
-                            const param = { entities: [], links: removeLinks };
-                            const viewGraphData = this.graphForRender.getViewDataCheckEntity(param);
-                            const chartMetadata = this.chart.getChartMetadata();
-                            const chartId = chartMetadata.getChartId();
-                            const originalDataTask = this.graphForRender.getOriginalData(chartId, viewGraphData);
-                            originalDataTask.then((result) => {
-                                for (const link of result.links) {
-                                    const middleEntity = link.properties._$middleEntity;
-                                    const originalLinks = link.properties._$originalLinks;
-                                    addEntities.push(middleEntity);
-                                    addLinks = addLinks.concat(originalLinks);
-                                }
-
-                                const originalEntities = result.entities;
-                                for (const entity of originalEntities) {
-                                    addEntities.push(entity);
-                                }
-
-                                const addGraph = { entities: addEntities, links: addLinks };
-
-                                const graph = {};
-                                const removedDataTask = this.graphForRender.execute('removeSubGraph', removeGraph);
-                                removedDataTask.then((removedResult) => {
-                                    this.chart.checkElpModel(addGraph);
-                                    search.checkAndEnrichElpData(addGraph, '', isCaseScope).then((checkedGraph) => {
-                                        const addedDataTask = this.graphForRender.execute('addSubGraph', checkedGraph, isCaseScope);
-                                        addedDataTask.then((addedResult) => {
-                                            removedResult.type = 'add';
-                                            addedResult.type = 'remove';
-                                            graph.removedGraph = addedResult;
-                                            graph.addedGraph = removedResult;
-                                            graph.eliminateLinkType = eliminateLinkType;
-                                            resolve(graph);
-                                        }).catch((reason) => {
-                                            console.error(`添加数据异常 ${reason || ''}`);
-                                        });
-                                    });
-                                }).catch((reason) => {
-                                    console.error(`删除数据异常 ${reason || ''}`);
-                                });
-                            }).catch((reason) => {
-                                console.warn(`获取合并前数据异常 ${reason}`);
-                            });
-                        });
-                    });
-                },
-                _undo: (value, isCaseScope) => {
-                    return new Promise((resolve) => {
-                        Promise.resolve(value).then((graph) => {
-                            const removedDataTask = this.graphForRender.execute('removeSubGraph', graph.removedGraph);
-                            removedDataTask.then(() => {
-                                this.chart.checkElpModel(graph.addedGraph);
-                                search.checkAndEnrichElpData({
-                                    entities: Object.values(graph.addedGraph.entities),
-                                    links: Object.values(graph.addedGraph.links),
-                                }, '', isCaseScope).then((checkedGraph) => {
-                                    const addedDataTask = this.graphForRender.execute('addSubGraph', checkedGraph, isCaseScope);
-                                    addedDataTask.then(() => {
-                                        resolve(graph.eliminateLinkType);
-                                    }).catch((reason) => {
-                                        console.error(`添加数据异常 ${reason || ''}`);
-                                    });
-                                });
-                            }).catch((reason) => {
-                                console.error(`删除数据异常 ${reason || ''}`);
-                            });
-                        });
-                    });
-                },
-            },
+            // linkEliminate: {
+            //     _do: (value, isCaseScope) => {
+            //         return new Promise((resolve) => {
+            //             Promise.resolve(value).then((eliminateLinkType) => {
+            //                 const removeEntities = [];
+            //                 const removeLinks = [];
+            //                 const viewLinks = this.graphForRender.getLinks();
+            //                 for (const viewLinkId in viewLinks) {
+            //                     const viewLink = viewLinks[viewLinkId];
+            //                     if (eliminateLinkType === viewLink.type) {
+            //                         removeLinks.push(viewLink);
+            //                     }
+            //                 }
+            //                 const removeGraph = { entities: removeEntities, links: removeLinks };
+            //
+            //                 const addEntities = [];
+            //                 let addLinks = [];
+            //
+            //                 const param = { entities: [], links: removeLinks };
+            //                 const viewGraphData = this.graphForRender.getViewDataCheckEntity(param);
+            //                 const chartMetadata = this.chart.getChartMetadata();
+            //                 const chartId = chartMetadata.getChartId();
+            //                 const originalDataTask = this.graphForRender.getOriginalData(chartId, viewGraphData);
+            //                 originalDataTask.then((result) => {
+            //                     for (const link of result.links) {
+            //                         const middleEntity = link.properties._$middleEntity;
+            //                         const originalLinks = link.properties._$originalLinks;
+            //                         addEntities.push(middleEntity);
+            //                         addLinks = addLinks.concat(originalLinks);
+            //                     }
+            //
+            //                     const originalEntities = result.entities;
+            //                     for (const entity of originalEntities) {
+            //                         addEntities.push(entity);
+            //                     }
+            //
+            //                     const addGraph = { entities: addEntities, links: addLinks };
+            //
+            //                     const graph = {};
+            //                     const removedDataTask = this.graphForRender.execute('removeSubGraph', removeGraph);
+            //                     removedDataTask.then((removedResult) => {
+            //                         this.chart.checkElpModel(addGraph);
+            //                         search.checkAndEnrichElpData(addGraph, '', isCaseScope).then((checkedGraph) => {
+            //                             const addedDataTask = this.graphForRender.execute('addSubGraph', checkedGraph, isCaseScope);
+            //                             addedDataTask.then((addedResult) => {
+            //                                 removedResult.type = 'add';
+            //                                 addedResult.type = 'remove';
+            //                                 graph.removedGraph = addedResult;
+            //                                 graph.addedGraph = removedResult;
+            //                                 graph.eliminateLinkType = eliminateLinkType;
+            //                                 resolve(graph);
+            //                             }).catch((reason) => {
+            //                                 console.error(`添加数据异常 ${reason || ''}`);
+            //                             });
+            //                         });
+            //                     }).catch((reason) => {
+            //                         console.error(`删除数据异常 ${reason || ''}`);
+            //                     });
+            //                 }).catch((reason) => {
+            //                     console.warn(`获取合并前数据异常 ${reason}`);
+            //                 });
+            //             });
+            //         });
+            //     },
+            //     _undo: (value, isCaseScope) => {
+            //         return new Promise((resolve) => {
+            //             Promise.resolve(value).then((graph) => {
+            //                 const removedDataTask = this.graphForRender.execute('removeSubGraph', graph.removedGraph);
+            //                 removedDataTask.then(() => {
+            //                     this.chart.checkElpModel(graph.addedGraph);
+            //                     search.checkAndEnrichElpData({
+            //                         entities: Object.values(graph.addedGraph.entities),
+            //                         links: Object.values(graph.addedGraph.links),
+            //                     }, '', isCaseScope).then((checkedGraph) => {
+            //                         const addedDataTask = this.graphForRender.execute('addSubGraph', checkedGraph, isCaseScope);
+            //                         addedDataTask.then(() => {
+            //                             resolve(graph.eliminateLinkType);
+            //                         }).catch((reason) => {
+            //                             console.error(`添加数据异常 ${reason || ''}`);
+            //                         });
+            //                     });
+            //                 }).catch((reason) => {
+            //                     console.error(`删除数据异常 ${reason || ''}`);
+            //                 });
+            //             });
+            //         });
+            //     },
+            // },
             setEntityBorder: {
                 _do: (nodeIds, borderColors) => {
                     const originalBorderColors = this.getOriginalEntityProperties(nodeIds, '_$borderColor');

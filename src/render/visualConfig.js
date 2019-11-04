@@ -1,4 +1,4 @@
-export const visualConfig = {
+export default {
     factor: 0.20,
     backgroundColor: 0xf7f7f7,
     NODE_LABLE_OFFSET_Y: 46,

@@ -1,0 +1,51 @@
+{
+  "name": "graphz",
+  "version": "1.0.0",
+  "description": "graph visualization library",
+  "main": "dist/graphz.js",
+  "scripts": {
+    "dev": "webpack-dev-server --open --config build/webpack.dev.config.js",
+    "dist": "webpack --config build/webpack.prod.config.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "publishConfig": {
+    "registry": "http://172.30.6.10:8081/repository/npm-hosted/"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/cli": "^7.6.4",
+    "@babel/core": "^7.6.4",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/preset-env": "^7.6.3",
+    "babel-loader": "^8.0.6",
+    "css-loader": "^3.2.0",
+    "file-loader": "^4.2.0",
+    "html-webpack-plugin": "^3.2.0",
+    "install": "^0.13.0",
+    "npm": "^6.12.0",
+    "raw-loader": "^3.1.0",
+    "url-loader": "^2.2.0",
+    "vue": "^2.6.10",
+    "vue-loader": "^15.7.1",
+    "vue-template-compiler": "^2.6.10",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-server": "^3.9.0",
+    "webpack-merge": "^4.2.2"
+  },
+  "dependencies": {
+    "d3-force": "^1.1.0",
+    "eventemitter3": "^2.0.3",
+    "lodash": "^4.17.15",
+    "moment": "^2.19.1",
+    "ngraph.events": "0.0.4",
+    "ngraph.expose": "^1.0.0",
+    "ngraph.forcelayout": "^1.0.0",
+    "ngraph.random": "^1.0.0",
+    "pixi-gl-core": "^1.1.4",
+    "pixi.js": "^4.5.6",
+    "uuid-js": "^0.7.5",
+    "vis": "^4.21.0"
+  }
+}
