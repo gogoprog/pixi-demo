@@ -1,4 +1,4 @@
-export const elpVisualConfig = {
+export default {
     factor: 0.20,
     backgroundColor: 0xFFFFFF,
     NODE_LABLE_OFFSET_Y: 50,
@@ -101,9 +101,5 @@ export const elpVisualConfig = {
             color: 0x000000,
             alpha: 1,
         },
-    },
-
-    getCircleBorderTexture() {
-        return this.circleBorderTexture;
     },
 };

@@ -17,6 +17,9 @@ import CommandManager from './undoredo/CommandManager';
 import Constant from './Constant';
 import Graph from './graph/Graph';
 
+import PixiRenderer from "../render/PixiRenderer";
+import constructOptions from "../render/constructOptions";
+
 /**
  * Represents a chart object for interactive analysis;
  */
@@ -28,7 +31,7 @@ export default class Chart extends EventEmitter {
      * @param {Object} elpData 初始化图表的ELP模型
      * @param {boolean} checkElpData 是否请求后端接口执行elp检测转换
      */
-    constructor(chartMetadata, chartData, elpData, checkElpData = true) {
+    constructor(chartMetadata, chartData, elpData, checkElpData, container) {
         super();
 
         this.chartMetadata = chartMetadata;
@@ -128,6 +131,12 @@ export default class Chart extends EventEmitter {
         this.chartChanged = false;
 
         this.commandManager = new CommandManager(this);
+
+        // 渲染层设置
+        this.options = constructOptions(container);
+        this.renderer = PixiRenderer(this.options);
+        this.renderer.setGraphData(this.finalGraph);
+        this.renderer.run();
     }
 
     /**
@@ -546,6 +555,11 @@ export default class Chart extends EventEmitter {
         this.finalGraph.updateLinkProperties(linkData);
     }
 
+    initAssets() {
+        return this.renderer.loadResources();
+    }
+
+
     /**
      * 创建临时图表
      * @param chartId
@@ -557,11 +571,11 @@ export default class Chart extends EventEmitter {
      * @param checkElpData
      * @returns {Chart}
      */
-    static createTemporaryChart(chartId, account, name, description, elpData, needEntityMerge, needLinkMerge, checkElpData) {
+    static createTemporaryChart(chartId, account, name, description, elpData, container, needEntityMerge, needLinkMerge, checkElpData = false) {
         const uuid4 = UUID.create();
         chartId = chartId || uuid4.toString();
         const chartMetadata = new ChartMetadata(account, chartId, name, description, 'Network', 'FRONT', needEntityMerge, needLinkMerge);
-        const temporaryChart = new Chart(chartMetadata, null, elpData, checkElpData);
+        const temporaryChart = new Chart(chartMetadata, null, elpData, checkElpData, container);
         temporaryChart.chartChanged = false;
         return temporaryChart;
     }

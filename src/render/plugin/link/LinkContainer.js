@@ -131,11 +131,6 @@ export default class LinkContainer extends PIXI.Container {
                         lastx = child.familyLayoutPositionList[i].x;
                         lasty = child.familyLayoutPositionList[i].y;
                     }
-
-                    // this.lineGraphics.moveTo(child.x1, child.y1);
-                    // this.lineGraphics.lineTo(child.fx, child.fy);
-                    // this.lineGraphics.lineTo(child.tx, child.ty);
-                    // this.lineGraphics.lineTo(child.x2, child.y2);
                 }
             }
         }

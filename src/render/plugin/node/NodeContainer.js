@@ -2,15 +2,21 @@ import NodeRenderer from './NodeRenderer';
 import Bimap from '../Bimap';
 import { getBufferSize } from '../Utility';
 
+import selectionFrameUrl from '../../../assets/images/other/Square.png';
+import defaultIconUrl from '../../../assets/images/TextAnalysis/TextAnalysis.png';
+
 export default class NodeContainer extends PIXI.Container {
-    constructor(visualConfig) {
+    constructor() {
         super();
 
-        this.iconMap = visualConfig.iconMap;
+        // 0: single icon, 1: multiple icons
+        this.iconMode = 0;
 
-        this.texture = visualConfig.allentities;
+        this.iconMap = {};
 
-        this.selectionTexture = visualConfig.selectionFrameTexture;
+        this.texture = PIXI.Texture.fromImage(defaultIconUrl);
+
+        this.selectionTexture = PIXI.Texture.fromImage(selectionFrameUrl);
 
         this.zIndex = 20;
 
@@ -34,6 +40,15 @@ export default class NodeContainer extends PIXI.Container {
         // nodeContainer中有isDirty
         this.isDirty = false;
         this.positionDirty = false;
+    }
+
+    /**
+     * 设置需要的资源
+     */
+    setResources(iconMap, allentities) {
+        this.iconMap = iconMap;
+        this.texture = allentities;
+        this.iconMode = 1;
     }
 
     /**
@@ -130,7 +145,11 @@ export default class NodeContainer extends PIXI.Container {
 
         // all entities' icon index
         const iconIndex = this.iconMap[child.iconUrl];
-        this.iconIndexArray.set([iconIndex], index);
+        if (iconIndex >= 0) {
+            this.iconIndexArray.set([iconIndex], index);
+        } else {
+            this.iconIndexArray.set([0], index);
+        }
 
         this.selectedArray.set([0.0], index);
 

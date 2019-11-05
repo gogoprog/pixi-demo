@@ -107,19 +107,4 @@ export default {
             alpha: 1,
         },
     },
-
-    findGraphCollIcon(collId) {
-        const data = visualConfig.graphCollIcons;
-        if (data) {
-            return data[collId - 1];
-        }
-    },
-
-    getCircleBorderTexture() {
-        return this.circleBorderTexture;
-    },
-
-    getControlTexture() {
-        return this.controlTexture;
-    },
 };

@@ -1,5 +1,4 @@
 import renderer from './render/PixiRenderer';
-import Settings from "./render/Settings";
 import visualConfig from "./render/visualConfig";
 
 import EntityStatistics from './chart/statistics/EntityStatistics';
@@ -24,7 +23,6 @@ import Command from "./chart/undoredo/Command";
 
 export default {
     renderer,
-    Settings,
     visualConfig,
 
     EntityStatistics,

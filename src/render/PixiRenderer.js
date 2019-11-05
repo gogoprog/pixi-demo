@@ -1,15 +1,12 @@
 import eventify from 'ngraph.events';
 import 'pixi.js';
 
-// import LayeredLayout from './layout/LayeredLayout';
 import LayeredLayoutNew from './layout/newLayeredLayout/LayeredLayoutNew';
 import FamilyLayout from './layout/newLayeredLayout/FamilyLayout/FamilyLayout'
 import StandardFamilyTreeLayout from './layout/newLayeredLayout/StandardFamilyTreeLayout/StandardFamilyTreeLayout'
 import SimpleFamilyLayout from './layout/newLayeredLayout/SimpleFamilyLayout/SimpleFamilyLayout'
 import CircleLayout from './layout/CircleLayout';
-// import StructuralLayout from './layout/StructuralLayout/StructuralLayout';
 import RadiateLayout from './layout/RadiateLayout';
-import TimelineLayout from './layout/TimelineLayout';
 // import ForceLayoutBaseNgraph from "./layout/ForceLayoutBaseNgraph/ForceLayout"
 import createLayout from "./layout/ForceLayoutBaseNgraph/ForceLayoutInNGraph"
 // import GraphLevelForceLayout from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayout"
@@ -33,22 +30,17 @@ import AnimationAgent from './AnimationAgent';
 import FPSCounter from './FPSCounter';
 import { getMyBounds } from './boundsHelper';
 import extract from './extract';
+import allEntities from "graphz/assets/images/allentities";
+import { base64toBlob } from "graphz/render/Utils";
 
-export default function (settings) {
+export default function (options) {
     let isDirty = true;
     let graphType = { entityTypes: [], linkTypes: [] };
     let graph = Graph();
 
-    // Where do we render our graph?
-    if (typeof settings.container === 'undefined') {
-        settings.container = document.body;
-    }
-
-    const visualConfig = settings.visualConfig;
+    const visualConfig = options.visualConfig;
 
     // If client does not need custom layout algorithm, let's create default one:
-    // let networkLayout = createForceLayout(graph, visualConfig.forceLayout);
-    // let networkLayout = ForceLayoutBaseNgraph(graph, visualConfig.forceLayout);
     let networkLayout = null;
     if (visualConfig.ORIGINAL_FORCE_LAYOUT) {
         networkLayout = elpForceLayout(graph, visualConfig.forceLayout);
@@ -73,16 +65,14 @@ export default function (settings) {
 
     const showDebugMarkup = false;
 
-    const canvas = settings.container;
-    // 下一行好像是多余的
-    const disabledWheel = settings.disabledWheel; // disabled addWheelListener
+    const canvas = options.container;
 
-    const viewWidth = settings.container.clientWidth;
-    const viewHeight = settings.container.clientHeight;
+    const viewWidth = options.container.clientWidth;
+    const viewHeight = options.container.clientHeight;
 
     PIXI.settings.SPRITE_BATCH_SIZE = 4098 * 2;
     const renderer = new PIXI.autoDetectRenderer(viewWidth, viewHeight, {
-        view: settings.container,
+        view: options.container,
         transparent: false,
         autoResize: true,
         antialias: true,
@@ -91,7 +81,7 @@ export default function (settings) {
     });
     const stage = new PIXI.Container();   // the view port, same size as canvas, used to capture mouse action
     const root = new PIXI.Container();   // the content root
-    const nodeContainer = new NodeContainer(visualConfig);
+    const nodeContainer = new NodeContainer();
     const textContainer = new PIXI.Container();
     textContainer.interactive = false;
     textContainer.interactiveChildren = false;
@@ -100,7 +90,6 @@ export default function (settings) {
     labelContainer.interactiveChildren = false;
     const selectRegionGraphics = new PIXI.Graphics();
     const connectLineGraphics = new PIXI.Graphics();
-    const lineGraphics = new PIXI.Graphics();
     const linkContainer = new LinkContainer(visualConfig);
     const iconContainer = new PIXI.Container();
     iconContainer.interactive = false;
@@ -112,17 +101,14 @@ export default function (settings) {
     root.parent = stage;
     stage.addChild(root);
     stage.addChild(selectRegionGraphics);
-    stage.addChild(connectLineGraphics);
 
-    lineGraphics.zIndex = 6;
     selectRegionGraphics.zIndex = 11;
     connectLineGraphics.zIndex = 11;
     textContainer.zIndex = 15;
     nodeContainer.zIndex = 20;
 
-    root.addChild(lineGraphics);
+
     root.addChild(linkContainer);
-    root.addChild(linkContainer.lineGraphics);
     root.addChild(labelContainer);
     root.addChild(textContainer);
     root.addChild(nodeContainer);
@@ -134,7 +120,7 @@ export default function (settings) {
     stage.width = viewWidth;
     stage.height = viewHeight;
 
-    const mode = settings.mode;
+    const mode = options.mode;
     stage.mode = mode;
 
     // TODO here set the canvas as 20000*20000
@@ -397,8 +383,6 @@ export default function (settings) {
     // 将linkSprites设置进linkContainer以便画线
     linkContainer.linkSprites = linkSprites;
 
-    //let bfsQueue = [];
-
     /**
      * now we vindicate a map for nodes to draw boundary.
      * this map has two part:
@@ -425,8 +409,6 @@ export default function (settings) {
         stage.on('rightup', stage.rightupListener);
     }
 
-    const timelineLayout = new TimelineLayout(nodeSprites, nodeContainer, linkSprites, lineGraphics, visualConfig, stage, layoutType, settings);
-
     // add animation
     let animationAgent = new AnimationAgent();
 
@@ -444,6 +426,56 @@ export default function (settings) {
         root,
         stage,
         mode,
+
+        loadResources() {
+            return new Promise((resolve => {
+                const loadedResource = {};
+
+                const loader = new PIXI.loaders.Loader();
+                loader.add('fontXML', '/static/font/noto.fnt');
+                loader.load((loader, resources) => {
+                    visualConfig.font = resources.fontXML.bitmapFont;
+
+                    const getAllEntitiesIconPromises = allEntities.map((entity, index) => import(`../assets/images${entity.url}`));
+                    Promise.all(getAllEntitiesIconPromises).then((results) => {
+                        const canvas = document.createElement("canvas");
+                        const context = canvas.getContext("2d");
+                        // the canvas size is 2048x2048, and icon size is 16 * 16
+                        context.canvas.width  = 2048;
+                        context.canvas.height = 2048;
+                        context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+
+                        const iconMap = {};
+                        const ImagesPromises = results.map((icon, index) => {
+                            const iconObject = allEntities[index];
+                            iconMap[iconObject.url] = index;
+
+                            const row = Math.floor(index / 16.0);
+                            const column = index - row * 16;
+
+                            const imageBlob = base64toBlob(icon.default.replace(/^data:image\/(png|jpg);base64,/, ""), 'image/png');
+                            return createImageBitmap(imageBlob);
+                        });
+
+                        Promise.all(ImagesPromises).then((images) => {
+                            images.forEach((image, index) => {
+                                const row = Math.floor(index / 16.0);
+                                const column = index - row * 16;
+                                context.drawImage(image, column * 128, row * 128, 128, 128);
+                            });
+
+                            loadedResource.iconMap = iconMap;
+                            loadedResource.allentities = PIXI.Texture.fromCanvas(canvas);
+                            nodeContainer.setResources(iconMap, PIXI.Texture.fromCanvas(canvas));
+
+                            // animationLoop();
+
+                            resolve();
+                        });
+                    });
+                });
+            }));
+        },
 
         getLayoutType() {
             return layoutType;
@@ -660,38 +692,12 @@ export default function (settings) {
             const root = this.root;
             root.scale.x = 1;
             root.scale.y = 1;
-            if (layoutType === 'TimelineScale') {
-                root.position.x = viewWidth / 2;
-                root.position.y = viewHeight / 2;
-                let sumx = 0;
-                let sumy = 0;
-                let count = 0;
-                _.each(nodeSprites, (n) => {
-                    sumx += n.position.x;
-                    sumy += n.position.y;
-                    count++;
-                });
-                if (count !== 0) {
-                    sumx /= count;
-                    sumy /= count;
-                }
-                _.each(nodeSprites, (n) => {
-                    n.position.x -= sumx;
-                    n.position.y -= sumy;
-                    n.updateNodePosition(n.position);
-                    nodeContainer.nodeMoved(n);
-                    layout.setNodePosition(n.id, n.position.x, n.position.y);
-                });
-                _.each(linkSprites, (l) => {
-                    l.updatePosition();
-                });
+
+            const rootPlacement = this.calculateRootPosition(1);
+            if (rootPlacement) {
+                animationAgent.move(root, rootPlacement.position);
             } else {
-                const rootPlacement = this.calculateRootPosition(1);
-                if (rootPlacement) {
-                    animationAgent.move(root, rootPlacement.position);
-                } else {
-                    console.error('Center graph action not supported in current layout.');
-                }
+                console.error('Center graph action not supported in current layout.');
             }
         },
 
@@ -1042,16 +1048,7 @@ export default function (settings) {
 
         zoom(x, y, zoomingIn) {
             isDirty = true;
-            if (stage.isTimelineLayout) {
-                nodeContainer.positionDirty = true;
-                if (zoomingIn) {
-                    timelineLayout.zoomTimeline(-0.1);
-                } else {
-                    timelineLayout.zoomTimeline(0.1);
-                }
-            } else {
-                zoom(x, y, zoomingIn, root);
-            }
+            zoom(x, y, zoomingIn, root);
         },
 
         destroy() {
@@ -1078,7 +1075,6 @@ export default function (settings) {
 
             selectRegionGraphics.destroy(false);
             connectLineGraphics.destroy(false);
-            lineGraphics.destroy(false);
             textContainer.destroy(false);
             linkContainer.destroy(false);
             nodeContainer.destroy(false);
@@ -1089,8 +1085,6 @@ export default function (settings) {
         },
 
         setLayoutType(layoutTypeStr) {
-            lineGraphics.visible = layoutTypeStr === 'TimelineScale';
-
             console.info(`Setting layout type to ${layoutTypeStr}`);
             layoutType = layoutTypeStr || 'Network';
             if (layoutType !== 'Network'
@@ -1102,8 +1096,7 @@ export default function (settings) {
                 && layoutType !== 'Person2Person'
                 && layoutType !== 'FamilyLayout'
                 && layoutType !== 'SimpleFamilyLayout'
-                && layoutType !== 'Radiate'
-                && layoutType !== 'TimelineScale') {
+                && layoutType !== 'Radiate') {
                 layoutType = 'Network';
             }
 
@@ -1148,9 +1141,6 @@ export default function (settings) {
             nodeContainer.layoutType = layoutType;
 
             isDirty = true;
-            if (stage.isTimelineLayout  && layoutType !== 'TimelineScale') {
-                timelineLayout.disableTimelineLayout();
-            }
             if (layoutType === 'Network') {
                 layout = networkLayout;
                 if (!dynamicLayout) {
@@ -1189,9 +1179,6 @@ export default function (settings) {
                 this.drawFamilyLayout(disableAnimation, init);
             } else if (layoutType === 'SimpleFamilyLayout') {
                 this.drawSimpleFamilyLayout(disableAnimation, init);
-            } else if (layoutType === 'TimelineScale') {
-                layout = timelineLayout;
-                layout.drawTimelineLayout();
             }  else {
                 return false;
             }
@@ -1752,13 +1739,13 @@ export default function (settings) {
         }
     };
 
-    if (!disabledWheel) {
-        canvas.addEventListener('mousewheel', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            pixiGraphics.zoom(e.offsetX || (e.originalEvent ? e.originalEvent.offsetX : null), e.offsetY || (e.originalEvent ? e.originalEvent.offsetY : null), e.deltaY < 0);
-        }, { passive: false });
-    }
+
+    canvas.addEventListener('mousewheel', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        pixiGraphics.zoom(e.offsetX || (e.originalEvent ? e.originalEvent.offsetX : null), e.offsetY || (e.originalEvent ? e.originalEvent.offsetY : null), e.deltaY < 0);
+    }, { passive: false });
+
 
     pixiGraphics._lastDownTarget = null;
     pixiGraphics._mouseDownListener = function (event) {
@@ -1791,65 +1778,6 @@ export default function (settings) {
         isDirty = true;
         pixiGraphics.fire('selectionChanged');
     }
-
-    /**
-     * Context menu event is sourced from rightup event on
-     * 1. node sprite
-     * 2. link label sprite
-     * 3. the root container.
-     * PIXI will handle the detection of which one is hit and put it in the target property of event;
-     * @param e
-     */
-    // function contextmenuListener(e) {
-    //
-    //     if( e.target instanceof SimpleNodeSprite) {
-    //         // console.log('Right up on node');
-    //         if(!e.target.selected) {
-    //             nodeContainer.selectNode(e.target);
-    //         }
-    //         selectionChanged();
-    //     } else if( e.target instanceof PIXI.Sprite) {
-    //         // console.log('rightup on link label');
-    //         const lineSprite = e.target.lineSprite;
-    //         if(!lineSprite.selected) {
-    //             linkContainer.selectLink(lineSprite);
-    //         }
-    //         selectionChanged();
-    //     }
-    //
-    //     let mouseOnSelectedNode = false;
-    //     let mouseOnSelectedLink = false;
-    //     const selectedNodes = pixiGraphics.getSelectedNodes();
-    //     const selectedLinks = pixiGraphics.getSelectedLinks();
-    //     let event = {};
-    //     if (!selectedNodes.length && !selectedLinks.length) {
-    //         event = { type: 'blank', original: e , target: null};
-    //     } else {
-    //         for (const nodeSprite of selectedNodes) {
-    //             if (nodeSprite === e.target) {
-    //                 mouseOnSelectedNode = true;
-    //                 break;
-    //             }
-    //         }
-    //         if (mouseOnSelectedNode) {
-    //             event = { type: 'node', original: e , target: e.target.data };
-    //         } else {
-    //             for (const linkSprite of selectedLinks) {
-    //                 // if (linkSprite.arrow === e.target || linkSprite.label === e.target) {
-    //                 if (linkSprite.label === e.target) {
-    //                     mouseOnSelectedLink = true;
-    //                     break;
-    //                 }
-    //             }
-    //             if (mouseOnSelectedLink) {
-    //                 event = { type: 'link', original: e , target: e.target.lineSprite.data};
-    //             } else {
-    //                 event = { type: 'blank', original: e, target: null};
-    //             }
-    //         }
-    //     }
-    //     fireContextmenu(event);
-    // }
 
     function fireContextmenu(event) {
         isDirty = true;
@@ -1923,10 +1851,6 @@ export default function (settings) {
 
             if(showDebugMarkup) {
                 drawDebugMarkup();
-            }
-
-            if (stage.isTimelineLayout) {
-                timelineLayout.drawNodeTimelines();
             }
 
             renderer.render(stage);
@@ -2326,10 +2250,10 @@ export default function (settings) {
 
     function onGraphChanged(changes) {
         console.log(`Graph changed ${new Date()}`);
-        const nodeIdArray = [];
-        const linkIdArray = [];
-        const updateNodeIdArray = [];
-        const updateLinkIdArray = [];
+        // const nodeIdArray = [];
+        // const linkIdArray = [];
+        // const updateNodeIdArray = [];
+        // const updateLinkIdArray = [];
         isDirty = true;
         for (let i = 0; i < changes.length; ++i) {
             const change = changes[i];
@@ -2338,11 +2262,11 @@ export default function (settings) {
             if (change.changeType === 'add') {
                 if (changeNode) {
                     initNode(changeNode);
-                    nodeIdArray.push(changeNode.id);
+                    // nodeIdArray.push(changeNode.id);
                 }
                 if (changeLink) {
                     initLink(changeLink);
-                    linkIdArray.push(changeLink.id);
+                    // linkIdArray.push(changeLink.id);
                 }
             } else if (change.changeType === 'remove') {
                 if (changeNode) {
@@ -2354,37 +2278,39 @@ export default function (settings) {
             } else if (change.changeType === 'update') {
                 if (changeNode) {
                     updateNode(changeNode);
-                    updateNodeIdArray.push(changeNode.id);
+                    // updateNodeIdArray.push(changeNode.id);
                 }
                 if (changeLink) {
                     updateLink(changeLink);
-                    updateLinkIdArray.push(changeLink.id);
+                    // updateLinkIdArray.push(changeLink.id);
                 }
             }
         }
 
-        let added = false;
-        if (nodeIdArray.length > 0 || linkIdArray.length > 0) {
-            if(!visualConfig.ORIGINAL_FORCE_LAYOUT) {
-                pixiGraphics.performLayout();
-            }
-            pixiGraphics.clearSelection();
-            pixiGraphics.selectSubGraph(nodeIdArray, linkIdArray);
-            added = true;
-        }
+        // let added = false;
+        // if (nodeIdArray.length > 0 || linkIdArray.length > 0) {
+        //     if(!visualConfig.ORIGINAL_FORCE_LAYOUT) {
+        //         pixiGraphics.performLayout();
+        //     }
+        //     pixiGraphics.clearSelection();
+        //     pixiGraphics.selectSubGraph(nodeIdArray, linkIdArray);
+        //     added = true;
+        // }
+        //
+        // let updated = false;
+        // if (updateNodeIdArray.length > 0 || updateLinkIdArray.length > 0) {
+        //     if (!added) {
+        //         pixiGraphics.clearSelection();
+        //     }
+        //     pixiGraphics.selectSubGraph(updateNodeIdArray, updateLinkIdArray);
+        //     updated = true;
+        // }
+        //
+        // if (!added && !updated) {   // 删除时触发selectionChanged
+        //     selectionChanged();
+        // }
 
-        let updated = false;
-        if (updateNodeIdArray.length > 0 || updateLinkIdArray.length > 0) {
-            if (!added) {
-                pixiGraphics.clearSelection();
-            }
-            pixiGraphics.selectSubGraph(updateNodeIdArray, updateLinkIdArray);
-            updated = true;
-        }
-
-        if (!added && !updated) {   // 删除时触发selectionChanged
-            selectionChanged();
-        }
+        pixiGraphics.performLayout();
 
         if (textAnalysis){
             for (let tmp = 0; tmp < 10000; tmp++){

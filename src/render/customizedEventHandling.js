@@ -34,9 +34,6 @@ export const zoom = function (x, y, isZoomIn, contentRoot) {
     contentRoot.position.x += (afterTransform.x - beforeTransform.x) * contentRoot.scale.x;
     contentRoot.position.y += (afterTransform.y - beforeTransform.y) * contentRoot.scale.y;
     contentRoot.updateTransform();
-    if (contentRoot.parent.isTimelineLayout) {
-        contentRoot.parent.contentRootMoved(factor);
-    }
 };
 
 
@@ -103,9 +100,6 @@ const rootReleaseHandler = function (e) {
     this.connectingLine = false;
     this.connectLine = null;
 
-    if (this.isTimelineLayout) {
-        this.contentRootMoved();
-    }
     this.isDirty = true;
 };
 
@@ -123,9 +117,6 @@ const rootMoveHandler = function (e) {
         };
         this.contentRoot.position.x += dx;
         this.contentRoot.position.y += dy;
-        if (this.isTimelineLayout) {
-            this.contentRootMoved();
-        }
         this.isDirty = true;
     } else if (this.selectingArea) {
         if (Math.abs(dx) > 5 && Math.abs(dy) > 5) {

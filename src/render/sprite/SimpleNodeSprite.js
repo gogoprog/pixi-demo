@@ -59,13 +59,19 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             labels = [];
         }
         labels.forEach((label, index) => {
-            const t = new PIXI.extras.BitmapText((label ? label : ''), {
-                font: {
-                    name : this.visualConfig.font.font,
-                    size: this.visualConfig.ui.label.font.size
-                },
-                tint: this.visualConfig.ui.label.font.color
-            });
+            let t;
+            if (this.visualConfig.font) {
+                t = new PIXI.extras.BitmapText((label ? label : ''), {
+                    font: {
+                        name : this.visualConfig.font.font,
+                        size: this.visualConfig.ui.label.font.size
+                    },
+                    tint: this.visualConfig.ui.label.font.color
+                });
+            } else {
+                t = new PIXI.Text(label ? label : '');
+            }
+
             t.position.set(0, this.visualConfig.NODE_LABLE_OFFSET_BETWEEN_LINE * index);
             t.anchor.x = 0.5;
             t.anchor.y = 0.5;
@@ -186,7 +192,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
             };
 
             if (!this.circleBorder) {
-                const borderTexture = vizConf.getCircleBorderTexture();
+                const borderTexture = vizConf.circleBorderTexture;
                 const circleBorder = new PIXI.Sprite(borderTexture);
                 circleBorder.scale.set(this.scale.x, this.scale.y);
                 circleBorder.position.set(this.position.x, this.position.y);
@@ -313,7 +319,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         const gcsArr = nodeSprite.gcs || [];
 
         for (const collId of collIdArr) { // 添加集合
-            const iconTexture = vizConf.findGraphCollIcon(collId);
+            const iconTexture = vizConf.graphCollIcons[collId - 1];
             const iconSprite = new PIXI.Sprite(iconTexture);
             iconSprite.id = collId;
             iconSprite.anchor.x = 0.5;
@@ -502,7 +508,7 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         const nodeSprite = this;
         if (!nodeSprite.cs) {
             const vizConf = this.visualConfig;
-            const controlTexture = this.visualConfig.getControlTexture();
+            const controlTexture = this.visualConfig.controlTexture;
             const iconSprite = new PIXI.Sprite(controlTexture);
 
             // 以实体为中心的正方形210x210为标准 根据视觉图标注位置画各个实体的附属图标

@@ -8,6 +8,9 @@
 <script>
     import graphz from 'graphz';
 
+    import globalELPModel from './globalELPModel';
+    import chartData from './chartData';
+
     export default {
         data() {
             return {
@@ -22,27 +25,28 @@
         },
         methods: {
             init() {
-                const self = this;
-                const settings = new graphz.Settings('renderArea', 'visTimeline', graphz.visualConfig);
-                settings.loadResources().then(() => {
-                    console.log('1111');
+                const temporaryChart = graphz.Chart.createTemporaryChart("aaa", "bbb", `临时分析`, null, globalELPModel, 'renderArea');
 
-                    self.pixiRenderer = graphz.renderer(settings);
+                // temporaryChart.execute('addSubGraph', chartData).then(() => {
+                //     console.log('add data success!')
+                // });
 
-                    self.pixiRenderer.run();
-
-                    console.log('2222');
+                temporaryChart.initAssets().then(() => {
+                    temporaryChart.execute('addSubGraph', chartData).then(() => {
+                        console.log('add data success!')
+                    });
                 });
             },
         },
     }
-
 </script>
 
 <style lang="css">
 html, body {
     width: 100%;
     height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 .main {

@@ -40,13 +40,18 @@ export default class SimpleLineSprite {
             labels = [];
         }
         labels.forEach((label, index) => {
-            const t = new PIXI.extras.BitmapText((label ? label : ''), {
-                font: {
-                    name : this.visualConfig.font.font,
-                    size: this.visualConfig.ui.label.font.size
-                },
-                tint: this.visualConfig.ui.label.font.color
-            });
+            let t;
+            if (this.visualConfig.font) {
+                t = new PIXI.extras.BitmapText((label ? label : ''), {
+                    font: {
+                        name : this.visualConfig.font.font,
+                        size: this.visualConfig.ui.label.font.size
+                    },
+                    tint: this.visualConfig.ui.label.font.color
+                });
+            } else {
+                t = new PIXI.Text(label ? label : '');
+            }
 
             t.position.set(0, this.visualConfig.NODE_LABLE_OFFSET_BETWEEN_LINE * index);
             t.anchor.x = 0.5;
