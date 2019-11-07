@@ -137,6 +137,11 @@ export default class Chart extends EventEmitter {
         this.renderer = PixiRenderer(this.options);
         this.renderer.setGraphData(this.finalGraph);
         this.renderer.run();
+
+        this.on('setLayoutType', (layoutType) => {
+            this.renderer.setLayoutType(layoutType);
+            this.renderer.performLayout();
+        });
     }
 
     /**

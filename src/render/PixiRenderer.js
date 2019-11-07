@@ -33,6 +33,8 @@ import extract from './extract';
 import allEntities from "graphz/assets/images/allentities";
 import { base64toBlob } from "graphz/render/Utils";
 
+// import Module from './layouter';
+
 export default function (options) {
     let isDirty = true;
     let graphType = { entityTypes: [], linkTypes: [] };
@@ -53,6 +55,8 @@ export default function (options) {
             layoutStabilized();
         }
     });
+
+    // let layoutEMS = new Module.LayouterEMScripten();
 
     let layout = networkLayout;
     let layoutType = 'Network';
@@ -1144,17 +1148,73 @@ export default function (options) {
             if (layoutType === 'Network') {
                 layout = networkLayout;
                 if (!dynamicLayout) {
-                    layout.step();
+                    if (localStorage.useJsLayout && localStorage.useJsLayout === 'true') {
+                        const t0 = performance.now();
+                        layout.step();
+                        const t1 = performance.now();
+                        _.each(nodeSprites, (nodeSprite, nodeId) => { //大开销计算
+                            nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+                            nodeContainer.nodeMoved(nodeSprite);
+                        });
+                        _.each(linkSprites, (l) => {
+                            l.updatePosition();
+                        });
 
-                    _.each(nodeSprites, (nodeSprite, nodeId) => { //大开销计算
-                        nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
-                        nodeContainer.nodeMoved(nodeSprite);
-                    });
-                    _.each(linkSprites, (l) => {
-                        l.updatePosition();
-                    });
+                        renderer.render(stage);
+                        const t2 = performance.now();
 
-                    renderer.render(stage);
+                        console.log("JS layout  took " + (t1 - t0) + " milliseconds.");
+                        console.log("JS render took " + (t2 - t1) + " milliseconds.");
+                    } else {
+                        const t0 = performance.now();
+
+                        const nodeIDs = Object.keys(nodeSprites);
+                        for (let i = 0; i < nodeIDs.length; i++) {
+                            const nodeId = nodeIDs[i];
+                            // layoutEMS.addNode(i, nodeId, getRandomArbitrary(), getRandomArbitrary());
+                            const position = layout.getNodePosition(nodeId);
+                            layoutEMS.addNode(i, nodeId, position.x, position.y);
+                        }
+
+                        const linkIDs = Object.keys(linkSprites);
+                        for (let i = 0; i < linkIDs.length; i++) {
+                            const linkId = linkIDs[i];
+                            const link = linkSprites[linkId];
+
+                            layoutEMS.addEdge(i, nodeIDs.indexOf(link.data.sourceEntity), nodeIDs.indexOf(link.data.targetEntity));
+                        }
+
+                        const t1 = performance.now();
+
+                        const arrayNodePos = layoutEMS.execFastMultilevelLayouter();
+                        console.log('node count: ' + arrayNodePos.size());
+
+                        const t2 = performance.now();
+
+                        for (let index = 0; index < arrayNodePos.size(); index++)
+                        {
+                            const nodePosInfo = arrayNodePos.element(index);
+                            // console.log('node id: ' + nodePosInfo.m_lId);
+                            // console.log('node pos.x: ' + nodePosInfo.m_dPosX);
+                            // console.log('node pos.y: ' + nodePosInfo.m_dPosY);
+
+                            const nodeId = nodeIDs[index];
+                            const nodeSprite = nodeSprites[nodeId];
+                            nodeSprite.updateNodePosition({x: nodePosInfo.m_dPosX, y:nodePosInfo.m_dPosY});
+                            nodeContainer.nodeMoved(nodeSprite);
+                        }
+
+                        _.each(linkSprites, (l) => {
+                            l.updatePosition();
+                        });
+
+                        renderer.render(stage);
+
+                        const t3 = performance.now();
+                        console.log("WebAssembly prepare data took " + (t1 - t0) + " milliseconds.");
+                        console.log("WebAssembly layout took " + (t2 - t1) + " milliseconds.");
+                        console.log("WebAssembly render took " + (t3 - t2) + " milliseconds.");
+                    }
                 }
                 if (needReflow) {
                     this.setNodesToFullScreen(disableAnimation);
