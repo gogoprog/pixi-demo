@@ -69,8 +69,6 @@ export default function (options) {
     let layout = networkLayout;
     let layoutType = 'Network';
 
-    let textAnalysis = visualConfig.TEXT_ANALYSIS;
-
     const showDebugMarkup = false;
 
     const canvas = options.container;
@@ -2350,13 +2348,6 @@ export default function (options) {
         // }
 
         pixiGraphics.performLayout();
-
-        if (textAnalysis){
-            for (let tmp = 0; tmp < 10000; tmp++){
-                layout.step();
-            }
-            updateNodeSpritesPosition();
-        }
 
         console.log(`Graph change process complete ${new Date()}`);
     }

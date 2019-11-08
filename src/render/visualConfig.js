@@ -23,7 +23,7 @@ export default {
     ELLIPSE_X_OFFSET: 0.15 * 32,
     LAYOUT_ANIMATION: true,
     ORIGINAL_FORCE_LAYOUT: false,
-    TEXT_ANALYSIS: false,
+    // TEXT_ANALYSIS: false,
     forceLayout: {
         springLength: 500,
         springCoeff: 0.00008,
