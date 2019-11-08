@@ -25,10 +25,13 @@
         },
         methods: {
             init() {
-                const temporaryChart = graphz.Chart.createTemporaryChart("aaa", "bbb", `临时分析`, null, globalELPModel, 'renderArea');
+                this.chart = new graphz.Chart({
+                    elpData: globalELPModel,
+                    container: 'renderArea'
+                });
 
-                temporaryChart.initAssets().then(() => {
-                    temporaryChart.execute('addSubGraph', chartData).then(() => {
+                this.chart.initAssets().then(() => {
+                    this.chart.execute('addSubGraph', chartData).then(() => {
                         console.log('add data success!')
                     });
                 });

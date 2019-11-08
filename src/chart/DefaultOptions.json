@@ -1,0 +1,12 @@
+{
+  "elpData": {
+    "entities": [],
+    "links": []
+  },
+
+  "needEntityMerge": false,
+  "needLinkMerge": false,
+  "container": null,
+
+  "undoRedo": false
+}

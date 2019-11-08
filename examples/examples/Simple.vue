@@ -26,9 +26,12 @@
                 const globalELPModel = await globalELPModelResponse.json();
                 const chartDataResponse = await fetch('/static/data/chartData.json');
                 const chartData = await chartDataResponse.json();
-                const temporaryChart = graphz.Chart.createTemporaryChart("aaa", "bbb", `临时分析`, null, globalELPModel, 'renderArea');
+                this.chart = new graphz.Chart({
+                    elpData: globalELPModel,
+                    container: 'renderArea'
+                });
 
-                temporaryChart.execute('addSubGraph', chartData).then(() => {
+                this.chart.execute('addSubGraph', chartData).then(() => {
                     console.log('add data success!')
                 });
             },

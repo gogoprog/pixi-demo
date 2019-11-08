@@ -33,7 +33,10 @@
         },
         methods: {
             init() {
-                this.chart = graphz.Chart.createTemporaryChart("aaa", "bbb", `临时分析`, null, globalELPModel, 'renderArea');
+                this.chart = new graphz.Chart({
+                    elpData: globalELPModel,
+                    container: 'renderArea'
+                });
 
                 this.chart.initAssets().then(() => {
                     this.chart.execute('addSubGraph', chartData).then(() => {

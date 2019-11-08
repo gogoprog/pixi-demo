@@ -5,12 +5,14 @@ import Command from './Command';
 const MAX_STACK_SIZE = 5;
 
 export default class CommandManager {
-    constructor(chart) {
+    constructor(chart, enableUndoRedo = false) {
         this.isDebug = true;
         this.stackSizeLimit = MAX_STACK_SIZE;
 
         this.chart = chart;
         this.graphForRender = this.chart.getRendererGraph();
+
+        this.enableUndoRedo = enableUndoRedo;
 
         this.actions = {};
         this.undoStack = [];
@@ -31,7 +33,7 @@ export default class CommandManager {
      * Redo last action
      */
     undo() {
-        if (!this.isUndoStackEmpty()) {
+        if (this.enableUndoRedo && !this.isUndoStackEmpty()) {
             const action = this.undoStack.pop();
 
             let res;
@@ -58,7 +60,7 @@ export default class CommandManager {
      * Redo last action
      */
     redo() {
-        if (!this.isRedoStackEmpty()) {
+        if (this.enableUndoRedo && !this.isRedoStackEmpty()) {
             const action = this.redoStack.pop();
 
             if (!action.args) {
@@ -93,20 +95,31 @@ export default class CommandManager {
      * Calls registered function with action name actionName via actionFunction(args)
      */
     execute(actionName, ...args) {
-        this.redoStack.length = 0;
-        if (actionName === Command.BATCH) {
-            this.redoStack.push({
-                name: actionName,
-                args: args[0],
-            });
-        } else {
-            this.redoStack.push({
-                name: actionName,
-                args,
-            });
-        }
+        if (this.enableUndoRedo) {
+            this.redoStack.length = 0;
+            if (actionName === Command.BATCH) {
+                this.redoStack.push({
+                    name: actionName,
+                    args: args[0],
+                });
+            } else {
+                this.redoStack.push({
+                    name: actionName,
+                    args,
+                });
+            }
 
-        return this.redo();
+            return this.redo();
+        } else {
+            // When disable undoRedo, we just execute the commands directly.
+            let res;
+            if (actionName === Command.BATCH) {
+                res = this.actions[actionName]._do(args);
+            } else {
+                res = this.actions[actionName]._do(...args);
+            }
+            return  res;
+        }
     }
 
     /**

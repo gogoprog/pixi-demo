@@ -17,6 +17,8 @@ import CommandManager from './undoredo/CommandManager';
 import Constant from './Constant';
 import Graph from './graph/Graph';
 
+import defaultOptions from './DefaultOptions';
+
 import PixiRenderer from "../render/PixiRenderer";
 import constructOptions from "../render/constructOptions";
 
@@ -31,110 +33,113 @@ export default class Chart extends EventEmitter {
      * @param {Object} elpData 初始化图表的ELP模型
      * @param {boolean} checkElpData 是否请求后端接口执行elp检测转换
      */
-    constructor(chartMetadata, chartData, elpData, checkElpData, container) {
+    constructor(options) {
         super();
 
-        this.chartMetadata = chartMetadata;
+        this.options = Object.assign(defaultOptions, options);
+
+        // this.chartMetadata = chartMetadata;
+        this.chartMetadata = {};
         this.collectionBasicInfoList = null;
         this.remoteGraph = null;
         this.linkCollectionMap = {};
-        this.checkElpData = checkElpData;
+        this.checkElpData = false;
 
         this.elpData = new ElpData();
-        if (elpData) {
-            this.initElpModel(elpData);
+        if (this.options.elpData) {
+            this.initElpModel(this.options.elpData);
         } else {
             throw new Error('elpData must be exists.');
         }
 
-        if (chartMetadata.getOperation() === Constant.FRONTEND_MODE) {
-            this.collections = [];
-            for (let i = 1; i < 11; i++) {
-                this.collections.push(new GraphCollection(i));
-            }
-
-            const needEntityMerge = chartMetadata.getNeedEntityMerge();
-            const needLinkMerge = chartMetadata.getNeedLinkMerge();
-            if (chartData) {
-                const originalGraphNearLinks = chartData.originalGraph.nearLinks;
-                const nearLinksSize = Object.keys(originalGraphNearLinks).length;
-                if (nearLinksSize === 0) {
-                    this.createEmptyGraph(needEntityMerge, needLinkMerge);
-                    this.addSubGraph(chartData.originalGraph, this.isCaseScope);
-                } else {
-                    this.createDataGraph(needEntityMerge, needLinkMerge, chartData, chartMetadata.multiLabelTemplates, chartMetadata.disabledLabels);
-                }
-            } else {
-                this.createEmptyGraph(needEntityMerge, needLinkMerge);
-            }
+        // if (chartMetadata.getOperation() === Constant.FRONTEND_MODE) {
+        //     this.collections = [];
+        //     for (let i = 1; i < 11; i++) {
+        //         this.collections.push(new GraphCollection(i));
+        //     }
+        //
+        //     const needEntityMerge = options.getNeedEntityMerge();
+        //     const needLinkMerge = options.getNeedLinkMerge();
+            // if (chartData) {
+            //     const originalGraphNearLinks = chartData.originalGraph.nearLinks;
+            //     const nearLinksSize = Object.keys(originalGraphNearLinks).length;
+            //     if (nearLinksSize === 0) {
+            //         this.createEmptyGraph(needEntityMerge, needLinkMerge);
+            //         this.addSubGraph(chartData.originalGraph, this.isCaseScope);
+            //     } else {
+            //         this.createDataGraph(needEntityMerge, needLinkMerge, chartData, chartMetadata.multiLabelTemplates, chartMetadata.disabledLabels);
+            //     }
+            // } else {
+                this.createEmptyGraph(this.options.needEntityMerge, this.options.needLinkMerge);
+            // }
 
             // initialize data
-            this.originalGraph.forEachEntity((entity) => {
-                const collectionIdArray = Chart.decodeCollectionFlag(entity.properties[Chart.COLLECTION_PROPERTY]);
-                entity.properties._$entitySetNum = collectionIdArray.length;
-                _.each(collectionIdArray, (collectionId) => {
-                    const chartCollection = this.collections[collectionId - 1];
-                    chartCollection.addEntity(entity);
-                });
-            });
-            this.originalGraph.forEachLink((link) => {
-                const collectionIdArray = Chart.decodeCollectionFlag(link.properties[Chart.COLLECTION_PROPERTY]);
-                link.properties._$linkSetNum = collectionIdArray.length;
-                _.each(Chart.decodeCollectionFlag(link.properties[Chart.COLLECTION_PROPERTY]), (collectionId) => {
-                    const chartCollection = this.collections[collectionId - 1];
-                    chartCollection.addLink(link);
-                });
-            });
+            // this.originalGraph.forEachEntity((entity) => {
+            //     const collectionIdArray = Chart.decodeCollectionFlag(entity.properties[Chart.COLLECTION_PROPERTY]);
+            //     entity.properties._$entitySetNum = collectionIdArray.length;
+            //     _.each(collectionIdArray, (collectionId) => {
+            //         const chartCollection = this.collections[collectionId - 1];
+            //         chartCollection.addEntity(entity);
+            //     });
+            // });
+            // this.originalGraph.forEachLink((link) => {
+            //     const collectionIdArray = Chart.decodeCollectionFlag(link.properties[Chart.COLLECTION_PROPERTY]);
+            //     link.properties._$linkSetNum = collectionIdArray.length;
+            //     _.each(Chart.decodeCollectionFlag(link.properties[Chart.COLLECTION_PROPERTY]), (collectionId) => {
+            //         const chartCollection = this.collections[collectionId - 1];
+            //         chartCollection.addLink(link);
+            //     });
+            // });
 
-            this.originalGraph.on(Graph.CHANGE_TYPE_COLLECTION_ADD, (changes, collectionId) => {
-                console.log(`Chart recieved event from original graph. Data added to collection ${collectionId}`);
-                const collection = this.collections[collectionId - 1];
-                _.each(changes, (c) => {
-                    if (c.entity) {
-                        collection.addEntity(c.entity);
-                    } else if (c.link) {
-                        collection.addLink(c.link);
-                    } else {
-                        console.error('Graph change event without entity or link data.', c);
-                    }
-                });
-                this.emit(Graph.CHANGE_TYPE_COLLECTION, collectionId);
-            });
+            // this.originalGraph.on(Graph.CHANGE_TYPE_COLLECTION_ADD, (changes, collectionId) => {
+            //     console.log(`Chart recieved event from original graph. Data added to collection ${collectionId}`);
+            //     const collection = this.collections[collectionId - 1];
+            //     _.each(changes, (c) => {
+            //         if (c.entity) {
+            //             collection.addEntity(c.entity);
+            //         } else if (c.link) {
+            //             collection.addLink(c.link);
+            //         } else {
+            //             console.error('Graph change event without entity or link data.', c);
+            //         }
+            //     });
+            //     this.emit(Graph.CHANGE_TYPE_COLLECTION, collectionId);
+            // });
 
-            this.originalGraph.on(Graph.CHANGE_TYPE_COLLECTION_REMOVE, (changes, collectionId) => {
-                console.log(`Chart recieved event from original graph. Data removed from collection ${collectionId}`);
-                const collection = this.collections[collectionId - 1];
-                _.each(changes, (c) => {
-                    if (c.entity) {
-                        collection.removeEntity(c.entity);
-                    } else if (c.link) {
-                        collection.removeLink(c.link);
-                    } else {
-                        console.error('Graph change event without entity or link data.', c);
-                    }
-                });
-                this.emit(Graph.CHANGE_TYPE_COLLECTION, collectionId);
-            });
-        } else {
-            const remoteElpData = new ElpData(chartData.elpEntities, chartData.elpLinks);
+            // this.originalGraph.on(Graph.CHANGE_TYPE_COLLECTION_REMOVE, (changes, collectionId) => {
+            //     console.log(`Chart recieved event from original graph. Data removed from collection ${collectionId}`);
+            //     const collection = this.collections[collectionId - 1];
+            //     _.each(changes, (c) => {
+            //         if (c.entity) {
+            //             collection.removeEntity(c.entity);
+            //         } else if (c.link) {
+            //             collection.removeLink(c.link);
+            //         } else {
+            //             console.error('Graph change event without entity or link data.', c);
+            //         }
+            //     });
+            //     this.emit(Graph.CHANGE_TYPE_COLLECTION, collectionId);
+            // });
+        // } else {
+        //     const remoteElpData = new ElpData(chartData.elpEntities, chartData.elpLinks);
+        //
+        //     this.remoteGraph = new RemoteGraph(chartData.visualGraphData.entities, chartData.visualGraphData.links, remoteElpData);
+        //     this.remoteGraph.setChartRef(this);
+        //
+        //     this.entityAutoMerge = chartData.entityMergeGraph.autoMerge;
+        //     this.entityCollectionMap = chartData.entityCollectionMap; // <string, [int]>
+        //     this.finalGraph = new FinalGraph(this.remoteGraph, chartMetadata.multiLabelTemplates, chartMetadata.disabledLabels);
+        //     this.finalGraph.setElpData(remoteElpData);
+        // }
+        // this.finalGraph.setChartRef(this);
 
-            this.remoteGraph = new RemoteGraph(chartData.visualGraphData.entities, chartData.visualGraphData.links, remoteElpData);
-            this.remoteGraph.setChartRef(this);
+        // this.chartChanged = false;
 
-            this.entityAutoMerge = chartData.entityMergeGraph.autoMerge;
-            this.entityCollectionMap = chartData.entityCollectionMap; // <string, [int]>
-            this.finalGraph = new FinalGraph(this.remoteGraph, chartMetadata.multiLabelTemplates, chartMetadata.disabledLabels);
-            this.finalGraph.setElpData(remoteElpData);
-        }
-        this.finalGraph.setChartRef(this);
-
-        this.chartChanged = false;
-
-        this.commandManager = new CommandManager(this);
+        this.commandManager = new CommandManager(this, this.options.undoRedo);
 
         // 渲染层设置
-        this.options = constructOptions(container);
-        this.renderer = PixiRenderer(this.options);
+        const rendererOptions = constructOptions(this.options.container);
+        this.renderer = PixiRenderer(rendererOptions);
         this.renderer.setGraphData(this.finalGraph);
         this.renderer.run();
 
@@ -209,31 +214,31 @@ export default class Chart extends EventEmitter {
      * 向图表添加数据
      */
     addSubGraph(graph, isCaseScope) {
-        if (this.isFrontMode()) {
-            if (this.checkElpData) {
-                // in case of front mode, call backend service to check and enrich data
-                // actually data manipulate logic, please see the AJAX API doc.
-                const caseIdParam = this.getCaseId() || '';
-                // in case graph data could use array or map to store entities or links;
-                // convert to array before enriching.
-                const entityData = graph.entities || [];
-                const linkData = graph.links || [];
-                return new Promise((resolve) => {
-                    search.checkAndEnrichElpData({
-                        entities: Object.values(entityData),
-                        links: Object.values(linkData),
-                    }, caseIdParam, isCaseScope).then((checkedGraph) => {
-                        this.checkElpModel(checkedGraph);
-                        resolve(this.commandManager.execute(Command.ADD_SUB_GRAPH, checkedGraph, isCaseScope));
-                    });
-                });
-            } else {
+        // if (this.isFrontMode()) {
+        //     if (this.checkElpData) {
+        //         // in case of front mode, call backend service to check and enrich data
+        //         // actually data manipulate logic, please see the AJAX API doc.
+        //         const caseIdParam = this.getCaseId() || '';
+        //         // in case graph data could use array or map to store entities or links;
+        //         // convert to array before enriching.
+        //         const entityData = graph.entities || [];
+        //         const linkData = graph.links || [];
+        //         return new Promise((resolve) => {
+        //             search.checkAndEnrichElpData({
+        //                 entities: Object.values(entityData),
+        //                 links: Object.values(linkData),
+        //             }, caseIdParam, isCaseScope).then((checkedGraph) => {
+        //                 this.checkElpModel(checkedGraph);
+        //                 resolve(this.commandManager.execute(Command.ADD_SUB_GRAPH, checkedGraph, isCaseScope));
+        //             });
+        //         });
+        //     } else {
                 this.checkElpModel(graph);
                 return this.commandManager.execute(Command.ADD_SUB_GRAPH, graph, isCaseScope);
-            }
-        } else {
-            return this.commandManager.execute(Command.ADD_SUB_GRAPH, graph, isCaseScope);
-        }
+            // }
+        // } else {
+        //     return this.commandManager.execute(Command.ADD_SUB_GRAPH, graph, isCaseScope);
+        // }
     }
 
     /**
@@ -242,18 +247,18 @@ export default class Chart extends EventEmitter {
      */
     checkElpModel(graph, isRemote = false) {
         let entities;
-        if (isRemote) {
-            entities = Object.values(graph.newEntities);
-        } else {
+        // if (isRemote) {
+        //     entities = Object.values(graph.newEntities);
+        // } else {
             entities = Object.values(graph.entities);
-        }
+        // }
 
         let links;
-        if (isRemote) {
-            links = Object.values(graph.newLinks);
-        } else {
+        // if (isRemote) {
+        //     links = Object.values(graph.newLinks);
+        // } else {
             links = Object.values(graph.links);
-        }
+        // }
 
         const entityTypeSet = new Set();
         const linkTypeSet = new Set();
