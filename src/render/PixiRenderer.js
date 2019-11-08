@@ -33,7 +33,7 @@ import extract from './extract';
 import allEntities from "graphz/assets/images/allentities";
 import { base64toBlob } from "graphz/render/Utils";
 
-// import Module from './layouter';
+import Module from './layouter.js';
 
 export default function (options) {
     let isDirty = true;
@@ -56,14 +56,18 @@ export default function (options) {
         }
     });
 
-    // let layoutEMS = new Module.LayouterEMScripten();
+    console.log("abc");
 
+    let layoutEMS;
+    let instance = Module({
+        onRuntimeInitialized(){
+            console.log("aaabbb");
+            layoutEMS = new instance.LayouterEMScripten();
+            console.log("bbbccc");
+        }
+    });
     let layout = networkLayout;
     let layoutType = 'Network';
-    if (visualConfig.PERSON_LAYOUT){
-        layoutType = 'PersonLayout';
-        layout = new personForceLayout(nodeSprites, nodeContainer, visualConfig);
-    }
 
     let textAnalysis = visualConfig.TEXT_ANALYSIS;
 
@@ -197,11 +201,6 @@ export default function (options) {
     };
 
     stage.selectAllNodesInRegion = function (x1, y1, x2, y2, flag, onlyNodeFlag) {
-        if (!isInteractiveLayout()) {
-            // 不可交互的布局，直接返回
-            return;
-        }
-
         isDirty = true;
         let xl;
         let xr;
@@ -265,11 +264,6 @@ export default function (options) {
      * @param {*} y0
      */
     stage.selectSingleLink = function (x0, y0) {
-        if (!isInteractiveLayout()) {
-            // 不可交互的布局，直接返回
-            return;
-        }
-
         isDirty = true;
         const xl = x0 - 1;
         const xr = x0 + 1;
@@ -306,11 +300,6 @@ export default function (options) {
      * @param {*} y0
      */
     stage.rightSelectHandler = function (e, x0, y0) {
-        if (!isInteractiveLayout()) {
-            // 不可交互的布局，直接返回
-            return;
-        }
-
         isDirty = true;
 
         let detectedNode = null;
@@ -372,10 +361,6 @@ export default function (options) {
 
         fireContextmenu(event);
     };
-
-    function isInteractiveLayout() {
-        return layoutType !== 'FamilyLayout' && layoutType !== 'SimpleFamilyLayout' && layoutType !== 'PersonRelationshipStructural' && layoutType !== 'Person2Person';
-    }
 
     /**
      * Very Very Important Variables
@@ -757,15 +742,6 @@ export default function (options) {
                 x: (graphRect.x1 + rootWidth / 2) * scale + root.position.x,
                 y: (graphRect.y1 + rootHeight / 2) * scale + root.position.y,
             };
-            // console.log("Graph center in content root", {
-            //     x: graphRect.x1 + rootWidth / 2,
-            //     y: graphRect.y1 + rootHeight / 2
-            // });
-            // console.log("Graph center in stage", graphCenterInStage);
-            // console.log("Root position", {
-            //     x: root.position.x,
-            //     y: root.position.y
-            // });
             const rootPositionTransform = {
                 x: viewWidth / 2 - graphCenterInStage.x,
                 y: viewHeight / 2 - graphCenterInStage.y,
@@ -1088,6 +1064,10 @@ export default function (options) {
             renderer.destroy(true); // true for removing the underlying view(canvas)
         },
 
+        /**
+         * 设置布局方式
+         * @param layoutTypeStr，值可能为Network,Circular,Structural,PersonRelationshipStructural,Layered,BrokenLineLayered,Person2Person,FamilyLayout,SimpleFamilyLayout,Radiate
+         */
         setLayoutType(layoutTypeStr) {
             console.info(`Setting layout type to ${layoutTypeStr}`);
             layoutType = layoutTypeStr || 'Network';
@@ -1165,13 +1145,12 @@ export default function (options) {
 
                         console.log("JS layout  took " + (t1 - t0) + " milliseconds.");
                         console.log("JS render took " + (t2 - t1) + " milliseconds.");
-                    } else {
+                    } else if (layoutEMS){
                         const t0 = performance.now();
 
                         const nodeIDs = Object.keys(nodeSprites);
                         for (let i = 0; i < nodeIDs.length; i++) {
                             const nodeId = nodeIDs[i];
-                            // layoutEMS.addNode(i, nodeId, getRandomArbitrary(), getRandomArbitrary());
                             const position = layout.getNodePosition(nodeId);
                             layoutEMS.addNode(i, nodeId, position.x, position.y);
                         }
@@ -1194,9 +1173,6 @@ export default function (options) {
                         for (let index = 0; index < arrayNodePos.size(); index++)
                         {
                             const nodePosInfo = arrayNodePos.element(index);
-                            // console.log('node id: ' + nodePosInfo.m_lId);
-                            // console.log('node pos.x: ' + nodePosInfo.m_dPosX);
-                            // console.log('node pos.y: ' + nodePosInfo.m_dPosY);
 
                             const nodeId = nodeIDs[index];
                             const nodeSprite = nodeSprites[nodeId];
@@ -1208,12 +1184,15 @@ export default function (options) {
                             l.updatePosition();
                         });
 
+                        const t3 = performance.now();
+
                         renderer.render(stage);
 
-                        const t3 = performance.now();
+                        const t4 = performance.now();
                         console.log("WebAssembly prepare data took " + (t1 - t0) + " milliseconds.");
                         console.log("WebAssembly layout took " + (t2 - t1) + " milliseconds.");
-                        console.log("WebAssembly render took " + (t3 - t2) + " milliseconds.");
+                        console.log("WebAssembly finalize took " + (t3 - t2) + " milliseconds.");
+                        console.log("WebAssembly render took " + (t4 - t3) + " milliseconds.");
                     }
                 }
                 if (needReflow) {

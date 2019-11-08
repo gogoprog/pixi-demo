@@ -1,4 +1,4 @@
-module.exports = SortTree;
+// module.exports = SortTree;
 
 Set.prototype.intersection = function(setB) {
     var intersection = new Set();
@@ -18,7 +18,7 @@ Set.prototype.union = function(setB) {
     return union;
 }
 
-function SortTree(tree){
+export default function SortTree(tree){
 	var levelMap = tree.getLevels()
 	var firstLevel = levelMap.get(0)
 
