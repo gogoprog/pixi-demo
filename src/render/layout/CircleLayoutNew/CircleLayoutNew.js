@@ -14,7 +14,7 @@ export default class CircleLayoutNew extends Layout {
         let forest = createForest(this.nodes, selectNodes, visualConfig);
         let that = this;
         //计算每棵树的平均半径和角度
-        _.each(forest, function (tree) {
+        forest.forEach((tree) => {
             tree.radius = (that.NODE_WIDTH * 2 * tree.totalNum * 1.5) / (2 * Math.PI);
             tree.angle = 360 / tree.totalNum;
         });
@@ -29,13 +29,9 @@ export default class CircleLayoutNew extends Layout {
             }
         }
         //计算圆形布局坐标
-        _.each(forest, function (tree) {
-            _.each(tree, function (treeNode) {
+        forest.forEach((tree) => {
+            tree.forEach((treeNode) => {
                 that.calCirclePosition(tree, treeNode);
-            });
-        });
-        _.each(forest, function (tree) {
-            _.each(tree, function (treeNode) {
                 that.draw(treeNode);
             });
         });

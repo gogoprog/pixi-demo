@@ -38,7 +38,6 @@ export default class Layout {
         }
 
         this.nodes = {};
-        this.nodes.notInTreeNum = nodeContainer.instanceCount;
         for (let i = 0; i < nodeContainer.instanceCount; i++) {
             const nodeId = nodeContainer.idIndexMap.idFrom(i);
             const nodeSprite = this.nodeSprites[nodeId];
@@ -67,23 +66,23 @@ export default class Layout {
 
     getSelectNodes() {
         let sn = [];
-        let that = this;
-        _.each(that.nodeContainer.nodes, function (n) {
-            let node = {
-                id: n.id,
-                incoming: n.incoming,
-                outgoing: n.outgoing,
-                inTree: false,
-                scale: n.scale.x,
-                layoutLevel: 0,
-                type: n.type,
-                cluster: n.cluster
-            };
-            if(that.isNodeOriginallyPinned(n)){
-                node.isPinned = true;
-            }
-            sn.push(node);
-        });
+        // let that = this;
+        // _.each(that.nodeContainer.nodes, function (n) {
+        //     let node = {
+        //         id: n.id,
+        //         incoming: n.incoming,
+        //         outgoing: n.outgoing,
+        //         inTree: false,
+        //         scale: n.scale.x,
+        //         layoutLevel: 0,
+        //         type: n.type,
+        //         cluster: n.cluster
+        //     };
+        //     if(that.isNodeOriginallyPinned(n)){
+        //         node.isPinned = true;
+        //     }
+        //     sn.push(node);
+        // });
         return sn;
     };
 
@@ -114,9 +113,6 @@ export default class Layout {
     getGraphRect() {
         let that = this;
         for (let nodeId in that.nodes) {
-            if (nodeId === "notInTreeNum") {
-                continue;
-            }
             let node = that.nodes[nodeId];
             if (node.position.x < that.left) {
                 that.left = node.position.x;
@@ -174,11 +170,9 @@ export default class Layout {
     };
 
     setNodePosition(id, x, y) {
-        if (id !== "notInTreeNum") {
-            this.nodeSprites[id].position.x = x;
-            this.nodeSprites[id].position.y = y;
-            this.currentPosition[id]= this.nodeSprites[id].position;
-        }
+        this.nodeSprites[id].position.x = x;
+        this.nodeSprites[id].position.y = y;
+        this.currentPosition[id]= this.nodeSprites[id].position;
     };
 
     pinNode(node, isPinned) {

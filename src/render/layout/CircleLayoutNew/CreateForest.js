@@ -3,29 +3,31 @@
  */
 //生成森林
 export default function createForest(nodes, selectNodes, visualConfig) {
-    var treeNode = {}; //存放层次布局中树的节点
-    var tree = [];
-    var levelId = [];
-    var forest = [];
-    var bfsQueue = [];
-    var NODE_WIDTH = visualConfig.NODE_WIDTH;
+    let treeNode = {}; //存放层次布局中树的节点
+    let tree = [];
+    let levelId = [];
+    let forest = [];
+    let bfsQueue = [];
+    let NODE_WIDTH = visualConfig.NODE_WIDTH;
 
-    while (nodes.notInTreeNum > 0) {
+    let notInTreeNum = Object.keys(nodes).length;
+
+    while (notInTreeNum > 0) {
         tree = [];       //初始化为空
         levelId = [];
-        var nodeID = 0;  //记录结点在树中的编号
-        var root;
-        if (!selectNodes.length) {
-            root = selectMaxDegreeNode(nodes);
-        } else {
-            root = selectNodes.shift();
-            while (nodes[root.id].inTree) {
-                root = selectNodes.shift();
-                if (!root) {
-                    break;
-                }
-            }
-        }
+        let nodeID = 0;  //记录结点在树中的编号
+        let root = selectMaxDegreeNode(nodes);
+        // if (!selectNodes.length) {
+        //     root = selectMaxDegreeNode(nodes);
+        // } else {
+        //     root = selectNodes.shift();
+        //     while (nodes[root.id].inTree) {
+        //         root = selectNodes.shift();
+        //         if (!root) {
+        //             break;
+        //         }
+        //     }
+        // }
         if (!root) {
             continue;
         }
@@ -43,15 +45,15 @@ export default function createForest(nodes, selectNodes, visualConfig) {
         tree.push(treeNode);
         tree.root = treeNode;
         nodes[root.id].inTree = true;
-        nodes.notInTreeNum--;
+        notInTreeNum--;
         bfsQueue.unshift(root);
 
-        var templength = bfsQueue.length;
+        let templength = bfsQueue.length;
         while (templength !== 0) {
-            var p = bfsQueue.pop();
+            let p = bfsQueue.pop();
 
             if (p !== null) {
-                createATree(p);
+                createATree(p, nodeID);
             }
             templength = bfsQueue.length;
         }
@@ -93,18 +95,18 @@ export default function createForest(nodes, selectNodes, visualConfig) {
         //计算每一层的半径和平均角度
         tree.levelRadius = [];
         tree.levelAngle = [];
-        for (var i = 1; i < tree.levelNum.length; i++) {
-            if (i == 1) {
+        for (let i = 1; i < tree.levelNum.length; i++) {
+            if (i === 1) {
                 tree.levelRadius[i] = 0;
             } else if (i > 1 && i < (tree.levelNum.length - 1)) {
-                var defaultRadius = (NODE_WIDTH * 2 * tree.levelNum[i] * 1.5) / (2 * Math.PI);
+                const defaultRadius = (NODE_WIDTH * 2 * tree.levelNum[i] * 1.5) / (2 * Math.PI);
                // 根据每层的结点个数自动调整圆形的布局半径
                 tree.levelRadius[i] = tree.levelRadius[i - 1] + Math.ceil(tree.levelNum[i] / 10) * 4 * NODE_WIDTH + Math.ceil(tree.levelNum[i + 1] / 10) * 3 * NODE_WIDTH;
                 if (tree.levelRadius[i] < defaultRadius) {
                     tree.levelRadius[i] = defaultRadius;
                 }
             } else {
-                var defaultRadius = (NODE_WIDTH * 2 * tree.levelNum[i] * 1.5) / (2 * Math.PI);
+                const defaultRadius = (NODE_WIDTH * 2 * tree.levelNum[i] * 1.5) / (2 * Math.PI);
                 tree.levelRadius[i] = tree.levelRadius[i - 1] + Math.ceil(tree.levelNum[i] / 10) * 4 * NODE_WIDTH;
                 if (tree.levelRadius[i] < defaultRadius) {
                     tree.levelRadius[i] = defaultRadius;
@@ -127,13 +129,13 @@ export default function createForest(nodes, selectNodes, visualConfig) {
         }
     }
     //生成一棵树
-    function createATree(node) {
+    function createATree(node, nodeID) {
         let levelID = 0;
         node.incoming.forEach((id) => {
             if (!nodes[id].inTree) {
                 nodes[id].layoutLevel = node.layoutLevel + 1;
                 nodes[id].inTree = true;
-                nodes.notInTreeNum--;
+                notInTreeNum--;
                 if (!levelId[nodes[id].layoutLevel]) {
                     levelId[nodes[id].layoutLevel] = 1;
                 } else {
@@ -160,7 +162,7 @@ export default function createForest(nodes, selectNodes, visualConfig) {
             if (!nodes[id].inTree) {
                 nodes[id].layoutLevel = node.layoutLevel + 1;
                 nodes[id].inTree = true;
-                nodes.notInTreeNum--;
+                notInTreeNum--;
                 if (!levelId[nodes[id].layoutLevel]) {
                     levelId[nodes[id].layoutLevel] = 1;
                 } else {
@@ -182,73 +184,14 @@ export default function createForest(nodes, selectNodes, visualConfig) {
                 bfsQueue.unshift(nodes[id]);
             }
         });
-
-        // _.each(node.incoming, function (link) {
-        //     if (!nodes[link.data.sourceEntity].inTree) {
-        //         nodes[link.data.sourceEntity].layoutLevel = node.layoutLevel + 1;
-        //         nodes[link.data.sourceEntity].inTree = true;
-        //         nodes.notInTreeNum--;
-        //         if (!levelId[nodes[link.data.sourceEntity].layoutLevel]) {
-        //             levelId[nodes[link.data.sourceEntity].layoutLevel] = 1;
-        //         } else {
-        //             levelId[nodes[link.data.sourceEntity].layoutLevel]++;
-        //         }
-        //
-        //         treeNode = {
-        //             id: link.data.sourceEntity,
-        //             level: nodes[link.data.sourceEntity].layoutLevel,
-        //             parent: node,
-        //             levelId: levelID,
-        //             nodeId: nodeID,
-        //             type: nodes[link.data.sourceEntity].type,
-        //             angle: 0
-        //         };
-        //         nodeID++;
-        //         levelID++;
-        //         tree.push(treeNode);
-        //         bfsQueue.unshift(nodes[link.data.sourceEntity]);
-        //     }
-        // });
-        // _.each(node.outgoing, function (link) {
-        //     if (!nodes[link.data.targetEntity].inTree) {
-        //         nodes[link.data.targetEntity].layoutLevel = node.layoutLevel + 1;
-        //         nodes[link.data.targetEntity].inTree = true;
-        //         nodes.notInTreeNum--;
-        //         if (!levelId[nodes[link.data.targetEntity].layoutLevel]) {
-        //             levelId[nodes[link.data.targetEntity].layoutLevel] = 1;
-        //         } else {
-        //             levelId[nodes[link.data.targetEntity].layoutLevel]++;
-        //         }
-        //         treeNode = {
-        //             id: link.data.targetEntity,
-        //             level: nodes[link.data.targetEntity].layoutLevel,
-        //             parent: node,
-        //             levelId: levelID,
-        //             nodeId: nodeID,
-        //             type: nodes[link.data.targetEntity].type,
-        //             angle: 0
-        //         };
-        //         nodeID++;
-        //         levelID++;
-        //         tree.push(treeNode);
-        //         bfsQueue.unshift(nodes[link.data.targetEntity]);
-        //     }
-        // });
     }
 
     //选出度最大的节点
     function selectMaxDegreeNode(ns) {
-        var maxDegree = 0;
-        var maxNode;
+        let maxDegree = 0;
+        let maxNode;
         _.each(ns, function (node) {
             if (typeof node === 'object' && !node.inTree) {
-                // var degree = 0;
-                // _.each(node.incoming, function (n) {
-                //     degree++;
-                // });
-                // _.each(node.outgoing, function (n) {
-                //     degree++;
-                // });
                 const degree = node.incoming.length + node.outgoing.length;
                 if (degree >= maxDegree) {
                     maxDegree = degree;
@@ -260,6 +203,5 @@ export default function createForest(nodes, selectNodes, visualConfig) {
     }
 
     return forest;
-
 }
 
