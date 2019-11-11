@@ -143,20 +143,17 @@ export default class Layout {
         let that = this;
         if (that.thisStep <= that.totalStep) {
             _.each(that.nodes, function (node) {
-                if (typeof node === 'object') {
-                    const nodeId = that.nodeContainer.idIndexMap.idFrom(node.id);
-                    if(!node.isPinned){
-                        let p1 = that.nodeSprites[nodeId].position;
-                        let p2 = node.position;
-                        that.currentPosition[nodeId]= that.calStep(p1, p2, that.totalStep, that.thisStep);
-                    }else {
-                        that.currentPosition[nodeId]= that.nodeSprites[nodeId].position;
-                    }
+                const nodeId = that.nodeContainer.idIndexMap.idFrom(node.id);
+                if(!node.isPinned){
+                    let p1 = that.nodeSprites[nodeId].position;
+                    let p2 = node.position;
+                    that.currentPosition[nodeId]= that.calStep(p1, p2, that.totalStep, that.thisStep);
+                }else {
+                    that.currentPosition[nodeId]= that.nodeSprites[nodeId].position;
                 }
             });
             return false;
         }
-        // this.thisStep = 0;
         return true;
     };
 

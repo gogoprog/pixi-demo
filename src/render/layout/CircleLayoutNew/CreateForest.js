@@ -48,14 +48,14 @@ export default function createForest(nodes, selectNodes, visualConfig) {
         notInTreeNum--;
         bfsQueue.unshift(root);
 
-        let templength = bfsQueue.length;
-        while (templength !== 0) {
+        let tempLength = bfsQueue.length;
+        while (tempLength !== 0) {
             let p = bfsQueue.pop();
 
             if (p !== null) {
                 createATree(p, nodeID);
             }
-            templength = bfsQueue.length;
+            tempLength = bfsQueue.length;
         }
 
         //对整个树的结点进行排序
@@ -187,11 +187,11 @@ export default function createForest(nodes, selectNodes, visualConfig) {
     }
 
     //选出度最大的节点
-    function selectMaxDegreeNode(ns) {
+    function selectMaxDegreeNode(nodes) {
         let maxDegree = 0;
-        let maxNode;
-        _.each(ns, function (node) {
-            if (typeof node === 'object' && !node.inTree) {
+        let maxNode = null;
+        Object.values(nodes).forEach((node) => {
+            if (!node.inTree) {
                 const degree = node.incoming.length + node.outgoing.length;
                 if (degree >= maxDegree) {
                     maxDegree = degree;
@@ -199,6 +199,7 @@ export default function createForest(nodes, selectNodes, visualConfig) {
                 }
             }
         });
+
         return maxNode;
     }
 
