@@ -1,7 +1,6 @@
 /**
  * Created by xuhe on 2017/5/24.
  */
-// module.exports = createForest;
 //生成森林
 export default function createForest(nodes, selectNodes, visualConfig) {
     var treeNode = {}; //存放层次布局中树的节点
@@ -129,73 +128,128 @@ export default function createForest(nodes, selectNodes, visualConfig) {
     }
     //生成一棵树
     function createATree(node) {
-        var levelID = 0;
-        _.each(node.incoming, function (link) {
-            if (!nodes[link.data.sourceEntity].inTree) {
-                nodes[link.data.sourceEntity].layoutLevel = node.layoutLevel + 1;
-                nodes[link.data.sourceEntity].inTree = true;
+        let levelID = 0;
+        node.incoming.forEach((id) => {
+            if (!nodes[id].inTree) {
+                nodes[id].layoutLevel = node.layoutLevel + 1;
+                nodes[id].inTree = true;
                 nodes.notInTreeNum--;
-                if (!levelId[nodes[link.data.sourceEntity].layoutLevel]) {
-                    levelId[nodes[link.data.sourceEntity].layoutLevel] = 1;
+                if (!levelId[nodes[id].layoutLevel]) {
+                    levelId[nodes[id].layoutLevel] = 1;
                 } else {
-                    levelId[nodes[link.data.sourceEntity].layoutLevel]++;
+                    levelId[nodes[id].layoutLevel]++;
                 }
 
                 treeNode = {
-                    id: link.data.sourceEntity,
-                    level: nodes[link.data.sourceEntity].layoutLevel,
+                    id: id,
+                    level: nodes[id].layoutLevel,
                     parent: node,
                     levelId: levelID,
                     nodeId: nodeID,
-                    type: nodes[link.data.sourceEntity].type,
+                    type: nodes[id].type,
                     angle: 0
                 };
                 nodeID++;
                 levelID++;
                 tree.push(treeNode);
-                bfsQueue.unshift(nodes[link.data.sourceEntity]);
+                bfsQueue.unshift(nodes[id]);
             }
         });
-        _.each(node.outgoing, function (link) {
-            if (!nodes[link.data.targetEntity].inTree) {
-                nodes[link.data.targetEntity].layoutLevel = node.layoutLevel + 1;
-                nodes[link.data.targetEntity].inTree = true;
+
+        node.outgoing.forEach((id) => {
+            if (!nodes[id].inTree) {
+                nodes[id].layoutLevel = node.layoutLevel + 1;
+                nodes[id].inTree = true;
                 nodes.notInTreeNum--;
-                if (!levelId[nodes[link.data.targetEntity].layoutLevel]) {
-                    levelId[nodes[link.data.targetEntity].layoutLevel] = 1;
+                if (!levelId[nodes[id].layoutLevel]) {
+                    levelId[nodes[id].layoutLevel] = 1;
                 } else {
-                    levelId[nodes[link.data.targetEntity].layoutLevel]++;
+                    levelId[nodes[id].layoutLevel]++;
                 }
+
                 treeNode = {
-                    id: link.data.targetEntity,
-                    level: nodes[link.data.targetEntity].layoutLevel,
+                    id: id,
+                    level: nodes[id].layoutLevel,
                     parent: node,
                     levelId: levelID,
                     nodeId: nodeID,
-                    type: nodes[link.data.targetEntity].type,
+                    type: nodes[id].type,
                     angle: 0
                 };
                 nodeID++;
                 levelID++;
                 tree.push(treeNode);
-                bfsQueue.unshift(nodes[link.data.targetEntity]);
+                bfsQueue.unshift(nodes[id]);
             }
         });
+
+        // _.each(node.incoming, function (link) {
+        //     if (!nodes[link.data.sourceEntity].inTree) {
+        //         nodes[link.data.sourceEntity].layoutLevel = node.layoutLevel + 1;
+        //         nodes[link.data.sourceEntity].inTree = true;
+        //         nodes.notInTreeNum--;
+        //         if (!levelId[nodes[link.data.sourceEntity].layoutLevel]) {
+        //             levelId[nodes[link.data.sourceEntity].layoutLevel] = 1;
+        //         } else {
+        //             levelId[nodes[link.data.sourceEntity].layoutLevel]++;
+        //         }
+        //
+        //         treeNode = {
+        //             id: link.data.sourceEntity,
+        //             level: nodes[link.data.sourceEntity].layoutLevel,
+        //             parent: node,
+        //             levelId: levelID,
+        //             nodeId: nodeID,
+        //             type: nodes[link.data.sourceEntity].type,
+        //             angle: 0
+        //         };
+        //         nodeID++;
+        //         levelID++;
+        //         tree.push(treeNode);
+        //         bfsQueue.unshift(nodes[link.data.sourceEntity]);
+        //     }
+        // });
+        // _.each(node.outgoing, function (link) {
+        //     if (!nodes[link.data.targetEntity].inTree) {
+        //         nodes[link.data.targetEntity].layoutLevel = node.layoutLevel + 1;
+        //         nodes[link.data.targetEntity].inTree = true;
+        //         nodes.notInTreeNum--;
+        //         if (!levelId[nodes[link.data.targetEntity].layoutLevel]) {
+        //             levelId[nodes[link.data.targetEntity].layoutLevel] = 1;
+        //         } else {
+        //             levelId[nodes[link.data.targetEntity].layoutLevel]++;
+        //         }
+        //         treeNode = {
+        //             id: link.data.targetEntity,
+        //             level: nodes[link.data.targetEntity].layoutLevel,
+        //             parent: node,
+        //             levelId: levelID,
+        //             nodeId: nodeID,
+        //             type: nodes[link.data.targetEntity].type,
+        //             angle: 0
+        //         };
+        //         nodeID++;
+        //         levelID++;
+        //         tree.push(treeNode);
+        //         bfsQueue.unshift(nodes[link.data.targetEntity]);
+        //     }
+        // });
     }
 
-//选出度最大的节点
+    //选出度最大的节点
     function selectMaxDegreeNode(ns) {
         var maxDegree = 0;
         var maxNode;
         _.each(ns, function (node) {
-            if ((!node.inTree) && node.id) {
-                var degree = 0;
-                _.each(node.incoming, function (n) {
-                    degree++;
-                });
-                _.each(node.outgoing, function (n) {
-                    degree++;
-                });
+            if (typeof node === 'object' && !node.inTree) {
+                // var degree = 0;
+                // _.each(node.incoming, function (n) {
+                //     degree++;
+                // });
+                // _.each(node.outgoing, function (n) {
+                //     degree++;
+                // });
+                const degree = node.incoming.length + node.outgoing.length;
                 if (degree >= maxDegree) {
                     maxDegree = degree;
                     maxNode = node;

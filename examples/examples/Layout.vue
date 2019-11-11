@@ -16,9 +16,6 @@
 <script>
     import graphz from 'graphz';
 
-    import globalELPModel from './data/globalELPModel';
-    import chartData from './data/chartData';
-
     export default {
         data() {
             return {
@@ -32,7 +29,11 @@
             this.init();
         },
         methods: {
-            init() {
+            async init() {
+                const globalELPModelResponse = await fetch('/static/data/globalELPModel.json');
+                const globalELPModel = await globalELPModelResponse.json();
+                const chartDataResponse = await fetch('/static/data/chartData.json');
+                const chartData = await chartDataResponse.json();
                 this.chart = new graphz.Chart({
                     elpData: globalELPModel,
                     container: 'renderArea'

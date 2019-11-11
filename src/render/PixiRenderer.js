@@ -5,7 +5,8 @@ import LayeredLayoutNew from './layout/newLayeredLayout/LayeredLayoutNew';
 import FamilyLayout from './layout/newLayeredLayout/FamilyLayout/FamilyLayout'
 import StandardFamilyTreeLayout from './layout/newLayeredLayout/StandardFamilyTreeLayout/StandardFamilyTreeLayout'
 import SimpleFamilyLayout from './layout/newLayeredLayout/SimpleFamilyLayout/SimpleFamilyLayout'
-import CircleLayout from './layout/CircleLayout';
+import CircleLayout from './layout/CircleLayoutNew/CircleLayoutNew';
+// import CircleLayout from './layout/CircleLayout';
 import RadiateLayout from './layout/RadiateLayout';
 // import ForceLayoutBaseNgraph from "./layout/ForceLayoutBaseNgraph/ForceLayout"
 import createLayout from "./layout/ForceLayoutBaseNgraph/ForceLayoutInNGraph"
@@ -61,9 +62,9 @@ export default function (options) {
     let layoutEMS;
     let instance = Module({
         onRuntimeInitialized(){
-            console.log("aaabbb");
+            console.log("loaded layouter module");
             layoutEMS = new instance.LayouterEMScripten();
-            console.log("bbbccc");
+            console.log("initialized layouter module");
         }
     });
     let layout = networkLayout;
