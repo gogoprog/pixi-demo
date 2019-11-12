@@ -57,8 +57,6 @@ export default function (options) {
         }
     });
 
-    console.log("abc");
-
     let layoutEMS;
     let instance = Module({
         onRuntimeInitialized(){
@@ -1097,6 +1095,15 @@ export default function (options) {
             }
         },
 
+        /**
+         * 圆形布局
+         */
+        circle() {
+            layoutType = 'Circular';
+            layout = new CircleLayout(nodeSprites, nodeContainer, visualConfig, false);
+            return layout.run();
+        },
+
         setTwoNodeLayoutInXDireaction(nodeIDArray) {
             if (nodeSprites.length === 0) {
                 return;
@@ -1852,8 +1859,6 @@ export default function (options) {
                     pixiGraphics.setNodesToFullScreen(true);
                 }
             }
-        } else if (layoutType === 'TimelineScale') {
-            // updateNodeSpritesPosition();
         } else {
             // Circular, Layered, Radiate
             if (!disableLayout) {

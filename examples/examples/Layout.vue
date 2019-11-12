@@ -4,10 +4,12 @@
         <div class="action-container">
             <button class="btn" @click.prevent.stop="setLayoutType('Network')"> 网络</button>
             <button class="btn" @click.prevent.stop="setLayoutType('Structural')"> 结构</button>
-            <button class="btn" @click.prevent.stop="setLayoutType('Circular')"> 圆形</button>
+            <button class="btn" @click.prevent.stop="circleLayout"> 圆形</button>
             <button class="btn" @click.prevent.stop="setLayoutType('Layered')"> 层次</button>
             <button class="btn" @click.prevent.stop="setLayoutType('BrokenLineLayered')"> 折线</button>
             <button class="btn" @click.prevent.stop="setLayoutType('Radiate')"> 辐射</button>
+            <span> / </span>
+            <button class="btn" @click.prevent.stop="toggleMode"> 拖动/选中</button>
         </div>
         <div id="renderArea" class="render-area"></div>
     </div>
@@ -48,6 +50,16 @@
 
             setLayoutType(layoutType) {
                 this.chart.execute('setLayoutType', layoutType);
+            },
+
+            circleLayout() {
+                this.chart.renderer.circle().then(() => {
+                    this.chart.renderer.setNodesToFullScreen();
+                });
+            },
+
+            toggleMode() {
+                this.chart.renderer.toggleMode();
             },
         },
     }

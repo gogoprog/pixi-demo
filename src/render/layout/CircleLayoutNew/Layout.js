@@ -4,6 +4,8 @@ import _ from 'lodash'
  */
 export default class Layout {
     constructor(nodeSprites, nodeContainer) {
+        this.isLayouting = true;
+
         this.nodeSprites = nodeSprites;
         this.nodeContainer = nodeContainer;
         this.thisStep = 0;
@@ -36,6 +38,8 @@ export default class Layout {
             this.outgoingArrays.push(...outgoingArray);
             outgoingIndex += outgoingArray.length;
         }
+        this.incomingTypedArrays = Uint32Array.from(this.incomingArrays);
+        this.outgoingTypedArrays = Uint32Array.from(this.outgoingArrays);
 
         this.nodes = {};
         for (let i = 0; i < nodeContainer.instanceCount; i++) {
@@ -128,7 +132,6 @@ export default class Layout {
             }
         }
 
-
         return {
             x1: this.left, y1: this.top,
             x2: this.right, y2: this.bottom
@@ -139,6 +142,10 @@ export default class Layout {
      * return if the layout is finished.
      */
     step() {
+        if (this.isLayouting) {
+            return true;
+        }
+
         this.thisStep++;
         let that = this;
         if (that.thisStep <= that.totalStep) {

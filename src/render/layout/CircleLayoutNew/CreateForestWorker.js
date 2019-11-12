@@ -2,13 +2,13 @@
  * Created by xuhe on 2017/5/24.
  */
 //生成森林
-export default function createForest(nodes, selectNodes, visualConfig) {
+export default function createForest(nodes, selectNodes, nodeWidth) {
     let treeNode = {}; //存放层次布局中树的节点
     let tree = [];
     let levelId = [];
     let forest = [];
     let bfsQueue = [];
-    let NODE_WIDTH = visualConfig.NODE_WIDTH;
+    let NODE_WIDTH = nodeWidth;
 
     let notInTreeNum = Object.keys(nodes).length;
 
