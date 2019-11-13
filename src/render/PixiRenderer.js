@@ -12,6 +12,7 @@ import RadiateLayout from './layout/RadiateLayout';
 import createLayout from "./layout/ForceLayoutBaseNgraph/ForceLayoutInNGraph"
 // import GraphLevelForceLayout from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayout"
 import ForceLayoutGenerator from "graphz/render/layout/ForceLayoutBaseNgraph/ForceLayoutGenerator";
+import ForceLayoutWASMGenerator from "graphz/render/layout/ForceLayoutWASM/ForceLayoutWASMGenerator";
 import GraphLevelForceLayoutOpt from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayoutOpt"
 import elpForceLayout from "./layout/elpLayout/ForceLayout"
 import personForceLayout from "./layout/personLayout/PersonForceLayout"
@@ -1105,6 +1106,15 @@ export default function (options) {
         },
 
         /**
+         * 力导向布局, WASM方式实现
+         */
+        forceWASM() {
+            layoutType = 'Network';
+            layout = new ForceLayoutWASMGenerator(nodeSprites, nodeContainer, visualConfig, false);
+            return layout.run();
+        },
+
+        /**
          * 圆形布局
          */
         circle() {
@@ -1142,72 +1152,16 @@ export default function (options) {
             if (layoutType === 'Network') {
                 layout = networkLayout;
                 if (!dynamicLayout) {
-                    if (localStorage.useJsLayout && localStorage.useJsLayout === 'true') {
-                        const t0 = performance.now();
-                        layout.step();
-                        const t1 = performance.now();
-                        _.each(nodeSprites, (nodeSprite, nodeId) => { //大开销计算
-                            nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
-                            nodeContainer.nodeMoved(nodeSprite);
-                        });
-                        _.each(linkSprites, (l) => {
-                            l.updatePosition();
-                        });
+                    layout.step();
+                    _.each(nodeSprites, (nodeSprite, nodeId) => { //大开销计算
+                        nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
+                        nodeContainer.nodeMoved(nodeSprite);
+                    });
+                    _.each(linkSprites, (l) => {
+                        l.updatePosition();
+                    });
 
-                        renderer.render(stage);
-                        const t2 = performance.now();
-
-                        console.log("JS layout  took " + (t1 - t0) + " milliseconds.");
-                        console.log("JS render took " + (t2 - t1) + " milliseconds.");
-                    } else if (layoutEMS){
-                        const t0 = performance.now();
-
-                        const nodeIDs = Object.keys(nodeSprites);
-                        for (let i = 0; i < nodeIDs.length; i++) {
-                            const nodeId = nodeIDs[i];
-                            const position = layout.getNodePosition(nodeId);
-                            layoutEMS.addNode(i, nodeId, position.x, position.y);
-                        }
-
-                        const linkIDs = Object.keys(linkSprites);
-                        for (let i = 0; i < linkIDs.length; i++) {
-                            const linkId = linkIDs[i];
-                            const link = linkSprites[linkId];
-
-                            layoutEMS.addEdge(i, nodeIDs.indexOf(link.data.sourceEntity), nodeIDs.indexOf(link.data.targetEntity));
-                        }
-
-                        const t1 = performance.now();
-
-                        const arrayNodePos = layoutEMS.execFastMultilevelLayouter();
-                        console.log('node count: ' + arrayNodePos.size());
-
-                        const t2 = performance.now();
-
-                        for (let index = 0; index < arrayNodePos.size(); index++)
-                        {
-                            const nodePosInfo = arrayNodePos.element(index);
-
-                            const nodeId = nodeIDs[index];
-                            const nodeSprite = nodeSprites[nodeId];
-                            nodeSprite.updateNodePosition({x: nodePosInfo.m_dPosX, y:nodePosInfo.m_dPosY});
-                            nodeContainer.nodeMoved(nodeSprite);
-                        }
-
-                        _.each(linkSprites, (l) => {
-                            l.updatePosition();
-                        });
-
-                        const t3 = performance.now();
-
-                        renderer.render(stage);
-
-                        const t4 = performance.now();
-                        console.log("WebAssembly prepare data took " + (t1 - t0) + " milliseconds.");
-                        console.log("WebAssembly layout took " + (t2 - t1) + " milliseconds.");
-                        console.log("WebAssembly finalize took " + (t3 - t2) + " milliseconds.");
-                        console.log("WebAssembly render took " + (t4 - t3) + " milliseconds.");
-                    }
+                    renderer.render(stage);
                 }
                 if (needReflow) {
                     this.setNodesToFullScreen(disableAnimation);

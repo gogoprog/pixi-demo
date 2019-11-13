@@ -1,26 +1,11 @@
 import createLayout from "./ForceLayoutNew"
-// import createForest from './CreateForestWorker';
 import createGraph from './Graph';
 
 addEventListener('message', event => {
-    let graph = createGraph();
-    // const nodes = {};
-    for (let i = 0; i < event.data.instanceCount; i++) {
-        // const node = {
-        //     id: i,
-        //     incoming: event.data.incomingTypedArrays.slice(event.data.incomingSlotArray[i] , event.data.incomingSlotArray[i + 1]),
-        //     outgoing: event.data.outgoingTypedArrays.slice(event.data.outgoingSlotArray[i] , event.data.outgoingSlotArray[i + 1]),
-        //     position: {
-        //         x: 0,
-        //         y: 0,
-        //     },
-        //     inTree: false,
-        //     isPinned: false,
-        //     layoutLevel: 0,
-        //     type: 'people'
-        // };
-        // nodes[i] = node;
+    const t0 = performance.now();
 
+    let graph = createGraph();
+    for (let i = 0; i < event.data.instanceCount; i++) {
         graph.addNode(i);
         const incoming = event.data.incomingTypedArrays.slice(event.data.incomingSlotArray[i] , event.data.incomingSlotArray[i + 1]);
         incoming.forEach((linkId) => {
@@ -40,42 +25,26 @@ addEventListener('message', event => {
         theta: 0.9,
     });
 
-    for (let tmp = 0; tmp < 100; tmp++){
+    const t1 = performance.now();
+
+    for (let tmp = 0; tmp < 30000; tmp++){
         forceLayout.step();
     }
 
-    //计算每棵树的平均半径和角度
-    // forest.forEach((tree) => {
-    //     tree.radius = (NODE_WIDTH * 2 * tree.totalNum * 1.5) / (2 * Math.PI);
-    //     tree.angle = 360 / tree.totalNum;
-    // });
+    const t2 = performance.now();
 
-    // //计算每棵树的中心位置
-    // for (let i = 0; i < forest.length; i++) {
-    //     if (i > 0) {
-    //         forest[i].positionx = forest[i - 1].positionx + forest[i - 1].radius + forest[i].radius + NODE_WIDTH * 4;
-    //         forest[i].positiony = forest[i - 1].positiony;
-    //     } else {
-    //         forest[i].positionx = 0;
-    //         forest[i].positiony = 0;
-    //     }
-    // }
-    //
-    // //计算圆形布局坐标
     const offSetArray = new Float32Array(2 * event.data.instanceCount);
-    // forest.forEach((tree) => {
-    //     tree.forEach((treeNode) => {
-    //         treeNode.positionx = tree.positionx - Math.cos(tree.angle * treeNode.nodeId * Math.PI / 180) * tree.radius;
-    //         treeNode.positiony = tree.positiony + Math.sin(tree.angle * treeNode.nodeId * Math.PI / 180) * tree.radius;
-    //         offSetArray.set([treeNode.positionx, treeNode.positiony] , 2 * treeNode.id);
-    //     });
-    // });
-
     for (let i = 0; i < event.data.instanceCount; i++) {
         const position = forceLayout.getNodePosition(i);
 
         offSetArray.set([position.x, position.y] , 2 * i);
     }
+
+    const t3 = performance.now();
+
+    console.log("ForceLayout prepare data took " + (t1 - t0) + " milliseconds.");
+    console.log("ForceLayout layout took " + (t2 - t1) + " milliseconds.");
+    console.log("ForceLayout finalize took " + (t3 - t2) + " milliseconds.");
 
     postMessage({ offSetArray }, [ offSetArray.buffer ]);
 });
