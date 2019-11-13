@@ -50,29 +50,29 @@ export default function createLayout(graph, physicsSettings) {
         nodeBodies: nodeBodies,
 
         step: function() {
-            if (bodiesCount === 0) return true; // TODO: This will never fire 'stable'
-
-            var lastMove = physicsSimulator.step();
-
-            // Save the movement in case if someone wants to query it in the step
-            // callback.
-            api.lastMove = lastMove;
-
-            // Allow listeners to perform low-level actions after nodes are updated.
-            api.fire('step');
-
-            var ratio = lastMove/bodiesCount;
-            var isStableNow = ratio <= 0.01; // TODO: The number is somewhat arbitrary...
-
-            // if (wasStable !== isStableNow) {
-            //     wasStable = isStableNow;
+            // if (bodiesCount === 0) return true; // TODO: This will never fire 'stable'
+            //
+            // var lastMove = physicsSimulator.step();
+            //
+            // // Save the movement in case if someone wants to query it in the step
+            // // callback.
+            // api.lastMove = lastMove;
+            //
+            // // Allow listeners to perform low-level actions after nodes are updated.
+            // api.fire('step');
+            //
+            // var ratio = lastMove/bodiesCount;
+            // var isStableNow = ratio <= 0.01; // TODO: The number is somewhat arbitrary...
+            //
+            // // if (wasStable !== isStableNow) {
+            // //     wasStable = isStableNow;
+            // //     onStableChanged(isStableNow);
+            // // }
+            // if (isStableNow){
             //     onStableChanged(isStableNow);
             // }
-            if (isStableNow){
-                onStableChanged(isStableNow);
-            }
 
-          return isStableNow;
+          return true;
         },
 
         /**

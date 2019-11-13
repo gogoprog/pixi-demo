@@ -11,6 +11,7 @@ import RadiateLayout from './layout/RadiateLayout';
 // import ForceLayoutBaseNgraph from "./layout/ForceLayoutBaseNgraph/ForceLayout"
 import createLayout from "./layout/ForceLayoutBaseNgraph/ForceLayoutInNGraph"
 // import GraphLevelForceLayout from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayout"
+import ForceLayoutGenerator from "graphz/render/layout/ForceLayoutBaseNgraph/ForceLayoutGenerator";
 import GraphLevelForceLayoutOpt from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayoutOpt"
 import elpForceLayout from "./layout/elpLayout/ForceLayout"
 import personForceLayout from "./layout/personLayout/PersonForceLayout"
@@ -382,7 +383,6 @@ export default function (options) {
     // setupWheelListener(canvas, root); // wheel listener 现在在外部模板内设置，通过zoom接口来调用renderer的缩放方法。
     const counter = new FPSCounter();
     let dynamicLayout = false;
-    let disableLayout = false;
 
     listenToGraphEvents();
     stage.interactive = true;
@@ -1081,9 +1081,9 @@ export default function (options) {
                 layoutType = 'Network';
             }
 
-            if (!visualConfig.ORIGINAL_FORCE_LAYOUT) {
-                networkLayout.setLayoutType(layoutType)
-            }
+            // if (!visualConfig.ORIGINAL_FORCE_LAYOUT) {
+            //     networkLayout.setLayoutType(layoutType)
+            // }
             if (layoutType === 'Network') {
                 layout = networkLayout;
                 _.each(nodeSprites, (nodeSprite, nodeId) => {
@@ -1093,6 +1093,15 @@ export default function (options) {
                     }
                 });
             }
+        },
+
+        /**
+         * 力导向布局
+         */
+        force() {
+            layoutType = 'Network';
+            layout = new ForceLayoutGenerator(nodeSprites, nodeContainer, visualConfig, false);
+            return layout.run();
         },
 
         /**
@@ -1125,7 +1134,6 @@ export default function (options) {
         },
 
         performLayout(disableAnimation = false, init = false, needReflow = true) {
-            disableLayout = disableAnimation;
             // the default link drawing mode is webgl. However, when it's FamilyLayout, we use pixi to draw links.
             linkContainer.mode = 'webgl';
             nodeContainer.layoutType = layoutType;
@@ -1346,9 +1354,9 @@ export default function (options) {
         },
 
         // the default parameter is double size of bird view
-        getBirdViewCanvas(width = 340, height = 260) {
-            return renderer.gl ? extract.webglExport(renderer, root, width, height) : extract.canvasExport(renderer, root, width, height);
-        },
+        // getBirdViewCanvas(width = 340, height = 260) {
+        //     return renderer.gl ? extract.webglExport(renderer, root, width, height) : extract.canvasExport(renderer, root, width, height);
+        // },
 
         lock(nodes) {
             isDirty = true;
@@ -1804,9 +1812,9 @@ export default function (options) {
         return false;
     };
 
-    pixiGraphics.fireBirdViewChangeEvent = _.throttle(()=>{
-        pixiGraphics.fire('adjust-bird-view');
-    }, 1000);
+    // pixiGraphics.fireBirdViewChangeEvent = _.throttle(()=>{
+    //     pixiGraphics.fire('adjust-bird-view');
+    // }, 1000);
 
     pixiGraphics.addCanvasEventListener('contextmenu', pixiGraphics._contextmenuHandler, false);
 
@@ -1831,45 +1839,19 @@ export default function (options) {
 
     let lastScanTime = null;
     function animationLoop(timestamp) {
-        let speed = ('speed' in visualConfig) ? visualConfig.speed : 1;
+
         if (!lastScanTime) lastScanTime = timestamp;
 
         if (destroyed) {
             console.info('Renderer destroyed, exiting animation loop');
             return;
         }
-        let n = speed > 1 ? 2 * speed : 2;
-        if (graph.getNodesCount() < 100){
-            n = speed > 1 ? 10 * speed : 10;
-        } else if (graph.getNodesCount() < 500){
-            n = speed > 1 ? 8 * speed : 8;
-        } else if (graph.getNodesCount() < 1000){
-            n = speed > 1 ? 5 * speed : 5;
-        }
+
         animationAgent.step();
-        let layoutPositionChanged = false;
-        if (layoutType === 'Network') {
-            if (dynamicLayout) {
-                layoutPositionChanged = true;
-                for (let tmp = 0; tmp < n; tmp++){
-                    layout.step();
-                }
-                updateNodeSpritesPosition();
-                if (visualConfig.isScale) {
-                    pixiGraphics.setNodesToFullScreen(true);
-                }
-            }
-        } else {
-            // Circular, Layered, Radiate
-            if (!disableLayout) {
-                const layoutFreeze = layout.step();
-                layoutPositionChanged = !layoutFreeze;
-                if (layoutPositionChanged) {
-                    updateNodeSpritesPosition();
-                }
-            } else {
-                updateNodeSpritesPosition();
-            }
+        const layoutFreeze = layout.step();
+        let layoutPositionChanged = !layoutFreeze;
+        if (layoutPositionChanged) {
+            updateNodeSpritesPosition();
         }
 
         // Every 0.5 second, we check whether to change label's visible property.
@@ -1898,7 +1880,7 @@ export default function (options) {
 
             renderer.render(stage);
 
-            pixiGraphics.fireBirdViewChangeEvent();
+            // pixiGraphics.fireBirdViewChangeEvent();
 
             isDirty = false;
             nodeContainer.isDirty = false;
@@ -2353,7 +2335,8 @@ export default function (options) {
         //     selectionChanged();
         // }
 
-        pixiGraphics.performLayout();
+        // pixiGraphics.performLayout();
+        pixiGraphics.setNodesToFullScreen(false);
 
         console.log(`Graph change process complete ${new Date()}`);
     }

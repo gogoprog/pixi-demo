@@ -3,7 +3,7 @@
  */
 import Layout from './Layout.js';
 
-export default class CircleLayoutNew extends Layout {
+export default class ForceLayoutGenerator extends Layout {
     constructor(nodeSprites, nodeContainer,visualConfig, init) {
         super(nodeSprites, nodeContainer);
         this.NODE_WIDTH = visualConfig.NODE_WIDTH;
@@ -11,10 +11,10 @@ export default class CircleLayoutNew extends Layout {
 
     run() {
         return new Promise((resolve, reject) => {
-            const circleWorker = new Worker('./CircleLayoutWorker.js', { type: 'module' });
+            const forceWorker = new Worker('./ForceLayoutWorker.js', { type: 'module' });
 
-            circleWorker.onmessage = event => {
-                console.log('Circle layout completed!');
+            forceWorker.onmessage = event => {
+                console.log('Force layout completed!');
                 this.isLayouting = false;
 
                 const offSets = event.data.offSetArray;
@@ -27,7 +27,7 @@ export default class CircleLayoutNew extends Layout {
                     };
                 }
 
-                circleWorker.terminate();
+                forceWorker.terminate();
                 resolve();
             };
 
@@ -38,7 +38,7 @@ export default class CircleLayoutNew extends Layout {
                 outgoingTypedArrays: this.outgoingTypedArrays,
                 instanceCount: this.nodeContainer.instanceCount,
             };
-            circleWorker.postMessage(eventData, [
+            forceWorker.postMessage(eventData, [
                 eventData.incomingSlotArray.buffer,
                 eventData.outgoingSlotArray.buffer,
                 eventData.incomingTypedArrays.buffer,

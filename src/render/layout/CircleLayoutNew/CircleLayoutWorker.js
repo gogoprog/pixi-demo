@@ -1,8 +1,6 @@
 import createForest from './CreateForestWorker';
 
 addEventListener('message', event => {
-    console.log(event.data.instanceCount);
-
     const NODE_WIDTH = 50;
 
     const nodes = {};
