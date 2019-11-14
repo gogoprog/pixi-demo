@@ -1,12 +1,23 @@
 import createLayout from "./ForceLayoutNew"
+// import createLayout from "./ForceLayoutInNGraph"
 import createGraph from './Graph';
 
 addEventListener('message', event => {
     const t0 = performance.now();
 
     let graph = createGraph();
+
     for (let i = 0; i < event.data.instanceCount; i++) {
-        graph.addNode(i);
+        const position = event.data.nodesPositionArray.slice(2 * i, 2 * i + 2);
+        graph.addNode(i, {
+            properties: {
+                '_$x': position[0],
+                '_$y': position[1],
+            }
+        });
+    }
+
+    for (let i = 0; i < event.data.instanceCount; i++) {
         const incoming = event.data.incomingTypedArrays.slice(event.data.incomingSlotArray[i] , event.data.incomingSlotArray[i + 1]);
         incoming.forEach((linkId) => {
             graph.addLink(linkId, i, {});
@@ -18,7 +29,7 @@ addEventListener('message', event => {
     }
 
     let forceLayout = createLayout(graph, {
-        springLength: 500,
+        springLength: 200,
         springCoeff: 0.00008,
         dragCoeff: 0.08,
         gravity: -1.2,

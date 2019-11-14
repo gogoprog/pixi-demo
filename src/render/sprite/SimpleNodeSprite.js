@@ -216,41 +216,20 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
     /**
      * 更新顶点及其相关元素的位置.
      */
-    updateNodePosition(p, forceLinkUpdate = false, isBrokenLineLayerLayout = false) {
+    updateNodePosition(p, forceLinkUpdate = false) {
         this._updateNodeAttachPosition(p);
-        if (this.timelineMode) {
-            _.each(this.incoming, function (l) {
-                l.setTo({
-                    x: l.x2,
-                    y: p.y,
-                });
-                if(forceLinkUpdate) {
-                    l.updatePosition(isBrokenLineLayerLayout);
-                }
-            });
-            _.each(this.outgoing, function (l) {
-                l.setFrom({
-                    x: l.x1,
-                    y: p.y
-                });
-                if(forceLinkUpdate) {
-                    l.updatePosition(isBrokenLineLayerLayout);
-                }
-            });
-        } else {
-            _.each(this.incoming, function (l) {
-                l.setTo(p);
-                if(forceLinkUpdate) {
-                    l.updatePosition(isBrokenLineLayerLayout);
-                }
-            });
-            _.each(this.outgoing, function (l) {
-                l.setFrom(p);
-                if(forceLinkUpdate) {
-                    l.updatePosition(isBrokenLineLayerLayout);
-                }
-            });
-        }
+        _.each(this.incoming, function (l) {
+            l.setTo(p);
+            if(forceLinkUpdate) {
+                l.updatePosition();
+            }
+        });
+        _.each(this.outgoing, function (l) {
+            l.setFrom(p);
+            if(forceLinkUpdate) {
+                l.updatePosition();
+            }
+        });
     }
 
     _updateNodeAttachPosition(p) {

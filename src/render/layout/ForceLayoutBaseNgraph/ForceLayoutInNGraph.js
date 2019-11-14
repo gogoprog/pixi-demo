@@ -14,7 +14,7 @@ var eventify = require('ngraph.events');
  */
 export default function createLayout(graph, physicsSettings) {
     if (!graph) {
-      throw new Error('Graph structure cannot be undefined');
+        throw new Error('Graph structure cannot be undefined');
     }
 
     var layoutType = "Network"
@@ -40,39 +40,39 @@ export default function createLayout(graph, physicsSettings) {
 
     var api = {
         /**
-        * Performs one step of iterative layout algorithm
-        *
-        * @returns {boolean} true if the system should be considered stable; Flase otherwise.
-        * The system is stable if no further call to `step()` can improve the layout.
-        */
+         * Performs one step of iterative layout algorithm
+         *
+         * @returns {boolean} true if the system should be considered stable; Flase otherwise.
+         * The system is stable if no further call to `step()` can improve the layout.
+         */
         springs: springs,
 
         nodeBodies: nodeBodies,
 
         step: function() {
-            // if (bodiesCount === 0) return true; // TODO: This will never fire 'stable'
-            //
-            // var lastMove = physicsSimulator.step();
-            //
-            // // Save the movement in case if someone wants to query it in the step
-            // // callback.
-            // api.lastMove = lastMove;
-            //
-            // // Allow listeners to perform low-level actions after nodes are updated.
-            // api.fire('step');
-            //
-            // var ratio = lastMove/bodiesCount;
-            // var isStableNow = ratio <= 0.01; // TODO: The number is somewhat arbitrary...
-            //
-            // // if (wasStable !== isStableNow) {
-            // //     wasStable = isStableNow;
-            // //     onStableChanged(isStableNow);
-            // // }
-            // if (isStableNow){
+            if (bodiesCount === 0) return true; // TODO: This will never fire 'stable'
+
+            var lastMove = physicsSimulator.step();
+
+            // Save the movement in case if someone wants to query it in the step
+            // callback.
+            api.lastMove = lastMove;
+
+            // Allow listeners to perform low-level actions after nodes are updated.
+            api.fire('step');
+
+            var ratio = lastMove/bodiesCount;
+            var isStableNow = ratio <= 0.01; // TODO: The number is somewhat arbitrary...
+
+            // if (wasStable !== isStableNow) {
+            //     wasStable = isStableNow;
             //     onStableChanged(isStableNow);
             // }
+            if (isStableNow){
+                onStableChanged(isStableNow);
+            }
 
-          return true;
+            return isStableNow;
         },
 
         /**
@@ -402,6 +402,10 @@ export default function createLayout(graph, physicsSettings) {
             if (isNodeOriginallyPinned(node)) {
                 body.isPinned = true;
             }
+
+            if (!adjoin.has(nodeId)){
+                adjoin.set(nodeId, new Map());
+            }
         }
     }
 
@@ -553,7 +557,7 @@ export default function createLayout(graph, physicsSettings) {
      *
      * @param {String|Number} nodeId identifier of a node, for which body mass needs to be calculated
      * @returns {Number} recommended mass of the body;
-    */
+     */
     function nodeMass(nodeId) {
         var links = graph.getLinks(nodeId);
         if (!links) return 1;

@@ -36,6 +36,7 @@ export default class CircleLayoutNew extends Layout {
                 outgoingSlotArray: this.outgoingSlotArray,
                 incomingTypedArrays: this.incomingTypedArrays,
                 outgoingTypedArrays: this.outgoingTypedArrays,
+                nodesPositionArray: this.nodesPositionArray,
                 instanceCount: this.nodeContainer.instanceCount,
             };
             circleWorker.postMessage(eventData, [
@@ -43,6 +44,7 @@ export default class CircleLayoutNew extends Layout {
                 eventData.outgoingSlotArray.buffer,
                 eventData.incomingTypedArrays.buffer,
                 eventData.outgoingTypedArrays.buffer,
+                eventData.nodesPositionArray.buffer,
             ]);
         });
     }

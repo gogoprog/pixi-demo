@@ -17,6 +17,7 @@ export default class Layout {
         this.currentPosition = {};
 
         // 构建用于传送给WebWorker或者WebAssembly的数据结构
+        this.nodesPositionArray = nodeContainer.offSetArray.slice(0, 2 * nodeContainer.instanceCount);
         this.incomingSlotArray = new Uint32Array(nodeContainer.instanceCount);
         this.outgoingSlotArray = new Uint32Array(nodeContainer.instanceCount);
         this.incomingArrays = [];
@@ -68,23 +69,6 @@ export default class Layout {
 
     getSelectNodes() {
         let sn = [];
-        // let that = this;
-        // _.each(that.nodeContainer.nodes, function (n) {
-        //     let node = {
-        //         id: n.id,
-        //         incoming: n.incoming,
-        //         outgoing: n.outgoing,
-        //         inTree: false,
-        //         scale: n.scale.x,
-        //         layoutLevel: 0,
-        //         type: n.type,
-        //         cluster: n.cluster
-        //     };
-        //     if(that.isNodeOriginallyPinned(n)){
-        //         node.isPinned = true;
-        //     }
-        //     sn.push(node);
-        // });
         return sn;
     };
 

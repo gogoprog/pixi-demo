@@ -2,12 +2,12 @@
     <div class="canvas-container">
         <!-- 分析画布 -->
         <div class="action-container">
+<!--            <button class="btn" @click.prevent.stop="setLayoutType('Network')"> 网络(Old)</button>-->
             <button class="btn" @click.prevent.stop="forceLayout"> 网络</button>
             <button class="btn" @click.prevent.stop="forceLayoutWASM"> 网络(WASM)</button>
             <button class="btn" @click.prevent.stop="setLayoutType('Structural')"> 结构</button>
             <button class="btn" @click.prevent.stop="circleLayout"> 圆形</button>
             <button class="btn" @click.prevent.stop="setLayoutType('Layered')"> 层次</button>
-            <button class="btn" @click.prevent.stop="setLayoutType('BrokenLineLayered')"> 折线</button>
             <button class="btn" @click.prevent.stop="setLayoutType('Radiate')"> 辐射</button>
             <span> / </span>
             <button class="btn" @click.prevent.stop="toggleMode"> 拖动/选中</button>
@@ -45,10 +45,8 @@
                 this.chart.initAssets().then(() => {
                     this.chart.execute('addSubGraph', chartData).then(() => {
                         console.log('add data success!')
-                        setTimeout(() => {
-                            this.chart.renderer.setNodesToFullScreen();
-                        });
-                    }, 3000);
+                        this.chart.renderer.setNodesToFullScreen();
+                    });
                 });
             },
 

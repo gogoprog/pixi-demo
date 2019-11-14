@@ -308,11 +308,11 @@ export default class Chart extends EventEmitter {
      */
     initElpModel(elpData) {
         const self = this;
-        _.each(elpData.entities, (e) => {
+        elpData.entities.forEach((e) => {
             self.elpData.addElpEntity(e);
         });
-        _.each(elpData.links, (e) => {
-            self.elpData.addElpLink(e);
+        elpData.links.forEach((l) => {
+            self.elpData.addElpLink(l);
         });
     }
 

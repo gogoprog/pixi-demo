@@ -195,15 +195,6 @@ const nodeMoveListener = function (e) {
     this.parent.dragJustNow = false;
     this.parent.setPositionDirty(false);
     newPosition.copy(this.interactionData.getLocalPosition(this.parent));
-    if (this.timelineMode) {
-        const dx = Math.abs(newPosition.x - this.position.x);
-        newPosition.x = this.position.x; // disable movement in x;
-        if (dx > (this.visualConfig.NODE_WIDTH / 2 + 5)) { // when mouse move horizontally two far away from node, just release it.
-            // console.log("Dx " + dx);
-            this.releaseListener(e);
-        }
-    }
-    let isBrokenLineLayerLayout = this.parent.layoutType === 'BrokenLineLayered';
     if (this.dragging && this.selected) {
         // newPosition=null;
         // this.updateNodePosition(newPosition);
@@ -214,7 +205,7 @@ const nodeMoveListener = function (e) {
             const np = new PIXI.Point();
             np.x = n.position.x + dx;
             np.y = n.position.y + dy;
-            n.updateNodePosition(np, true, isBrokenLineLayerLayout);
+            n.updateNodePosition(np, true);
             container.nodeMoved(n);
         });
         this.parent.isDirty = true;
@@ -227,7 +218,7 @@ const nodeMoveListener = function (e) {
         }
         this.parent.selectNode(this);
         this.parent.nodeSelected(this);
-        this.updateNodePosition(newPosition, true, isBrokenLineLayerLayout);
+        this.updateNodePosition(newPosition, true);
         this.parent.nodeMoved(this);
         this.parent.setPositionDirty(true);
     }

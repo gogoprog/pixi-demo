@@ -1,6 +1,7 @@
 import eventify from 'ngraph.events';
 import 'pixi.js';
 
+import PresetLayout from "./layout/PresetLayout/PresetLayout";
 import LayeredLayoutNew from './layout/newLayeredLayout/LayeredLayoutNew';
 import FamilyLayout from './layout/newLayeredLayout/FamilyLayout/FamilyLayout'
 import StandardFamilyTreeLayout from './layout/newLayeredLayout/StandardFamilyTreeLayout/StandardFamilyTreeLayout'
@@ -11,10 +12,10 @@ import RadiateLayout from './layout/RadiateLayout';
 // import ForceLayoutBaseNgraph from "./layout/ForceLayoutBaseNgraph/ForceLayout"
 import createLayout from "./layout/ForceLayoutBaseNgraph/ForceLayoutInNGraph"
 // import GraphLevelForceLayout from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayout"
-import ForceLayoutGenerator from "graphz/render/layout/ForceLayoutBaseNgraph/ForceLayoutGenerator";
-import ForceLayoutWASMGenerator from "graphz/render/layout/ForceLayoutWASM/ForceLayoutWASMGenerator";
+import ForceLayoutGenerator from "./layout/ForceLayoutBaseNgraph/ForceLayoutGenerator";
+import ForceLayoutWASMGenerator from "./layout/ForceLayoutWASM/ForceLayoutWASMGenerator";
 import GraphLevelForceLayoutOpt from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayoutOpt"
-import elpForceLayout from "./layout/elpLayout/ForceLayout"
+// import elpForceLayout from "./layout/elpLayout/ForceLayout"
 import personForceLayout from "./layout/personLayout/PersonForceLayout"
 import Person2PersonLayout from "./layout/Person2PersonLayout/Person2PersonLayout"
 import PersonRelationshipLayout from "./layout/PersonRelationshipLayout/PersonRelationshipLayout"
@@ -46,18 +47,18 @@ export default function (options) {
     const visualConfig = options.visualConfig;
 
     // If client does not need custom layout algorithm, let's create default one:
-    let networkLayout = null;
-    if (visualConfig.ORIGINAL_FORCE_LAYOUT) {
-        networkLayout = elpForceLayout(graph, visualConfig.forceLayout);
-    } else {
-        networkLayout = createLayout(graph, visualConfig.forceLayout);
-    }
-
-    networkLayout.on('stable', (isStable) => {
-        if(isStable) {
-            layoutStabilized();
-        }
-    });
+    // let networkLayout = null;
+    // if (visualConfig.ORIGINAL_FORCE_LAYOUT) {
+    //     networkLayout = elpForceLayout(graph, visualConfig.forceLayout);
+    // } else {
+    //     networkLayout = createLayout(graph, visualConfig.forceLayout);
+    // }
+    //
+    // networkLayout.on('stable', (isStable) => {
+    //     if(isStable) {
+    //         layoutStabilized();
+    //     }
+    // });
 
     let layoutEMS;
     let instance = Module({
@@ -67,8 +68,7 @@ export default function (options) {
             console.log("initialized layouter module");
         }
     });
-    let layout = networkLayout;
-    let layoutType = 'Network';
+    // let layout = networkLayout;
 
     const showDebugMarkup = false;
 
@@ -101,7 +101,6 @@ export default function (options) {
     const iconContainer = new PIXI.Container();
     iconContainer.interactive = false;
     iconContainer.interactiveChildren = false;
-    let destroyed = false;
 
     root.width = viewWidth;
     root.height = viewHeight;
@@ -385,6 +384,10 @@ export default function (options) {
     const counter = new FPSCounter();
     let dynamicLayout = false;
 
+    let layout = new PresetLayout(nodeSprites, nodeContainer);
+    let layoutType = 'Preset';
+
+
     listenToGraphEvents();
     stage.interactive = true;
     if (!stage.downListener) {
@@ -454,8 +457,6 @@ export default function (options) {
                             loadedResource.iconMap = iconMap;
                             loadedResource.allentities = PIXI.Texture.fromCanvas(canvas);
                             nodeContainer.setResources(iconMap, PIXI.Texture.fromCanvas(canvas));
-
-                            // animationLoop();
 
                             resolve();
                         });
@@ -634,16 +635,6 @@ export default function (options) {
          * draw layered layout
          */
         drawLayeredLayout(disableAnimation, init) {
-            layout = new LayeredLayoutNew(nodeSprites, nodeContainer, visualConfig, init);
-            this.setNodesToFullScreen(disableAnimation);
-        },
-
-        /**
-         * draw Broken Line Layered layout
-         * @param disableAnimation
-         * @param init
-         */
-        drawLBrokenLineLayeredLayout(disableAnimation, init) {
             layout = new LayeredLayoutNew(nodeSprites, nodeContainer, visualConfig, init);
             this.setNodesToFullScreen(disableAnimation);
         },
@@ -879,9 +870,8 @@ export default function (options) {
                 nodeContainer.nodeMoved(n);
                 layout.setNodePosition(n.id, n.position.x, n.position.y);
             });
-            let isBrokenLineLayerLayout = layoutType === 'BrokenLineLayered';
             _.each(linkSprites, (l) => {
-                l.updatePosition(isBrokenLineLayerLayout);
+                l.updatePosition();
             });
         },
 
@@ -1030,7 +1020,6 @@ export default function (options) {
         },
 
         destroy() {
-            destroyed = true;
             isDirty = false;
             document.removeEventListener('mousedown', this._mouseDownListener);
             // canvas.removeEventListener('mousewheel', this._zoomActionListener);
@@ -1045,7 +1034,7 @@ export default function (options) {
             nodeSprites = null;
             linkSprites = null;
             layout = null;
-            networkLayout = null;
+            // networkLayout = null;
             animationAgent = null;
             graph.clear();
             graph = null;
@@ -1064,7 +1053,7 @@ export default function (options) {
 
         /**
          * 设置布局方式
-         * @param layoutTypeStr，值可能为Network,Circular,Structural,PersonRelationshipStructural,Layered,BrokenLineLayered,Person2Person,FamilyLayout,SimpleFamilyLayout,Radiate
+         * @param layoutTypeStr，值可能为Network,Circular,Structural,PersonRelationshipStructural,Layered,Person2Person,FamilyLayout,SimpleFamilyLayout,Radiate
          */
         setLayoutType(layoutTypeStr) {
             console.info(`Setting layout type to ${layoutTypeStr}`);
@@ -1074,25 +1063,11 @@ export default function (options) {
                 && layoutType !== 'Structural'
                 && layoutType !== 'PersonRelationshipStructural'
                 && layoutType !== 'Layered'
-                && layoutType !== 'BrokenLineLayered'
                 && layoutType !== 'Person2Person'
                 && layoutType !== 'FamilyLayout'
                 && layoutType !== 'SimpleFamilyLayout'
                 && layoutType !== 'Radiate') {
                 layoutType = 'Network';
-            }
-
-            // if (!visualConfig.ORIGINAL_FORCE_LAYOUT) {
-            //     networkLayout.setLayoutType(layoutType)
-            // }
-            if (layoutType === 'Network') {
-                layout = networkLayout;
-                _.each(nodeSprites, (nodeSprite, nodeId) => {
-                    if (nodeSprite.data.properties._$lock) {
-                        layout.setNodePosition(nodeId, nodeSprite.position.x, nodeSprite.position.y);
-                        layout.pinNode(nodeSprite, true);
-                    }
-                });
             }
         },
 
@@ -1150,9 +1125,13 @@ export default function (options) {
 
             isDirty = true;
             if (layoutType === 'Network') {
-                layout = networkLayout;
+                // layout = networkLayout;
                 if (!dynamicLayout) {
-                    layout.step();
+                    const t0 = performance.now();
+                    for (let tmp = 0; tmp < 30000; tmp++){
+                        layout.step();
+                    }
+                    const t1 = performance.now();
                     _.each(nodeSprites, (nodeSprite, nodeId) => { //大开销计算
                         nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
                         nodeContainer.nodeMoved(nodeSprite);
@@ -1160,6 +1139,10 @@ export default function (options) {
                     _.each(linkSprites, (l) => {
                         l.updatePosition();
                     });
+                    const t2 = performance.now();
+
+                    console.log("ForceLayout(old) layout data took " + (t1 - t0) + " milliseconds.");
+                    console.log("ForceLayout(old) get Data took " + (t2 - t1) + " milliseconds.");
 
                     renderer.render(stage);
                 }
@@ -1176,8 +1159,6 @@ export default function (options) {
                 this.drawStructuralLayoutForPersonRelationship(disableAnimation, init);
             } else if (layoutType === 'Layered') {
                 this.drawLayeredLayout(disableAnimation, init);
-            } else if (layoutType === 'BrokenLineLayered') {
-                this.drawLBrokenLineLayeredLayout(disableAnimation, init);
             } else if (layoutType === 'Person2Person'){
                 this.drawPerson2PersonLayout(disableAnimation);
             } else if (layoutType === 'Radiate') {
@@ -1740,7 +1721,7 @@ export default function (options) {
          * @param {*} newSetting settings update
          */
         updateNetworkLayoutSetting(newSetting){
-            networkLayout.simulator.updateSetting(newSetting.forceLayout);
+            // networkLayout.simulator.updateSetting(newSetting.forceLayout);
             visualConfig.speed = newSetting.speed;
             visualConfig.rate = newSetting.rate;
         }
@@ -1793,13 +1774,7 @@ export default function (options) {
 
     let lastScanTime = null;
     function animationLoop(timestamp) {
-
         if (!lastScanTime) lastScanTime = timestamp;
-
-        if (destroyed) {
-            console.info('Renderer destroyed, exiting animation loop');
-            return;
-        }
 
         animationAgent.step();
         const layoutFreeze = layout.step();
@@ -1833,8 +1808,6 @@ export default function (options) {
             }
 
             renderer.render(stage);
-
-            // pixiGraphics.fireBirdViewChangeEvent();
 
             isDirty = false;
             nodeContainer.isDirty = false;
@@ -1881,14 +1854,13 @@ export default function (options) {
         _.each(nodeSprites, (nodeSprite, nodeId) => { // 大开销计算
             nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
             nodeContainer.nodeMoved(nodeSprite);
-            if (nodeSprite.pinned && !nodeSprite.data.properties._$lock) {
-                nodeSprite.pinned = false;
-                layout.pinNode(nodeSprite, false);
-            }
+            // if (nodeSprite.pinned && !nodeSprite.data.properties._$lock) {
+            //     nodeSprite.pinned = false;
+            //     layout.pinNode(nodeSprite, false);
+            // }
         });
-        let isBrokenLineLayerLayout = layoutType === 'BrokenLineLayered';
         _.each(linkSprites, (l) => {
-            l.updatePosition(isBrokenLineLayerLayout);
+            l.updatePosition();
         });
     }
 
@@ -2198,8 +2170,6 @@ export default function (options) {
             l.destroy();
 
             linkContainer.removeLink(l.id);
-
-            // console.log("Removed link: " + link.id);
         } else {
             console.log(`Could not find link sprite: ${link.id}`);
         }
@@ -2229,10 +2199,6 @@ export default function (options) {
 
     function onGraphChanged(changes) {
         console.log(`Graph changed ${new Date()}`);
-        // const nodeIdArray = [];
-        // const linkIdArray = [];
-        // const updateNodeIdArray = [];
-        // const updateLinkIdArray = [];
         isDirty = true;
         for (let i = 0; i < changes.length; ++i) {
             const change = changes[i];
@@ -2241,11 +2207,9 @@ export default function (options) {
             if (change.changeType === 'add') {
                 if (changeNode) {
                     initNode(changeNode);
-                    // nodeIdArray.push(changeNode.id);
                 }
                 if (changeLink) {
                     initLink(changeLink);
-                    // linkIdArray.push(changeLink.id);
                 }
             } else if (change.changeType === 'remove') {
                 if (changeNode) {
@@ -2257,39 +2221,13 @@ export default function (options) {
             } else if (change.changeType === 'update') {
                 if (changeNode) {
                     updateNode(changeNode);
-                    // updateNodeIdArray.push(changeNode.id);
                 }
                 if (changeLink) {
                     updateLink(changeLink);
-                    // updateLinkIdArray.push(changeLink.id);
                 }
             }
         }
 
-        // let added = false;
-        // if (nodeIdArray.length > 0 || linkIdArray.length > 0) {
-        //     if(!visualConfig.ORIGINAL_FORCE_LAYOUT) {
-        //         pixiGraphics.performLayout();
-        //     }
-        //     pixiGraphics.clearSelection();
-        //     pixiGraphics.selectSubGraph(nodeIdArray, linkIdArray);
-        //     added = true;
-        // }
-        //
-        // let updated = false;
-        // if (updateNodeIdArray.length > 0 || updateLinkIdArray.length > 0) {
-        //     if (!added) {
-        //         pixiGraphics.clearSelection();
-        //     }
-        //     pixiGraphics.selectSubGraph(updateNodeIdArray, updateLinkIdArray);
-        //     updated = true;
-        // }
-        //
-        // if (!added && !updated) {   // 删除时触发selectionChanged
-        //     selectionChanged();
-        // }
-
-        // pixiGraphics.performLayout();
         pixiGraphics.setNodesToFullScreen(false);
 
         console.log(`Graph change process complete ${new Date()}`);
