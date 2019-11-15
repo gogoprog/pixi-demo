@@ -10,8 +10,22 @@
             <button class="btn" @click.prevent.stop="rotateLayoutWASM"> 旋转(WASM)</button>
             <button class="btn" @click.prevent.stop="setLayoutType('Structural')"> 结构</button>
             <button class="btn" @click.prevent.stop="setLayoutType('Layered')"> 层次</button>
+            <button class="btn" @click.prevent.stop="spreadLayoutWASM"> 放大(WASM)</button>
+            <button class="btn" @click.prevent.stop="shrinkLayoutWASM"> 缩小(WASM)</button>
+
             <span> / </span>
+
             <button class="btn" @click.prevent.stop="toggleMode"> 拖动/选中</button>
+
+            <span> / </span>
+
+            <select v-model="dataSource">
+                <option disabled value="">Please select one</option>
+                <option>smallChartData</option>
+                <option>chartData</option>
+                <option>bigChartData</option>
+            </select>
+            <span>Selected: {{ dataSource }}</span>
         </div>
         <div id="renderArea" class="render-area"></div>
     </div>
@@ -23,7 +37,7 @@
     export default {
         data() {
             return {
-
+                dataSource: 'chartData',
             };
         },
         created() {
@@ -36,18 +50,24 @@
             async init() {
                 const globalELPModelResponse = await fetch('/static/data/globalELPModel.json');
                 const globalELPModel = await globalELPModelResponse.json();
-                const chartDataResponse = await fetch('/static/data/chartData.json');
-                const chartData = await chartDataResponse.json();
+
                 this.chart = new graphz.Chart({
                     elpData: globalELPModel,
                     container: 'renderArea'
                 });
 
                 this.chart.initAssets().then(() => {
-                    this.chart.execute('addSubGraph', chartData).then(() => {
-                        console.log('add data success!')
-                        this.chart.renderer.setNodesToFullScreen();
-                    });
+                    this.loadChart();
+                });
+            },
+
+            async loadChart() {
+                const chartDataResponse = await fetch(`/static/data/${this.dataSource}.json`);
+                const chartData = await chartDataResponse.json();
+
+                this.chart.execute('addSubGraph', chartData).then(() => {
+                    console.log('add data success!')
+                    this.chart.renderer.setNodesToFullScreen();
                 });
             },
 
@@ -81,6 +101,18 @@
 
             rotateLayoutWASM() {
                 this.chart.renderer.WASMLayout('rotate').then(() => {
+                    this.chart.renderer.setNodesToFullScreen();
+                });
+            },
+
+            spreadLayoutWASM() {
+                this.chart.renderer.WASMLayout('spread').then(() => {
+                    this.chart.renderer.setNodesToFullScreen();
+                });
+            },
+
+            shrinkLayoutWASM() {
+                this.chart.renderer.WASMLayout('shrink').then(() => {
                     this.chart.renderer.setNodesToFullScreen();
                 });
             },

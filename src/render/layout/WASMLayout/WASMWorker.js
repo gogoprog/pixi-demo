@@ -48,7 +48,14 @@ addEventListener('message', event => {
                 case 'rotate':
                     offSetArray = layoutEMS.execNewRotateLayouter();
                     break;
+                case 'spread':
+                    offSetArray = layoutEMS.execNewScaleLayouter(false);
+                    break;
+                case 'shrink':
+                    offSetArray = layoutEMS.execNewScaleLayouter(false);
+                    break;
                 default:
+                    offSetArray = new Uint32Array(event.data.instanceCount * 2);
                     console.log('The layout is not exited!')
             }
 
