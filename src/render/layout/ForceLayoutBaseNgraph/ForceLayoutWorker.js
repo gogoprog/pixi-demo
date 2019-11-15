@@ -3,6 +3,7 @@ import createLayout from "./ForceLayoutNew"
 import createGraph from './Graph';
 
 addEventListener('message', event => {
+    console.log("ForceLayout start!");
     const t0 = performance.now();
 
     let graph = createGraph();
@@ -38,7 +39,7 @@ addEventListener('message', event => {
 
     const t1 = performance.now();
 
-    for (let tmp = 0; tmp < 30000; tmp++){
+    for (let tmp = 0; tmp < 300; tmp++){
         forceLayout.step();
     }
 

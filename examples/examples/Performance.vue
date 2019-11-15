@@ -2,7 +2,6 @@
     <div class="canvas-container">
         <!-- 分析画布 -->
         <div class="action-container">
-            <button class="btn" @click.prevent.stop="setLayoutType('Network')"> 网络(Old)</button>
             <button class="btn" @click.prevent.stop="forceLayout"> 网络</button>
             <button class="btn" @click.prevent.stop="forceLayoutWASM"> 网络(WASM)</button>
             <button class="btn" @click.prevent.stop="setLayoutType('Structural')"> 结构</button>

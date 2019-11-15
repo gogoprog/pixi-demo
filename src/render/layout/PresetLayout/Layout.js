@@ -90,4 +90,8 @@ export default class Layout {
     isNodeOriginallyPinned(node) {
         return false;
     };
+
+    run() {
+        return Promise.resolve();
+    }
 }

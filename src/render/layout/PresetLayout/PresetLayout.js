@@ -7,10 +7,4 @@ export default class PresetLayout extends Layout {
     constructor(nodeSprites, nodeContainer) {
         super(nodeSprites, nodeContainer);
     };
-
-    run() {
-        return new Promise((resolve, reject) => {
-            resolve();
-        });
-    }
 }
