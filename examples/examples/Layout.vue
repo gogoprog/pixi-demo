@@ -2,13 +2,14 @@
     <div class="canvas-container">
         <!-- 分析画布 -->
         <div class="action-container">
-<!--            <button class="btn" @click.prevent.stop="setLayoutType('Network')"> 网络(Old)</button>-->
             <button class="btn" @click.prevent.stop="forceLayout"> 网络</button>
             <button class="btn" @click.prevent.stop="forceLayoutWASM"> 网络(WASM)</button>
-            <button class="btn" @click.prevent.stop="setLayoutType('Structural')"> 结构</button>
             <button class="btn" @click.prevent.stop="circleLayout"> 圆形</button>
-            <button class="btn" @click.prevent.stop="setLayoutType('Layered')"> 层次</button>
+            <button class="btn" @click.prevent.stop="circleLayoutWASM"> 圆形(WASM)</button>
             <button class="btn" @click.prevent.stop="setLayoutType('Radiate')"> 辐射</button>
+            <button class="btn" @click.prevent.stop="rotateLayoutWASM"> 旋转(WASM)</button>
+            <button class="btn" @click.prevent.stop="setLayoutType('Structural')"> 结构</button>
+            <button class="btn" @click.prevent.stop="setLayoutType('Layered')"> 层次</button>
             <span> / </span>
             <button class="btn" @click.prevent.stop="toggleMode"> 拖动/选中</button>
         </div>
@@ -60,14 +61,26 @@
                 });
             },
 
-            forceLayoutWASM() {
-                this.chart.renderer.forceWASM().then(() => {
+            circleLayout() {
+                this.chart.renderer.circle().then(() => {
                     this.chart.renderer.setNodesToFullScreen();
                 });
             },
 
-            circleLayout() {
-                this.chart.renderer.circle().then(() => {
+            forceLayoutWASM() {
+                this.chart.renderer.WASMLayout('force').then(() => {
+                    this.chart.renderer.setNodesToFullScreen();
+                });
+            },
+
+            circleLayoutWASM() {
+                this.chart.renderer.WASMLayout('circle').then(() => {
+                    this.chart.renderer.setNodesToFullScreen();
+                });
+            },
+
+            rotateLayoutWASM() {
+                this.chart.renderer.WASMLayout('rotate').then(() => {
                     this.chart.renderer.setNodesToFullScreen();
                 });
             },

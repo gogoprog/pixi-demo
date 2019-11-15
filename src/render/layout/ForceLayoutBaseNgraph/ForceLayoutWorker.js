@@ -30,7 +30,7 @@ addEventListener('message', event => {
     }
 
     let forceLayout = createLayout(graph, {
-        springLength: 200,
+        springLength: 300,
         springCoeff: 0.00008,
         dragCoeff: 0.08,
         gravity: -1.2,
@@ -39,7 +39,7 @@ addEventListener('message', event => {
 
     const t1 = performance.now();
 
-    for (let tmp = 0; tmp < 300; tmp++){
+    for (let tmp = 0; tmp < 10000; tmp++){
         forceLayout.step();
     }
 

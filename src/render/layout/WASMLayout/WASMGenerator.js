@@ -3,15 +3,15 @@
  */
 import Layout from './Layout.js';
 
-export default class ForceLayoutWASMGenerator extends Layout {
+export default class WASMGenerator extends Layout {
     constructor(nodeSprites, nodeContainer,visualConfig, init) {
         super(nodeSprites, nodeContainer);
         this.NODE_WIDTH = visualConfig.NODE_WIDTH;
     };
 
-    run() {
+    run(wasmType) {
         return new Promise((resolve, reject) => {
-            const forceWorker = new Worker('./ForceLayoutWASMWorker.js', { type: 'module' });
+            const forceWorker = new Worker('./WASMWorker.js', { type: 'module' });
 
             forceWorker.onmessage = event => {
                 console.log('Force with WASM layout completed!');
@@ -38,6 +38,7 @@ export default class ForceLayoutWASMGenerator extends Layout {
                 outgoingTypedArrays: this.outgoingTypedArrays,
                 nodesPositionArray: this.nodesPositionArray,
                 instanceCount: this.nodeContainer.instanceCount,
+                wasmType,
             };
             forceWorker.postMessage(eventData, [
                 eventData.incomingSlotArray.buffer,

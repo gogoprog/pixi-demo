@@ -13,7 +13,7 @@ import RadiateLayout from './layout/RadiateLayout';
 import createLayout from "./layout/ForceLayoutBaseNgraph/ForceLayoutInNGraph"
 // import GraphLevelForceLayout from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayout"
 import ForceLayoutGenerator from "./layout/ForceLayoutBaseNgraph/ForceLayoutGenerator";
-import ForceLayoutWASMGenerator from "./layout/ForceLayoutWASM/ForceLayoutWASMGenerator";
+import WASMGenerator from "./layout/WASMLayout/WASMGenerator";
 import GraphLevelForceLayoutOpt from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayoutOpt"
 // import elpForceLayout from "./layout/elpLayout/ForceLayout"
 import personForceLayout from "./layout/personLayout/PersonForceLayout"
@@ -1081,12 +1081,11 @@ export default function (options) {
         },
 
         /**
-         * 力导向布局, WASM方式实现
+         * WASM方式实现的布局
          */
-        forceWASM() {
-            layoutType = 'Network';
-            layout = new ForceLayoutWASMGenerator(nodeSprites, nodeContainer, visualConfig, false);
-            return layout.run();
+        WASMLayout(wasmType) {
+            layout = new WASMGenerator(nodeSprites, nodeContainer, visualConfig, false);
+            return layout.run(wasmType);
         },
 
         /**
