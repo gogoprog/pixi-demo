@@ -17,7 +17,7 @@ export default class WASMGenerator extends Layout {
                 console.log('Force with WASM layout completed!');
                 this.isLayouting = false;
 
-                const offSets = event.data.offSetArray;
+                const offSets = event.data.offSetTypedArray;
 
                 for (let i = 0; i < this.nodeContainer.instanceCount; i++) {
                     let node = this.nodes[i];

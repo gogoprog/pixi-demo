@@ -7,6 +7,7 @@
 
 <script>
     import graphz from 'graphz';
+    import loadAirRoutes from "./loadAirRoutes";
 
     export default {
         data() {
@@ -24,12 +25,16 @@
             async init() {
                 const globalELPModelResponse = await fetch('/static/data/globalELPModel.json');
                 const globalELPModel = await globalELPModelResponse.json();
-                const chartDataResponse = await fetch('/static/data/chartData.json');
-                const chartData = await chartDataResponse.json();
+
                 this.chart = new graphz.Chart({
                     elpData: globalELPModel,
                     container: 'renderArea'
                 });
+
+                const chartDataResponse = await fetch('/static/data/chartData.json');
+                const chartData = await chartDataResponse.json();
+
+                // const airRoutesGraph = await loadAirRoutes();
 
                 this.chart.execute('addSubGraph', chartData).then(() => {
                     console.log('add data success!')

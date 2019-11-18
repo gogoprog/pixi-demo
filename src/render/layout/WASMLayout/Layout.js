@@ -18,8 +18,8 @@ export default class Layout {
 
         // 构建用于传送给WebWorker或者WebAssembly的数据结构
         this.nodesPositionArray = nodeContainer.offSetArray.slice(0, 2 * nodeContainer.instanceCount);
-        this.incomingSlotArray = new Uint32Array(nodeContainer.instanceCount);
-        this.outgoingSlotArray = new Uint32Array(nodeContainer.instanceCount);
+        this.incomingSlotArray = new Int32Array(nodeContainer.instanceCount);
+        this.outgoingSlotArray = new Int32Array(nodeContainer.instanceCount);
         this.incomingArrays = [];
         this.outgoingArrays = [];
 
@@ -39,8 +39,8 @@ export default class Layout {
             this.outgoingArrays.push(...outgoingArray);
             outgoingIndex += outgoingArray.length;
         }
-        this.incomingTypedArrays = Uint32Array.from(this.incomingArrays);
-        this.outgoingTypedArrays = Uint32Array.from(this.outgoingArrays);
+        this.incomingTypedArrays = Int32Array.from(this.incomingArrays);
+        this.outgoingTypedArrays = Int32Array.from(this.outgoingArrays);
 
         this.nodes = {};
         for (let i = 0; i < nodeContainer.instanceCount; i++) {

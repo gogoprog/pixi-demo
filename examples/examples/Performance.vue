@@ -19,9 +19,6 @@
 <script>
     import graphz from 'graphz';
 
-    import globalELPModel from './data/globalELPModel';
-    import bigChartData from './data/bigChartData';
-
     export default {
         data() {
             return {
