@@ -19,11 +19,11 @@ addEventListener('message', event => {
                 event.data.incomingSlotArray,
                 types,
                 event.data.incomingTypedArrays,
-                position,
+                event.data.nodesPositionArray
             );
 
             const t1 = performance.now();
-
+            debugger
             let offSetArray;
             switch (event.data.wasmType) {
                 case 'force':
