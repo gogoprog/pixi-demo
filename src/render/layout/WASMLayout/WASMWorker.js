@@ -13,8 +13,6 @@ addEventListener('message', event => {
 
             const types = new Int32Array(event.data.instanceCount);
 
-            const position = new Float64Array(event.data.instanceCount * 2);
-
             layoutEMS.inputIniInfo(
                 event.data.incomingSlotArray,
                 types,
@@ -39,12 +37,14 @@ addEventListener('message', event => {
                     offSetArray = layoutEMS.execNewScaleLayouter(false);
                     break;
                 case 'shrink':
-                    offSetArray = layoutEMS.execNewScaleLayouter(false);
+                    offSetArray = layoutEMS.execNewScaleLayouter(true);
                     break;
                 default:
                     offSetArray = new Uint32Array(event.data.instanceCount * 2);
                     console.log('The layout is not exited!')
             }
+
+            layoutEMS.delete();
 
             const t2 = performance.now();
 
