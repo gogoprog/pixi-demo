@@ -7,7 +7,6 @@
 
 <script>
     import graphz from 'graphz';
-    import loadAirRoutes from "./loadAirRoutes";
 
     export default {
         data() {
@@ -33,8 +32,6 @@
 
                 const chartDataResponse = await fetch('/static/data/chartData.json');
                 const chartData = await chartDataResponse.json();
-
-                // const airRoutesGraph = await loadAirRoutes();
 
                 this.chart.execute('addSubGraph', chartData).then(() => {
                     console.log('add data success!')

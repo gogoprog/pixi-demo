@@ -19,11 +19,12 @@
 
             <span> / </span>
 
-            <select v-model="dataSource">
+            <select v-model="dataSource" @change="loadChart">
                 <option disabled value="">Please select one</option>
                 <option>smallChartData</option>
                 <option>chartData</option>
                 <option>bigChartData</option>
+                <option>airRoutes</option>
             </select>
             <span>Selected: {{ dataSource }}</span>
         </div>
@@ -33,11 +34,12 @@
 
 <script>
     import graphz from 'graphz';
+    import loadAirRoutes from "./loadAirRoutes";
 
     export default {
         data() {
             return {
-                dataSource: 'chartData',
+                dataSource: 'smallChartData',
             };
         },
         created() {
@@ -62,8 +64,13 @@
             },
 
             async loadChart() {
-                const chartDataResponse = await fetch(`/static/data/${this.dataSource}.json`);
-                const chartData = await chartDataResponse.json();
+                let chartData;
+                if (this.dataSource === 'airRoutes') {
+                    chartData = await loadAirRoutes();
+                } else {
+                    const chartDataResponse = await fetch(`/static/data/${this.dataSource}.json`);
+                    chartData = await chartDataResponse.json();
+                }
 
                 this.chart.execute('addSubGraph', chartData).then(() => {
                     console.log('add data success!')
