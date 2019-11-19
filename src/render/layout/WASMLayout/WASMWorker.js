@@ -21,7 +21,7 @@ addEventListener('message', event => {
             );
 
             const t1 = performance.now();
-            debugger
+
             let offSetArray;
             switch (event.data.wasmType) {
                 case 'force':
