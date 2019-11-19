@@ -565,8 +565,8 @@ export default class Chart extends EventEmitter {
         this.finalGraph.updateLinkProperties(linkData);
     }
 
-    initAssets() {
-        return this.renderer.loadResources();
+    initAssets(resources) {
+        return this.renderer.loadResources(resources);
     }
 
 

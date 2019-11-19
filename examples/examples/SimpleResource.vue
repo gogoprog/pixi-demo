@@ -30,7 +30,7 @@
                     container: 'renderArea'
                 });
 
-                this.chart.initAssets().then(() => {
+                this.chart.initAssets({ font: '/static/font/noto.fnt' }).then(() => {
                     this.loadChart();
                 });
             },

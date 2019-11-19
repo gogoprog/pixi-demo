@@ -417,12 +417,12 @@ export default function (options) {
         stage,
         mode,
 
-        loadResources() {
+        loadResources(resources) {
             return new Promise((resolve => {
                 const loadedResource = {};
 
                 const loader = new PIXI.loaders.Loader();
-                loader.add('fontXML', '/static/font/noto.fnt');
+                loader.add('fontXML', resources.font);
                 loader.load((loader, resources) => {
                     visualConfig.font = resources.fontXML.bitmapFont;
 
