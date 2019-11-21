@@ -64,6 +64,8 @@
             },
 
             async loadChart() {
+                await this.chart.clearGraph();
+
                 let chartData;
                 if (this.dataSource === 'airRoutes') {
                     chartData = await loadAirRoutes();

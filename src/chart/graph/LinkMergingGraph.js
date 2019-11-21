@@ -44,7 +44,6 @@ export default class LinkMergingGraph extends Graph {
         const linkMergeGraph = new LinkMergingGraph(sourceGraph, defaultMergeFilter, userMergeFilter);
         linkMergeGraph.setLinkMergeMap(afterToBefore);
         linkMergeGraph.setBeforeToAfter(beforeToAfter);
-        linkMergeGraph.setNearLinks(linkMergeGraphData.nearLinks);
         linkMergeGraph.setElpData(elpData);
 
         // 建立引用关系
@@ -338,7 +337,6 @@ export default class LinkMergingGraph extends Graph {
                 const link = links[linkNum];
                 if (link.type === mergeLinkType) {
                     this.removeLink(link);
-                    this.delLinkInNearLinks(link); // 删除邻接关系
                 }
             }
         } else {
@@ -346,7 +344,6 @@ export default class LinkMergingGraph extends Graph {
                 const mergeLinkData = linkMap[mergeLinkId];
                 if (mergeLinkData.type === mergeLinkType) {
                     this.removeLink(mergeLinkData);
-                    this.delLinkInNearLinks(mergeLinkData); // 删除邻接关系
                     const linkIdArr = mergeToUnMap[mergeLinkId];
                     if (linkIdArr) {
                         let linkIdArrNum = linkIdArr.length;
@@ -421,7 +418,6 @@ export default class LinkMergingGraph extends Graph {
                 linkTypeSet.add(mergeLinkId);
             } else if (mergePattern === 'notMerge') {
                 this.addLink(link);
-                this.addLink2NearLinks(link); // 新增邻接关系
             }
         }
 
@@ -580,7 +576,6 @@ export default class LinkMergingGraph extends Graph {
             linkData.properties._$hidden = link.properties._$hidden;
 
             this.addLink(linkData);
-            this.addLink2NearLinks(linkData); // 新增邻接关系
         }
 
         linkData.properties._$linkTimes = linkData.properties._$times; // 发生次数等于合并次数
@@ -621,7 +616,6 @@ export default class LinkMergingGraph extends Graph {
             linkData.properties._$hidden = link.properties._$hidden;
 
             this.addLink(linkData);
-            this.addLink2NearLinks(linkData); // 新增邻接关系
         }
 
         linkData.properties._$linkTimes = linkData.properties._$times; // 发生次数等于合并次数
@@ -694,7 +688,6 @@ export default class LinkMergingGraph extends Graph {
             const mergeLinkData = linkMap[mergeLinkId];
             if (mergeLinkData.type === unmergeLinkType) {
                 this.removeLink(mergeLinkData);
-                this.delLinkInNearLinks(mergeLinkData); // 删除邻接关系
                 const linkIdArr = mergeToUnMap[mergeLinkId];
                 if (linkIdArr) {
                     let linkIdArrNum = linkIdArr.length;
@@ -703,7 +696,6 @@ export default class LinkMergingGraph extends Graph {
                         delete beforeToAfter[linkId];
                         const sourceLink = this.source.getLink(linkId);
                         this.addLink(sourceLink);
-                        this.addLink2NearLinks(sourceLink); // 新增邻接关系
                     }
                     delete mergeToUnMap[mergeLinkId];
                 }
@@ -747,6 +739,10 @@ export default class LinkMergingGraph extends Graph {
         return subGraph;
     }
 
+    clearGraph() {
+        return this.source.clearGraph();
+    }
+
     hideSubGraph(graph) {
         const subGraph = this.getDownLayerGraph(graph);
         return this.source.hideSubGraph(subGraph);
@@ -779,7 +775,6 @@ export default class LinkMergingGraph extends Graph {
                 if (change.changeType === Graph.CHANGE_TYPE_ADD) {
                     if (change.entity) {
                         self.addEntity(change.entity);
-                        self.addEntity2NearLinks(change.entity.id); // 新增邻接关系
                     }
                     if (change.link) {
                         addMergeLinks.push(change.link);
@@ -787,7 +782,6 @@ export default class LinkMergingGraph extends Graph {
                 } else if (change.changeType === Graph.CHANGE_TYPE_REMOVE) {
                     if (change.entity) {
                         self.removeEntity(change.entity);
-                        delete self.nearLinks[change.entity.id]; // 删除邻接关系
                     }
                     if (change.link) {
                         removeMergeLinks.push(change.link);
@@ -1010,7 +1004,6 @@ export default class LinkMergingGraph extends Graph {
             } else {
                 const linkItem = this.getLink(linkId);
                 this.removeLink(linkItem);
-                this.delLinkInNearLinks(linkItem); // 删除邻接关系
             }
         }
 
@@ -1021,7 +1014,6 @@ export default class LinkMergingGraph extends Graph {
                 delete this.linkMergeMap[mlId];
                 const linkItem = this.getLink(mlId);
                 this.removeLink(linkItem);
-                this.delLinkInNearLinks(linkItem); // 删除邻接关系
             } else {
                 while (unmergeLinkIdArrLen--) {
                     if (lIdSet.has(unmergeLinkIdArr[unmergeLinkIdArrLen])) {
@@ -1038,7 +1030,6 @@ export default class LinkMergingGraph extends Graph {
                     this.updateLink(linkItem);
                 } else {
                     this.removeLink(linkItem);
-                    this.delLinkInNearLinks(linkItem); // 删除邻接关系
                 }
             }
         }

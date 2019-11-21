@@ -1728,10 +1728,9 @@ export default function (options) {
 
 
     canvas.addEventListener('mousewheel', (e) => {
-        e.preventDefault();
         e.stopPropagation();
         pixiGraphics.zoom(e.offsetX || (e.originalEvent ? e.originalEvent.offsetX : null), e.offsetY || (e.originalEvent ? e.originalEvent.offsetY : null), e.deltaY < 0);
-    }, { passive: false });
+    }, { passive: true });
 
 
     pixiGraphics._lastDownTarget = null;

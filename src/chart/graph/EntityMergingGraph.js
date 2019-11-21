@@ -236,6 +236,10 @@ export default class EntityMergingGraph extends Graph {
         return subGraph;
     }
 
+    clearGraph() {
+        return this.source.clearGraph();
+    }
+
     removeSubGraph(graph) {
         const subGraph = this.getDownLayerGraph(graph);
         return this.source.removeSubGraph(subGraph);

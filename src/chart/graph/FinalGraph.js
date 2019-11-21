@@ -123,6 +123,10 @@ export default class FinalGraph extends Graph {
         });
     }
 
+    clearGraph() {
+        return this.source.execute('clearGraph');
+    }
+
     /**
      * 向图表添加数据
      */

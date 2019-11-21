@@ -18,7 +18,6 @@ export default class OriginalGraph extends Graph {
      */
     static createOriginalGraph(elpData, originalGraphData) {
         const originalGraph = new OriginalGraph(originalGraphData.entities, originalGraphData.links, elpData);
-        originalGraph.setNearLinks(originalGraphData.nearLinks);
         return originalGraph;
     }
 
@@ -29,7 +28,6 @@ export default class OriginalGraph extends Graph {
      */
     static createEmptyOriginalGraph(elpData) {
         const originalGraph = new OriginalGraph({}, {}, elpData);
-        originalGraph.setNearLinks({});
         return originalGraph;
     }
 
@@ -49,6 +47,34 @@ export default class OriginalGraph extends Graph {
         this.links = Utility.arrayToObject(links);
     }
 
+    clearGraph() {
+        const removedEntities = {};
+        const removedLinks = {};
+        const oldElpData = JSON.parse(JSON.stringify(this.elpData));
+
+        this.beginUpdate();
+
+        const entities = (typeof this.entities === 'object') ? Object.values(this.entities) : this.entities;
+        const links = (typeof this.links === 'object') ? Object.values(this.links) : this.links;
+        for (const entity of entities) {
+            if (this.removeEntity(entity)) {
+                removedEntities[entity.id] = entity;
+            }
+        }
+
+        for (const link of links) {
+            if (this.removeLink(link)) {
+                removedLinks[link.id] = link;
+            }
+        }
+        this.endUpdate();
+        return {
+            entities: removedEntities,
+            links: removedLinks,
+            elpData: oldElpData, // this remove for eliminate add need elpdata
+        };
+    }
+
     /**
      * 添加子图
      * @param graph
@@ -65,7 +91,6 @@ export default class OriginalGraph extends Graph {
         for (const entity of entities) {
             if (this.addEntity(entity)) {
                 addedEntities[entity.id] = entity;
-                this.addEntity2NearLinks(entity.id); // 新增邻接关系
             } else {
                 this.updateEntityProperties(entity);
             }
@@ -74,7 +99,6 @@ export default class OriginalGraph extends Graph {
         for (const link of links) {
             if (this.addLink(link)) {
                 addedLinks[link.id] = link;
-                this.addLink2NearLinks(link); // 新增邻接关系
             } else {
                 this.updateLinkProperties(link);
             }
@@ -96,54 +120,22 @@ export default class OriginalGraph extends Graph {
     removeSubGraph(graph) {
         const removedEntities = {};
         const removedLinks = {};
-        const graphEntities = graph.entities;
-        const graphLinks = graph.links;
         const oldElpData = JSON.parse(JSON.stringify(this.elpData));
-        let entities = {};
-        let links = {};
-        if (Utility.isArray(graphEntities)) {
-            for (const entity of graphEntities) {
-                entities[entity.id] = entity;
-            }
-        } else {
-            entities = graphEntities;
-        }
-
-        if (Utility.isArray(graphLinks)) {
-            for (const link of graphLinks) {
-                links[link.id] = link;
-            }
-        } else {
-            links = graphLinks;
-        }
-
-        const originalLinks = this.getLinks();
-        for (const linkId in originalLinks) {
-            if (!links[linkId]) {
-                const originalLink = originalLinks[linkId];
-                const sourceEntityId = originalLink.sourceEntity;
-                const targetEntityId = originalLink.targetEntity;
-                if (entities[sourceEntityId] || entities[targetEntityId]) {
-                    links[linkId] = originalLink;
-                }
-            }
-        }
-
-        entities = Object.values(entities);
-        links = Object.values(links);
+        let entities = graph.entities;
+        let links = graph.links;
+        entities = (typeof entities === 'object') ? Object.values(entities) : entities;
+        links = (typeof links === 'object') ? Object.values(links) : links;
 
         this.beginUpdate();
         for (const entity of entities) {
             if (this.removeEntity(entity)) {
                 removedEntities[entity.id] = entity;
-                delete this.nearLinks[entity.id]; // 删除邻接关系
             }
         }
 
         for (const link of links) {
             if (this.removeLink(link)) {
                 removedLinks[link.id] = link;
-                this.delLinkInNearLinks(link); // 删除邻接关系
             }
         }
         this.endUpdate();

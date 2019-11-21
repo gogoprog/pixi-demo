@@ -152,14 +152,6 @@ export default class Graph extends EventEmitter {
         }
     }
 
-    getNearLinks() {
-        return this.nearLinks;
-    }
-
-    setNearLinks(nearLinks) {
-        this.nearLinks = nearLinks;
-    }
-
     getEntity(entityId) {
         return this.entities[entityId];
     }

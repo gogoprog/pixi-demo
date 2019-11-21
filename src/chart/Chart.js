@@ -569,6 +569,10 @@ export default class Chart extends EventEmitter {
         return this.renderer.loadResources(resources);
     }
 
+    clearGraph() {
+        return this.finalGraph.clearGraph();
+    }
+
 
     /**
      * 创建临时图表
@@ -707,7 +711,6 @@ export default class Chart extends EventEmitter {
             const originalData = {
                 entities: originalGraph.getEntities(),
                 links: originalGraph.getLinks(),
-                nearLinks: originalGraph.getNearLinks(),
             };
 
             let entityMergeData = {};
@@ -717,7 +720,6 @@ export default class Chart extends EventEmitter {
                 entityMergeData = {
                     entities: entityMergeGraph.getEntities(),
                     links: entityMergeGraph.getLinks(),
-                    nearLinks: entityMergeGraph.getNearLinks(),
                     entityMergeIndex: entityMergeGraph.getEntityMergeIndex(),
                     entityMergeReverseIndex: entityMergeGraph.getEntityMergeReverseIndex(),
                     exceptionEntityIdSet: [...exceptionSet],
@@ -731,7 +733,6 @@ export default class Chart extends EventEmitter {
                 linkMergeData = {
                     entities: linkMergeGraph.getEntities(),
                     links: linkMergeGraph.getLinks(),
-                    nearLinks: linkMergeGraph.getNearLinks(),
                     afterToBefore: linkMergeGraph.getLinkMergeMap(),
                     defaultFilter: linkMergeGraph.getDefaultMergeFilters(),
                     userMergeFilters: linkMergeGraph.getUserMergeFilters(),
