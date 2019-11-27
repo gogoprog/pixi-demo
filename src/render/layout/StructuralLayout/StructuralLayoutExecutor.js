@@ -1,5 +1,3 @@
-import Layout from '../Layout.js';
-import Graph from "../../Graph";
 import * as d3 from "d3-force";
 
 class GraphLevel {
@@ -75,83 +73,90 @@ class SubGraph {
     }
 }
 
-var random = require('ngraph.random').random(42);
+export default class StructuralLayoutExecutor {
 
-export default class GraphLevelForceLayoutOpt extends Layout {
-    constructor(nodeSprites, nodeContainer, visualConfig, init) {
-        super(nodeSprites, nodeContainer);
+    constructor(nodes) {
+        this.NODE_WIDTH = 50;
+        this.springLength = 500;
 
-        if (!init){
-            this.subGraphList = new Set()
-            // 所有独立节点位于一个子图中，只参与最后的布局
-            this.insularNodeSubGraph = new SubGraph();
-            this.nodeCount = 0;
-            this.indexMap = new Map();         // 各个节点id到index的映射
-            this.indexMapinverse = new Map();  // 各个节点index到id的映射
-            this.attF = [];                    // 各个节点受到的吸引力，包含水平方向和垂直方向
-            this.repF = [];                    // 各个节点受到的斥力，包含水平方向和垂直方向
-            this.pos = [];                     // 各个节点的位置信息
-            this.F = [];                       // 各个节点受到的合力
-            this.attCoefficient = 10;          // 弹力系数
-            this.maxGraphLevel = 20;           // 最大图层数量
-            this.processdNodeIdSet = new Set();// 已经处理过的数据,上层节点位置计算后，底层不再更新
-            this.randomNum = 20;               // 构建图层时随机挑选节点的数量
-            this.iconDiameter = visualConfig.NODE_WIDTH;            // 图表直径大小
-            this.idealEdgeLength = visualConfig.forceLayout.springLength;
+        this.nodes = nodes;
+        this.thisStep = 0;
+        this.totalStep = 120;
+        this.left = 10000;
+        this.right = -10000;
+        this.top = 10000;
+        this.bottom = -10000;
+        this.currentPosition = {};
 
-            console.log("LayoutBaseFMMM[1]: do subGraph divided")
-            let startTimeOfdivideSubGraph = new Date().getTime();
-            this.divideSubGraphBaseAllData();
-            let endTimeOfdivideSubGraph = new Date().getTime();
-            console.log("LayoutBaseFMMM[1]: subGraph divided time : " + (endTimeOfdivideSubGraph - startTimeOfdivideSubGraph) + "ms");
+        this.subGraphList = new Set();
+        // 所有独立节点位于一个子图中，只参与最后的布局
+        this.insularNodeSubGraph = new SubGraph();
+        this.nodeCount = 0;
+        this.indexMap = new Map();         // 各个节点id到index的映射
+        this.indexMapinverse = new Map();  // 各个节点index到id的映射
+        this.attF = [];                    // 各个节点受到的吸引力，包含水平方向和垂直方向
+        this.repF = [];                    // 各个节点受到的斥力，包含水平方向和垂直方向
+        this.pos = [];                     // 各个节点的位置信息
+        this.F = [];                       // 各个节点受到的合力
+        this.attCoefficient = 10;          // 弹力系数
+        this.maxGraphLevel = 20;           // 最大图层数量
+        this.processdNodeIdSet = new Set();// 已经处理过的数据,上层节点位置计算后，底层不再更新
+        this.randomNum = 20;               // 构建图层时随机挑选节点的数量
+        this.iconDiameter = this.NODE_WIDTH;            // 图表直径大小
+        this.idealEdgeLength = this.springLength;
 
-            let i = 1;
-            for (let subGraph of this.subGraphList){
-                console.log("    SubGraph Layout[" + i + "]: begin init graph level");
-                let startTimeOfGenerateGraphLevel = new Date().getTime();
-                this.generateGraphLevel(subGraph);
-                let endTimeOfGenerateGraphLevel = new Date().getTime();
-                console.log("    SubGraph Layout[" + i + "]: init time : " + (endTimeOfGenerateGraphLevel - startTimeOfGenerateGraphLevel) + "ms");
+        console.log("LayoutBaseFMMM[1]: do subGraph divided")
+        let startTimeOfdivideSubGraph = new Date().getTime();
+        this.divideSubGraphBaseAllData();
+        let endTimeOfdivideSubGraph = new Date().getTime();
+        console.log("LayoutBaseFMMM[1]: subGraph divided time : " + (endTimeOfdivideSubGraph - startTimeOfdivideSubGraph) + "ms");
 
-                console.log("    SubGraph Layout[" + i + "]: begin step base graph level");
-                let startTime = new Date().getTime();
-                this.stepIter(subGraph);
-                let endTime = new Date().getTime();
-                console.log("    SubGraph Layout[" + i + "]: step time : " + (endTime - startTime) + "ms");
-                i++;
-            }
-            // 对子图进行布局
-            console.log("LayoutBaseFMMM[2]: do layout for subGraph")
-            let startTimeOfSubGraphLayout = new Date().getTime();
-            if (this.insularNodeSubGraph.nodeNumber > 0){
-                this.subGraphList.add(this.insularNodeSubGraph);
-            }
-            let subGraphNumber = this.subGraphList.size;
-            if (subGraphNumber > 1){
-                this.doD3();
-            }
-            this.left = Number.MAX_SAFE_INTEGER;
-            this.right = Number.MIN_SAFE_INTEGER;
-            this.top = Number.MAX_SAFE_INTEGER;
-            this.bottom = Number.MIN_SAFE_INTEGER;
-            for (let position of this.pos) {
-                // 更新整体布局的边界
-                if (this.left > position.x) {
-                    this.left = position.x;
-                }
-                if (this.right < position.x) {
-                    this.right = position.x;
-                }
-                if (this.top > position.y) {
-                    this.top = position.y;
-                }
-                if (this.bottom < position.y) {
-                    this.bottom = position.y;
-                }
-            }
-            let endTimeOfSubGraphLayout = new Date().getTime();
-            console.log("LayoutBaseFMMM[2]: layout time : " + (endTimeOfSubGraphLayout - startTimeOfSubGraphLayout));
+        let i = 1;
+        for (let subGraph of this.subGraphList){
+            console.log("    SubGraph Layout[" + i + "]: begin init graph level");
+            let startTimeOfGenerateGraphLevel = new Date().getTime();
+            this.generateGraphLevel(subGraph);
+            let endTimeOfGenerateGraphLevel = new Date().getTime();
+            console.log("    SubGraph Layout[" + i + "]: init time : " + (endTimeOfGenerateGraphLevel - startTimeOfGenerateGraphLevel) + "ms");
+
+            console.log("    SubGraph Layout[" + i + "]: begin step base graph level");
+            let startTime = new Date().getTime();
+            this.stepIter(subGraph);
+            let endTime = new Date().getTime();
+            console.log("    SubGraph Layout[" + i + "]: step time : " + (endTime - startTime) + "ms");
+            i++;
         }
+        // 对子图进行布局
+        console.log("LayoutBaseFMMM[2]: do layout for subGraph")
+        let startTimeOfSubGraphLayout = new Date().getTime();
+        if (this.insularNodeSubGraph.nodeNumber > 0){
+            this.subGraphList.add(this.insularNodeSubGraph);
+        }
+        let subGraphNumber = this.subGraphList.size;
+        if (subGraphNumber > 1){
+            this.doD3();
+        }
+        this.left = Number.MAX_SAFE_INTEGER;
+        this.right = Number.MIN_SAFE_INTEGER;
+        this.top = Number.MAX_SAFE_INTEGER;
+        this.bottom = Number.MIN_SAFE_INTEGER;
+        for (let position of this.pos) {
+            // 更新整体布局的边界
+            if (this.left > position.x) {
+                this.left = position.x;
+            }
+            if (this.right < position.x) {
+                this.right = position.x;
+            }
+            if (this.top > position.y) {
+                this.top = position.y;
+            }
+            if (this.bottom < position.y) {
+                this.bottom = position.y;
+            }
+        }
+        let endTimeOfSubGraphLayout = new Date().getTime();
+        console.log("LayoutBaseFMMM[2]: layout time : " + (endTimeOfSubGraphLayout - startTimeOfSubGraphLayout));
     }
 
     /**
@@ -263,7 +268,7 @@ export default class GraphLevelForceLayoutOpt extends Layout {
             nodeIdSet.delete(startNodeId);
 
             // 拓展之前节点集中的节点数量
-            let num = nodeRealIdSetInSubGraph.size
+            let num = nodeRealIdSetInSubGraph.size;
             // 以初始节点进行第一次拓展, 将本次拓展出来的节点从nodes中删除，并添加至子图节点集
             let newNodeIdSet = this.doExtends(startNodeId, nodeIdSet, nodeRealIdSetInSubGraph, nodeIdSetInSubGraph)
 
@@ -298,7 +303,8 @@ export default class GraphLevelForceLayoutOpt extends Layout {
         let newNodeIdSet = new Set();
         let node = this.nodes[startNodeId];
         for (let link of node.incoming) {
-            let anotherNodeId = link.data.sourceEntity;
+            // let anotherNodeId = link.data.sourceEntity;
+            let anotherNodeId = link;
             if (nodeIdSet.has(anotherNodeId)){
                 nodeRealIdSetInSubGraph.add(anotherNodeId);
                 nodeIdSetInSubGraph.add(this.indexMap.get(anotherNodeId));
@@ -307,7 +313,8 @@ export default class GraphLevelForceLayoutOpt extends Layout {
             }
         }
         for (let link of node.outgoing) {
-            let anotherNodeId = link.data.targetEntity;
+            // let anotherNodeId = link.data.targetEntity;
+            let anotherNodeId = link;
             if (nodeIdSet.has(anotherNodeId)){
                 nodeRealIdSetInSubGraph.add(anotherNodeId);
                 nodeIdSetInSubGraph.add(this.indexMap.get(anotherNodeId));
@@ -333,12 +340,6 @@ export default class GraphLevelForceLayoutOpt extends Layout {
             } else {
                 this.placementFirstGrahpLevelRandom(graphLevel)
             }
-            // console.log("        graph level [" + graphIndex + "] has " + graphLevel.num + " nodes");
-            // console.log("        graph level [" + graphIndex + "] node are: ");
-            // for (let nodeId of graphLevel.clusterId){
-            //     let node = this.nodes[this.indexMapinverse.get(nodeId)];
-            //     console.log("                " + this.indexMapinverse.get(nodeId));
-            // }
 
             let iter = 0;
             let maxIter = this.getMaxIter(graphIndex, graphLevelNum, graphLevel.num);
@@ -868,15 +869,17 @@ export default class GraphLevelForceLayoutOpt extends Layout {
             // 使用set可以过滤掉多重链接的问题
             let anotherNodeIdSet = new Set();
             _.each(node.incoming, function (link) {
-                let anotherNodeId = link.data.sourceEntity;
+                // let anotherNodeId = link.data.sourceEntity;
+                let anotherNodeId = link;
                 // 去掉自链接的影响
-                if (nodeRealId !== anotherNodeId){
+                if (nodeRealId != anotherNodeId){
                     anotherNodeIdSet.add(anotherNodeId);
                 }
             });
             _.each(node.outgoing, function (link) {
-                let anotherNodeId = link.data.targetEntity;
-                if (nodeRealId !== anotherNodeId){
+                // let anotherNodeId = link.data.targetEntity;
+                let anotherNodeId = link;
+                if (nodeRealId != anotherNodeId){
                    anotherNodeIdSet.add(anotherNodeId);
                 }
             });
@@ -1250,4 +1253,8 @@ export default class GraphLevelForceLayoutOpt extends Layout {
             }
         }
     }
+
+    getNodePosition(nodeId) {
+        return this.nodes[nodeId].position;
+    };
 }

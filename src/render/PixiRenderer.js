@@ -3,22 +3,11 @@ import 'pixi.js';
 
 import PresetLayout from "./layout/PresetLayout/PresetLayout";
 import LayeredLayoutNew from './layout/newLayeredLayout/LayeredLayoutNew';
-import FamilyLayout from './layout/newLayeredLayout/FamilyLayout/FamilyLayout'
-import StandardFamilyTreeLayout from './layout/newLayeredLayout/StandardFamilyTreeLayout/StandardFamilyTreeLayout'
-import SimpleFamilyLayout from './layout/newLayeredLayout/SimpleFamilyLayout/SimpleFamilyLayout'
-import CircleLayout from './layout/CircleLayoutNew/CircleLayoutNew';
-// import CircleLayout from './layout/CircleLayout';
-import RadiateLayout from './layout/RadiateLayout';
-// import ForceLayoutBaseNgraph from "./layout/ForceLayoutBaseNgraph/ForceLayout"
-import createLayout from "./layout/ForceLayoutBaseNgraph/ForceLayoutInNGraph"
-// import GraphLevelForceLayout from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayout"
-import ForceLayoutGenerator from "./layout/ForceLayoutBaseNgraph/ForceLayoutGenerator";
+import CircleLayout from './layout/CircleLayout/CircleLayout';
+import RadiateLayout from './layout/RadiateLayout/RadiateLayout';
+import ForceLayout from "./layout/ForceLayoutBaseNgraph/ForceLayout";
+import StructuralLayout from "./layout/StructuralLayout/StructuralLayout"
 import WASMGenerator from "./layout/WASMLayout/WASMGenerator";
-import GraphLevelForceLayoutOpt from "./layout/ForceLayoutBaseFMMM/graphLevelForceLayoutOpt"
-// import elpForceLayout from "./layout/elpLayout/ForceLayout"
-import personForceLayout from "./layout/personLayout/PersonForceLayout"
-import Person2PersonLayout from "./layout/Person2PersonLayout/Person2PersonLayout"
-import PersonRelationshipLayout from "./layout/PersonRelationshipLayout/PersonRelationshipLayout"
 
 import Graph from './Graph';
 
@@ -46,20 +35,6 @@ export default function (options) {
 
     const visualConfig = options.visualConfig;
 
-    // If client does not need custom layout algorithm, let's create default one:
-    // let networkLayout = null;
-    // if (visualConfig.ORIGINAL_FORCE_LAYOUT) {
-    //     networkLayout = elpForceLayout(graph, visualConfig.forceLayout);
-    // } else {
-    //     networkLayout = createLayout(graph, visualConfig.forceLayout);
-    // }
-    //
-    // networkLayout.on('stable', (isStable) => {
-    //     if(isStable) {
-    //         layoutStabilized();
-    //     }
-    // });
-
     let layoutEMS;
     let instance = Module({
         onRuntimeInitialized(){
@@ -68,7 +43,6 @@ export default function (options) {
             console.log("initialized layouter module");
         }
     });
-    // let layout = networkLayout;
 
     const showDebugMarkup = false;
 
@@ -156,7 +130,7 @@ export default function (options) {
     });
 
     nodeContainer.on('nodeMoved', (node) => {
-        layout.setNodePosition(node.id, node.position.x, node.position.y);
+        // layout.setNodePosition(node.id, node.position.x, node.position.y);
     });
 
     nodeContainer.on('nodeReleased', (node) => {
@@ -174,9 +148,9 @@ export default function (options) {
     // layout 相关,把移动位置同步到layout内部
     nodeContainer.selectedNodesPosChanged = function () {
         isDirty = true;
-        _.each(nodeContainer.nodes, (node) => {
-            layout.setNodePosition(node.id, node.position.x, node.position.y);
-        });
+        // _.each(nodeContainer.nodes, (node) => {
+        //     layout.setNodePosition(node.id, node.position.x, node.position.y);
+        // });
     };
 
     stage.releaseConnectLine = function(oldPosition, newPosition) {
@@ -608,26 +582,8 @@ export default function (options) {
             this.setNodesToFullScreen(disableAnimation);
         },
 
-        drawPersonLayout(disableAnimation, init) {
-            layout = new personForceLayout(nodeSprites, nodeContainer, visualConfig);
-            this.setNodesToFullScreen(disableAnimation);
-        },
-
         drawStructuralLayout(disableAnimation, init) {
-            layout = new GraphLevelForceLayoutOpt(nodeSprites, nodeContainer, visualConfig, init);
-            this.setNodesToFullScreen(disableAnimation);
-        },
-
-        drawStructuralLayoutForPersonRelationship(disableAnimation, init) {
-            layout = new PersonRelationshipLayout(nodeSprites, nodeContainer, visualConfig);
-            this.setNodesToFullScreen(disableAnimation);
-        },
-
-        /**
-         * draw radiate layout
-         */
-        drawRadiateLayout(disableAnimation, init) {
-            layout = new RadiateLayout(nodeSprites, nodeContainer, visualConfig, init);
+            layout = new StructuralLayout(nodeSprites, nodeContainer, visualConfig, init);
             this.setNodesToFullScreen(disableAnimation);
         },
 
@@ -642,23 +598,6 @@ export default function (options) {
         setPerson2PersonNode(startNodeId, endNodeId) {
             this.startNodeId = startNodeId;
             this.endNodeId = endNodeId;
-        },
-
-        drawPerson2PersonLayout(disableAnimation){
-            // TODO 增加两个参数 startNodeId, endNodeId
-            layout = new Person2PersonLayout(nodeSprites, nodeContainer, visualConfig, this.startNodeId, this.endNodeId);
-            this.setNodesToFullScreen(disableAnimation);
-        },
-
-        drawFamilyLayout(disableAnimation, init) {
-            layout = new StandardFamilyTreeLayout(nodeSprites, nodeContainer, visualConfig, init);
-            linkContainer.mode = 'pixi';
-            this.setNodesToFullScreen(disableAnimation);
-        },
-
-        drawSimpleFamilyLayout(disableAnimation, init) {
-            layout = new SimpleFamilyLayout(nodeSprites, nodeContainer, visualConfig, init);
-            this.setNodesToFullScreen(disableAnimation);
         },
 
         /**
@@ -863,16 +802,16 @@ export default function (options) {
             root.position.x = viewWidth / 2;
             root.position.y = viewHeight / 2;
 
-            _.each(nodeSprites, (n) => {
-                n.position.x -= sumx;
-                n.position.y -= sumy;
-                n.updateNodePosition(n.position);
-                nodeContainer.nodeMoved(n);
-                layout.setNodePosition(n.id, n.position.x, n.position.y);
-            });
-            _.each(linkSprites, (l) => {
-                l.updatePosition();
-            });
+            // _.each(nodeSprites, (n) => {
+            //     n.position.x -= sumx;
+            //     n.position.y -= sumy;
+            //     n.updateNodePosition(n.position);
+            //     nodeContainer.nodeMoved(n);
+            //     layout.setNodePosition(n.id, n.position.x, n.position.y);
+            // });
+            // _.each(linkSprites, (l) => {
+            //     l.updatePosition();
+            // });
         },
 
         unSelectSubGraph(nodeIdArray, linkIdArray) {
@@ -1053,7 +992,7 @@ export default function (options) {
 
         /**
          * 设置布局方式
-         * @param layoutTypeStr，值可能为Network,Circular,Structural,PersonRelationshipStructural,Layered,Person2Person,FamilyLayout,SimpleFamilyLayout,Radiate
+         * @param layoutTypeStr，值可能为Network,Circular,Structural,Layered,Person2Person,Radiate
          */
         setLayoutType(layoutTypeStr) {
             console.info(`Setting layout type to ${layoutTypeStr}`);
@@ -1061,11 +1000,8 @@ export default function (options) {
             if (layoutType !== 'Network'
                 && layoutType !== 'Circular'
                 && layoutType !== 'Structural'
-                && layoutType !== 'PersonRelationshipStructural'
                 && layoutType !== 'Layered'
                 && layoutType !== 'Person2Person'
-                && layoutType !== 'FamilyLayout'
-                && layoutType !== 'SimpleFamilyLayout'
                 && layoutType !== 'Radiate') {
                 layoutType = 'Network';
             }
@@ -1074,17 +1010,18 @@ export default function (options) {
         /**
          * 力导向布局
          */
-        force() {
+        async force() {
             layoutType = 'Network';
-            layout = new ForceLayoutGenerator(nodeSprites, nodeContainer, visualConfig, false);
-            return layout.run();
+            layout = new ForceLayout(nodeSprites, linkSprites, nodeContainer, visualConfig, false);
+            await layout.run();
+            return Promise.resolve();
         },
 
         /**
          * WASM方式实现的布局
          */
         WASMLayout(wasmType) {
-            layout = new WASMGenerator(nodeSprites, nodeContainer, visualConfig, false);
+            layout = new WASMGenerator(nodeSprites, linkSprites, nodeContainer, visualConfig, false);
             return layout.run(wasmType);
         },
 
@@ -1093,7 +1030,25 @@ export default function (options) {
          */
         circle() {
             layoutType = 'Circular';
-            layout = new CircleLayout(nodeSprites, nodeContainer, visualConfig, false);
+            layout = new CircleLayout(nodeSprites, linkSprites, nodeContainer, visualConfig, false);
+            return layout.run();
+        },
+
+        /**
+         * 辐射布局
+         */
+        radiate() {
+            layoutType = 'Radiate';
+            layout = new RadiateLayout(nodeSprites, linkSprites, nodeContainer, visualConfig, false);
+            return layout.run();
+        },
+
+        /**
+         * 结构布局
+         */
+        structural() {
+            layoutType = 'Structural';
+            layout = new StructuralLayout(nodeSprites, linkSprites, nodeContainer, visualConfig, false);
             return layout.run();
         },
 
@@ -1118,8 +1073,6 @@ export default function (options) {
         },
 
         performLayout(disableAnimation = false, init = false, needReflow = true) {
-            // the default link drawing mode is webgl. However, when it's FamilyLayout, we use pixi to draw links.
-            linkContainer.mode = 'webgl';
             nodeContainer.layoutType = layoutType;
 
             isDirty = true;
@@ -1150,22 +1103,10 @@ export default function (options) {
                 }
             } else if (layoutType === 'Circular') {
                 this.drawCircleLayout(disableAnimation, init);
-            } else if (layoutType === 'PersonLayout'){
-                this.drawPersonLayout(disableAnimation, init);
             } else if (layoutType === 'Structural') {
                 this.drawStructuralLayout(disableAnimation, init);
-            } else if (layoutType === 'PersonRelationshipStructural') {
-                this.drawStructuralLayoutForPersonRelationship(disableAnimation, init);
             } else if (layoutType === 'Layered') {
                 this.drawLayeredLayout(disableAnimation, init);
-            } else if (layoutType === 'Person2Person'){
-                this.drawPerson2PersonLayout(disableAnimation);
-            } else if (layoutType === 'Radiate') {
-                this.drawRadiateLayout(disableAnimation, init);
-            } else if (layoutType === 'FamilyLayout') {
-                this.drawFamilyLayout(disableAnimation, init);
-            } else if (layoutType === 'SimpleFamilyLayout') {
-                this.drawSimpleFamilyLayout(disableAnimation, init);
             }  else {
                 return false;
             }
@@ -1219,7 +1160,7 @@ export default function (options) {
         },
 
         setNodePosition(nodeId, x, y, z) {
-            layout.setNodePosition(nodeId, x, y, z);
+            // layout.setNodePosition(nodeId, x, y, z);
         },
         setGraphType(gType) {
             graphType = gType;
@@ -1771,19 +1712,19 @@ export default function (options) {
     }
 
     let lastScanTime = null;
-    function animationLoop(timestamp) {
-        if (!lastScanTime) lastScanTime = timestamp;
+    function animationLoop(now) {
+        if (!lastScanTime) lastScanTime = now;
 
         animationAgent.step();
-        const layoutFreeze = layout.step();
+        const layoutFreeze = layout.step(now);
         let layoutPositionChanged = !layoutFreeze;
-        if (layoutPositionChanged) {
-            updateNodeSpritesPosition();
-        }
+        // if (layoutPositionChanged) {
+        //     updateNodeSpritesPosition();
+        // }
 
         // Every 0.5 second, we check whether to change label's visible property.
-        if (timestamp - lastScanTime > 500) {
-            lastScanTime = timestamp;
+        if (now - lastScanTime > 500) {
+            lastScanTime = now;
             updateLabelVisibility();
             isDirty = true;
         }
@@ -1865,7 +1806,7 @@ export default function (options) {
     function initNode(p) {
         let iconUrl;
         // 在专题分析时，男性用男的图标表示，女性用女的图标表示
-        if (layoutType === 'FamilyLayout' || layoutType === 'SimpleFamilyLayout' || layoutType === 'PersonRelationshipStructural' || layoutType === 'Person2Person' || visualConfig.showIconBasedOnGender) {
+        if (layoutType === 'Person2Person' || visualConfig.showIconBasedOnGender) {
             if (p.data.properties['性别']) {
                 if (p.data.properties['性别'] === '男') {
                     iconUrl = "/Person/Man.png";

@@ -22,25 +22,25 @@ addEventListener('message', event => {
 
             const t1 = performance.now();
 
-            let offSetArray;
+            let offSetOriginalArray;
             switch (event.data.wasmType) {
                 case 'force':
-                    offSetArray = layoutEMS.execNewFastMultilevelLayouter();
+                    offSetOriginalArray = layoutEMS.execNewFastMultilevelLayouter();
                     break;
                 case 'circle':
-                    offSetArray = layoutEMS.execNewCircularLayouter();
+                    offSetOriginalArray = layoutEMS.execNewCircularLayouter();
                     break;
                 case 'rotate':
-                    offSetArray = layoutEMS.execNewRotateLayouter();
+                    offSetOriginalArray = layoutEMS.execNewRotateLayouter();
                     break;
                 case 'spread':
-                    offSetArray = layoutEMS.execNewScaleLayouter(false);
+                    offSetOriginalArray = layoutEMS.execNewScaleLayouter(false);
                     break;
                 case 'shrink':
-                    offSetArray = layoutEMS.execNewScaleLayouter(true);
+                    offSetOriginalArray = layoutEMS.execNewScaleLayouter(true);
                     break;
                 default:
-                    offSetArray = new Uint32Array(event.data.instanceCount * 2);
+                    offSetOriginalArray = new Uint32Array(event.data.instanceCount * 2);
                     console.log('The layout is not exited!')
             }
 
@@ -51,9 +51,9 @@ addEventListener('message', event => {
             console.log("WebAssembly prepare data took " + (t1 - t0) + " milliseconds.");
             console.log("WebAssembly layout took " + (t2 - t1) + " milliseconds.");
 
-            const offSetTypedArray = Float32Array.from(offSetArray);
+            const offSetArray = Float32Array.from(offSetOriginalArray);
 
-            postMessage({ offSetTypedArray }, [ offSetTypedArray.buffer ]);
+            postMessage({ offSetArray }, [ offSetArray.buffer ]);
         }
     });
 });

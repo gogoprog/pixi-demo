@@ -1,4 +1,4 @@
-import createForest from './CreateForestWorker';
+import createForest from '../CreateForestWorker';
 
 addEventListener('message', event => {
     const NODE_WIDTH = 50;

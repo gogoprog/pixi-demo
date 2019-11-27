@@ -6,9 +6,9 @@
             <button class="btn" @click.prevent.stop="forceLayoutWASM"> 网络(WASM)</button>
             <button class="btn" @click.prevent.stop="circleLayout"> 圆形</button>
             <button class="btn" @click.prevent.stop="circleLayoutWASM"> 圆形(WASM)</button>
-            <button class="btn" @click.prevent.stop="setLayoutType('Radiate')"> 辐射</button>
+            <button class="btn" @click.prevent.stop="radiateLayout"> 辐射</button>
             <button class="btn" @click.prevent.stop="rotateLayoutWASM"> 旋转(WASM)</button>
-            <button class="btn" @click.prevent.stop="setLayoutType('Structural')"> 结构</button>
+            <button class="btn" @click.prevent.stop="structuralLayout"> 结构</button>
             <button class="btn" @click.prevent.stop="setLayoutType('Layered')"> 层次</button>
             <button class="btn" @click.prevent.stop="spreadLayoutWASM"> 放大(WASM)</button>
             <button class="btn" @click.prevent.stop="shrinkLayoutWASM"> 缩小(WASM)</button>
@@ -92,6 +92,18 @@
 
             circleLayout() {
                 this.chart.renderer.circle().then(() => {
+                    this.chart.renderer.setNodesToFullScreen();
+                });
+            },
+
+            radiateLayout() {
+                this.chart.renderer.radiate().then(() => {
+                    this.chart.renderer.setNodesToFullScreen();
+                });
+            },
+
+            structuralLayout() {
+                this.chart.renderer.structural().then(() => {
                     this.chart.renderer.setNodesToFullScreen();
                 });
             },

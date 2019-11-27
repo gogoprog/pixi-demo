@@ -1,33 +1,24 @@
-/**
- * Created by xuhe on 2017/5/24.
- */
-import Layout from './Layout.js';
+import Layout from '../LayoutNew.js';
 
-export default class ForceLayoutGenerator extends Layout {
-    constructor(nodeSprites, nodeContainer,visualConfig, init) {
-        super(nodeSprites, nodeContainer);
+export default class CircleLayout extends Layout {
+    constructor(nodeSprites, linkSprites, nodeContainer,visualConfig, init) {
+        super(nodeSprites, linkSprites, nodeContainer);
         this.NODE_WIDTH = visualConfig.NODE_WIDTH;
     };
 
     run() {
         return new Promise((resolve, reject) => {
-            const forceWorker = new Worker('./ForceLayoutWorker.js', { type: 'module' });
+            const worker = new Worker('./RadiateLayoutWorker.js', { type: 'module' });
 
-            forceWorker.onmessage = event => {
-                console.log('Force layout completed!');
+            worker.onmessage = event => {
+                console.log('Radiate layout completed!');
                 this.isLayouting = false;
 
-                const offSets = event.data.offSetArray;
+                this.startTime = performance.now();
 
-                for (let i = 0; i < this.nodeContainer.instanceCount; i++) {
-                    let node = this.nodes[i];
-                    node.position = {
-                        x: offSets[2 * i],
-                        y: offSets[2 * i + 1]
-                    };
-                }
+                this.endPositions = event.data.offSetArray;
 
-                forceWorker.terminate();
+                worker.terminate();
                 resolve();
             };
 
@@ -39,7 +30,7 @@ export default class ForceLayoutGenerator extends Layout {
                 nodesPositionArray: this.nodesPositionArray,
                 instanceCount: this.nodeContainer.instanceCount,
             };
-            forceWorker.postMessage(eventData, [
+            worker.postMessage(eventData, [
                 eventData.incomingSlotArray.buffer,
                 eventData.outgoingSlotArray.buffer,
                 eventData.incomingTypedArrays.buffer,

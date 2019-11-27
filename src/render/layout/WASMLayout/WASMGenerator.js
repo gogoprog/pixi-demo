@@ -1,11 +1,11 @@
 /**
  * Created by xuhe on 2017/5/24.
  */
-import Layout from './Layout.js';
+import Layout from '../LayoutNew.js';
 
 export default class WASMGenerator extends Layout {
-    constructor(nodeSprites, nodeContainer,visualConfig, init) {
-        super(nodeSprites, nodeContainer);
+    constructor(nodeSprites, linkSprites, nodeContainer,visualConfig, init) {
+        super(nodeSprites, linkSprites, nodeContainer);
         this.NODE_WIDTH = visualConfig.NODE_WIDTH;
     };
 
@@ -17,15 +17,9 @@ export default class WASMGenerator extends Layout {
                 console.log('Force with WASM layout completed!');
                 this.isLayouting = false;
 
-                const offSets = event.data.offSetTypedArray;
+                this.startTime = performance.now();
 
-                for (let i = 0; i < this.nodeContainer.instanceCount; i++) {
-                    let node = this.nodes[i];
-                    node.position = {
-                        x: offSets[2 * i],
-                        y: offSets[2 * i + 1]
-                    };
-                }
+                this.endPositions = event.data.offSetArray;
 
                 forceWorker.terminate();
                 resolve();

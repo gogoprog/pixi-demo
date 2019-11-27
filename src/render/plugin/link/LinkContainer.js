@@ -30,11 +30,6 @@ export default class LinkContainer extends PIXI.Container {
         this.recentlySelected = null;
         // lineContainer中有isDirty
         this.isDirty = false;
-
-        // drawing mode, maybe 'pixi' or 'webgl';
-        this.mode = 'webgl';
-        // 使用PIXI画线
-        this.lineGraphics = new PIXI.Graphics();
     }
 
     /**
@@ -100,40 +95,13 @@ export default class LinkContainer extends PIXI.Container {
      */
     renderWebGL(renderer)
     {
-        if (this.mode === 'webgl') {
-            // if the object is not visible or the alpha is 0 then no need to render this element
-            if (!this.visible || this.worldAlpha <= 0 || !this.renderable)
-            {
-                return;
-            }
-
-            this._renderWebGL(renderer);
-        } else if (this.mode === 'pixi') {
-            this.lineGraphics.clear();
-
-            for (const id in this.linkSprites) {
-                const child = this.linkSprites[id];
-                if (child && child.familyLayoutPositionList) {
-                    if (child.selected) {
-                        this.lineGraphics.lineStyle(child.thickness, this.visualConfig.ui.line.highlight.color, 1);
-                    } else {
-                        this.lineGraphics.lineStyle(child.thickness, child.color, 1);
-                    }
-
-                    this.lineGraphics.moveTo(child.familyLayoutPositionList[0].x, child.familyLayoutPositionList[0].y);
-                    let lastx = child.familyLayoutPositionList[0].x;
-                    let lasty = child.familyLayoutPositionList[0].y;
-                    for (let i = 1; i < 6; i++) {
-                        if (child.familyLayoutPositionList[i].x === lastx && child.familyLayoutPositionList[i].y === lasty) {
-                            continue;
-                        }
-                        this.lineGraphics.lineTo(child.familyLayoutPositionList[i].x, child.familyLayoutPositionList[i].y);
-                        lastx = child.familyLayoutPositionList[i].x;
-                        lasty = child.familyLayoutPositionList[i].y;
-                    }
-                }
-            }
+        // if the object is not visible or the alpha is 0 then no need to render this element
+        if (!this.visible || this.worldAlpha <= 0 || !this.renderable)
+        {
+            return;
         }
+
+        this._renderWebGL(renderer);
     }
 
     addLink(child) {

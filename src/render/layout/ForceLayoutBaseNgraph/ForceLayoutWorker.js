@@ -1,5 +1,4 @@
 import createLayout from "./ForceLayoutNew"
-// import createLayout from "./ForceLayoutInNGraph"
 import createGraph from './Graph';
 
 addEventListener('message', event => {

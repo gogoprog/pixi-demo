@@ -95,10 +95,6 @@ export default class Layout {
         };
     };
 
-    finalLayoutAvailable() {
-        return true;
-    };
-
     draw2(tree) {
         let that = this;
         for (var level of tree.getLevels().values()){

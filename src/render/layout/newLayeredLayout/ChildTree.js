@@ -1,4 +1,3 @@
-// module.exports = ChildTree;
 export default class ChildTree {
     constructor(id){
         this.id = id                         // 子树在层级中的id(位置索引)
@@ -46,7 +45,7 @@ export default class ChildTree {
         return this.nodeMap.get(this.sortIdList[this.sortIdList.length - 1])
     }
 
-    addNode(treeNode){        
+    addNode(treeNode){
         this.nodeMap.set(treeNode.getId(), treeNode)
     }
 

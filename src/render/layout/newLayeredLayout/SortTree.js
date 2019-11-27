@@ -1,5 +1,3 @@
-// module.exports = SortTree;
-
 Set.prototype.intersection = function(setB) {
     var intersection = new Set();
     for (var elem of setB) {
@@ -219,16 +217,5 @@ function sortNodeHasChildTree(levelMap, nodeIdHasChildrenList, nodeMap, levelId)
 		childTreeLevelOfNode.delete(maxNumId)
 	}
 	return sorted
-}
-
-
-// 粗粒度排序是指根据第n-1层节点的位置对第n层节点的子树进行位置排序
-// 并对子树内节点进行预先排序（主要是对共享节点进行排序）
-function coarsnessSort(childTree){
-
-}
-// 细粒度排序是指根据第n+1层的节点对第n层的一颗子树中的节点进行位置排序
-function fineGritSort(childTree, lowerLevel){
-
 }
 

@@ -273,7 +273,7 @@ export default class NodeContainer extends PIXI.Container {
 
         this.needRefreshOffset = true;
 
-        this.emit('nodeMoved', node);
+        // this.emit('nodeMoved', node);
     }
     nodeReleased(node) {
         this.emit('nodeReleased', node);

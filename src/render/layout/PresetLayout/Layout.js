@@ -36,10 +36,6 @@ export default class Layout {
         };
     };
 
-    finalLayoutAvailable() {
-        return true;
-    };
-
     getGraphRect() {
         let that = this;
         for (let nodeId in that.nodeSprites) {

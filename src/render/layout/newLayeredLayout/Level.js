@@ -1,4 +1,3 @@
-// module.exports = Level;
 export default class Level {
 	constructor(id){
 		this.id = id
