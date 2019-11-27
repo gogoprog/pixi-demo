@@ -9,7 +9,7 @@
             <button class="btn" @click.prevent.stop="radiateLayout"> 辐射</button>
             <button class="btn" @click.prevent.stop="rotateLayoutWASM"> 旋转(WASM)</button>
             <button class="btn" @click.prevent.stop="structuralLayout"> 结构</button>
-            <button class="btn" @click.prevent.stop="setLayoutType('Layered')"> 层次</button>
+            <button class="btn" @click.prevent.stop="layeredLayout"> 层次</button>
             <button class="btn" @click.prevent.stop="spreadLayoutWASM"> 放大(WASM)</button>
             <button class="btn" @click.prevent.stop="shrinkLayoutWASM"> 缩小(WASM)</button>
 
@@ -104,6 +104,12 @@
 
             structuralLayout() {
                 this.chart.renderer.structural().then(() => {
+                    this.chart.renderer.setNodesToFullScreen();
+                });
+            },
+
+            layeredLayout() {
+                this.chart.renderer.layered().then(() => {
                     this.chart.renderer.setNodesToFullScreen();
                 });
             },

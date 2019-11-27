@@ -1,6 +1,3 @@
-/**
- * Created by xuhe on 2017/5/22.
- */
 import cretatForestNew from './newCreateForest.js';
 import Layout from '../Layout.js';
 import SortTree from './SortTree.js';
@@ -13,9 +10,9 @@ Array.prototype.contains = function (obj) {  
         }  
     }  
     return false;  
-}  
+};
 
-export default function LayeredLayout(nodeSprites, nodeContainer, visualConfig, init) {
+export default function LayeredLayout(nodeSprites, linkSprites, nodeContainer, visualConfig, init) {
     Layout.call(this, nodeSprites, nodeContainer);
     this.NODE_WIDTH = visualConfig.NODE_WIDTH;
     this.levelx = [];

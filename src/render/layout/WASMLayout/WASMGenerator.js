@@ -1,6 +1,3 @@
-/**
- * Created by xuhe on 2017/5/24.
- */
 import Layout from '../LayoutNew.js';
 
 export default class WASMGenerator extends Layout {
@@ -11,9 +8,9 @@ export default class WASMGenerator extends Layout {
 
     run(wasmType) {
         return new Promise((resolve, reject) => {
-            const forceWorker = new Worker('./WASMWorker.js', { type: 'module' });
+            const worker = new Worker('./WASMWorker.js', { type: 'module' });
 
-            forceWorker.onmessage = event => {
+            worker.onmessage = event => {
                 console.log('Force with WASM layout completed!');
                 this.isLayouting = false;
 
@@ -21,7 +18,7 @@ export default class WASMGenerator extends Layout {
 
                 this.endPositions = event.data.offSetArray;
 
-                forceWorker.terminate();
+                worker.terminate();
                 resolve();
             };
 
@@ -34,7 +31,7 @@ export default class WASMGenerator extends Layout {
                 instanceCount: this.nodeContainer.instanceCount,
                 wasmType,
             };
-            forceWorker.postMessage(eventData, [
+            worker.postMessage(eventData, [
                 eventData.incomingSlotArray.buffer,
                 eventData.outgoingSlotArray.buffer,
                 eventData.incomingTypedArrays.buffer,

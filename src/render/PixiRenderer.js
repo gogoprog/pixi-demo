@@ -2,10 +2,10 @@ import eventify from 'ngraph.events';
 import 'pixi.js';
 
 import PresetLayout from "./layout/PresetLayout/PresetLayout";
-import LayeredLayoutNew from './layout/newLayeredLayout/LayeredLayoutNew';
+import LayeredLayout from './layout/LayeredLayout/LayeredLayout';
 import CircleLayout from './layout/CircleLayout/CircleLayout';
 import RadiateLayout from './layout/RadiateLayout/RadiateLayout';
-import ForceLayout from "./layout/ForceLayoutBaseNgraph/ForceLayout";
+import ForceLayout from "./layout/ForceLayout/ForceLayout";
 import StructuralLayout from "./layout/StructuralLayout/StructuralLayout"
 import WASMGenerator from "./layout/WASMLayout/WASMGenerator";
 
@@ -21,12 +21,10 @@ import LinkContainer from './plugin/link/LinkContainer';
 
 import AnimationAgent from './AnimationAgent';
 import FPSCounter from './FPSCounter';
-import { getMyBounds } from './boundsHelper';
 import extract from './extract';
 import allEntities from "graphz/assets/images/allentities";
+import { getMyBounds } from './boundsHelper';
 import { base64toBlob } from "graphz/render/Utils";
-
-import Module from './layouter.js';
 
 export default function (options) {
     let isDirty = true;
@@ -34,15 +32,6 @@ export default function (options) {
     let graph = Graph();
 
     const visualConfig = options.visualConfig;
-
-    let layoutEMS;
-    let instance = Module({
-        onRuntimeInitialized(){
-            console.log("loaded layouter module");
-            layoutEMS = new instance.LayouterEMScripten();
-            console.log("initialized layouter module");
-        }
-    });
 
     const showDebugMarkup = false;
 
@@ -87,7 +76,6 @@ export default function (options) {
     textContainer.zIndex = 15;
     nodeContainer.zIndex = 20;
 
-
     root.addChild(linkContainer);
     root.addChild(labelContainer);
     root.addChild(textContainer);
@@ -107,7 +95,6 @@ export default function (options) {
     root.hitArea = new PIXI.Rectangle(-1000000, -1000000, 2000000, 2000000);
     root.interactive = true;
 
-    // renderer.backgroundColor = 0xFFFFFF;
     renderer.backgroundColor = visualConfig.backgroundColor;
 
     SelectionManager.call(root, nodeContainer, linkContainer);
@@ -117,8 +104,6 @@ export default function (options) {
         root.handleMouseUp(e);
         selectionChanged();
     });
-
-    // root.on('rightup', contextmenuListener);
 
     nodeContainer.on('nodeCaptured', (node) => {
         stage.hasNodeCaptured = true;
@@ -196,9 +181,7 @@ export default function (options) {
             root.deselectAll();
         }
         _.each(nodeSprites, (n) => {
-            // console.log(n.position.x+" "+n.position.y);
             if ((n.position.x <= xr) && (n.position.x >= xl) && (n.position.y >= yt) && (n.position.y <= yb)) {
-                // console.log("here i come!!");
                 nodeContainer.selectNode(n);
             }
         });
@@ -572,27 +555,6 @@ export default function (options) {
                 selectedLinks.push(Object.assign({}, ls.data));
             });
             return selectedLinks;
-        },
-
-        /**
-         * draw circle layout
-         */
-        drawCircleLayout(disableAnimation, init) {
-            layout = new CircleLayout(nodeSprites, nodeContainer, visualConfig, init);
-            this.setNodesToFullScreen(disableAnimation);
-        },
-
-        drawStructuralLayout(disableAnimation, init) {
-            layout = new StructuralLayout(nodeSprites, nodeContainer, visualConfig, init);
-            this.setNodesToFullScreen(disableAnimation);
-        },
-
-        /**
-         * draw layered layout
-         */
-        drawLayeredLayout(disableAnimation, init) {
-            layout = new LayeredLayoutNew(nodeSprites, nodeContainer, visualConfig, init);
-            this.setNodesToFullScreen(disableAnimation);
         },
 
         setPerson2PersonNode(startNodeId, endNodeId) {
@@ -1052,6 +1014,15 @@ export default function (options) {
             return layout.run();
         },
 
+        /**
+         * 层次布局
+         */
+        layered() {
+            layoutType = 'Layered';
+            layout = new LayeredLayout(nodeSprites, linkSprites, nodeContainer, visualConfig, false);
+            return layout.run();
+        },
+
         setTwoNodeLayoutInXDireaction(nodeIDArray) {
             if (nodeSprites.length === 0) {
                 return;
@@ -1101,12 +1072,6 @@ export default function (options) {
                 if (needReflow) {
                     this.setNodesToFullScreen(disableAnimation);
                 }
-            } else if (layoutType === 'Circular') {
-                this.drawCircleLayout(disableAnimation, init);
-            } else if (layoutType === 'Structural') {
-                this.drawStructuralLayout(disableAnimation, init);
-            } else if (layoutType === 'Layered') {
-                this.drawLayeredLayout(disableAnimation, init);
             }  else {
                 return false;
             }
@@ -1716,11 +1681,7 @@ export default function (options) {
         if (!lastScanTime) lastScanTime = now;
 
         animationAgent.step();
-        const layoutFreeze = layout.step(now);
-        let layoutPositionChanged = !layoutFreeze;
-        // if (layoutPositionChanged) {
-        //     updateNodeSpritesPosition();
-        // }
+        layout.step(now);
 
         // Every 0.5 second, we check whether to change label's visible property.
         if (now - lastScanTime > 500) {
@@ -1729,7 +1690,7 @@ export default function (options) {
             isDirty = true;
         }
 
-        if (layoutPositionChanged || isDirty || nodeContainer.isDirty || stage.isDirty || linkContainer.isDirty
+        if (isDirty || nodeContainer.isDirty || stage.isDirty || linkContainer.isDirty
             || nodeContainer.positionDirty || animationAgent.needRerender()) {
 
             selectRegionGraphics.clear();
@@ -1787,20 +1748,6 @@ export default function (options) {
         } else {
             labelContainer.visible = false;
         }
-    }
-
-    function updateNodeSpritesPosition() {
-        _.each(nodeSprites, (nodeSprite, nodeId) => { // 大开销计算
-            nodeSprite.updateNodePosition(layout.getNodePosition(nodeId));
-            nodeContainer.nodeMoved(nodeSprite);
-            // if (nodeSprite.pinned && !nodeSprite.data.properties._$lock) {
-            //     nodeSprite.pinned = false;
-            //     layout.pinNode(nodeSprite, false);
-            // }
-        });
-        _.each(linkSprites, (l) => {
-            l.updatePosition();
-        });
     }
 
     function initNode(p) {
