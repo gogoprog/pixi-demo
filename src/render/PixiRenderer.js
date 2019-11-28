@@ -656,7 +656,7 @@ export default function (options) {
                     root.scale.x = rootPlacement.scale.x;
                     root.scale.y = rootPlacement.scale.y;
                 }
-                if (disableAnimation) {
+                // if (disableAnimation) {
                     if (rootPlacement.scale.x > 1 || rootPlacement.scale.y > 1) {
                         root.scale.x = 1;
                         root.scale.y = 1;
@@ -665,9 +665,9 @@ export default function (options) {
                     }
                     root.position.x = rootPlacement.position.x;
                     root.position.y = rootPlacement.position.y;
-                } else {
-                    animationAgent.move(root, rootPlacement.position);
-                }
+                // } else {
+                //     animationAgent.move(root, rootPlacement.position);
+                // }
                 nodeContainer.positionDirty = true;
             } else {
                 console.error('Center graph action not supported in current layout.');

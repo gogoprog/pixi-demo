@@ -1,9 +1,5 @@
-import Layout from '../Layout.js';
-
-export default class PresetLayout extends Layout {
+export default class PresetLayout {
     constructor(nodeSprites, nodeContainer) {
-        super(nodeSprites, nodeContainer);
-
         this.nodeSprites = nodeSprites;
         this.nodeContainer = nodeContainer;
         this.thisStep = 0;
@@ -12,32 +8,6 @@ export default class PresetLayout extends Layout {
         this.right = -10000;
         this.top = 10000;
         this.bottom = -10000;
-        this.currentPosition = {};
-    };
-
-    getSelectNodes() {
-        let sn = [];
-        return sn;
-    };
-
-    draw(treeNode) {
-        let that = this;
-
-        let node = that.nodes[treeNode.id];
-
-        node.position = {
-            x: treeNode.positionx,
-            y: treeNode.positiony
-        };
-    };
-
-    calStep(p1, p2, totalStep, thisStep) {
-        let perX = (p2.x - p1.x) / totalStep;
-        let perY = (p2.y - p1.y) / totalStep;
-        return {
-            x: p1.x + perX * thisStep,
-            y: p1.y + perY * thisStep
-        };
     };
 
     getGraphRect() {
@@ -64,9 +34,6 @@ export default class PresetLayout extends Layout {
         }
     };
 
-    /**
-     * return if the layout is finished.
-     */
     step() {
         return true;
     };
@@ -78,17 +45,6 @@ export default class PresetLayout extends Layout {
     setNodePosition(id, x, y) {
         this.nodeSprites[id].position.x = x;
         this.nodeSprites[id].position.y = y;
-    };
-
-    pinNode(node, isPinned) {
-    };
-
-    isNodePinned(node) {
-        return false;
-    };
-
-    isNodeOriginallyPinned(node) {
-        return false;
     };
 
     run() {

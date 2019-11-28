@@ -1,4 +1,3 @@
-// module.exports = TreeNode;
 export default class TreeNode {
     constructor(id){
         this.id = id               // 该节点的id

@@ -1,7 +1,4 @@
-/**
- * Created by xuhe on 2017/5/24.
- */
-import Layout from '../LayoutNew.js';
+import Layout from '../Layout.js';
 
 export default class ForceLayout extends Layout {
     constructor(nodeSprites, linkSprites, nodeContainer,visualConfig) {

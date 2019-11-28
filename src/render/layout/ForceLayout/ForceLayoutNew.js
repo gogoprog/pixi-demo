@@ -1,6 +1,6 @@
 // module.exports = createLayout;
 // module.exports.simulator = require('ngraph.physics.simulator');
-import PhysicsSimulator from '../lib/ngraphPhysicsSimulator';
+import PhysicsSimulator from './lib/ngraphPhysicsSimulator';
 
 var eventify = require('ngraph.events');
 

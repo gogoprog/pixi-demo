@@ -1,4 +1,4 @@
-import Layout from '../LayoutNew.js';
+import Layout from '../Layout.js';
 
 export default class WASMGenerator extends Layout {
     constructor(nodeSprites, linkSprites, nodeContainer,visualConfig) {

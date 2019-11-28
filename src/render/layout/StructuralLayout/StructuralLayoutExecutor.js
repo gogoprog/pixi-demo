@@ -244,8 +244,6 @@ export default class StructuralLayoutExecutor {
         }
         this.doDivide(nodeIdSet);
         nodeIdSet.clear();
-        // insularNodeRealIdSet.clear();
-        // insularNodeIdSet.clear();
     }
 
 

@@ -1,4 +1,3 @@
-// module.exports = Tree;
 export default class Tree {
 	constructor(id){
 		this.id = id

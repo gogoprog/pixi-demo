@@ -1,6 +1,3 @@
-/**
- * Created by xuhe on 2017/5/24.
- */
 //生成森林
 export default function createForest(nodes, selectNodes, nodeWidth) {
     let treeNode = {}; //存放层次布局中树的节点
@@ -17,17 +14,6 @@ export default function createForest(nodes, selectNodes, nodeWidth) {
         levelId = [];
         let nodeID = 0;  //记录结点在树中的编号
         let root = selectMaxDegreeNode(nodes);
-        // if (!selectNodes.length) {
-        //     root = selectMaxDegreeNode(nodes);
-        // } else {
-        //     root = selectNodes.shift();
-        //     while (nodes[root.id].inTree) {
-        //         root = selectNodes.shift();
-        //         if (!root) {
-        //             break;
-        //         }
-        //     }
-        // }
         if (!root) {
             continue;
         }

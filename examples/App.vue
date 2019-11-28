@@ -10,6 +10,9 @@
                 <router-link to="/simple-resource">资源</router-link>
                 <router-link to="/layout">布局</router-link>
                 <router-link to="/performance">性能</router-link>
+                <router-link to="#">样式</router-link>
+                <router-link to="#">手工作图</router-link>
+                <router-link to="#">分析算法</router-link>
             </div>
             <router-view class="main-content"></router-view>
         </div>
