@@ -5,7 +5,7 @@ const WorkerPlugin = require('worker-plugin');
 module.exports = {
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: 'graphz.js',
+        filename: '[name].js',
         library: "graphz",
         libraryTarget: 'umd',
     },

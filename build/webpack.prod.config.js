@@ -8,7 +8,7 @@ module.exports = merge(webpackBaseConfig, {
     entry: './src/index.js',
     output: {
         path: path.resolve(__dirname, '../dist'),
-        filename: 'graphz.js',
+        filename: '[name].js',
         library: "graphz",
         libraryTarget: 'umd',
     }

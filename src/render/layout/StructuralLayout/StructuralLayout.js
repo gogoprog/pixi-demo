@@ -1,7 +1,7 @@
 import Layout from '../LayoutNew.js';
 
 export default class StructuralLayout extends Layout {
-    constructor(nodeSprites, linkSprites, nodeContainer,visualConfig, init) {
+    constructor(nodeSprites, linkSprites, nodeContainer,visualConfig) {
         super(nodeSprites, linkSprites, nodeContainer);
         this.NODE_WIDTH = visualConfig.NODE_WIDTH;
     };

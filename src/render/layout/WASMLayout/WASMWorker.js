@@ -1,4 +1,4 @@
-import Module from '../../layouter.js';
+import Module from './layouter.js';
 
 addEventListener('message', event => {
 

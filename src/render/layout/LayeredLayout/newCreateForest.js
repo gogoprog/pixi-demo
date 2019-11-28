@@ -13,19 +13,16 @@ Set.prototype.union = function(setB) {
 
 // module.exports = cretatForestNew;
 export default function cretatForestNew(selectNodes, allNodes){
-    var forest = []
+    var forest = [];
     // 构建树结构，直到所有的节点都处于树结构中
-    var numOfTree = 0
+    var numOfTree = 0;
     // var tmp  = 0
+    allNodes.notInTreeNum = Object.keys(allNodes).length;
     while(allNodes.notInTreeNum > 0){
         var tree = cretatTree(selectNodes, numOfTree, allNodes);
-        forest.push(tree)
-        numOfTree = numOfTree + 1
-        selectNodes = []
-        // tmp += 1
-        // if (tmp == 5){
-        //     break
-        // }
+        forest.push(tree);
+        numOfTree = numOfTree + 1;
+        selectNodes = [];
     }
     return forest
 }
@@ -147,30 +144,32 @@ function createTreeNode(node, thisLevelContainNodeIdSet, allNodes, levelId){
     var children = new Set()
     var parent = new Set()
     _.each(node.incoming, function (link) {
+        let anotherNodeId = link;
         // 与该节点有链接的节点若在本层，则为兄弟节点，暂不考虑
-        if (!thisLevelContainNodeIdSet.has(link.data.sourceEntity)){
+        if (!thisLevelContainNodeIdSet.has(anotherNodeId)){
             // 与该节点有链接的节点不在本层，若已经处于树结构中，则为父节点，否则为子节点
-            if (allNodes[link.data.sourceEntity].inTree){
-                parent.add(link.data.sourceEntity)
+            if (allNodes[anotherNodeId].inTree){
+                parent.add(anotherNodeId)
             } else {
-                children.add(link.data.sourceEntity)
+                children.add(anotherNodeId)
             }
         }
-    })
+    });
     _.each(node.outgoing, function (link) {
+        let anotherNodeId = link;
         // 与该节点有链接的节点若在本层，则为兄弟节点，暂不考虑
-        if (!thisLevelContainNodeIdSet.has(link.data.targetEntity)){
+        if (!thisLevelContainNodeIdSet.has(anotherNodeId)){
             // 与该节点有链接的节点不在本层，若已经处于树结构中，则为父节点，否则为子节点
-            if (allNodes[link.data.targetEntity].inTree){
-                parent.add(link.data.targetEntity)
+            if (allNodes[anotherNodeId].inTree){
+                parent.add(anotherNodeId)
             } else {
-                children.add(link.data.targetEntity)
+                children.add(anotherNodeId)
             }
         }
-    })
-    treeNode.setChildren(children)
-    treeNode.setParent(parent)
-    treeNode.setLevelId(levelId)
+    });
+    treeNode.setChildren(children);
+    treeNode.setParent(parent);
+    treeNode.setLevelId(levelId);
     return treeNode
 }
 
@@ -233,13 +232,13 @@ function inSameTree(maxDegreeNodeIdSet, node, nodeList) {
 
 function getSubGraph(subGraphNodeIdSet, newNodeIdSet, node){
     _.each(node.incoming, function (link) {
-        var anotherNodeId = link.data.sourceEntity;
+        var anotherNodeId = link;
         if (!subGraphNodeIdSet.has(anotherNodeId)){
             newNodeIdSet.add(anotherNodeId)
         }
     })
     _.each(node.outgoing, function (link) {
-        var anotherNodeId = link.data.targetEntity;
+        var anotherNodeId = link;
         if (!subGraphNodeIdSet.has(anotherNodeId)){
             newNodeIdSet.add(anotherNodeId)
         }

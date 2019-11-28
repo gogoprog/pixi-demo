@@ -47,23 +47,6 @@ export default class Layout {
 
     getSelectNodes() {
         let sn = [];
-        let that = this;
-        _.each(that.nodeContainer.nodes, function (n) {
-            let node = {
-                id: n.id,
-                incoming: n.incoming,
-                outgoing: n.outgoing,
-                inTree: false,
-                scale: n.scale.x,
-                layoutLevel: 0,
-                type: n.type,
-                cluster: n.cluster
-            };
-            if(that.isNodeOriginallyPinned(n)){
-                node.isPinned = true;
-            }
-            sn.push(node);
-        });
         return sn;
     };
 

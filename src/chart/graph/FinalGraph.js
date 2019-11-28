@@ -38,7 +38,7 @@ export default class FinalGraph extends Graph {
                 const change = changes[i];
                 if (change.changeType === Graph.CHANGE_TYPE_ADD) {
                     if (change.entity) {
-                        if (self.disabledLabels.contains(change.entity.type)) {
+                        if (self.disabledLabels.includes(change.entity.type)) {
                             change.entity.properties[Constant.HIDE_LABEL] = true;
                         }
                         if (self.multiLabelTemplates[change.entity.type]) {
@@ -48,7 +48,7 @@ export default class FinalGraph extends Graph {
                         self.addEntity(change.entity);
                     }
                     if (change.link) {
-                        if (self.disabledLabels.contains(change.link.type)) {
+                        if (self.disabledLabels.includes(change.link.type)) {
                             change.link.properties[Constant.HIDE_LABEL] = true;
                         }
                         if (self.multiLabelTemplates[change.link.type]) {

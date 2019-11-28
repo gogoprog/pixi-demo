@@ -557,11 +557,6 @@ export default function (options) {
             return selectedLinks;
         },
 
-        setPerson2PersonNode(startNodeId, endNodeId) {
-            this.startNodeId = startNodeId;
-            this.endNodeId = endNodeId;
-        },
-
         /**
          * set actual size of layout
          */
@@ -953,28 +948,11 @@ export default function (options) {
         },
 
         /**
-         * 设置布局方式
-         * @param layoutTypeStr，值可能为Network,Circular,Structural,Layered,Person2Person,Radiate
-         */
-        setLayoutType(layoutTypeStr) {
-            console.info(`Setting layout type to ${layoutTypeStr}`);
-            layoutType = layoutTypeStr || 'Network';
-            if (layoutType !== 'Network'
-                && layoutType !== 'Circular'
-                && layoutType !== 'Structural'
-                && layoutType !== 'Layered'
-                && layoutType !== 'Person2Person'
-                && layoutType !== 'Radiate') {
-                layoutType = 'Network';
-            }
-        },
-
-        /**
          * 力导向布局
          */
         async force() {
             layoutType = 'Network';
-            layout = new ForceLayout(nodeSprites, linkSprites, nodeContainer, visualConfig, false);
+            layout = new ForceLayout(nodeSprites, linkSprites, nodeContainer, visualConfig);
             await layout.run();
             return Promise.resolve();
         },
@@ -983,7 +961,7 @@ export default function (options) {
          * WASM方式实现的布局
          */
         WASMLayout(wasmType) {
-            layout = new WASMGenerator(nodeSprites, linkSprites, nodeContainer, visualConfig, false);
+            layout = new WASMGenerator(nodeSprites, linkSprites, nodeContainer, visualConfig);
             return layout.run(wasmType);
         },
 
@@ -992,7 +970,7 @@ export default function (options) {
          */
         circle() {
             layoutType = 'Circular';
-            layout = new CircleLayout(nodeSprites, linkSprites, nodeContainer, visualConfig, false);
+            layout = new CircleLayout(nodeSprites, linkSprites, nodeContainer, visualConfig);
             return layout.run();
         },
 
@@ -1001,7 +979,7 @@ export default function (options) {
          */
         radiate() {
             layoutType = 'Radiate';
-            layout = new RadiateLayout(nodeSprites, linkSprites, nodeContainer, visualConfig, false);
+            layout = new RadiateLayout(nodeSprites, linkSprites, nodeContainer, visualConfig);
             return layout.run();
         },
 
@@ -1010,7 +988,7 @@ export default function (options) {
          */
         structural() {
             layoutType = 'Structural';
-            layout = new StructuralLayout(nodeSprites, linkSprites, nodeContainer, visualConfig, false);
+            layout = new StructuralLayout(nodeSprites, linkSprites, nodeContainer, visualConfig);
             return layout.run();
         },
 
@@ -1019,7 +997,7 @@ export default function (options) {
          */
         layered() {
             layoutType = 'Layered';
-            layout = new LayeredLayout(nodeSprites, linkSprites, nodeContainer, visualConfig, false);
+            layout = new LayeredLayout(nodeSprites, linkSprites, nodeContainer, visualConfig);
             return layout.run();
         },
 
@@ -1753,7 +1731,7 @@ export default function (options) {
     function initNode(p) {
         let iconUrl;
         // 在专题分析时，男性用男的图标表示，女性用女的图标表示
-        if (layoutType === 'Person2Person' || visualConfig.showIconBasedOnGender) {
+        if (visualConfig.showIconBasedOnGender) {
             if (p.data.properties['性别']) {
                 if (p.data.properties['性别'] === '男') {
                     iconUrl = "/Person/Man.png";
@@ -1826,7 +1804,6 @@ export default function (options) {
             }
         }
         const controlOffsets = _.range(start, end);
-        // console.log("Link count: " + linkCount+" controls" + controlOffsets)
         for (let i = 0; i < linkSpriteArray.length; i++) {
             const l = linkSpriteArray[i];
             l.controlOffsetIndex = controlOffsets[i];
@@ -1877,9 +1854,7 @@ export default function (options) {
         linkSprites[l.id] = l;
 
         if (l.label) {
-            // l.label.interactive = true;
             labelContainer.addChild(l.label);
-            // l.label.on('rightup', contextmenuListener);
         }
 
         linkContainer.addLink(l);
