@@ -77,7 +77,7 @@
     }
 
     .example-container {
-        height: calc(100% - 98px);
+        height: calc(100% - 100px);
 
         display: flex;
         flex-direction: row;
