@@ -19,7 +19,10 @@ export default class ForceLayout extends Layout {
                 this.endPositions = event.data.offSetArray;
 
                 forceWorker.terminate();
-                resolve();
+
+                this.resolve = resolve;
+
+                requestAnimationFrame(this.step.bind(this));
             };
 
             const eventData = {

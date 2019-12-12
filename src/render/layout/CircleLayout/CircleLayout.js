@@ -19,7 +19,11 @@ export default class CircleLayout extends Layout {
                 this.endPositions = event.data.offSetArray;
 
                 worker.terminate();
-                resolve();
+                // resolve();
+
+                this.resolve = resolve;
+
+                requestAnimationFrame(this.step.bind(this));
             };
 
             const eventData = {

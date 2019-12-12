@@ -1659,7 +1659,7 @@ export default function (options) {
         if (!lastScanTime) lastScanTime = now;
 
         animationAgent.step();
-        layout.step(now);
+        // layout.step(now);
 
         // Every 0.5 second, we check whether to change label's visible property.
         if (now - lastScanTime > 500) {

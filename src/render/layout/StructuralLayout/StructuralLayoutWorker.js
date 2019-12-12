@@ -1,6 +1,8 @@
 import StructuralLayoutExecutor from "./StructuralLayoutExecutor"
 
 addEventListener('message', event => {
+    const t0 = performance.now();
+
     const nodes = {};
     for (let i = 0; i < event.data.instanceCount; i++) {
         const node = {
@@ -27,6 +29,9 @@ addEventListener('message', event => {
 
         offSetArray.set([position.x, position.y] , 2 * i);
     }
+
+    const t1 = performance.now();
+    console.log("StructuralLayout took " + (t1 - t0) + " milliseconds.");
 
     postMessage({ offSetArray }, [ offSetArray.buffer ]);
 });

@@ -1,6 +1,8 @@
 import createForest from '../CreateForestWorker';
 
 addEventListener('message', event => {
+    const t0 = performance.now();
+
     const NODE_WIDTH = 50;
 
     const nodes = {};
@@ -49,6 +51,9 @@ addEventListener('message', event => {
             offSetArray.set([treeNode.positionx, treeNode.positiony] , 2 * treeNode.id);
         });
     });
+
+    const t1 = performance.now();
+    console.log("CircleLayout took " + (t1 - t0) + " milliseconds.");
 
     postMessage({ offSetArray }, [ offSetArray.buffer ]);
 });

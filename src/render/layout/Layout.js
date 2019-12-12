@@ -80,22 +80,16 @@ export default class Layout {
      * return if the layout is finished.
      */
     step(now) {
-        if (this.isLayouting) {
-            return true;
-        }
+        // console.log("layout step:" + now);
+        // if (this.isLayouting) {
+        //     return true;
+        // }
 
         let percent;
-
         if( this.duration === 0 ){
             percent = 1;
         } else {
             percent = (now - this.startTime) / this.duration;
-        }
-
-        if( percent > 1 ){
-            return true;
-        } else if( percent < 0 ){
-            percent = 0;
         }
 
         for (let i = 0; i < this.nodeContainer.instanceCount; i++) {
@@ -115,6 +109,12 @@ export default class Layout {
             link.updatePosition();
         });
 
-        return false;
+        if (percent > 1) {
+            this.resolve();
+        } else {
+            requestAnimationFrame(this.step.bind(this));
+        }
+
+        // return false;
     };
 }

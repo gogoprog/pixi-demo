@@ -2,6 +2,7 @@ import createLayout from "./ForceLayoutNew"
 import createGraph from './Graph';
 
 addEventListener('message', event => {
+
     console.log("ForceLayout start!");
     const t0 = performance.now();
 
@@ -36,13 +37,24 @@ addEventListener('message', event => {
         theta: 0.9,
     });
 
-    const t1 = performance.now();
 
-    for (let tmp = 0; tmp < 10000; tmp++){
-        forceLayout.step();
+    console.log("ForceLayout before step!");
+    let iteration = 0;
+    if (event.data.instanceCount > 10000) {
+        iteration = 100;
+    } else if (event.data.instanceCount > 1000) {
+        iteration = 1000;
+    } else {
+        iteration = 5000;
     }
 
-    const t2 = performance.now();
+    for (let tmp = 0; tmp < iteration; tmp++){
+        if (tmp % 100 === 0) {
+            console.log("ForceLayout has executed of " + tmp);
+        }
+        forceLayout.step();
+    }
+    console.log("ForceLayout after step!");
 
     const offSetArray = new Float32Array(2 * event.data.instanceCount);
     for (let i = 0; i < event.data.instanceCount; i++) {
@@ -51,11 +63,8 @@ addEventListener('message', event => {
         offSetArray.set([position.x, position.y] , 2 * i);
     }
 
-    const t3 = performance.now();
-
-    console.log("ForceLayout prepare data took " + (t1 - t0) + " milliseconds.");
-    console.log("ForceLayout layout took " + (t2 - t1) + " milliseconds.");
-    console.log("ForceLayout finalize took " + (t3 - t2) + " milliseconds.");
+    const t1 = performance.now();
+    console.log("ForceLayout took " + (t1 - t0) + " milliseconds.");
 
     postMessage({ offSetArray }, [ offSetArray.buffer ]);
 });
