@@ -9,15 +9,6 @@ export default class NodeContainer extends PIXI.Container {
     constructor() {
         super();
 
-        // 0: single icon, 1: multiple icons
-        this.iconMode = 0;
-
-        this.iconMap = {};
-
-        this.texture = PIXI.Texture.fromImage(defaultIconUrl);
-
-        this.selectionTexture = PIXI.Texture.fromImage(selectionFrameUrl);
-
         this.zIndex = 20;
 
         this.pluginName = 'node-container';
@@ -40,15 +31,23 @@ export default class NodeContainer extends PIXI.Container {
         // nodeContainer中有isDirty
         this.isDirty = false;
         this.positionDirty = false;
-    }
 
-    /**
-     * 设置需要的资源
-     */
-    setResources(iconMap, allentities) {
-        this.iconMap = iconMap;
-        this.texture = allentities;
+        // big icon image
+        this.canvas = document.createElement("canvas");
+        this.context = this.canvas.getContext("2d");
+        // the canvas size is 2048x2048, and icon size is 16 * 16
+        this.context.canvas.width  = 2048;
+        this.context.canvas.height = 2048;
+        this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+
+        // 0: single icon, 1: multiple icons
         this.iconMode = 1;
+
+        this.iconMap = {};
+
+        this.texture = PIXI.Texture.fromCanvas(this.canvas);
+
+        this.selectionTexture = PIXI.Texture.fromImage(selectionFrameUrl);
     }
 
     /**
@@ -144,11 +143,22 @@ export default class NodeContainer extends PIXI.Container {
         this.offSetArray.set([child.x, child.y] , 2 * index);
 
         // all entities' icon index
-        const iconIndex = this.iconMap[child.iconUrl];
+        let iconIndex = this.iconMap[child.iconUrl];
         if (iconIndex >= 0) {
             this.iconIndexArray.set([iconIndex], index);
         } else {
-            this.iconIndexArray.set([0], index);
+            iconIndex = Object.keys(this.iconMap).length;
+            this.iconMap[child.iconUrl] = iconIndex;
+            this.iconIndexArray.set([iconIndex], index);
+
+            const image = new Image();
+            image.onload = () => {
+                const row = Math.floor(iconIndex / 16.0);
+                const column = iconIndex - row * 16;
+                this.context.drawImage(image, column * 128, row * 128, 128, 128);
+                this.texture.update();
+            };
+            image.src = `/static/images/${child.iconUrl}`;
         }
 
         this.selectedArray.set([0.0], index);

@@ -376,48 +376,11 @@ export default function (options) {
 
         loadResources(resources) {
             return new Promise((resolve => {
-                const loadedResource = {};
-
                 const loader = new PIXI.loaders.Loader();
                 loader.add('fontXML', resources.font);
                 loader.load((loader, resources) => {
                     visualConfig.font = resources.fontXML.bitmapFont;
-
-                    const getAllEntitiesIconPromises = allEntities.map((entity, index) => import(`../assets/images${entity.url}`));
-                    Promise.all(getAllEntitiesIconPromises).then((results) => {
-                        const canvas = document.createElement("canvas");
-                        const context = canvas.getContext("2d");
-                        // the canvas size is 2048x2048, and icon size is 16 * 16
-                        context.canvas.width  = 2048;
-                        context.canvas.height = 2048;
-                        context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-
-                        const iconMap = {};
-                        const ImagesPromises = results.map((icon, index) => {
-                            const iconObject = allEntities[index];
-                            iconMap[iconObject.url] = index;
-
-                            const row = Math.floor(index / 16.0);
-                            const column = index - row * 16;
-
-                            const imageBlob = base64toBlob(icon.default.replace(/^data:image\/(png|jpg);base64,/, ""), 'image/png');
-                            return createImageBitmap(imageBlob);
-                        });
-
-                        Promise.all(ImagesPromises).then((images) => {
-                            images.forEach((image, index) => {
-                                const row = Math.floor(index / 16.0);
-                                const column = index - row * 16;
-                                context.drawImage(image, column * 128, row * 128, 128, 128);
-                            });
-
-                            loadedResource.iconMap = iconMap;
-                            loadedResource.allentities = PIXI.Texture.fromCanvas(canvas);
-                            nodeContainer.setResources(iconMap, PIXI.Texture.fromCanvas(canvas));
-
-                            resolve();
-                        });
-                    });
+                    resolve();
                 });
             }));
         },
@@ -1654,9 +1617,9 @@ export default function (options) {
         pixiGraphics.fire('contextmenu', event);
     }
 
-    let lastScanTime = null;
+    let lastScanTime = 0;
     function animationLoop(now) {
-        if (!lastScanTime) lastScanTime = now;
+        lastScanTime = now;
 
         animationAgent.step();
         // layout.step(now);
