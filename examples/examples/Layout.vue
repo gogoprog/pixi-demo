@@ -13,6 +13,8 @@
             <button class="btn" @click.prevent.stop="spreadLayoutWASM"> 放大(WASM)</button>
             <button class="btn" @click.prevent.stop="shrinkLayoutWASM"> 缩小(WASM)</button>
 
+            <button class="btn" @click.prevent.stop="zoomScreen"> 放大</button>
+
             <span> / </span>
 
             <button class="btn" @click.prevent.stop="toggleMode"> 拖动/选中</button>
@@ -21,6 +23,7 @@
 
             <select v-model="dataSource" @change="loadChart">
                 <option disabled value="">Please select one</option>
+                <option>tinyChartData</option>
                 <option>smallChartData</option>
                 <option>chartData</option>
                 <option>bigChartData</option>
@@ -39,7 +42,7 @@
     export default {
         data() {
             return {
-                dataSource: 'smallChartData',
+                dataSource: 'tinyChartData',
             };
         },
         created() {
@@ -142,6 +145,10 @@
                 this.chart.renderer.WASMLayout('shrink').then(() => {
                     this.chart.renderer.setNodesToFullScreen();
                 });
+            },
+
+            zoomScreen() {
+                this.chart.renderer.zoomIn();
             },
 
             toggleMode() {

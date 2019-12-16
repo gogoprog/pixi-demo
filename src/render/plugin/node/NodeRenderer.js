@@ -99,8 +99,8 @@ export default class NodeRenderer extends PIXI.ObjectRenderer
 
         this.shader.uniforms.transformMatrix = container.parent.transform.worldTransform.toArray(true);
 
-        this.shader.uniforms.uSampler = renderer.bindTexture(container.texture.baseTexture);
-        this.shader.uniforms.uSelectedSampler = renderer.bindTexture(container.selectionTexture.baseTexture);
+        this.shader.uniforms.uSampler = renderer.bindTexture(container.texture);
+        this.shader.uniforms.uSelectedSampler = renderer.bindTexture(container.selectionTexture);
         // this.shader.uniforms.uDefaultSampler = renderer.bindTexture(container.defaultTexture.baseTexture);
         this.shader.uniforms.iconMode = container.iconMode;
 

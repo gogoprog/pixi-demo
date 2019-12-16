@@ -41,41 +41,41 @@ void main(void){
         vTextureCoord = vec2(0.0, 1.0);
     // second draw the entity icon
     } else if(aVertexID == 6.0){
-        if (iconMode == 0) {
-            vTextureCoord = vec2(0.0, 0.0);
-        } else {
+//        if (iconMode == 0) {
+//            vTextureCoord = vec2(0.0, 0.0);
+//        } else {
             vTextureCoord = vec2(x0, y0);
-        }
+//        }
     } else if(aVertexID == 7.0) {
-        if (iconMode == 0) {
-            vTextureCoord = vec2(1.0, 0.0);
-        } else {
+//        if (iconMode == 0) {
+//            vTextureCoord = vec2(1.0, 0.0);
+//        } else {
             vTextureCoord = vec2(x0 + 0.0625, y0);
-        }
+//        }
     } else if(aVertexID == 8.0) {
-        if (iconMode == 0) {
-            vTextureCoord = vec2(1.0, 1.0);
-        } else {
+//        if (iconMode == 0) {
+//            vTextureCoord = vec2(1.0, 1.0);
+//        } else {
             vTextureCoord = vec2(x0 + 0.0625, y0 + 0.0625);
-        }
+//        }
     } else if(aVertexID == 9.0) {
-        if (iconMode == 0) {
-            vTextureCoord = vec2(0.0, 0.0);
-        } else {
+//        if (iconMode == 0) {
+//            vTextureCoord = vec2(0.0, 0.0);
+//        } else {
             vTextureCoord = vec2(x0, y0);
-        }
+//        }
     } else if(aVertexID == 10.0) {
-        if (iconMode == 0) {
-            vTextureCoord = vec2(1.0, 1.0);
-        } else {
+//        if (iconMode == 0) {
+//            vTextureCoord = vec2(1.0, 1.0);
+//        } else {
             vTextureCoord = vec2(x0 + 0.0625, y0 + 0.0625);
-        }
+//        }
     } else if(aVertexID == 11.0) {
-        if (iconMode == 0) {
-            vTextureCoord = vec2(0, 1.0);
-        } else {
+//        if (iconMode == 0) {
+//            vTextureCoord = vec2(0, 1.0);
+//        } else {
             vTextureCoord = vec2(x0, y0 + 0.0625);
-        }
+        // }
     }
 
     vIsUnknown = aIsUnknown;

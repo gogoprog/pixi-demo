@@ -55,6 +55,7 @@
         }
 
         .menu-bar-horizontal {
+            height: 50px;
             background-color: #5f5f5f;
             overflow: hidden;
         }
