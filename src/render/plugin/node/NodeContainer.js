@@ -35,7 +35,7 @@ export default class NodeContainer extends PIXI.Container {
         // big icon image
         this.canvas = document.createElement("canvas");
         this.context = this.canvas.getContext("2d");
-        // the canvas size is 2048x2048, and icon size is 16 * 16
+        // the canvas size is 2048x2048, and icon size is 128 * 128
         this.context.canvas.width  = 2048;
         this.context.canvas.height = 2048;
         this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
