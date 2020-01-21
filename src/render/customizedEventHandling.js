@@ -36,18 +36,6 @@ export const zoom = function (x, y, isZoomIn, contentRoot) {
     contentRoot.updateTransform();
 };
 
-
-// 右键点击事件处理, 被调用时this被绑定到stage
-export const rootRightupHandler = function (e) {
-    if (!this.interactive || this.hasNodeCaptured) {
-        return;
-    }
-
-    const newPosition = e.data.global;
-    let tnp = this.contentRoot.worldTransform.applyInverse(newPosition);
-    this.rightSelectHandler(e, tnp.x, tnp.y);
-};
-
 // 被调用时this被绑定到stage
 export const rootCaptureHandler = function (e) {
     if (!this.interactive || this.hasNodeCaptured) {
@@ -62,11 +50,6 @@ export const rootCaptureHandler = function (e) {
     };
     if (this.mode === 'panning') {
         this.dragging = true;
-    } else if (this.mode === 'picking') {
-        this.selectingArea = true;
-
-        let tnp = this.contentRoot.worldTransform.applyInverse(this.mouseLocation);
-        this.selectSingleLink(tnp.x, tnp.y);
     } else if (this.mode === 'connecting') {
         this.connectingLine = true;
     }

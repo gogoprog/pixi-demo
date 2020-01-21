@@ -1,180 +1,82 @@
 <template>
-    <div class="canvas-container">
-        <!-- 分析画布 -->
-        <div class="action-container">
-            <button class="btn" @click.prevent.stop="forceLayout"> 网络</button>
-            <button class="btn" @click.prevent.stop="forceLayoutWASM"> 网络(WASM)</button>
-            <button class="btn" @click.prevent.stop="circleLayout"> 圆形</button>
-            <button class="btn" @click.prevent.stop="circleLayoutWASM"> 圆形(WASM)</button>
-            <button class="btn" @click.prevent.stop="radiateLayout"> 辐射</button>
-            <button class="btn" @click.prevent.stop="rotateLayoutWASM"> 旋转(WASM)</button>
-            <button class="btn" @click.prevent.stop="structuralLayout"> 结构</button>
-            <button class="btn" @click.prevent.stop="layeredLayout"> 层次</button>
-            <button class="btn" @click.prevent.stop="spreadLayoutWASM"> 放大(WASM)</button>
-            <button class="btn" @click.prevent.stop="shrinkLayoutWASM"> 缩小(WASM)</button>
-
-            <button class="btn" @click.prevent.stop="zoomScreen"> 放大</button>
-
-            <span> / </span>
-
-            <button class="btn" @click.prevent.stop="toggleMode"> 拖动/选中</button>
-
-            <span> / </span>
-
-            <select v-model="dataSource" @change="loadChart">
-                <option disabled value="">Please select one</option>
-                <option>tinyChartData</option>
-                <option>smallChartData</option>
-                <option>chartData</option>
-                <option>bigChartData</option>
-                <option>airRoutes</option>
-            </select>
-            <span>Selected: {{ dataSource }}</span>
-        </div>
-        <div id="renderArea" class="render-area"></div>
-    </div>
+  <div class="canvas-container">
+    <!-- 分析画布 -->
+    <div class="action-container"></div>
+    <div id="renderArea" class="render-area"></div>
+  </div>
 </template>
 
 <script>
-    import graphz from 'graphz';
-    import loadAirRoutes from "./loadAirRoutes";
+import graphz from "graphz";
 
-    export default {
-        data() {
-            return {
-                dataSource: 'tinyChartData',
-            };
-        },
-        created() {
+export default {
+  data() {
+    return {};
+  },
+  created() {},
+  mounted() {
+    this.init();
+  },
+  methods: {
+    async init() {
+      const globalELPModelResponse = await fetch(
+        "/static/data/globalELPModel.json"
+      );
+      const globalELPModel = await globalELPModelResponse.json();
 
-        },
-        mounted() {
-            this.init();
-        },
-        methods: {
-            async init() {
-                const globalELPModelResponse = await fetch('/static/data/globalELPModel.json');
-                const globalELPModel = await globalELPModelResponse.json();
+      this.chart = new graphz.Chart({
+        elpData: globalELPModel,
+        container: "renderArea"
+      });
 
-                this.chart = new graphz.Chart({
-                    elpData: globalELPModel,
-                    container: 'renderArea'
-                });
+      this.chart.initAssets({ font: "/static/font/noto.fnt" }).then(() => {
+        this.loadChart();
+      });
+    },
 
-                this.chart.initAssets({ font: '/static/font/noto.fnt' }).then(() => {
-                    this.loadChart();
-                });
-            },
+    async loadChart() {
+      await this.chart.clearGraph();
 
-            async loadChart() {
-                await this.chart.clearGraph();
+      let chartData = {
+        entities: [
+          {
+            type: "people",
+            id: "people~`#321284198702201103",
+            label: "321284198702201103",
+            style: null,
+            properties: {
+              _$x: -288.04855570159026,
+              _$y: -363.5339239270416
+            }
+          }
+        ],
+        links: []
+      };
 
-                let chartData;
-                if (this.dataSource === 'airRoutes') {
-                    chartData = await loadAirRoutes();
-                } else {
-                    const chartDataResponse = await fetch(`/static/data/${this.dataSource}.json`);
-                    chartData = await chartDataResponse.json();
-                }
-
-                this.chart.execute('addSubGraph', chartData).then(() => {
-                    console.log('add data success!')
-                    this.chart.renderer.setNodesToFullScreen();
-                });
-            },
-
-            setLayoutType(layoutType) {
-                this.chart.execute('setLayoutType', layoutType);
-            },
-
-            forceLayout() {
-                this.chart.renderer.force().then(() => {
-                    this.chart.renderer.setNodesToFullScreen();
-                });
-            },
-
-            circleLayout() {
-                this.chart.renderer.circle().then(() => {
-                    this.chart.renderer.setNodesToFullScreen();
-                });
-            },
-
-            radiateLayout() {
-                this.chart.renderer.radiate().then(() => {
-                    this.chart.renderer.setNodesToFullScreen();
-                });
-            },
-
-            structuralLayout() {
-                this.chart.renderer.structural().then(() => {
-                    this.chart.renderer.setNodesToFullScreen();
-                });
-            },
-
-            layeredLayout() {
-                this.chart.renderer.layered().then(() => {
-                    this.chart.renderer.setNodesToFullScreen();
-                });
-            },
-
-            forceLayoutWASM() {
-                this.chart.renderer.WASMLayout('force').then(() => {
-                    this.chart.renderer.setNodesToFullScreen();
-                });
-            },
-
-            circleLayoutWASM() {
-                this.chart.renderer.WASMLayout('circle').then(() => {
-                    this.chart.renderer.setNodesToFullScreen();
-                });
-            },
-
-            rotateLayoutWASM() {
-                this.chart.renderer.WASMLayout('rotate').then(() => {
-                    this.chart.renderer.setNodesToFullScreen();
-                });
-            },
-
-            spreadLayoutWASM() {
-                this.chart.renderer.WASMLayout('spread').then(() => {
-                    this.chart.renderer.setNodesToFullScreen();
-                });
-            },
-
-            shrinkLayoutWASM() {
-                this.chart.renderer.WASMLayout('shrink').then(() => {
-                    this.chart.renderer.setNodesToFullScreen();
-                });
-            },
-
-            zoomScreen() {
-                this.chart.renderer.zoomIn();
-            },
-
-            toggleMode() {
-                this.chart.renderer.toggleMode();
-            },
-        },
+      this.chart.execute("addSubGraph", chartData).then(() => {
+        console.log("add data success!");
+        this.chart.renderer.setNodesToFullScreen();
+      });
     }
+  }
+};
 </script>
 
 <style lang="scss">
 .canvas-container {
-    position: relative;
+  position: relative;
+  width: 100%;
+  height: 100%;
+
+  .render-area {
     width: 100%;
     height: 100%;
-
-    .render-area {
-        width: 100%;
-        height: 100%;
-    }
+  }
 }
 
-    .action-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-    }
-
-
+.action-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
 </style>

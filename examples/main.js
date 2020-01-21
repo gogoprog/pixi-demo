@@ -5,10 +5,7 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 import App from './App.vue';
 
-import Simple from "./examples/Simple.vue";
-import SimpleResource from "./examples/SimpleResource.vue";
 import Layout from "./examples/Layout.vue";
-import Performance from "./examples/Performance.vue";
 
 Vue.use(VueRouter);
 
@@ -17,21 +14,9 @@ Vue.config.debug = true;
 
 const routes = [
     {
-        path: '/simple',
-        component: Simple,
-    },
-    {
-        path: '/simple-resource',
-        component: SimpleResource,
-    },
-    {
         path: '/layout',
         component: Layout,
     },
-    {
-        path: '/performance',
-        component: Performance,
-    }
 ];
 
 const router = new VueRouter({

@@ -1,13 +1,11 @@
 // 在PixiRenderer中的调用方式： SelectionManager.call(root, nodeContainer, lineContainer);
-export default function SelectionManager(nodeContainer, linkContainer) {
+export default function SelectionManager(nodeContainer) {
     this.nodeContainer = nodeContainer;
-    this.linkContainer = linkContainer;
     // root中有isDirty
     this.isDirty = false;
 
     this.deselectAll = function () {
         this.nodeContainer.deselectAllNodes();
-        this.linkContainer.deselectAllLinks();
     };
 
     this.handleMouseUp = function (e) {
@@ -34,19 +32,6 @@ export default function SelectionManager(nodeContainer, linkContainer) {
                 this.nodeContainer.selectNode(node);
             }
             this.nodeContainer.recentlySelected = null;
-        } else if (this.linkContainer.recentlySelected) {
-            const line = this.linkContainer.recentlySelected;
-            if (mouseEvent.ctrlKey) {
-                if (line.selected) {   // multi-selecting
-                    this.linkContainer.deselectLink(line);
-                } else {
-                    this.linkContainer.selectLink(line);
-                }
-            } else {
-                this.deselectAll();
-                this.linkContainer.selectLink(line);
-            }
-            this.linkContainer.recentlySelected = null;
         } else {
             // 非ctrl键时，取消选中
             if (!this.parent.selectRegion && !mouseEvent.ctrlKey) {

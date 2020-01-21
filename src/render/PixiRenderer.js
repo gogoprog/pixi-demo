@@ -12,16 +12,13 @@ import WASMGenerator from "./layout/WASMLayout/WASMGenerator";
 import Graph from './Graph';
 
 import SelectionManager from './SelectionManager';
-import { zoom, rootCaptureHandler, nodeCaptureListener, rootRightupHandler } from './customizedEventHandling';
+import { zoom, rootCaptureHandler, nodeCaptureListener } from './customizedEventHandling';
 
-import SimpleLineSprite from './sprite/SimpleLineSprite';
 import SimpleNodeSprite from './sprite/SimpleNodeSprite';
 import NodeContainer from './plugin/node/NodeContainer';
-import LinkContainer from './plugin/link/LinkContainer';
 
 import AnimationAgent from './AnimationAgent';
 import FPSCounter from './FPSCounter';
-import extract from './extract';
 import allEntities from "graphz/assets/images/allentities";
 import { getMyBounds } from './boundsHelper';
 import { base64toBlob } from "graphz/render/Utils";
@@ -32,8 +29,6 @@ export default function (options) {
     let graph = Graph();
 
     const visualConfig = options.visualConfig;
-
-    const showDebugMarkup = false;
 
     const canvas = options.container;
 
@@ -58,9 +53,6 @@ export default function (options) {
     const labelContainer = new PIXI.Container();
     labelContainer.interactive = false;
     labelContainer.interactiveChildren = false;
-    const selectRegionGraphics = new PIXI.Graphics();
-    const connectLineGraphics = new PIXI.Graphics();
-    const linkContainer = new LinkContainer(visualConfig);
     const iconContainer = new PIXI.Container();
     iconContainer.interactive = false;
     iconContainer.interactiveChildren = false;
@@ -69,14 +61,9 @@ export default function (options) {
     root.height = viewHeight;
     root.parent = stage;
     stage.addChild(root);
-    stage.addChild(selectRegionGraphics);
-
-    selectRegionGraphics.zIndex = 11;
-    connectLineGraphics.zIndex = 11;
     textContainer.zIndex = 15;
     nodeContainer.zIndex = 20;
 
-    root.addChild(linkContainer);
     root.addChild(labelContainer);
     root.addChild(textContainer);
     root.addChild(nodeContainer);
@@ -97,7 +84,7 @@ export default function (options) {
 
     renderer.backgroundColor = visualConfig.backgroundColor;
 
-    SelectionManager.call(root, nodeContainer, linkContainer);
+    SelectionManager.call(root, nodeContainer);
 
     root.on('mouseup', function (e) {
         isDirty = true;
@@ -133,9 +120,6 @@ export default function (options) {
     // layout 相关,把移动位置同步到layout内部
     nodeContainer.selectedNodesPosChanged = function () {
         isDirty = true;
-        // _.each(nodeContainer.nodes, (node) => {
-        //     layout.setNodePosition(node.id, node.position.x, node.position.y);
-        // });
     };
 
     stage.releaseConnectLine = function(oldPosition, newPosition) {
@@ -185,147 +169,14 @@ export default function (options) {
                 nodeContainer.selectNode(n);
             }
         });
-
-        if (onlyNodeFlag) {
-            return;
-        }
-
-        const rectBox = {xl, xr, yt, yb};
-        _.each(linkSprites, (link) => {
-            let detectFlag = pixiGraphics.detectLinkSelect(link, rectBox);
-            if (detectFlag) {
-                linkContainer.selectLink(link);
-            }
-        });
-    };
-
-    /**
-     * {x0, y0} click point
-     * @param {*} x0
-     * @param {*} y0
-     */
-    stage.selectSingleNode = function (x0, y0) {
-        isDirty = true;
-
-        _.each(nodeSprites, (n) => {
-            const size = 128 * n.scale.x;
-            console.log(`size: ${size}`);
-        });
-    };
-
-    /**
-     * {x0, y0} click point
-     * @param {*} x0
-     * @param {*} y0
-     */
-    stage.selectSingleLink = function (x0, y0) {
-        isDirty = true;
-        const xl = x0 - 1;
-        const xr = x0 + 1;
-        const yt = y0 - 1;
-        const yb = y0 + 1;
-        const rectBox = {xl, xr, yt, yb};   // {x0, y0} as a center point to construct a rectangle
-
-        _.each(linkSprites, (link) => {
-            let detectFlag = pixiGraphics.detectLinkSelect(link, rectBox);
-            // 判断是否点击在链接箭头上
-            if (!detectFlag) {
-                const height = 3.2 * link.thickness;
-                const width = 9.6 * link.thickness;
-
-                let leftTopX = link.perpendicularVector[0] * height + link.midX;
-                let leftTopY = link.perpendicularVector[1] * height + link.midY;
-                let leftBottomX = -link.perpendicularVector[0] * height + link.midX;
-                let leftBottomY = -link.perpendicularVector[1] * height + link.midY;
-                let rightX = link.unitVector[0] * width + link.midX;
-                let rightY = link.unitVector[1] * width + link.midY;
-
-                detectFlag = pixiGraphics.isPointInTriangle(x0, y0, leftTopX, leftTopY, leftBottomX, leftBottomY, rightX, rightY);
-            }
-
-            if (detectFlag) {
-                linkContainer.linkSelected(link);
-            }
-        });
-    };
-
-    /**
-     * {x0, y0} rightup click point
-     * @param {*} x0
-     * @param {*} y0
-     */
-    stage.rightSelectHandler = function (e, x0, y0) {
-        isDirty = true;
-
-        let detectedNode = null;
-        let detectedLink = null;
-
-        if( e.target instanceof SimpleNodeSprite) {
-            // console.log('Right up on node');
-            if (!e.target.selected) {
-                nodeContainer.selectNode(e.target);
-            }
-            selectionChanged();
-            detectedNode = e.target;
-        } else {
-            const xl = x0 - 1;
-            const xr = x0 + 1;
-            const yt = y0 - 1;
-            const yb = y0 + 1;
-            const rectBox = {xl, xr, yt, yb};   // {x0, y0} as a center point to construct a rectangle
-
-
-            for (const linkId in linkSprites)
-            {
-                const link = linkSprites[linkId];
-
-                let detectFlag = pixiGraphics.detectLinkSelect(link, rectBox);
-                // 判断是否点击在链接箭头上
-                if (!detectFlag) {
-                    const height = 3.2 * link.thickness;
-                    const width = 9.6 * link.thickness;
-
-                    let leftTopX = link.perpendicularVector[0] * height + link.midX;
-                    let leftTopY = link.perpendicularVector[1] * height + link.midY;
-                    let leftBottomX = -link.perpendicularVector[0] * height + link.midX;
-                    let leftBottomY = -link.perpendicularVector[1] * height + link.midY;
-                    let rightX = link.unitVector[0] * width + link.midX;
-                    let rightY = link.unitVector[1] * width + link.midY;
-
-                    detectFlag = pixiGraphics.isPointInTriangle(x0, y0, leftTopX, leftTopY, leftBottomX, leftBottomY, rightX, rightY);
-                }
-
-                if (detectFlag) {
-                    // linkContainer.linkSelected(link);
-                    linkContainer.selectLink(link);
-                    selectionChanged();
-                    detectedLink = link;
-                    break;
-                }
-            }
-        }
-
-        let event = {};
-        if (detectedNode) {
-            event = { type: 'node', original: e , target: e.target.data };
-        } else if (detectedLink) {
-            event = { type: 'link' , original: e, target: detectedLink.data};
-        } else {
-            event = { type: 'blank', original: e , target: null};
-        }
-
-        fireContextmenu(event);
     };
 
     /**
      * Very Very Important Variables
      * nodeSprites is for all of the nodes, their attribute can be found in initNode;
-     * linkSprites is for all of the links, their attribute can be found in SimpleLineSprite;
      */
     let nodeSprites = {};
     let linkSprites = {};
-    // 将linkSprites设置进linkContainer以便画线
-    linkContainer.linkSprites = linkSprites;
 
     /**
      * now we vindicate a map for nodes to draw boundary.
@@ -336,7 +187,6 @@ export default function (options) {
     const nodeNeedBoundary = {};
 
     graph.forEachNode(initNode);
-    graph.forEachLink(initLink);
     // setupWheelListener(canvas, root); // wheel listener 现在在外部模板内设置，通过zoom接口来调用renderer的缩放方法。
     const counter = new FPSCounter();
     let dynamicLayout = false;
@@ -350,10 +200,6 @@ export default function (options) {
     if (!stage.downListener) {
         stage.downListener = rootCaptureHandler.bind(stage);
         stage.on('mousedown', stage.downListener);
-    }
-    if (!stage.rightupListener) {
-        stage.rightupListener = rootRightupHandler.bind(stage);
-        stage.on('rightup', stage.rightupListener);
     }
 
     // add animation
@@ -489,14 +335,6 @@ export default function (options) {
         },
 
         /**
-         * get selected Links,
-         * links of nodeContainer are selected @SelectionManager.js
-         */
-        getSelectedLinks() {
-            return linkContainer.links;
-        },
-
-        /**
          * get selected nodes data,
          * nodes of nodeContainer are selected @SelectionManager.js
          */
@@ -514,9 +352,6 @@ export default function (options) {
          */
         getSelectedLinksData() {
             const selectedLinks = [];
-            _.each(linkContainer.links, (ls) => {
-                selectedLinks.push(Object.assign({}, ls.data));
-            });
             return selectedLinks;
         },
 
@@ -744,14 +579,6 @@ export default function (options) {
                     }
                 });
             }
-            if (linkIdArray) {
-                _.each(linkSprites, (linkSprite) => {
-                    const actualId = linkSprite.id;
-                    if (_.indexOf(linkIdArray, actualId) >= 0) {
-                        linkContainer.deselectLink(linkSprite);
-                    }
-                });
-            }
             selectionChanged();
         },
 
@@ -765,40 +592,11 @@ export default function (options) {
                     }
                 });
             }
-            _.each(linkSprites, (linkSprite) => {
-                const actualId = linkSprite.id;
-                if (_.indexOf(linkIdArray, actualId) >= 0) {
-                    linkContainer.selectLink(linkSprite);
-                }
-            });
             selectionChanged();
         },
 
         clearSelection() {
             root.deselectAll();
-            selectionChanged();
-        },
-
-        selectLinksFromNodes(startingNodes, direction, alsoSelectNodes) {
-            isDirty = true;
-            _.each(startingNodes, (n) => {
-                if (direction === 'both' || direction === 'in') {
-                    _.each(n.incoming, (l) => {
-                        linkContainer.selectLink(l);
-                        if (alsoSelectNodes) {
-                            nodeContainer.selectNode(nodeSprites[l.data.sourceEntity]);
-                        }
-                    });
-                }
-                if (direction === 'both' || direction === 'out') {
-                    _.each(n.outgoing, (l) => {
-                        linkContainer.selectLink(l);
-                        if (alsoSelectNodes) {
-                            nodeContainer.selectNode(nodeSprites[l.data.targetEntity]);
-                        }
-                    });
-                }
-            });
             selectionChanged();
         },
 
@@ -818,22 +616,8 @@ export default function (options) {
             selectionChanged();
         },
 
-        /**
-         * 选择端点和链接
-         * @param {[]} selectedNodes nodeSprite
-         * @param {[]} selectedLinks linkSprite
-         */
-        selectNodesAndLinks(selectedNodes, selectedLinks) {
-            isDirty = true;
-            this.selectLinksFromNodes(selectedNodes, 'both', true);
-            this.selectNodesOfLinks(selectedLinks);
-        },
-
         selectAll() {
             isDirty = true;
-            _.each(linkSprites, (l) => {
-                linkContainer.selectLink(l);
-            });
             _.each(nodeSprites, (n) => {
                 nodeContainer.selectNode(n);
             });
@@ -842,13 +626,6 @@ export default function (options) {
 
         selectReverseSelection() {
             isDirty = true;
-            _.each(linkSprites, (l) => {
-                if (l.selected) {
-                    linkContainer.deselectLink(l);
-                } else {
-                    linkContainer.selectLink(l);
-                }
-            });
             _.each(nodeSprites, (n) => {
                 if (n.selected) {
                     nodeContainer.deselectNode(n);
@@ -899,69 +676,12 @@ export default function (options) {
             graph = null;
             counter.destroy();
 
-            selectRegionGraphics.destroy(false);
-            connectLineGraphics.destroy(false);
             textContainer.destroy(false);
-            linkContainer.destroy(false);
             nodeContainer.destroy(false);
             // lineContainer.destroy(false);
             root.destroy(false);
             stage.destroy(false);   // false to not let pixi containers destroy sprites.
             renderer.destroy(true); // true for removing the underlying view(canvas)
-        },
-
-        /**
-         * 力导向布局
-         */
-        async force() {
-            layoutType = 'Network';
-            layout = new ForceLayout(nodeSprites, linkSprites, nodeContainer, visualConfig);
-            await layout.run();
-            return Promise.resolve();
-        },
-
-        /**
-         * WASM方式实现的布局
-         */
-        WASMLayout(wasmType) {
-            layout = new WASMGenerator(nodeSprites, linkSprites, nodeContainer, visualConfig);
-            return layout.run(wasmType);
-        },
-
-        /**
-         * 圆形布局
-         */
-        circle() {
-            layoutType = 'Circular';
-            layout = new CircleLayout(nodeSprites, linkSprites, nodeContainer, visualConfig);
-            return layout.run();
-        },
-
-        /**
-         * 辐射布局
-         */
-        radiate() {
-            layoutType = 'Radiate';
-            layout = new RadiateLayout(nodeSprites, linkSprites, nodeContainer, visualConfig);
-            return layout.run();
-        },
-
-        /**
-         * 结构布局
-         */
-        structural() {
-            layoutType = 'Structural';
-            layout = new StructuralLayout(nodeSprites, linkSprites, nodeContainer, visualConfig);
-            return layout.run();
-        },
-
-        /**
-         * 层次布局
-         */
-        layered() {
-            layoutType = 'Layered';
-            layout = new LayeredLayout(nodeSprites, linkSprites, nodeContainer, visualConfig);
-            return layout.run();
         },
 
         setTwoNodeLayoutInXDireaction(nodeIDArray) {
@@ -1035,9 +755,6 @@ export default function (options) {
         getNode(nodeId) {
             return graph.getNode(nodeId);
         },
-        removeLink(link) {
-            return graph.removeLink(link);
-        },
         forEachNode(func) {
             return graph.forEachNode(func);
         },
@@ -1101,44 +818,6 @@ export default function (options) {
             canvas.addEventListener(eventName, func, state);
         },
 
-        modifyNodeLabel(nodeLabelsObj) {
-            for (const nodeId in nodeLabelsObj) {
-                const nodeSprite = nodeSprites[nodeId];
-                nodeSprite.updateLabel();
-            }
-        },
-
-        // convert the canvas drawing buffer into base64 encoded image url
-        exportImage(width, height) {
-            return new Promise((resolve, reject) => {
-                let imageCanvas;
-                if (renderer.gl) {
-                    imageCanvas = extract.webglExport(renderer, root, width, height);
-                } else {
-                    imageCanvas = extract.canvasExport(renderer, root, width, height);
-                }
-                const displayCanvas = new PIXI.CanvasRenderTarget(width, height);
-                const hRatio = width / imageCanvas.width;
-                const vRatio = height / imageCanvas.height;
-                const ratio = Math.min(hRatio, vRatio);
-                const shiftX = (width - imageCanvas.width * ratio) / 2;
-                const shiftY = (height - imageCanvas.height * ratio) / 2;
-
-                displayCanvas.context.fillStyle = `#${visualConfig.backgroundColor.toString(16)}`;
-                displayCanvas.context.fillRect(0, 0, width, height);
-                if (imageCanvas.width || imageCanvas.height) {
-                    displayCanvas.context.drawImage(imageCanvas, 0, 0, imageCanvas.width, imageCanvas.height, shiftX, shiftY, imageCanvas.width * ratio, imageCanvas.height * ratio);
-                }
-
-                resolve(displayCanvas.canvas.toDataURL());
-            });
-        },
-
-        // the default parameter is double size of bird view
-        // getBirdViewCanvas(width = 340, height = 260) {
-        //     return renderer.gl ? extract.webglExport(renderer, root, width, height) : extract.canvasExport(renderer, root, width, height);
-        // },
-
         lock(nodes) {
             isDirty = true;
             for (const node of nodes) {
@@ -1167,410 +846,6 @@ export default function (options) {
             isDirty = true;
             renderer.resize(width, height);
         },
-
-        /**
-         * 左对齐
-         * @param {[]} nodes nodeSprite
-         */
-        alignLeft(nodes) {
-            this._checkNodes(nodes);
-
-            isDirty = true;
-            let minPositionX = Number.MAX_SAFE_INTEGER;
-            for (const node of nodes) {
-                const leftBorder = node.position.x - node.scale.x * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
-                if (leftBorder < minPositionX) {
-                    minPositionX = leftBorder;
-                }
-            }
-
-            for (const node of nodes) {
-                node.position.x = minPositionX + node.scale.x *  visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
-                node.updateNodePosition(node.position, true);
-                nodeContainer.nodeMoved(node);
-            }
-        },
-
-        /**
-         * 右对齐
-         * @param {[]} nodes nodeSprite
-         */
-        alignRight(nodes) {
-            this._checkNodes(nodes);
-
-            isDirty = true;
-            let maxPositionX = Number.MIN_SAFE_INTEGER;
-            for (const node of nodes) {
-                const rightBorder = node.position.x + node.scale.x * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
-                if (rightBorder > maxPositionX) {
-                    maxPositionX = rightBorder;
-                }
-            }
-
-            for (const node of nodes) {
-                node.position.x = maxPositionX - node.scale.x * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
-                node.updateNodePosition(node.position, true);
-                nodeContainer.nodeMoved(node);
-            }
-        },
-
-        /**
-         * 垂直对齐
-         * @param {[]} nodes nodeSprite
-         */
-        alignVertical(nodes) {
-            this._checkNodes(nodes);
-
-            isDirty = true;
-            let sumPositionX = 0;
-            for (const node of nodes) {
-                sumPositionX += node.position.x;
-            }
-            const avgPositionX = sumPositionX / nodes.length;
-
-            for (const node of nodes) {
-                node.position.x = avgPositionX;
-                node.updateNodePosition(node.position, true);
-                nodeContainer.nodeMoved(node);
-            }
-        },
-
-        /**
-         * 水平对齐
-         * @param {[]} nodes nodeSprite
-         */
-        alignHorizontal(nodes) {
-            this._checkNodes(nodes);
-
-            isDirty = true;
-            let sumPositionY = 0;
-            for (const node of nodes) {
-                sumPositionY += node.position.y;
-            }
-            const avgPositionY = sumPositionY / nodes.length;
-
-            for (const node of nodes) {
-                node.position.y = avgPositionY;
-                node.updateNodePosition(node.position, true);
-                nodeContainer.nodeMoved(node);
-            }
-        },
-
-        /**
-         * 底端对齐
-         * @param {[]]} nodes nodeSprite
-         */
-        alignBottom(nodes) {
-            this._checkNodes(nodes);
-
-            isDirty = true;
-            let maxPositionY = Number.MIN_SAFE_INTEGER;
-            for (const node of nodes) {
-                const bottomBorder = node.position.y + node.scale.y * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
-                if (bottomBorder > maxPositionY) {
-                    maxPositionY = bottomBorder;
-                }
-            }
-
-            for (const node of nodes) {
-                node.position.y = maxPositionY - node.scale.y * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
-                node.updateNodePosition(node.position, true);
-                nodeContainer.nodeMoved(node);
-            }
-        },
-
-        /**
-         * 顶端对齐
-         * @param {[]} nodes nodeSprite
-         */
-        alignTop(nodes) {
-            this._checkNodes(nodes);
-
-            isDirty = true;
-            let minPositionY = Number.MAX_SAFE_INTEGER;
-            for (const node of nodes) {
-                const topBorder = node.position.y - node.scale.y * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
-                if (topBorder < minPositionY) {
-                    minPositionY = topBorder;
-                }
-            }
-
-            for (const node of nodes) {
-                node.position.y = minPositionY + node.scale.y * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
-                node.updateNodePosition(node.position, true);
-                nodeContainer.nodeMoved(node);
-            }
-        },
-
-        /**
-         * 横向分布
-         * @param {[]} nodes nodeSprite
-         */
-        horizontalDistribution(nodes) {
-            this._checkNodes(nodes);
-
-            const topLeft = root.worldTransform.applyInverse({x: 0, y: 0});
-            const bottomRight = root.worldTransform.applyInverse({x: viewWidth, y: viewHeight});
-            isDirty = true;
-            nodes.sort((a, b) => {
-                return a.position.x - b.position.x;
-            });
-
-            const nodesSize = nodes.length - 1;
-            const minPositionX = nodes[0].position.x;
-            const maxPositionX = nodes[nodesSize].position.x;
-            let stepSize = (maxPositionX - minPositionX) / nodesSize;
-            const distance = nodes[0].scale.x * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5 + nodes[nodesSize].scale.x * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
-            if (stepSize < distance && (minPositionX > topLeft.x || maxPositionX < bottomRight.x)) { // 选择的实体之间距离过小，并且X轴最小或最大位置在可视范围内，则尝试移动X轴最小、最大的位置以分布其中的其它元素
-                const diff = (distance - stepSize) * nodesSize;
-                let hasmoved = false;
-                if (minPositionX - topLeft.x > bottomRight.x - maxPositionX) { // X轴位置最小 离左边距距离 大于 X轴位置最大 离右边距距离
-                    if (minPositionX - diff > topLeft.x) { // X轴位置最小 向左移动diff后还在图表可视范围内
-                        nodes[0].position.x = minPositionX - diff;
-                        stepSize = distance;
-                        hasmoved = true;
-                        nodes[0].updateNodePosition(nodes[0].position, true);
-                        nodeContainer.nodeMoved(nodes[0]);
-                    }
-                } else {
-                    if (maxPositionX + diff < bottomRight.x) { // X轴位置最大 向右移动diff后还在图表可视范围内
-                        nodes[nodesSize].position.x = maxPositionX + diff;
-                        stepSize = distance;
-                        hasmoved = true;
-                        nodes[nodesSize].updateNodePosition(nodes[nodesSize].position, true);
-                        nodeContainer.nodeMoved(nodes[nodesSize]);
-                    }
-                }
-
-                if (!hasmoved) {
-                    if (minPositionX - diff / 2 > topLeft.x && maxPositionX + diff / 2 < bottomRight.x) { // X轴 向左移动或向右移动diff后不在图表可视范围内，则X轴位置最小 向左移动diff/2后在图表可视范围内并且X轴位置最大 向右移动diff/2后在图表可视范围内
-                        nodes[0].position.x = minPositionX - diff / 2;
-                        nodes[nodesSize].position.x = maxPositionX + diff / 2;
-                        stepSize = distance;
-                        nodes[0].updateNodePosition(nodes[0].position, true);
-                        nodeContainer.nodeMoved(nodes[0]);
-                        nodes[nodesSize].updateNodePosition(nodes[nodesSize].position, true);
-                        nodeContainer.nodeMoved(nodes[nodesSize]);
-                    }
-                }
-            }
-
-            for (let i = 1; i < nodesSize; i++) { // 横向分布，其它实体均匀分布之间
-                const node = nodes[i];
-                node.position.x = nodes[i-1].position.x + stepSize;
-                node.updateNodePosition(node.position, true);
-                nodeContainer.nodeMoved(node);
-            }
-        },
-
-        /**
-         * 纵向分布
-         * @param {[]} nodes nodeSprite
-         */
-        verticalDistribution(nodes) {
-            this._checkNodes(nodes);
-
-            const topLeft = root.worldTransform.applyInverse({x: 0, y: 0});
-            const bottomRight = root.worldTransform.applyInverse({x: viewWidth, y: viewHeight});
-            isDirty = true;
-            nodes.sort((a, b) => {
-                return a.position.y - b.position.y;
-            });
-
-            const nodesSize = nodes.length - 1;
-            const minPositionY = nodes[0].position.y;
-            const maxPositionY = nodes[nodesSize].position.y;
-            let stepSize = (maxPositionY - minPositionY) / nodesSize;
-            const distance = nodes[0].scale.y * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5 + nodes[nodesSize].scale.y * visualConfig.NODE_SELECTION_FRAME_WIDTH * 0.5;
-            if (stepSize < distance && (minPositionY > topLeft.y || maxPositionY < bottomRight.y)) { // 选择的实体之间距离过小，并且Y轴最小或最大位置在可视范围内，则尝试移动Y轴最小、最大的位置以分布其中的其它元素
-                const diff = (distance - stepSize) * nodesSize;
-                let hasmoved = false;
-                if (minPositionY - topLeft.y > bottomRight.y - maxPositionY) { // Y轴位置最小 离顶部距距离 大于 Y轴位置最大 离底部距距离
-                    if (minPositionY - diff > topLeft.y) { // Y轴位置最小 向上移动diff后还在图表可视范围内
-                        nodes[0].position.y = minPositionY - diff;
-                        stepSize = distance;
-                        hasmoved = true;
-                        nodes[0].updateNodePosition(nodes[0].position, true);
-                        nodeContainer.nodeMoved(nodes[0]);
-                    }
-                } else {
-                    if (maxPositionY + diff < bottomRight.y) { // Y轴位置最大 向下移动diff后还在图表可视范围内
-                        nodes[nodesSize].position.y = maxPositionY + diff;
-                        stepSize = distance;
-                        hasmoved = true;
-                        nodes[nodesSize].updateNodePosition(nodes[nodesSize].position, true);
-                        nodeContainer.nodeMoved(nodes[nodesSize]);
-                    }
-                }
-
-                if (!hasmoved) {
-                    if (minPositionY - diff / 2 > topLeft.y && maxPositionY + diff / 2 < bottomRight.y) { // Y轴 向上移动或向下移动diff后不在图表可视范围内，则Y轴位置最小 向左移动diff/2后在图表可视范围内并且Y轴位置最大 向右移动diff/2后在图表可视范围内
-                        nodes[0].position.y = minPositionY - diff / 2;
-                        nodes[nodesSize].position.y = maxPositionY + diff / 2;
-                        stepSize = distance;
-                        nodes[0].updateNodePosition(nodes[0].position, true);
-                        nodeContainer.nodeMoved(nodes[0]);
-                        nodes[nodesSize].updateNodePosition(nodes[nodesSize].position, true);
-                        nodeContainer.nodeMoved(nodes[nodesSize]);
-                    }
-                }
-            }
-
-            for (let i = 1; i < nodesSize; i++) { // 纵向分布，其它实体均匀分布之间
-                const node = nodes[i];
-                node.position.y = nodes[i-1].position.y + stepSize;
-                node.updateNodePosition(node.position, true);
-                nodeContainer.nodeMoved(node);
-            }
-        },
-
-        /**
-         * 向上移动
-         * @param nodes
-         * @param direction
-         */
-        move(nodes, direction) {
-            nodes.forEach((node) => {
-                if (direction === 'up') {
-                    node.position.y--;
-                } else if (direction === 'down'){
-                    node.position.y++;
-                } else if (direction === 'left'){
-                    node.position.x--;
-                } else if (direction === 'right'){
-                    node.position.x++;
-                }
-                node.updateNodePosition(node.position, true);
-                nodeContainer.nodeMoved(node);
-            });
-        },
-
-        /**
-         * 检查参数是否合法
-         * @param {[]} nodes nodeSprite
-         */
-        _checkNodes(nodes) {
-            if (!nodes || !nodes.length || nodes.length < 2) {
-                throw new Error('select nodes must exists and length must greater than 1');
-            }
-        },
-
-        // 判断点P(x, y)与有向直线P1P2的关系. 小于0表示点在直线左侧，等于0表示点在直线上，大于0表示点在直线右侧
-        evaluatePointToLine(x, y, x1, y1, x2, y2) {
-            const a = y2 - y1;
-            const b = x1 - x2;
-            const c = x2 * y1 - x1 * y2;
-            return a * x + b * y + c;
-        },
-
-        // 判断点P(x, y)是否在点P1(x1, y1), P2(x2, y2), P3(x3, y3)构成的三角形内（包括边）
-        isPointInTriangle(x, y, x1, y1, x2, y2, x3, y3) {
-            // 分别计算点P与有向直线P1P2, P2P3, P3P1的关系，如果都在同一侧则可判断点在三角形内
-            // 注意三角形有可能是顺时针(d>0)，也可能是逆时针(d<0)。
-            const d1 = pixiGraphics.evaluatePointToLine(x, y, x1, y1, x2, y2);
-            const d2 = pixiGraphics.evaluatePointToLine(x, y, x2, y2, x3, y3);
-            if (d1 * d2 < 0) {
-                return false;
-            }
-            const d3 = pixiGraphics.evaluatePointToLine(x, y, x3, y3, x1, y1);
-            if (d2 * d3 < 0) {
-                return false;
-            }
-            return true;
-        },
-
-        /**
-         * detect whether the linkSprite is selected.
-         * @param {*} linkSprite link sprite object
-         * @param {*} rectBox rectBox select region as a rectangle or click point spread as a rectangle;
-         */
-        detectLinkSelect(linkSprite, rectBox) {
-            const link = linkSprite;
-
-            // linkPosition x1, y1 as straight line's from point,  x2, y2 as straight line's end point
-            let detectFlag = false;
-            let linkPosition = {};
-            if (link._controlOffsetIndex === 0 && link.data.sourceEntity !== link.data.targetEntity) { // straight line and not self link
-                linkPosition = {x1: link.x1, y1: link.y1, x2: link.x2, y2: link.y2};
-                detectFlag = pixiGraphics.linkCollisionDetect(link, rectBox);
-            } else {    // polyline consist of three strainght lines, when one of three strainght lines is detect as true, it is not necessary to detect other strainght line
-                linkPosition = {x1: link.x1, y1: link.y1, x2: link.fx, y2: link.fy};  // first strainght line
-                detectFlag = pixiGraphics.linkCollisionDetect(linkPosition, rectBox);
-
-                if (!detectFlag) {
-                    linkPosition = {x1: link.fx, y1: link.fy, x2: link.tx, y2: link.ty};  // second strainght line
-                    detectFlag = pixiGraphics.linkCollisionDetect(linkPosition, rectBox);
-                }
-
-                if (!detectFlag) {
-                    linkPosition = {x1: link.tx, y1: link.ty, x2: link.x2, y2: link.y2};  // third strainght line
-                    detectFlag = pixiGraphics.linkCollisionDetect(linkPosition, rectBox);
-                }
-            }
-
-            return detectFlag;
-        },
-
-        /**
-         * link and rectangle collision detect.
-         * @param {*} linkPosition link graph link position;
-         * @param {*} rectBox rectBox select region as a rectangle or click point spread as a rectangle;
-         */
-        linkCollisionDetect(linkPosition, rectBox) {
-            const link = linkPosition;
-            const xl = rectBox.xl;
-            const xr = rectBox.xr;
-            const yt = rectBox.yt;
-            const yb = rectBox.yb;
-            let linkXl;
-            let linkXr;
-            let linkYt;
-            let linkYb;
-            if (link.x1 > link.x2) {
-                linkXl = link.x2;
-                linkXr = link.x1;
-            } else {
-                linkXl = link.x1;
-                linkXr = link.x2;
-            }
-            if (link.y1 > link.y2) {
-                linkYt = link.y2;
-                linkYb = link.y1;
-            } else {
-                linkYt = link.y1;
-                linkYb = link.y2;
-            }
-
-            if (linkXl <= xr && linkXr >= xl && linkYt <= yb && linkYb >= yt) { // 矩形碰撞检测  https://silentmatt.com/rectangle-intersection/
-                let x = link.x2 - link.x1;
-                x = x === 0 ? 1 : x;
-                if (linkXl === linkXr) {    // 垂直的链接 水平设置1像素的偏移量
-                    linkXr = linkXl + 1;
-                }
-                const y = link.y2 - link.y1;
-                const rectLeft = Math.max(linkXl, xl);
-                const rectRight = Math.min(linkXr, xr);
-                const rectLeftY = link.y1 + (rectLeft - link.x1) * y / x;
-                const rectRightY = link.y1 + (rectRight - link.x1) * y / x;
-                const rectBottom = Math.max(rectLeftY, rectRightY);
-                const rectTop =  Math.min(rectLeftY, rectRightY);
-
-                if (rectLeft <= xr && rectRight >= xl && rectTop <= yb && rectBottom >= yt) {
-                    return true;
-                }
-            }
-
-            return false;
-        },
-        /**
-         * config change and set
-         * @param {*} newSetting settings update
-         */
-        updateNetworkLayoutSetting(newSetting){
-            // networkLayout.simulator.updateSetting(newSetting.forceLayout);
-            visualConfig.speed = newSetting.speed;
-            visualConfig.rate = newSetting.rate;
-        }
     };
 
 
@@ -1591,10 +866,6 @@ export default function (options) {
         event.preventDefault();
         return false;
     };
-
-    // pixiGraphics.fireBirdViewChangeEvent = _.throttle(()=>{
-    //     pixiGraphics.fire('adjust-bird-view');
-    // }, 1000);
 
     pixiGraphics.addCanvasEventListener('contextmenu', pixiGraphics._contextmenuHandler, false);
 
@@ -1617,92 +888,25 @@ export default function (options) {
         pixiGraphics.fire('contextmenu', event);
     }
 
-    let lastScanTime = 0;
     function animationLoop(now) {
-        lastScanTime = now;
-
         animationAgent.step();
-        // layout.step(now);
 
-        // Every 0.5 second, we check whether to change label's visible property.
-        if (now - lastScanTime > 500) {
-            lastScanTime = now;
-            updateLabelVisibility();
-            isDirty = true;
-        }
-
-        if (isDirty || nodeContainer.isDirty || stage.isDirty || linkContainer.isDirty
+        if (isDirty || nodeContainer.isDirty || stage.isDirty
             || nodeContainer.positionDirty || animationAgent.needRerender()) {
-
-            selectRegionGraphics.clear();
-            if (stage.selectRegion && stage.selectingArea) {
-                drawSelectionRegion();
-            }
-
-            connectLineGraphics.clear();
-            if (stage.connectLine && stage.connectingLine) {
-                drawConnectionLine();
-            }
-
-            if(showDebugMarkup) {
-                drawDebugMarkup();
-            }
 
             renderer.render(stage);
 
             isDirty = false;
             nodeContainer.isDirty = false;
             stage.isDirty = false;
-            linkContainer.isDirty = false;
             nodeContainer.positionDirty = false;
         }
         counter.nextFrame();
         requestAnimationFrame(animationLoop);
     }
 
-    /**
-     * 更新是否显示Label
-     */
-    function updateLabelVisibility() {
-        if (root.scale.x > 0.5) {
-            labelContainer.visible = true;
-
-            let topLeft = root.worldTransform.applyInverse({x: 0, y: 0});
-            let bottomRight = root.worldTransform.applyInverse({x: viewWidth, y: viewHeight});
-            // simple render children!
-            for (const nodeId in nodeSprites)
-            {
-                const node = nodeSprites[nodeId];
-                node.ts.visible = topLeft.x < node.x && node.x < bottomRight.x && topLeft.y < node.y && node.y < bottomRight.y;
-            }
-            for (const linkId in linkSprites)
-            {
-                const link = linkSprites[linkId];
-                const midX = (link.fx + link.tx) / 2;
-                const midY = (link.fy + link.ty) / 2;
-                if ( topLeft.x < midX && midX < bottomRight.x && topLeft.y < midY && midY < bottomRight.y) {
-                    link.label.visible = true;
-                } else {
-                    link.label.visible = false;
-                }
-            }
-        } else {
-            labelContainer.visible = false;
-        }
-    }
-
     function initNode(p) {
         let iconUrl;
-        // 在专题分析时，男性用男的图标表示，女性用女的图标表示
-        if (visualConfig.showIconBasedOnGender) {
-            if (p.data.properties['性别']) {
-                if (p.data.properties['性别'] === '男') {
-                    iconUrl = "/Person/Man.png";
-                } else if (p.data.properties['性别'] === '女') {
-                    iconUrl = "/Person/Lady.png";
-                }
-            }
-        }
 
         if (_.isNil(iconUrl)) {
             iconUrl = pixiGraphics.getEntitySemanticType(p.data.type);
@@ -1749,7 +953,6 @@ export default function (options) {
         nodeSprites[p.id] = nodeSprite;
 
         nodeSprite.on('mousedown', nodeCaptureListener);
-        // nodeSprite.on('rightup', stage.rightSelectHandler);
     }
 
     function adjustControlOffsets(linkSpriteArray, arrangeOnBothSides, avoidZero) {
@@ -1771,57 +974,6 @@ export default function (options) {
             const l = linkSpriteArray[i];
             l.controlOffsetIndex = controlOffsets[i];
         }
-    }
-
-    function initLink(f) {
-        const srcNodeSprite = nodeSprites[f.fromId];
-        const tgtNodeSprite = nodeSprites[f.toId];
-        const sameTgtLink = [];
-        const reverseLink = [];
-        _.each(srcNodeSprite.outgoing, (link) => {
-            if (link.data.targetEntity === f.toId) {
-                sameTgtLink.push(link);
-            }
-        });
-        _.each(tgtNodeSprite.outgoing, (link) => {
-            if (link.data.targetEntity === f.fromId) {
-                reverseLink.push(link);
-            }
-        });
-        const positionOffset = 0;
-
-        const l = new SimpleLineSprite(f.data, visualConfig.ui.line.width, visualConfig.ui.line.color,
-            srcNodeSprite.position.x, srcNodeSprite.position.y,
-            tgtNodeSprite.position.x, tgtNodeSprite.position.y,
-            positionOffset, visualConfig);
-
-        if (sameTgtLink.length > 0 && reverseLink.length === 0) {
-            sameTgtLink.push(l);
-            adjustControlOffsets(sameTgtLink, true);
-        } else if (reverseLink.length > 0 && sameTgtLink.length === 0) {
-            adjustControlOffsets(reverseLink, false, true);
-            sameTgtLink.push(l);
-            adjustControlOffsets(sameTgtLink, false, true);
-        } else if (reverseLink.length > 0 && sameTgtLink.length > 0) {
-            adjustControlOffsets(reverseLink, false, true);
-            sameTgtLink.push(l);
-            adjustControlOffsets(sameTgtLink, false, true);
-        }
-
-        l.ngLink = f;
-
-        l.setLineAttr();
-
-        srcNodeSprite.outgoing.push(l);
-        tgtNodeSprite.incoming.push(l);
-        linkSprites[l.id] = l;
-
-        if (l.label) {
-            labelContainer.addChild(l.label);
-        }
-
-        linkContainer.addLink(l);
-        l.parent = linkContainer;
     }
 
     function listenToGraphEvents() {
@@ -1968,37 +1120,6 @@ export default function (options) {
         }
     }
 
-    function removeLink(link) {
-        isDirty = true;
-        const l = linkSprites[link.id];
-        if (l) {
-            if (l.selected) {
-                linkContainer.deselectLink(l);
-            }
-            if (l.label) {
-                labelContainer.removeChild(l.label);
-            }
-            const srcEntitySprite = nodeSprites[l.data.sourceEntity];
-            const tgtEntitySprite = nodeSprites[l.data.targetEntity];
-            const outLinkIndex = srcEntitySprite.outgoing.indexOf(l);
-            if (outLinkIndex >= 0) {
-                // console.log("Removing link " + l.data.id + "from outgoing links of node: " + srcEntitySprite.id);
-                srcEntitySprite.outgoing.splice(outLinkIndex, 1);
-            }
-            const inLinkIndex = tgtEntitySprite.incoming.indexOf(l);
-            if (inLinkIndex >= 0) {
-                // console.log("Removing link " + l.data.id + "from incoming links of node: " + tgtEntitySprite.id);
-                tgtEntitySprite.incoming.splice(inLinkIndex, 1);
-            }
-            delete linkSprites[l.id];
-            l.destroy();
-
-            linkContainer.removeLink(l.id);
-        } else {
-            console.log(`Could not find link sprite: ${link.id}`);
-        }
-    }
-
     function updateNode(node) {
         const nodeSprite = nodeSprites[node.id];
         nodeSprite.data = node.data;
@@ -2007,13 +1128,6 @@ export default function (options) {
         nodeContainer.updateScale(nodeSprite);
         nodeSprite.updateBorder(textContainer);
         nodeSprite.setNodeIcon(decodeCollectionFlag(node.data.properties._$collectionIds));
-    }
-
-    function updateLink(link) {
-        const linkSprite = linkSprites[link.id];
-        linkSprite.data = link.data;
-        linkSprite.setLineAttr();
-        linkSprite.updateLabel();
     }
 
     function onGraphElpChanged(elpData) {
@@ -2032,22 +1146,13 @@ export default function (options) {
                 if (changeNode) {
                     initNode(changeNode);
                 }
-                if (changeLink) {
-                    initLink(changeLink);
-                }
             } else if (change.changeType === 'remove') {
                 if (changeNode) {
                     removeNode(changeNode);
                 }
-                if (changeLink) {
-                    removeLink(changeLink);
-                }
             } else if (change.changeType === 'update') {
                 if (changeNode) {
                     updateNode(changeNode);
-                }
-                if (changeLink) {
-                    updateLink(changeLink);
                 }
             }
         }
@@ -2065,83 +1170,7 @@ export default function (options) {
                 if (change.node) {
                     initNode(change.node);
                 }
-                if (change.link) {
-                    initLink(change.link);
-                }
             }
         }
     }
-
-    function drawSelectionRegion() {
-        const frameCfg = visualConfig.ui.frame;
-        selectRegionGraphics.lineStyle(frameCfg.border.width, frameCfg.border.color, frameCfg.border.alpha);
-        selectRegionGraphics.beginFill(frameCfg.fill.color, frameCfg.fill.alpha);
-        const width = stage.selectRegion.x2 - stage.selectRegion.x1;
-        const height = stage.selectRegion.y2 - stage.selectRegion.y1;
-        const x = stage.selectRegion.x1;
-        const y = stage.selectRegion.y1;
-        selectRegionGraphics.drawRect(x, y, width, height);
-        // console.log('drawSelectionRegion ' + ' x ' +  x + ' y ' + y + ' width '+ width + ' height' + height);
-
-        if (layoutType === 'TimelineScale') {
-            selectRegionGraphics.isDirty = true;
-        } else {
-            selectRegionGraphics.isDirty = false;
-        }
-    }
-
-    function drawConnectionLine() {
-        const frameCfg = visualConfig.ui.frame;
-        connectLineGraphics.lineStyle(frameCfg.border.width, frameCfg.border.color, frameCfg.border.alpha);
-        connectLineGraphics.beginFill(frameCfg.fill.color, frameCfg.fill.alpha);
-        connectLineGraphics.moveTo(stage.connectLine.x1, stage.connectLine.y1);
-        connectLineGraphics.lineTo(stage.connectLine.x2, stage.connectLine.y2);
-    }
-
-    function drawDebugMarkup(){
-
-        /**
-         * The following code is to draw guidelines for debug
-         * selectRegionGraphics is a child of stage, a sibling of root, that's why we are here
-         */
-
-        // mark the root position in the stage
-        // 标记为一个黑色的点
-        selectRegionGraphics.beginFill(0x000000);
-        selectRegionGraphics.lineStyle(1, 0xffffff);
-        selectRegionGraphics.arc(root.position.x, root.position.y, 10, 0, 2 * Math.PI); // cx, cy, radius, startAngle, endAngle
-        selectRegionGraphics.endFill();
-
-        // draw the bounds of root with pixi.js in blue
-        // root 画布区域为 2000
-        const rootRectInStage = root.getBounds();
-        selectRegionGraphics.lineStyle(1, 0x0000ff);
-        selectRegionGraphics.drawRect(rootRectInStage.x, rootRectInStage.y, rootRectInStage.width, rootRectInStage.height);
-
-        // draw the local bounds of root
-        const myBoundsRect = getMyBounds.call(root);
-        selectRegionGraphics.lineStyle(1, 0x000000);
-        selectRegionGraphics.drawRect(myBoundsRect.x, myBoundsRect.y, myBoundsRect.width, myBoundsRect.height);
-
-        // draw the bounds of root with layout in green
-        const rootRectInStageByLayout = layout.getGraphRect();
-        const rootRectInStageByLayoutWidth = Math.abs(rootRectInStageByLayout.x2 - rootRectInStageByLayout.x1);
-        const rootRectInStageByLayoutHeight = Math.abs(rootRectInStageByLayout.y2 - rootRectInStageByLayout.y1);
-        const scale = root.scale.x;
-        selectRegionGraphics.lineStyle(1, 0xeeee00);
-        selectRegionGraphics.drawRect(
-            rootRectInStageByLayout.x1 * scale + root.position.x,
-            rootRectInStageByLayout.y1 * scale + root.position.y,
-            rootRectInStageByLayoutWidth * scale,
-            rootRectInStageByLayoutHeight * scale,
-        );
-
-        // draw the X in stage canvas
-        selectRegionGraphics.lineStyle(1, 0xff0000);
-        selectRegionGraphics.moveTo(0, 0);
-        selectRegionGraphics.lineTo(viewWidth, viewHeight);
-        selectRegionGraphics.moveTo(0, viewHeight);
-        selectRegionGraphics.lineTo(viewWidth, 0);
-    }
-
 }
