@@ -54,8 +54,6 @@ export default {
       };
 
       this.chart.execute("addSubGraph", chartData).then(() => {
-        console.log("add data success!");
-        // this.chart.renderer.setNodesToFullScreen();
       });
     }
   }

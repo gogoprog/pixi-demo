@@ -5,7 +5,7 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 import App from './App.vue';
 
-import Layout from "./examples/Layout.vue";
+import Layout from "./Layout.vue";
 
 Vue.use(VueRouter);
 
