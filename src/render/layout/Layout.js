@@ -101,7 +101,6 @@ export default class Layout {
 
             const nodeId = this.nodeContainer.idIndexMap.idFrom(i);
             const nodeSprite = this.nodeSprites[nodeId];
-            nodeSprite.updateNodePosition(currentPosition);
             this.nodeContainer.nodeMoved(nodeSprite);
         }
 

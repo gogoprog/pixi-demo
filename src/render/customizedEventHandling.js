@@ -179,8 +179,6 @@ const nodeMoveListener = function (e) {
     this.parent.setPositionDirty(false);
     newPosition.copy(this.interactionData.getLocalPosition(this.parent));
     if (this.dragging && this.selected) {
-        // newPosition=null;
-        // this.updateNodePosition(newPosition);
         const dx = newPosition.x - this.position.x;
         const dy = newPosition.y - this.position.y;
         const container = this.parent;
@@ -188,7 +186,6 @@ const nodeMoveListener = function (e) {
             const np = new PIXI.Point();
             np.x = n.position.x + dx;
             np.y = n.position.y + dy;
-            n.updateNodePosition(np, true);
             container.nodeMoved(n);
         });
         this.parent.isDirty = true;
@@ -201,7 +198,6 @@ const nodeMoveListener = function (e) {
         }
         this.parent.selectNode(this);
         this.parent.nodeSelected(this);
-        this.updateNodePosition(newPosition, true);
         this.parent.nodeMoved(this);
         this.parent.setPositionDirty(true);
     }
