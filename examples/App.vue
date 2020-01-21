@@ -1,29 +1,68 @@
 <template>
     <div class="main">
         <div class="title">GraphZ渲染模块示例</div>
-        <div class="menu-bar-horizontal">
-            <a class="active">Examples</a>
-        </div>
         <div class="example-container">
-            <router-view class="main-content"></router-view>
+            <div class="canvas-container">
+              <div class="action-container"></div>
+              <div id="renderArea" class="render-area"></div>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
-    export default {
-        data() {
-            return {
 
-            };
-        },
-        created() {
-        },
-        mounted() {
-        },
-        methods: {
-        },
+import graphz from "graphz";
+
+export default {
+  data() {
+    return {};
+  },
+  created() {},
+  mounted() {
+    this.init();
+  },
+  methods: {
+    async init() {
+      const globalELPModelResponse = await fetch(
+        "/static/data/globalELPModel.json"
+      );
+      const globalELPModel = await globalELPModelResponse.json();
+
+      this.chart = new graphz.Chart({
+        elpData: globalELPModel,
+        container: "renderArea"
+      });
+
+      this.chart.initAssets({ font: "/static/font/noto.fnt" }).then(() => {
+        this.loadChart();
+      });
+    },
+
+    async loadChart() {
+      await this.chart.clearGraph();
+
+      let chartData = {
+        entities: [
+          {
+            type: "people",
+            id: "people~`#321284198702201103",
+            label: "321284198702201103",
+            style: null,
+            properties: {
+              _$x: -288.04855570159026,
+              _$y: -363.5339239270416
+            }
+          }
+        ],
+        links: []
+      };
+
+      this.chart.execute("addSubGraph", chartData).then(() => {
+      });
     }
+  }
+};
 </script>
 
 <style lang="scss">
@@ -44,28 +83,6 @@
             font-size: 20px;
             font-weight: bold;
         }
-
-        .menu-bar-horizontal {
-            height: 50px;
-            background-color: #5f5f5f;
-            overflow: hidden;
-        }
-        .menu-bar-horizontal a {
-            float: left;
-            color: #f2f2f2;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-            font-size: 17px;
-        }
-        .menu-bar-horizontal a:hover {
-            background-color: #ddd;
-            color: black;
-        }
-        .menu-bar-horizontal a.active {
-            background-color: #37af57;
-            color: white;
-        }
     }
 
     .example-container {
@@ -73,48 +90,23 @@
 
         display: flex;
         flex-direction: row;
-
-        .menu-bar-vertical {
-            background-color: #f1f1f1;
-            overflow: hidden;
-            width: 180px;
-
-            display: flex;
-            flex-direction: column;
-        }
-        .menu-bar-vertical a {
-            float: left;
-            color: #000;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-            font-size: 17px;
-
-            display: block;
-        }
-        .menu-bar-vertical a:hover {
-            background-color: #ddd;
-            color: black;
-        }
-        .menu-bar-vertical a.active {
-            background-color: #5abf40;
-            color: white;
-        }
     }
 
-    /* Style buttons */
-    .btn {
-        background-color: #5abf30; /* Blue background */
-        border: none; /* Remove borders */
-        color: white; /* White text */
-        padding: 12px 16px; /* Some padding */
-        font-size: 16px; /* Set a font size */
-        cursor: pointer; /* Mouse pointer on hover */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+
+      .render-area {
+        width: 100%;
+        height: 100%;
+      }
     }
 
-    /* Darker background on mouse-over */
-    .btn:hover {
-        background-color: #5a7f30;
+    .action-container {
+      position: absolute;
+      top: 0;
+      left: 0;
     }
-
+    
 </style>
