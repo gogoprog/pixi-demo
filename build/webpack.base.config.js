@@ -3,12 +3,12 @@ const webpack = require('webpack');
 const WorkerPlugin = require('worker-plugin');
 
 module.exports = {
-    output: {
-        path: path.resolve(__dirname, 'dist'),
-        filename: '[name].js',
-        library: "graphz",
-        libraryTarget: 'umd',
-    },
+    // output: {
+    //     path: path.resolve(__dirname, 'dist'),
+    //     filename: '[name].js',
+    //     library: "graphz",
+    //     libraryTarget: 'umd',
+    // },
     module: {
         rules: [
             {

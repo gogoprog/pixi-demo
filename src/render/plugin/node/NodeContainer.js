@@ -112,6 +112,8 @@ export default class NodeContainer extends PIXI.Container {
 
     addChild(child)
     {
+        console.log(child);
+
         super.addChild(child);
         this.addNode(child);
         this.needRefreshData = true;

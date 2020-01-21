@@ -11,12 +11,12 @@ module.exports = merge(webpackBaseConfig, {
         // contentBase: [path.join(__dirname, '../examples/dist'), path.join(__dirname, '../static/')],
     },
     entry: {
-        main: './examples/main.js',
+        main: './src/main.js',
         // graphz: './src/index.js',
         vendors: ['vue']
     },
     output: {
-        path: path.resolve(__dirname, '../examples/dist'),
+        path: path.resolve(__dirname, '../dist'),
         filename: '[name].js',
     },
     resolve: {
@@ -43,8 +43,8 @@ module.exports = merge(webpackBaseConfig, {
     plugins: [
         new HtmlWebpackPlugin({
             inject: true,
-            filename: path.join(__dirname, '../examples/dist/index.html'),
-            template: path.join(__dirname, '../examples/index.html')
+            filename: path.join(__dirname, '../dist/index.html'),
+            template: path.join(__dirname, '../src/index.html')
         }),
         new VueLoaderPlugin(),
     ]
