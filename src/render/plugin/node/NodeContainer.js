@@ -3,7 +3,6 @@ import Bimap from '../Bimap';
 import { getBufferSize } from '../Utility';
 
 import selectionFrameUrl from '../../../assets/images/other/Square.png';
-import defaultIconUrl from '../../../assets/images/TextAnalysis/TextAnalysis.png';
 
 export default class NodeContainer extends PIXI.Container {
     constructor() {
