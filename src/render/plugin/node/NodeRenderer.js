@@ -5,8 +5,6 @@ import Quad from './Quad';
 import glCore from 'pixi-gl-core';
 
 const INDEX_OF_OFFSET = 2;
-const INDEX_OF_SCALE = 3;
-const INDEX_OF_ICON = 4;
 /**
  * Renderer dedicated to drawing and batching sprites.
  *
@@ -45,14 +43,6 @@ export default class NodeRenderer extends PIXI.ObjectRenderer
         this.quad.vao.addAttribute(this.offsetBuffer, this.shader.attributes.aOffset, gl.FLOAT, false, 2 * 4, 0);
         this.extension.vertexAttribDivisorANGLE(INDEX_OF_OFFSET, 1);
 
-        this.scaleBuffer = glCore.GLBuffer.createVertexBuffer(gl, null, gl.DYNAMIC_DRAW);
-        this.quad.vao.addAttribute(this.scaleBuffer, this.shader.attributes.aScale, gl.FLOAT, false, 4, 0);
-        this.extension.vertexAttribDivisorANGLE(INDEX_OF_SCALE, 1);
-
-        this.iconIndexBuffer = glCore.GLBuffer.createVertexBuffer(gl, null, gl.DYNAMIC_DRAW);
-        this.quad.vao.addAttribute(this.iconIndexBuffer, this.shader.attributes.aIconIndex, gl.FLOAT, false, 4, 0);
-        this.extension.vertexAttribDivisorANGLE(INDEX_OF_ICON, 1);
-
         this.renderer.bindVao(this.quad.vao);
         this.quad.upload();
     }
@@ -70,12 +60,6 @@ export default class NodeRenderer extends PIXI.ObjectRenderer
         const quad = this.quad;
         renderer.bindVao(quad.vao);
 
-        if (container.needRefreshData) {
-            container.needRefreshData = false;
-            this.scaleBuffer.upload(container.scaleArray);
-            this.iconIndexBuffer.upload(container.iconIndexArray);
-        }
-
         if (container.needRefreshOffset) {
             container.needRefreshOffset = false;
             this.offsetBuffer.upload(container.offSetArray);
@@ -85,7 +69,7 @@ export default class NodeRenderer extends PIXI.ObjectRenderer
 
         this.shader.uniforms.uSampler = renderer.bindTexture(container.texture);
 
-        this.extension.drawArraysInstancedANGLE(this.renderer.gl.TRIANGLES, 0, 12, container.instanceCount);
+        this.extension.drawArraysInstancedANGLE(this.renderer.gl.TRIANGLES, 0, 12, 1);
     }
 }
 

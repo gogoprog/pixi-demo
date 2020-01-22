@@ -24,12 +24,8 @@ export const zoom = function (x, y, isZoomIn, contentRoot) {
     // Technically code below is not required, but helps to zoom on mouse
     // cursor, instead center of graphGraphics coordinates
     const beforeTransform = getGraphCoordinates(x, y, contentRoot);
-    // console.log('After zooming ' + (isZoomIn ? 'in' : 'out') +
-    //  ' @ViewPort(' + vpX + ',' + vpY + ') and Graph: ' + JSON.stringify(beforeTransform));
     contentRoot.updateTransform();
     const afterTransform = getGraphCoordinates(x, y, contentRoot);
-    // console.log('After zooming ' + (isZoomIn ? 'in' : 'out') +
-    //  ' @ViewPort(' + vpX + ',' + vpY + ') and Graph: ' + JSON.stringify(afterTransform));
 
     contentRoot.position.x += (afterTransform.x - beforeTransform.x) * contentRoot.scale.x;
     contentRoot.position.y += (afterTransform.y - beforeTransform.y) * contentRoot.scale.y;

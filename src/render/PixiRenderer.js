@@ -1,7 +1,7 @@
 import eventify from 'ngraph.events';
 import 'pixi.js';
 
-import PresetLayout from "./layout/PresetLayout/PresetLayout";
+import PresetLayout from "./PresetLayout";
 import Graph from './Graph';
 
 import { zoom } from './customizedEventHandling';
@@ -58,9 +58,6 @@ export default function (options) {
     root.on('mouseup', function (e) {
     });
 
-    nodeContainer.on('nodeMoved', (node) => {
-    });
-
     /**
      * Very Very Important Variables
      * nodeSprites is for all of the nodes, their attribute can be found in initNode;
@@ -70,13 +67,9 @@ export default function (options) {
     graph.forEachNode(initNode);
 
     let layout = new PresetLayout(nodeSprites, nodeContainer);
-    let layoutType = 'Preset';
-
 
     listenToGraphEvents();
     stage.interactive = true;
-
-    const COLLECTION_FLAG_MASK = [0, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024];
 
     ///////////////////////////////////////////////////////////////////////////////
     // Public API is begin
@@ -284,9 +277,6 @@ export default function (options) {
 
         const nodeSprite = new SimpleNodeSprite(p, visualConfig);
         nodeSprite.iconUrl = iconUrl;
-
-        // 更新缩放
-        nodeSprite.updateScale();
 
         nodeContainer.addChild(nodeSprite);
         nodeSprites[p.id] = nodeSprite;

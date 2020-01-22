@@ -2,8 +2,6 @@ export default class PresetLayout {
     constructor(nodeSprites, nodeContainer) {
         this.nodeSprites = nodeSprites;
         this.nodeContainer = nodeContainer;
-        this.thisStep = 0;
-        this.totalStep = 120;
         this.left = 10000;
         this.right = -10000;
         this.top = 10000;
@@ -34,10 +32,6 @@ export default class PresetLayout {
         }
     };
 
-    step() {
-        return true;
-    };
-
     getNodePosition(nodeId) {
         return this.nodeSprites[nodeId].position ? this.nodeSprites[nodeId].position : {x: 0, y:0};
     };
@@ -46,8 +40,4 @@ export default class PresetLayout {
         this.nodeSprites[id].position.x = x;
         this.nodeSprites[id].position.y = y;
     };
-
-    run() {
-        return Promise.resolve();
-    }
 }

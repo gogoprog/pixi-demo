@@ -17,17 +17,4 @@ export default class SimpleNodeSprite extends PIXI.Sprite {
         this.visualConfig = visualConfig;
         this.interactive = true;
     }
-
-    /**
-     * 更新顶点的缩放
-     */
-    updateScale() {
-        if (this.data.properties._$scale) {
-            const vizConf = this.visualConfig;
-            const zoomValue = this.data.properties._$scale;
-            const scaleValue = zoomValue * vizConf.factor;
-            const labelScale = zoomValue * vizConf.ui.label.scale;
-            this.scale.set(scaleValue, scaleValue);
-        }
-    }
 }
