@@ -9,11 +9,7 @@ import { zoom } from './customizedEventHandling';
 import SimpleNodeSprite from './sprite/SimpleNodeSprite';
 import NodeContainer from './plugin/node/NodeContainer';
 
-import AnimationAgent from './AnimationAgent';
-import { getMyBounds } from './boundsHelper';
-
 export default function (options) {
-    let isDirty = true;
     let graph = Graph();
 
     const visualConfig = options.visualConfig;
@@ -62,38 +58,16 @@ export default function (options) {
     root.on('mouseup', function (e) {
     });
 
-    nodeContainer.on('nodeCaptured', (node) => {
-    });
-
     nodeContainer.on('nodeMoved', (node) => {
     });
-
-    nodeContainer.on('nodeReleased', (node) => {
-    });
-
-    // layout 相关,把移动位置同步到layout内部
-    nodeContainer.selectedNodesPosChanged = function () {
-        isDirty = true;
-    };
 
     /**
      * Very Very Important Variables
      * nodeSprites is for all of the nodes, their attribute can be found in initNode;
      */
     let nodeSprites = {};
-    let linkSprites = {};
-
-    /**
-     * now we vindicate a map for nodes to draw boundary.
-     * this map has two part:
-     *  one is for the selected node, now we draw these nodes by default attribute.
-     *  the other is for the nodes that given by IDArray.
-     */
-    const nodeNeedBoundary = {};
 
     graph.forEachNode(initNode);
-    // setupWheelListener(canvas, root); // wheel listener 现在在外部模板内设置，通过zoom接口来调用renderer的缩放方法。
-    let dynamicLayout = false;
 
     let layout = new PresetLayout(nodeSprites, nodeContainer);
     let layoutType = 'Preset';
@@ -101,9 +75,6 @@ export default function (options) {
 
     listenToGraphEvents();
     stage.interactive = true;
-
-    // add animation
-    let animationAgent = new AnimationAgent();
 
     const COLLECTION_FLAG_MASK = [0, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024];
 
@@ -120,156 +91,12 @@ export default function (options) {
         stage,
         mode,
 
-        getLayoutType() {
-            return layoutType;
-        },
-
         /**
          * Allows client to start animation loop, without worrying about RAF stuff.
          */
         run: animationLoop,
 
-        /**
-         * Cancel global Interactive
-         */
-        cancelGlobalInteractive() {
-            stage.interactive = false;
-            root.interactive = false;
-            root.interactiveChildren = false;
-        },
-
-        /**
-         * recover global Interactive
-         */
-        recoverGlobalInteractive() {
-            stage.interactive = true;
-            if (this.mode === 'picking') {
-                root.interactive = true;
-                root.interactiveChildren = true;
-            } else {
-                root.interactive = false;
-                root.interactiveChildren = false;
-            }
-        },
-
-        /**
-         * Allow switching between picking and panning modes;
-         */
-        setMode(newMode) {
-            if (this.mode !== newMode) {
-                if (newMode === 'picking') {
-                    this.mode = 'picking';
-                    stage.buttonMode = false;
-                    stage.mode = this.mode;
-                    root.interactiveChildren = true;
-                    root.interactive = true;
-                    root.cursor = 'default';
-                } else if (newMode === 'panning'){
-                    this.mode = 'panning';
-                    stage.buttonMode = true;
-                    stage.mode = this.mode;
-                    stage.interactive = true;
-                    stage.cursor = 'grab';
-                    root.interactiveChildren = false;
-                    root.interactive = true;
-                    root.cursor = 'grab';
-                } else if (newMode === 'connecting') {
-                    this.mode = 'connecting';
-                    stage.buttonMode = true;
-                    stage.mode = this.mode;
-                    stage.interactive = true;
-                    stage.cursor = 'crosshair';
-                    root.interactiveChildren = false;
-                    root.interactive = true;
-                    root.cursor = 'crosshair';
-                }
-            }
-
-            return this.mode;
-        },
-
-        toggleMode() {
-            if (this.mode === 'panning' || this.mode === 'connecting') {
-                return this.setMode('picking');
-            } else {
-                return this.setMode('panning');
-            }
-        },
-
-        pickingMode() {
-            return this.setMode('picking');
-        },
-
-        panningMode() {
-            return this.setMode('panning');
-        },
-
-        connectingMode() {
-            return this.setMode('connecting');
-        },
-
-        getSelectedNodes() {
-            return nodeContainer.nodes;
-        },
-
-        getSelectedNodesData() {
-            const selectedNodes = [];
-            _.each(nodeContainer.nodes, (ns) => {
-                selectedNodes.push(Object.assign({}, ns.data));
-            });
-            return selectedNodes;
-        },
-
-        /**
-         * set actual size of layout
-         */
-        setActualSize() {
-            isDirty = true;
-            nodeContainer.positionDirty = true;
-            const root = this.root;
-            root.scale.x = 1;
-            root.scale.y = 1;
-
-            const rootPlacement = this.calculateRootPosition(1);
-            if (rootPlacement) {
-                animationAgent.move(root, rootPlacement.position);
-            } else {
-                console.error('Center graph action not supported in current layout.');
-            }
-        },
-
-        // This method is to move the graph scene center to the specified postion
-        alignContentCenterToCanvasPosition(canvasX, canvasY) {
-            // actually I prefer refresh manually
-            // isDirty = true;
-            const rect = getMyBounds.call(root);
-            const graphCenterInStage = {
-                x: rect.x + rect.width / 2,
-                y: rect.y + rect.height / 2,
-            };
-            const rootPositionTransform = {
-                x: canvasX - graphCenterInStage.x,
-                y: canvasY - graphCenterInStage.y,
-            };
-            // sometimes you may need a smooth move
-            // animationAgent.move(root, {
-            //     x: root.position.x + rootPositionTransform.x,
-            //     y: root.position.y + rootPositionTransform.y,
-            // });
-            root.position.x += rootPositionTransform.x;
-            root.position.y += rootPositionTransform.y;
-        },
-
-        getMyBoundsWrap() {
-            return getMyBounds.call(root);
-        },
-
-        getPositionInCanvas(position) {
-            return this.root.worldTransform.applyInverse(position);
-        },
-
         calculateRootPosition(scaleFactor) {
-            isDirty = true;
             const root = this.root;
             const graphRect = layout.getGraphRect();
             if (!graphRect) {
@@ -319,113 +146,45 @@ export default function (options) {
                     root.scale.x = rootPlacement.scale.x;
                     root.scale.y = rootPlacement.scale.y;
                 }
-                // if (disableAnimation) {
-                    if (rootPlacement.scale.x > 1 || rootPlacement.scale.y > 1) {
-                        root.scale.x = 1;
-                        root.scale.y = 1;
-                        rootPlacement.position.x /= rootPlacement.scale.x;
-                        rootPlacement.position.y /= rootPlacement.scale.y;
-                    }
-                    root.position.x = rootPlacement.position.x;
-                    root.position.y = rootPlacement.position.y;
-                // } else {
-                //     animationAgent.move(root, rootPlacement.position);
-                // }
-                nodeContainer.positionDirty = true;
+
+                if (rootPlacement.scale.x > 1 || rootPlacement.scale.y > 1) {
+                    root.scale.x = 1;
+                    root.scale.y = 1;
+                    rootPlacement.position.x /= rootPlacement.scale.x;
+                    rootPlacement.position.y /= rootPlacement.scale.y;
+                }
+                root.position.x = rootPlacement.position.x;
+                root.position.y = rootPlacement.position.y;
             } else {
                 console.error('Center graph action not supported in current layout.');
             }
         },
 
-        unSelectSubGraph(nodeIdArray, linkIdArray) {
-            isDirty = true;
-            if (nodeIdArray) {
-                _.each(nodeIdArray, (nodeId) => {
-                    const nodeSprite = nodeSprites[nodeId];
-                    if (nodeSprite.selected) {
-                        nodeContainer.deselectNode(nodeSprite);
-                    }
-                });
-            }
-            selectionChanged();
-        },
-
-        selectSubGraph(nodeIdArray, linkIdArray) {
-            isDirty = true;
-            if (nodeIdArray) {
-                _.each(nodeIdArray, (nodeId) => {
-                    const nodeSprite = nodeSprites[nodeId];
-                    if (nodeSprite) {
-                        nodeContainer.selectNode(nodeSprite);
-                    }
-                });
-            }
-            selectionChanged();
-        },
-
-        clearSelection() {
-        },
-
-        selectNodesOfLinks(selectedLinks) {
-            isDirty = true;
-            _.each(selectedLinks, (l) => {
-                const d = l.data;
-                const srcNode = nodeSprites[d.sourceEntity];
-                const tgtNode = nodeSprites[d.targetEntity];
-                if (srcNode) {
-                    nodeContainer.selectNode(srcNode);
-                }
-                if (tgtNode) {
-                    nodeContainer.selectNode(tgtNode);
-                }
-            });
-            selectionChanged();
-        },
-
-        selectAll() {
-            isDirty = true;
-            _.each(nodeSprites, (n) => {
-                nodeContainer.selectNode(n);
-            });
-            selectionChanged();
-        },
-
         zoomIn() {
-            isDirty = true;
             const x = viewWidth / 2;
             const y = viewHeight / 2;
             zoom(x, y, true, root);
         },
 
         zoomOut() {
-            isDirty = true;
             const x = viewWidth / 2;
             const y = viewHeight / 2;
             zoom(x, y, false, root);
         },
 
         zoom(x, y, zoomingIn) {
-            isDirty = true;
             zoom(x, y, zoomingIn, root);
         },
 
         destroy() {
-            isDirty = false;
             document.removeEventListener('mousedown', this._mouseDownListener);
             // canvas.removeEventListener('mousewheel', this._zoomActionListener);
             graph.off('changed', onGraphChanged);
-            animationAgent.destroy();
             _.each(nodeSprites, (ns) => {
                 ns.destroy();
             });
-            _.each(linkSprites, (ls) => {
-                ls.destroy();
-            });
             nodeSprites = null;
-            linkSprites = null;
             layout = null;
-            // networkLayout = null;
-            animationAgent = null;
             graph.clear();
             graph = null;
 
@@ -436,11 +195,6 @@ export default function (options) {
             renderer.destroy(true); // true for removing the underlying view(canvas)
         },
 
-        updateDynamicLayout(dynamic) {
-            dynamicLayout = dynamic;
-            layout.updateDynamicLayout(dynamic);
-        },
-
         getGraph() {
             return graph;
         },
@@ -448,12 +202,7 @@ export default function (options) {
         getLayout() {
             return layout;
         },
-        getNodesCount() {
-            return graph.getNodesCount();
-        },
-        getLinksCount() {
-            return graph.getLinksCount();
-        },
+
         getNode(nodeId) {
             return graph.getNode(nodeId);
         },
@@ -477,11 +226,6 @@ export default function (options) {
         },
         addLink(fromId, toId, data) {
             return graph.addLink(fromId, toId, data);
-        },
-        clearGraph() {
-            graph.beginUpdate();
-            graph.clear();
-            graph.endUpdate();
         },
 
         setNodePosition(nodeId, x, y, z) {
@@ -508,14 +252,7 @@ export default function (options) {
             canvas.addEventListener(eventName, func, state);
         },
 
-        lock(nodes) {
-        },
-
-        unlock(nodes) {
-        },
-
         resize(width, height) {
-            isDirty = true;
             renderer.resize(width, height);
         },
     };
@@ -534,37 +271,14 @@ export default function (options) {
 
     document.addEventListener('mousedown', pixiGraphics._mouseDownListener, { passive: true });
 
-    pixiGraphics._contextmenuHandler = function (event) {
-        event.preventDefault();
-        return false;
-    };
-
-    pixiGraphics.addCanvasEventListener('contextmenu', pixiGraphics._contextmenuHandler, false);
-
     eventify(pixiGraphics);
     return pixiGraphics;
     ///////////////////////////////////////////////////////////////////////////////
     // Public API is over
     ///////////////////////////////////////////////////////////////////////////////
 
-    function selectionChanged() {
-        isDirty = true;
-        pixiGraphics.fire('selectionChanged');
-    }
-
     function animationLoop(now) {
-        animationAgent.step();
-
-        if (isDirty || nodeContainer.isDirty || stage.isDirty
-            || nodeContainer.positionDirty || animationAgent.needRerender()) {
-
-            renderer.render(stage);
-
-            isDirty = false;
-            nodeContainer.isDirty = false;
-            stage.isDirty = false;
-            nodeContainer.positionDirty = false;
-        }
+        renderer.render(stage);
         requestAnimationFrame(animationLoop);
     }
 
@@ -607,18 +321,10 @@ export default function (options) {
     function onGraphRemarkUpdate(changes) {
     }
 
-    function removeNode(node) {
-    }
-
-    function updateNode(node) {
-    }
-
     function onGraphElpChanged(elpData) {
     }
 
     function onGraphChanged(changes) {
-        console.log(`Graph changed ${new Date()}`);
-        isDirty = true;
         for (let i = 0; i < changes.length; ++i) {
             const change = changes[i];
             const changeNode = change.node;
@@ -626,14 +332,6 @@ export default function (options) {
             if (change.changeType === 'add') {
                 if (changeNode) {
                     initNode(changeNode);
-                }
-            } else if (change.changeType === 'remove') {
-                if (changeNode) {
-                    removeNode(changeNode);
-                }
-            } else if (change.changeType === 'update') {
-                if (changeNode) {
-                    updateNode(changeNode);
                 }
             }
         }
@@ -644,7 +342,6 @@ export default function (options) {
     }
 
     function onGraphInit(changes) {
-        isDirty = true;
         for (let i = 0; i < changes.length; ++i) {
             const change = changes[i];
             if (change.changeType === 'add') {

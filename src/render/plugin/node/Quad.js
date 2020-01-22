@@ -22,14 +22,6 @@ export default class Quad
         this.gl = gl;
 
         this.vertices = new Float32Array([
-            // first draw the selection frame
-            -181, -181,
-            181, -181,
-            181, 181,
-            -181, -181,
-            181, 181,
-            -181, 181,
-            // second the the entity icon
             -128, -128,
             128, -128,
             128, 128,
@@ -39,20 +31,12 @@ export default class Quad
         ]);
 
         this.vertexIDs = new Float32Array([
-            // first draw the selection frame
             0.0,
             1.0,
             2.0,
             3.0,
             4.0,
             5.0,
-            // second the the entity icon
-            6.0,
-            7.0,
-            8.0,
-            9.0,
-            10.0,
-            11.0
         ]);
 
         /**

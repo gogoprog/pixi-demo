@@ -2,8 +2,6 @@ import NodeRenderer from './NodeRenderer';
 import Bimap from '../Bimap';
 import { getBufferSize } from '../Utility';
 
-import selectionFrameUrl from '../../../assets/images/other/Square.png';
-
 export default class NodeContainer extends PIXI.Container {
     constructor() {
         super();
@@ -20,16 +18,6 @@ export default class NodeContainer extends PIXI.Container {
 
         this.needRefreshData = false;
         this.needRefreshOffset = false;
-        this.needRefreshSelection = false;
-
-        // 将选中的节点以数组保存 [node1, node2, ...]
-        this.nodes = [];
-        // 将选中的节点以对象保存 { node.id1: node1, node.id2: node2, ... }
-        this.selectedNodes = new Map();
-        this.recentlySelected = null;
-        // nodeContainer中有isDirty
-        this.isDirty = false;
-        this.positionDirty = false;
 
         // big icon image
         this.canvas = document.createElement("canvas");
@@ -39,14 +27,9 @@ export default class NodeContainer extends PIXI.Container {
         this.context.canvas.height = 2048;
         this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 
-        // 0: single icon, 1: multiple icons
-        this.iconMode = 1;
-
         this.iconMap = {};
 
         this.texture = PIXI.Texture.fromCanvas(this.canvas);
-
-        this.selectionTexture = PIXI.Texture.fromImage(selectionFrameUrl);
     }
 
     /**
@@ -72,18 +55,6 @@ export default class NodeContainer extends PIXI.Container {
             tempIconIndexArray.set(this.iconIndexArray);
         }
         this.iconIndexArray = tempIconIndexArray;
-
-        const tempIsUnknownArray = new Float32Array(this.bufferSize);
-        if (this.isUnknownArray) {
-            tempIsUnknownArray.set(this.isUnknownArray);
-        }
-        this.isUnknownArray = tempIsUnknownArray;
-
-        const tempSelectedArray = new Float32Array(this.bufferSize);
-        if (this.selectedArray) {
-            tempSelectedArray.set(this.selectedArray);
-        }
-        this.selectedArray = tempSelectedArray;
     }
 
     _renderWebGL(renderer) {
@@ -117,7 +88,6 @@ export default class NodeContainer extends PIXI.Container {
         this.addNode(child);
         this.needRefreshData = true;
         this.needRefreshOffset = true;
-        this.needRefreshSelection = true;
     }
 
     removeChild(child)
@@ -126,7 +96,6 @@ export default class NodeContainer extends PIXI.Container {
         this.removeNode(child.id);
         this.needRefreshData = true;
         this.needRefreshOffset = true;
-        this.needRefreshSelection = true;
     }
 
     addNode(child) {
@@ -162,10 +131,7 @@ export default class NodeContainer extends PIXI.Container {
             image.src = `/static/images/${child.iconUrl}`;
         }
 
-        this.selectedArray.set([0.0], index);
-
         this.updateScale(child);
-        this.setNodeUnknownStatus(child);
     }
 
     removeNode(nodeId) {
@@ -182,12 +148,6 @@ export default class NodeContainer extends PIXI.Container {
             const iconIndex = this.iconIndexArray.subarray(this.instanceCount - 1, this.instanceCount);
             this.iconIndexArray.set(iconIndex, index);
 
-            const isUnknown = this.isUnknownArray.subarray(this.instanceCount - 1, this.instanceCount);
-            this.isUnknownArray.set(isUnknown, index);
-
-            const selected = this.selectedArray.subarray(this.instanceCount - 1, this.instanceCount);
-            this.selectedArray.set(selected, index);
-
             const existedId = this.idIndexMap.idFrom(this.instanceCount - 1);
             this.idIndexMap.remove('id', existedId);
             this.idIndexMap.add({id: existedId, index: index});
@@ -196,39 +156,16 @@ export default class NodeContainer extends PIXI.Container {
         this.instanceCount--;
     }
 
-    setNodeUnknownStatus(nodeSprite) {
-        const index = this.idIndexMap.indexFrom(nodeSprite.id);
-        if (nodeSprite.isUnknown) {
-            this.isUnknownArray.set([1.0], index);
-        } else {
-            this.isUnknownArray.set([0.0], index);
-        }
-        this.needRefreshData = true;
-    }
-
     updateScale(nodeSprite) {
         const index = this.idIndexMap.indexFrom(nodeSprite.id);
         this.scaleArray.set([nodeSprite.scale.x], index);
         this.needRefreshData = true;
-        this.needRefreshSelection = true;
     }
 
-    setPositionDirty(posDirty) {
-        this.positionDirty = posDirty;
-    };
-
-    nodeCaptured(node) {
-        this.emit('nodeCaptured', node);
-    }
     nodeMoved(node) {
         const index = this.idIndexMap.indexFrom(node.id);
         this.offSetArray.set([node.x, node.y] , 2 * index);
 
         this.needRefreshOffset = true;
-
-        // this.emit('nodeMoved', node);
-    }
-    nodeReleased(node) {
-        this.emit('nodeReleased', node);
     }
 }

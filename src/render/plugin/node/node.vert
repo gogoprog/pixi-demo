@@ -4,12 +4,9 @@ attribute float aVertexID;
 attribute vec2 aOffset;
 attribute float aScale;
 attribute float aIconIndex;
-attribute float aIsUnknown;
-attribute float aSelected;
 
 uniform mat3 projectionMatrix;
 uniform mat3 transformMatrix;
-uniform lowp int iconMode;
 
 varying vec2 vTextureCoord;
 varying float vIsUnknown;
@@ -26,59 +23,17 @@ void main(void){
     float x0 = column * 0.0625;  // width of every icon
     float y0 = row * 0.0625; // height of every icon
 
-    // first draw selected frame
     if(aVertexID == 0.0){
-        vTextureCoord = vec2(0.0, 0.0);
+        vTextureCoord = vec2(x0, y0);
     } else if(aVertexID == 1.0) {
-        vTextureCoord = vec2(1.0, 0.0);
+        vTextureCoord = vec2(x0 + 0.0625, y0);
     } else if(aVertexID == 2.0) {
-        vTextureCoord = vec2(1.0, 1.0);
+        vTextureCoord = vec2(x0 + 0.0625, y0 + 0.0625);
     } else if(aVertexID == 3.0) {
-        vTextureCoord = vec2(0.0, 0.0);
+        vTextureCoord = vec2(x0, y0);
     } else if(aVertexID == 4.0) {
-        vTextureCoord = vec2(1.0, 1.0);
+        vTextureCoord = vec2(x0 + 0.0625, y0 + 0.0625);
     } else if(aVertexID == 5.0) {
-        vTextureCoord = vec2(0.0, 1.0);
-    // second draw the entity icon
-    } else if(aVertexID == 6.0){
-//        if (iconMode == 0) {
-//            vTextureCoord = vec2(0.0, 0.0);
-//        } else {
-            vTextureCoord = vec2(x0, y0);
-//        }
-    } else if(aVertexID == 7.0) {
-//        if (iconMode == 0) {
-//            vTextureCoord = vec2(1.0, 0.0);
-//        } else {
-            vTextureCoord = vec2(x0 + 0.0625, y0);
-//        }
-    } else if(aVertexID == 8.0) {
-//        if (iconMode == 0) {
-//            vTextureCoord = vec2(1.0, 1.0);
-//        } else {
-            vTextureCoord = vec2(x0 + 0.0625, y0 + 0.0625);
-//        }
-    } else if(aVertexID == 9.0) {
-//        if (iconMode == 0) {
-//            vTextureCoord = vec2(0.0, 0.0);
-//        } else {
-            vTextureCoord = vec2(x0, y0);
-//        }
-    } else if(aVertexID == 10.0) {
-//        if (iconMode == 0) {
-//            vTextureCoord = vec2(1.0, 1.0);
-//        } else {
-            vTextureCoord = vec2(x0 + 0.0625, y0 + 0.0625);
-//        }
-    } else if(aVertexID == 11.0) {
-//        if (iconMode == 0) {
-//            vTextureCoord = vec2(0, 1.0);
-//        } else {
-            vTextureCoord = vec2(x0, y0 + 0.0625);
-        // }
+        vTextureCoord = vec2(x0, y0 + 0.0625);
     }
-
-    vIsUnknown = aIsUnknown;
-    vSelected = aSelected;
-    vVertexID = aVertexID;
 }

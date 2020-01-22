@@ -7,8 +7,6 @@ import glCore from 'pixi-gl-core';
 const INDEX_OF_OFFSET = 2;
 const INDEX_OF_SCALE = 3;
 const INDEX_OF_ICON = 4;
-const INDEX_OF_IS_UNKNOWN = 5;
-const INDEX_OF_SELECTED = 6;
 /**
  * Renderer dedicated to drawing and batching sprites.
  *
@@ -55,14 +53,6 @@ export default class NodeRenderer extends PIXI.ObjectRenderer
         this.quad.vao.addAttribute(this.iconIndexBuffer, this.shader.attributes.aIconIndex, gl.FLOAT, false, 4, 0);
         this.extension.vertexAttribDivisorANGLE(INDEX_OF_ICON, 1);
 
-        this.isUnknownBuffer = glCore.GLBuffer.createVertexBuffer(gl, null, gl.DYNAMIC_DRAW);
-        this.quad.vao.addAttribute(this.isUnknownBuffer, this.shader.attributes.aIsUnknown, gl.FLOAT, false, 4, 0);
-        this.extension.vertexAttribDivisorANGLE(INDEX_OF_IS_UNKNOWN, 1);
-
-        this.selectedBuffer = glCore.GLBuffer.createVertexBuffer(gl, null, gl.DYNAMIC_DRAW);
-        this.quad.vao.addAttribute(this.selectedBuffer, this.shader.attributes.aSelected, gl.FLOAT, false, 4, 0);
-        this.extension.vertexAttribDivisorANGLE(INDEX_OF_SELECTED, 1);
-
         this.renderer.bindVao(this.quad.vao);
         this.quad.upload();
     }
@@ -84,7 +74,6 @@ export default class NodeRenderer extends PIXI.ObjectRenderer
             container.needRefreshData = false;
             this.scaleBuffer.upload(container.scaleArray);
             this.iconIndexBuffer.upload(container.iconIndexArray);
-            this.isUnknownBuffer.upload(container.isUnknownArray);
         }
 
         if (container.needRefreshOffset) {
@@ -92,17 +81,9 @@ export default class NodeRenderer extends PIXI.ObjectRenderer
             this.offsetBuffer.upload(container.offSetArray);
         }
 
-        if (container.needRefreshSelection) {
-            container.needRefreshSelection = false;
-            this.selectedBuffer.upload(container.selectedArray);
-        }
-
         this.shader.uniforms.transformMatrix = container.parent.transform.worldTransform.toArray(true);
 
         this.shader.uniforms.uSampler = renderer.bindTexture(container.texture);
-        this.shader.uniforms.uSelectedSampler = renderer.bindTexture(container.selectionTexture);
-        // this.shader.uniforms.uDefaultSampler = renderer.bindTexture(container.defaultTexture.baseTexture);
-        this.shader.uniforms.iconMode = container.iconMode;
 
         this.extension.drawArraysInstancedANGLE(this.renderer.gl.TRIANGLES, 0, 12, container.instanceCount);
     }
