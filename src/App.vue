@@ -1,6 +1,6 @@
 <template>
     <div class="main">
-        <div class="title">GraphZ渲染模块示例</div>
+        <div class="title">GraphZ Test</div>
         <div class="example-container">
             <div class="canvas-container">
               <div class="action-container"></div>
@@ -11,9 +11,8 @@
 </template>
 
 <script>
-
-// import graphz from "graphz";
-import Chart from "./chart/Chart";
+import PixiRenderer from "./render/PixiRenderer";
+import constructOptions from "./render/constructOptions";
 
 export default {
   data() {
@@ -25,41 +24,21 @@ export default {
   },
   methods: {
     async init() {
-      const globalELPModelResponse = await fetch(
-        "/static/data/globalELPModel.json"
-      );
-      const globalELPModel = await globalELPModelResponse.json();
-
-      this.chart = new Chart({
-        elpData: globalELPModel,
-        container: "renderArea"
-      });
-
-      this.loadChart();
-    },
-
-    async loadChart() {
-      await this.chart.clearGraph();
-
-      let chartData = {
-        entities: [
-          {
+      const rendererOptions = constructOptions("renderArea");
+      this.renderer = PixiRenderer(rendererOptions);
+      this.renderer.addNode("people~`#321284198702201103", {
             type: "people",
             id: "people~`#321284198702201103",
             label: "321284198702201103",
             style: null,
+            iconUrl: "/Person/Person.png",
             properties: {
               _$x: -288.04855570159026,
               _$y: -363.5339239270416
             }
-          }
-        ],
-        links: []
-      };
-
-      this.chart.execute("addSubGraph", chartData).then(() => {
-      });
-    }
+          });
+      this.renderer.run();
+    },
   }
 };
 </script>

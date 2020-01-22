@@ -14,7 +14,6 @@ import { getMyBounds } from './boundsHelper';
 
 export default function (options) {
     let isDirty = true;
-    let graphType = { entityTypes: [], linkTypes: [] };
     let graph = Graph();
 
     const visualConfig = options.visualConfig;
@@ -488,20 +487,9 @@ export default function (options) {
         setNodePosition(nodeId, x, y, z) {
         },
         setGraphType(gType) {
-            graphType = gType;
         },
         setGraphData(gData) {
             graph.setEntityGraphSource(gData);
-        },
-
-        getEntitySemanticType(nodeUuid) {
-            let type;
-            _.each(graphType.entityTypes, (f) => {
-                if (f.uuid === nodeUuid) {
-                    type = f.iconUrl;
-                }
-            });
-            return type;
         },
 
         onGraphInit(func) {
@@ -581,11 +569,7 @@ export default function (options) {
     }
 
     function initNode(p) {
-        let iconUrl;
-
-        if (_.isNil(iconUrl)) {
-            iconUrl = pixiGraphics.getEntitySemanticType(p.data.type);
-        }
+        let iconUrl = p.data.iconUrl;
 
         const nodeSprite = new SimpleNodeSprite(visualConfig.defaultIcon, p, visualConfig);
         nodeSprite.iconUrl = iconUrl;
@@ -630,8 +614,6 @@ export default function (options) {
     }
 
     function onGraphElpChanged(elpData) {
-        graphType.entityTypes = elpData.elpEntities;
-        graphType.linkTypes = elpData.elpLinks;
     }
 
     function onGraphChanged(changes) {
