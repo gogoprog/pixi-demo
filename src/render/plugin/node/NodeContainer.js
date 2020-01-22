@@ -84,7 +84,7 @@ export default class NodeContainer extends PIXI.Container {
     {
         console.log(child);
 
-        super.addChild(child);
+        // super.addChild(child);
         this.addNode(child);
         this.needRefreshData = true;
         this.needRefreshOffset = true;
@@ -158,7 +158,7 @@ export default class NodeContainer extends PIXI.Container {
 
     updateScale(nodeSprite) {
         const index = this.idIndexMap.indexFrom(nodeSprite.id);
-        this.scaleArray.set([nodeSprite.scale.x], index);
+        this.scaleArray.set([0.2], index);
         this.needRefreshData = true;
     }
 

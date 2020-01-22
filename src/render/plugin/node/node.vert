@@ -9,8 +9,6 @@ uniform mat3 projectionMatrix;
 uniform mat3 transformMatrix;
 
 varying vec2 vTextureCoord;
-varying float vIsUnknown;
-varying float vSelected;
 varying float vVertexID;
 
 void main(void){

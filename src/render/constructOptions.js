@@ -1,5 +1,3 @@
-import Unknown from '../assets/images/other/Unknown.png';
-
 import visualConfig from "./visualConfig";
 
 export default function constructOptions(container){
@@ -16,8 +14,6 @@ export default function constructOptions(container){
 
     options.container = canvas;
     options.visualConfig = visualConfig;
-
-    options.visualConfig.defaultIcon = PIXI.Texture.fromImage(Unknown);
 
     options.mode = 'picking';
 

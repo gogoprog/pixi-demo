@@ -180,9 +180,6 @@ export default function (options) {
             document.removeEventListener('mousedown', this._mouseDownListener);
             // canvas.removeEventListener('mousewheel', this._zoomActionListener);
             graph.off('changed', onGraphChanged);
-            _.each(nodeSprites, (ns) => {
-                ns.destroy();
-            });
             nodeSprites = null;
             layout = null;
             graph.clear();
@@ -285,7 +282,7 @@ export default function (options) {
     function initNode(p) {
         let iconUrl = p.data.iconUrl;
 
-        const nodeSprite = new SimpleNodeSprite(visualConfig.defaultIcon, p, visualConfig);
+        const nodeSprite = new SimpleNodeSprite(p, visualConfig);
         nodeSprite.iconUrl = iconUrl;
 
         // 更新缩放
