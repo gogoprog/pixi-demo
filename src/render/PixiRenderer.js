@@ -4,8 +4,7 @@ import 'pixi.js';
 import PresetLayout from "./layout/PresetLayout/PresetLayout";
 import Graph from './Graph';
 
-import SelectionManager from './SelectionManager';
-import { zoom, rootCaptureHandler, nodeCaptureListener } from './customizedEventHandling';
+import { zoom } from './customizedEventHandling';
 
 import SimpleNodeSprite from './sprite/SimpleNodeSprite';
 import NodeContainer from './plugin/node/NodeContainer';
@@ -37,27 +36,14 @@ export default function (options) {
     const stage = new PIXI.Container();   // the view port, same size as canvas, used to capture mouse action
     const root = new PIXI.Container();   // the content root
     const nodeContainer = new NodeContainer();
-    const textContainer = new PIXI.Container();
-    textContainer.interactive = false;
-    textContainer.interactiveChildren = false;
-    const labelContainer = new PIXI.Container();
-    labelContainer.interactive = false;
-    labelContainer.interactiveChildren = false;
-    const iconContainer = new PIXI.Container();
-    iconContainer.interactive = false;
-    iconContainer.interactiveChildren = false;
 
     root.width = viewWidth;
     root.height = viewHeight;
     root.parent = stage;
     stage.addChild(root);
-    textContainer.zIndex = 15;
     nodeContainer.zIndex = 20;
 
-    root.addChild(labelContainer);
-    root.addChild(textContainer);
     root.addChild(nodeContainer);
-    root.addChild(iconContainer);
 
     stage.contentRoot = root;
 
@@ -74,91 +60,21 @@ export default function (options) {
 
     renderer.backgroundColor = visualConfig.backgroundColor;
 
-    SelectionManager.call(root, nodeContainer);
-
     root.on('mouseup', function (e) {
-        isDirty = true;
-        root.handleMouseUp(e);
-        selectionChanged();
     });
 
     nodeContainer.on('nodeCaptured', (node) => {
-        stage.hasNodeCaptured = true;
-        if (layoutType === 'Network' && dynamicLayout) {
-            if (!node.pinned) {
-                layout.pinNode(node, true);
-            }
-        }
     });
 
     nodeContainer.on('nodeMoved', (node) => {
-        // layout.setNodePosition(node.id, node.position.x, node.position.y);
     });
 
     nodeContainer.on('nodeReleased', (node) => {
-        stage.hasNodeCaptured = false;
-        if (layoutType === 'Network' && dynamicLayout) {
-            if (node.pinned && !node.data.properties._$lock) {
-                node.pinned = false;
-                layout.pinNode(node, false);
-            } else {
-                node.pinned = true;
-            }
-        }
     });
 
     // layout 相关,把移动位置同步到layout内部
     nodeContainer.selectedNodesPosChanged = function () {
         isDirty = true;
-    };
-
-    stage.releaseConnectLine = function(oldPosition, newPosition) {
-        let startNode = null;
-        let endNode = null;
-        _.each(nodeSprites, (n) => {
-            const size = 128 * n.scale.x;
-
-            if (oldPosition.x > n.x - size && oldPosition.x < n.x + size && oldPosition.y > n.y - size && oldPosition.y < n.y + size) {
-                startNode = n;
-            }
-
-            if (newPosition.x > n.x - size && newPosition.x < n.x + size && newPosition.y > n.y - size && newPosition.y < n.y + size) {
-                endNode = n;
-            }
-        });
-        if (startNode && endNode && startNode.id !== endNode.id) {
-            pixiGraphics.fire('connect-line', startNode.data, endNode.data);
-        }
-    };
-
-    stage.selectAllNodesInRegion = function (x1, y1, x2, y2, flag, onlyNodeFlag) {
-        isDirty = true;
-        let xl;
-        let xr;
-        let yt;
-        let yb;
-        if (x1 > x2) {
-            xl = x2;
-            xr = x1;
-        } else {
-            xr = x2;
-            xl = x1;
-        }
-        if (y1 > y2) {
-            yt = y2;
-            yb = y1;
-        } else {
-            yt = y1;
-            yb = y2;
-        }
-        if (flag) {
-            root.deselectAll();
-        }
-        _.each(nodeSprites, (n) => {
-            if ((n.position.x <= xr) && (n.position.x >= xl) && (n.position.y >= yt) && (n.position.y <= yb)) {
-                nodeContainer.selectNode(n);
-            }
-        });
     };
 
     /**
@@ -186,10 +102,6 @@ export default function (options) {
 
     listenToGraphEvents();
     stage.interactive = true;
-    if (!stage.downListener) {
-        stage.downListener = rootCaptureHandler.bind(stage);
-        stage.on('mousedown', stage.downListener);
-    }
 
     // add animation
     let animationAgent = new AnimationAgent();
@@ -208,17 +120,6 @@ export default function (options) {
         root,
         stage,
         mode,
-
-        loadResources(resources) {
-            return new Promise((resolve => {
-                const loader = new PIXI.loaders.Loader();
-                loader.add('fontXML', resources.font);
-                loader.load((loader, resources) => {
-                    visualConfig.font = resources.fontXML.bitmapFont;
-                    resolve();
-                });
-            }));
-        },
 
         getLayoutType() {
             return layoutType;
@@ -308,33 +209,16 @@ export default function (options) {
             return this.setMode('connecting');
         },
 
-        /**
-         * get selected nodes,
-         * nodes of nodeContainer are selected @SelectionManager.js
-         */
         getSelectedNodes() {
             return nodeContainer.nodes;
         },
 
-        /**
-         * get selected nodes data,
-         * nodes of nodeContainer are selected @SelectionManager.js
-         */
         getSelectedNodesData() {
             const selectedNodes = [];
             _.each(nodeContainer.nodes, (ns) => {
                 selectedNodes.push(Object.assign({}, ns.data));
             });
             return selectedNodes;
-        },
-
-        /**
-         * get selected Links,
-         * links of nodeContainer are selected @SelectionManager.js
-         */
-        getSelectedLinksData() {
-            const selectedLinks = [];
-            return selectedLinks;
         },
 
         /**
@@ -481,8 +365,6 @@ export default function (options) {
         },
 
         clearSelection() {
-            root.deselectAll();
-            selectionChanged();
         },
 
         selectNodesOfLinks(selectedLinks) {
@@ -548,7 +430,6 @@ export default function (options) {
             graph.clear();
             graph = null;
 
-            textContainer.destroy(false);
             nodeContainer.destroy(false);
             // lineContainer.destroy(false);
             root.destroy(false);
@@ -605,7 +486,6 @@ export default function (options) {
         },
 
         setNodePosition(nodeId, x, y, z) {
-            // layout.setNodePosition(nodeId, x, y, z);
         },
         setGraphType(gType) {
             graphType = gType;
@@ -678,9 +558,6 @@ export default function (options) {
     ///////////////////////////////////////////////////////////////////////////////
     // Public API is over
     ///////////////////////////////////////////////////////////////////////////////
-    function layoutStabilized() {
-        pixiGraphics.fire('layout-stable');
-    }
 
     function selectionChanged() {
         isDirty = true;
@@ -710,7 +587,7 @@ export default function (options) {
             iconUrl = pixiGraphics.getEntitySemanticType(p.data.type);
         }
 
-        const nodeSprite = new SimpleNodeSprite(visualConfig.defaultIcon, p, visualConfig, iconContainer);
+        const nodeSprite = new SimpleNodeSprite(visualConfig.defaultIcon, p, visualConfig);
         nodeSprite.iconUrl = iconUrl;
 
         // 更新缩放
@@ -718,8 +595,6 @@ export default function (options) {
 
         nodeContainer.addChild(nodeSprite);
         nodeSprites[p.id] = nodeSprite;
-
-        nodeSprite.on('mousedown', nodeCaptureListener);
     }
 
     function listenToGraphEvents() {

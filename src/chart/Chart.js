@@ -11,7 +11,6 @@ import EntityMergingGraph from './graph/EntityMergingGraph';
 import RemoteGraph from './graph/RemoteGraph';
 import FinalGraph from './graph/FinalGraph';
 import Utility from './Utility';
-// import { search, cache, chart, analyticGraph } from '../../../../../api';
 import Command from './undoredo/Command';
 import CommandManager from './undoredo/CommandManager';
 import Constant from './Constant';
@@ -52,88 +51,7 @@ export default class Chart extends EventEmitter {
             throw new Error('elpData must be exists.');
         }
 
-        // if (chartMetadata.getOperation() === Constant.FRONTEND_MODE) {
-        //     this.collections = [];
-        //     for (let i = 1; i < 11; i++) {
-        //         this.collections.push(new GraphCollection(i));
-        //     }
-        //
-        //     const needEntityMerge = options.getNeedEntityMerge();
-        //     const needLinkMerge = options.getNeedLinkMerge();
-            // if (chartData) {
-            //     const originalGraphNearLinks = chartData.originalGraph.nearLinks;
-            //     const nearLinksSize = Object.keys(originalGraphNearLinks).length;
-            //     if (nearLinksSize === 0) {
-            //         this.createEmptyGraph(needEntityMerge, needLinkMerge);
-            //         this.addSubGraph(chartData.originalGraph, this.isCaseScope);
-            //     } else {
-            //         this.createDataGraph(needEntityMerge, needLinkMerge, chartData, chartMetadata.multiLabelTemplates, chartMetadata.disabledLabels);
-            //     }
-            // } else {
-                this.createEmptyGraph(this.options.needEntityMerge, this.options.needLinkMerge);
-            // }
-
-            // initialize data
-            // this.originalGraph.forEachEntity((entity) => {
-            //     const collectionIdArray = Chart.decodeCollectionFlag(entity.properties[Chart.COLLECTION_PROPERTY]);
-            //     entity.properties._$entitySetNum = collectionIdArray.length;
-            //     _.each(collectionIdArray, (collectionId) => {
-            //         const chartCollection = this.collections[collectionId - 1];
-            //         chartCollection.addEntity(entity);
-            //     });
-            // });
-            // this.originalGraph.forEachLink((link) => {
-            //     const collectionIdArray = Chart.decodeCollectionFlag(link.properties[Chart.COLLECTION_PROPERTY]);
-            //     link.properties._$linkSetNum = collectionIdArray.length;
-            //     _.each(Chart.decodeCollectionFlag(link.properties[Chart.COLLECTION_PROPERTY]), (collectionId) => {
-            //         const chartCollection = this.collections[collectionId - 1];
-            //         chartCollection.addLink(link);
-            //     });
-            // });
-
-            // this.originalGraph.on(Graph.CHANGE_TYPE_COLLECTION_ADD, (changes, collectionId) => {
-            //     console.log(`Chart recieved event from original graph. Data added to collection ${collectionId}`);
-            //     const collection = this.collections[collectionId - 1];
-            //     _.each(changes, (c) => {
-            //         if (c.entity) {
-            //             collection.addEntity(c.entity);
-            //         } else if (c.link) {
-            //             collection.addLink(c.link);
-            //         } else {
-            //             console.error('Graph change event without entity or link data.', c);
-            //         }
-            //     });
-            //     this.emit(Graph.CHANGE_TYPE_COLLECTION, collectionId);
-            // });
-
-            // this.originalGraph.on(Graph.CHANGE_TYPE_COLLECTION_REMOVE, (changes, collectionId) => {
-            //     console.log(`Chart recieved event from original graph. Data removed from collection ${collectionId}`);
-            //     const collection = this.collections[collectionId - 1];
-            //     _.each(changes, (c) => {
-            //         if (c.entity) {
-            //             collection.removeEntity(c.entity);
-            //         } else if (c.link) {
-            //             collection.removeLink(c.link);
-            //         } else {
-            //             console.error('Graph change event without entity or link data.', c);
-            //         }
-            //     });
-            //     this.emit(Graph.CHANGE_TYPE_COLLECTION, collectionId);
-            // });
-        // } else {
-        //     const remoteElpData = new ElpData(chartData.elpEntities, chartData.elpLinks);
-        //
-        //     this.remoteGraph = new RemoteGraph(chartData.visualGraphData.entities, chartData.visualGraphData.links, remoteElpData);
-        //     this.remoteGraph.setChartRef(this);
-        //
-        //     this.entityAutoMerge = chartData.entityMergeGraph.autoMerge;
-        //     this.entityCollectionMap = chartData.entityCollectionMap; // <string, [int]>
-        //     this.finalGraph = new FinalGraph(this.remoteGraph, chartMetadata.multiLabelTemplates, chartMetadata.disabledLabels);
-        //     this.finalGraph.setElpData(remoteElpData);
-        // }
-        // this.finalGraph.setChartRef(this);
-
-        // this.chartChanged = false;
+        this.createEmptyGraph(this.options.needEntityMerge, this.options.needLinkMerge);
 
         this.commandManager = new CommandManager(this, this.options.undoRedo);
 
@@ -558,10 +476,6 @@ export default class Chart extends EventEmitter {
 
     updateLinkData(linkData) {
         this.finalGraph.updateLinkProperties(linkData);
-    }
-
-    initAssets(resources) {
-        return this.renderer.loadResources(resources);
     }
 
     clearGraph() {

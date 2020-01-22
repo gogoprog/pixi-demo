@@ -214,64 +214,6 @@ export default class NodeContainer extends PIXI.Container {
         this.needRefreshSelection = true;
     }
 
-    // copy from SelectionManager
-    nodeSelected(node) {
-        this.isDirty = true;
-        this.recentlySelected = node;
-    }
-
-    selectNode(node) {
-        if (node) {
-            this.isDirty = true;
-            if (!this.selectedNodes.has(node.id)) {
-                this.selectedNodes.set(node.id, node);
-                this.nodes.push(node);
-                node.selectionChanged(true);
-
-                const index = this.idIndexMap.indexFrom(node.id);
-                this.selectedArray.set([1.0], index);
-                this.needRefreshSelection = true;
-            } else {
-                node.hadSelected = true;
-            }
-        }
-    };
-
-    deselectNode(node) {
-        if (node.selected) {
-            this.isDirty = true;
-            const index = this.nodes.indexOf(this.selectedNodes.get(node.id));
-            if (index > -1) {
-                this.nodes.splice(index, 1);
-            }
-            // 更新下节点样式
-            node.selectionChanged(false);
-            this.selectedNodes.delete(node.id);
-            node.hadSelected = false;
-
-            const selectedIndex = this.idIndexMap.indexFrom(node.id);
-            this.selectedArray.set([0.0], selectedIndex);
-            this.needRefreshSelection = true;
-        }
-    };
-
-    deselectAllNodes() {
-        if (this.selectedNodes.size > 0) {
-            this.isDirty = true;
-            const self = this;
-            this.selectedNodes.forEach((node) => {
-                node.selectionChanged(false);
-                node.hadSelected = false;
-
-                const index = self.idIndexMap.indexFrom(node.id);
-                self.selectedArray.set([0.0], index);
-            });
-            this.selectedNodes.clear();
-            this.nodes = [];
-            this.needRefreshSelection = true;
-        }
-    };
-
     setPositionDirty(posDirty) {
         this.positionDirty = posDirty;
     };

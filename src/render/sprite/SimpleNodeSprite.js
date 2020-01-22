@@ -2,9 +2,8 @@ import Constant from "../../chart/Constant";
 
 const COLLECTION_SCALE_FACTOR = 0.5;
 export default class SimpleNodeSprite extends PIXI.Sprite {
-    constructor(texture, node, visualConfig, iconContainer) {
+    constructor(texture, node, visualConfig) {
         super(texture);
-        this.iconContainer = iconContainer;
         this.id = node.id;
         this.type = node.data.type;
         this.data = node.data;

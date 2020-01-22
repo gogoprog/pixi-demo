@@ -35,9 +35,7 @@ export default {
         container: "renderArea"
       });
 
-      this.chart.initAssets({ font: "/static/font/noto.fnt" }).then(() => {
-        this.loadChart();
-      });
+      this.loadChart();
     },
 
     async loadChart() {
