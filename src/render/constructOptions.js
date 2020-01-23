@@ -1,5 +1,3 @@
-import visualConfig from "./visualConfig";
-
 export default function constructOptions(container){
     const canvasContainer = document.getElementById(container);
     const canvas = document.createElement('canvas');
@@ -10,12 +8,9 @@ export default function constructOptions(container){
     canvas.width = canvasContainer.offsetWidth;
     canvas.height = canvasContainer.offsetHeight;
 
-    const options = {};
-
-    options.container = canvas;
-    options.visualConfig = visualConfig;
-
-    options.mode = 'picking';
+    const options = {
+        container: canvas,
+    };
 
     return options;
 }

@@ -1,8 +1,6 @@
-import eventify from 'ngraph.events';
 import 'pixi.js';
 
 import PresetLayout from "./PresetLayout";
-import Graph from './Graph';
 
 import { zoom } from './customizedEventHandling';
 
@@ -10,10 +8,6 @@ import SimpleNodeSprite from './sprite/SimpleNodeSprite';
 import NodeContainer from './plugin/node/NodeContainer';
 
 export default function (options) {
-    let graph = Graph();
-
-    const visualConfig = options.visualConfig;
-
     const canvas = options.container;
 
     const viewWidth = options.container.clientWidth;
@@ -46,17 +40,11 @@ export default function (options) {
     stage.width = viewWidth;
     stage.height = viewHeight;
 
-    const mode = options.mode;
-    stage.mode = mode;
-
     // TODO here set the canvas as 20000*20000
     root.hitArea = new PIXI.Rectangle(-1000000, -1000000, 2000000, 2000000);
     root.interactive = true;
 
-    renderer.backgroundColor = visualConfig.backgroundColor;
-
-    root.on('mouseup', function (e) {
-    });
+    renderer.backgroundColor = 0xf7f7f7;
 
     /**
      * Very Very Important Variables
@@ -64,25 +52,17 @@ export default function (options) {
      */
     let nodeSprites = {};
 
-    graph.forEachNode(initNode);
-
     let layout = new PresetLayout(nodeSprites, nodeContainer);
 
-    listenToGraphEvents();
     stage.interactive = true;
 
     ///////////////////////////////////////////////////////////////////////////////
     // Public API is begin
     ///////////////////////////////////////////////////////////////////////////////
     const pixiGraphics = {
-        /**
-         * [Read only] Current layout algorithm. If you want to pass custom layout
-         * algorithm, do it via `settings` argument of ngraph.pixi.
-         */
         layout,
         root,
         stage,
-        mode,
 
         /**
          * Allows client to start animation loop, without worrying about RAF stuff.
@@ -153,97 +133,31 @@ export default function (options) {
             }
         },
 
-        zoomIn() {
-            const x = viewWidth / 2;
-            const y = viewHeight / 2;
-            zoom(x, y, true, root);
-        },
-
-        zoomOut() {
-            const x = viewWidth / 2;
-            const y = viewHeight / 2;
-            zoom(x, y, false, root);
-        },
-
         zoom(x, y, zoomingIn) {
             zoom(x, y, zoomingIn, root);
         },
 
         destroy() {
             document.removeEventListener('mousedown', this._mouseDownListener);
-            // canvas.removeEventListener('mousewheel', this._zoomActionListener);
-            graph.off('changed', onGraphChanged);
             nodeSprites = null;
             layout = null;
-            graph.clear();
-            graph = null;
 
             nodeContainer.destroy(false);
-            // lineContainer.destroy(false);
             root.destroy(false);
             stage.destroy(false);   // false to not let pixi containers destroy sprites.
             renderer.destroy(true); // true for removing the underlying view(canvas)
         },
 
-        getGraph() {
-            return graph;
-        },
-
-        getLayout() {
-            return layout;
-        },
-
-        getNode(nodeId) {
-            return graph.getNode(nodeId);
-        },
-        forEachNode(func) {
-            return graph.forEachNode(func);
-        },
-        forEachLink(func) {
-            return graph.forEachLink(func);
-        },
-        beginUpdate() {
-            return graph.beginUpdate();
-        },
-        endUpdate() {
-            return graph.endUpdate();
-        },
         addNode(nodeId, data) {
-            return graph.addNode(nodeId, data);
-        },
-        updateNode: function (nodeId, data) {
-            return graph.addNode(nodeId, data);
-        },
-        addLink(fromId, toId, data) {
-            return graph.addLink(fromId, toId, data);
-        },
-
-        setNodePosition(nodeId, x, y, z) {
-        },
-        setGraphType(gType) {
-        },
-        setGraphData(gData) {
-            graph.setEntityGraphSource(gData);
-        },
-
-        onGraphInit(func) {
-            graph.on('init', func);
-        },
-
-        onGraphChanged(func) {
-            graph.on('changed', func);
-        },
-
-        onGraphElpChanged(func) {
-            graph.on('elp-changed', func);
+            initNode({
+                id: nodeId,
+                data: data,
+            });
+            pixiGraphics.setNodesToFullScreen(false);
         },
 
         addCanvasEventListener(eventName, func, state) {
             canvas.addEventListener(eventName, func, state);
-        },
-
-        resize(width, height) {
-            renderer.resize(width, height);
         },
     };
 
@@ -261,7 +175,6 @@ export default function (options) {
 
     document.addEventListener('mousedown', pixiGraphics._mouseDownListener, { passive: true });
 
-    eventify(pixiGraphics);
     return pixiGraphics;
     ///////////////////////////////////////////////////////////////////////////////
     // Public API is over
@@ -275,67 +188,10 @@ export default function (options) {
     function initNode(p) {
         let iconUrl = p.data.iconUrl;
 
-        const nodeSprite = new SimpleNodeSprite(p, visualConfig);
+        const nodeSprite = new SimpleNodeSprite(p);
         nodeSprite.iconUrl = iconUrl;
 
         nodeContainer.addChild(nodeSprite);
         nodeSprites[p.id] = nodeSprite;
-    }
-
-    function listenToGraphEvents() {
-        graph.on('changed', onGraphChanged);
-        graph.on('elp-changed', onGraphElpChanged);
-        graph.on('init', onGraphInit);
-        graph.on('collection', onGraphDataCollectionUpdate);
-        graph.on('control', onGraphControlUpdate);
-        graph.on('texture', onGraphTextureUpdate);
-        graph.on('lock', onGraphLockUpdate);
-        graph.on('remark', onGraphRemarkUpdate);
-    }
-
-    function onGraphDataCollectionUpdate(changes) {
-    }
-
-    function onGraphControlUpdate(changes) {
-    }
-
-    function onGraphTextureUpdate(changes) {
-    }
-
-    function onGraphLockUpdate(changes) {
-    }
-
-    function onGraphRemarkUpdate(changes) {
-    }
-
-    function onGraphElpChanged(elpData) {
-    }
-
-    function onGraphChanged(changes) {
-        for (let i = 0; i < changes.length; ++i) {
-            const change = changes[i];
-            const changeNode = change.node;
-            const changeLink = change.link;
-            if (change.changeType === 'add') {
-                if (changeNode) {
-                    initNode(changeNode);
-                }
-            }
-        }
-
-        pixiGraphics.setNodesToFullScreen(false);
-
-        console.log(`Graph change process complete ${new Date()}`);
-    }
-
-    function onGraphInit(changes) {
-        for (let i = 0; i < changes.length; ++i) {
-            const change = changes[i];
-            if (change.changeType === 'add') {
-                if (change.node) {
-                    initNode(change.node);
-                }
-            }
-        }
     }
 }
