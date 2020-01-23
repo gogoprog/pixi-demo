@@ -1,10 +1,7 @@
 import 'pixi.js';
 
-import PresetLayout from "./PresetLayout";
-
 import { zoom } from './customizedEventHandling';
 
-import SimpleNodeSprite from './sprite/SimpleNodeSprite';
 import NodeContainer from './plugin/node/NodeContainer';
 
 export default function (options) {
@@ -13,14 +10,8 @@ export default function (options) {
     const viewWidth = options.container.clientWidth;
     const viewHeight = options.container.clientHeight;
 
-    PIXI.settings.SPRITE_BATCH_SIZE = 4098 * 2;
     const renderer = new PIXI.autoDetectRenderer(viewWidth, viewHeight, {
         view: options.container,
-        transparent: false,
-        autoResize: true,
-        antialias: true,
-        forceFXAA: false,
-        preserveDrawingBuffer: true,
     });
     const stage = new PIXI.Container();   // the view port, same size as canvas, used to capture mouse action
     const root = new PIXI.Container();   // the content root
@@ -28,7 +19,6 @@ export default function (options) {
 
     root.width = viewWidth;
     root.height = viewHeight;
-    root.parent = stage;
     stage.addChild(root);
     nodeContainer.zIndex = 20;
 
@@ -46,21 +36,12 @@ export default function (options) {
 
     renderer.backgroundColor = 0xf7f7f7;
 
-    /**
-     * Very Very Important Variables
-     * nodeSprites is for all of the nodes, their attribute can be found in initNode;
-     */
-    let nodeSprites = {};
-
-    let layout = new PresetLayout(nodeSprites, nodeContainer);
-
     stage.interactive = true;
 
     ///////////////////////////////////////////////////////////////////////////////
     // Public API is begin
     ///////////////////////////////////////////////////////////////////////////////
     const pixiGraphics = {
-        layout,
         root,
         stage,
 
@@ -71,11 +52,11 @@ export default function (options) {
 
         calculateRootPosition(scaleFactor) {
             const root = this.root;
-            const graphRect = layout.getGraphRect();
-            if (!graphRect) {
-                console.error('No valid graph rectangle available from layout algorithm');
-                return null;
-            }
+            const graphRect = {
+                x1: 0, y1: 0,
+                x2: 0, y2: 0
+            };
+
             const targetRectWidth = viewWidth * 0.8;
             const targetRectHeight = viewHeight * 0.65;
             // console.info("Target rectange to place graph", {x: targetRectWidth, y: targetRectHeight});
@@ -107,7 +88,7 @@ export default function (options) {
             };
         },
 
-        setNodesToFullScreen(disableAnimation) {
+        setNodesToFullScreen() {
             const rootPlacement = this.calculateRootPosition(1);
             if (rootPlacement) {
                 // console.log("Root target position: ", rootPlacement.position);
@@ -128,8 +109,6 @@ export default function (options) {
                 }
                 root.position.x = rootPlacement.position.x;
                 root.position.y = rootPlacement.position.y;
-            } else {
-                console.error('Center graph action not supported in current layout.');
             }
         },
 
@@ -139,8 +118,6 @@ export default function (options) {
 
         destroy() {
             document.removeEventListener('mousedown', this._mouseDownListener);
-            nodeSprites = null;
-            layout = null;
 
             nodeContainer.destroy(false);
             root.destroy(false);
@@ -148,16 +125,16 @@ export default function (options) {
             renderer.destroy(true); // true for removing the underlying view(canvas)
         },
 
-        addNode(nodeId, data) {
-            initNode({
-                id: nodeId,
-                data: data,
-            });
-            pixiGraphics.setNodesToFullScreen(false);
-        },
+        addNode() {
+            const nodeSprite = {
+                iconUrl: "/Person/Person.png",
+                x: 0,
+                y: 0,
+            };
+    
+            nodeContainer.addChild(nodeSprite);
 
-        addCanvasEventListener(eventName, func, state) {
-            canvas.addEventListener(eventName, func, state);
+            pixiGraphics.setNodesToFullScreen();
         },
     };
 
@@ -167,14 +144,6 @@ export default function (options) {
         pixiGraphics.zoom(e.offsetX || (e.originalEvent ? e.originalEvent.offsetX : null), e.offsetY || (e.originalEvent ? e.originalEvent.offsetY : null), e.deltaY < 0);
     }, { passive: true });
 
-
-    pixiGraphics._lastDownTarget = null;
-    pixiGraphics._mouseDownListener = function (event) {
-        pixiGraphics._lastDownTarget = event.target;
-    };
-
-    document.addEventListener('mousedown', pixiGraphics._mouseDownListener, { passive: true });
-
     return pixiGraphics;
     ///////////////////////////////////////////////////////////////////////////////
     // Public API is over
@@ -183,15 +152,5 @@ export default function (options) {
     function animationLoop(now) {
         renderer.render(stage);
         requestAnimationFrame(animationLoop);
-    }
-
-    function initNode(p) {
-        let iconUrl = p.data.iconUrl;
-
-        const nodeSprite = new SimpleNodeSprite(p);
-        nodeSprite.iconUrl = iconUrl;
-
-        nodeContainer.addChild(nodeSprite);
-        nodeSprites[p.id] = nodeSprite;
     }
 }

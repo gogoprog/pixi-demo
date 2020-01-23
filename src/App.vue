@@ -26,17 +26,7 @@ export default {
     async init() {
       const rendererOptions = constructOptions("renderArea");
       this.renderer = PixiRenderer(rendererOptions);
-      this.renderer.addNode("people~`#321284198702201103", {
-            type: "people",
-            id: "people~`#321284198702201103",
-            label: "321284198702201103",
-            style: null,
-            iconUrl: "/Person/Person.png",
-            properties: {
-              _$x: -288.04855570159026,
-              _$y: -363.5339239270416
-            }
-          });
+      this.renderer.addNode();
       this.renderer.run();
     },
   }
