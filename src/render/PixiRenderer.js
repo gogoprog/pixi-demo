@@ -112,10 +112,6 @@ export default function (options) {
             }
         },
 
-        zoom(x, y, zoomingIn) {
-            zoom(x, y, zoomingIn, root);
-        },
-
         destroy() {
             document.removeEventListener('mousedown', this._mouseDownListener);
 
@@ -139,10 +135,18 @@ export default function (options) {
     };
 
 
-    canvas.addEventListener('mousewheel', (e) => {
-        e.stopPropagation();
-        pixiGraphics.zoom(e.offsetX || (e.originalEvent ? e.originalEvent.offsetX : null), e.offsetY || (e.originalEvent ? e.originalEvent.offsetY : null), e.deltaY < 0);
-    }, { passive: true });
+    canvas.addEventListener(
+        'mousewheel', 
+        (e) => {
+            e.stopPropagation();
+            zoom(
+                e.offsetX || (e.originalEvent ? e.originalEvent.offsetX : null), 
+                e.offsetY || (e.originalEvent ? e.originalEvent.offsetY : null), 
+                e.deltaY < 0,
+                root);
+            }, 
+        { passive: true }
+    );
 
     return pixiGraphics;
     ///////////////////////////////////////////////////////////////////////////////
