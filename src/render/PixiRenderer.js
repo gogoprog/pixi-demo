@@ -1,25 +1,8 @@
 import 'pixi.js';
 
-import { zoom } from './customizedEventHandling';
-
 import NodeContainer from './plugin/node/NodeContainer';
 
 export default function (options) {
-    const canvas = options.container;
-
-    canvas.addEventListener(
-        'mousewheel', 
-        (e) => {
-            e.stopPropagation();
-            zoom(
-                e.offsetX || (e.originalEvent ? e.originalEvent.offsetX : null), 
-                e.offsetY || (e.originalEvent ? e.originalEvent.offsetY : null), 
-                e.deltaY < 0,
-                root);
-            }, 
-        { passive: true }
-    );
-
     const viewWidth = options.container.clientWidth;
     const viewHeight = options.container.clientHeight;
 
@@ -37,31 +20,33 @@ export default function (options) {
     root.hitArea = new PIXI.Rectangle(-1000000, -1000000, 2000000, 2000000);
     root.interactive = true; 
 
+    const canvas = options.container;
+    canvas.addEventListener(
+        'mousewheel', 
+        (e) => {
+            e.stopPropagation();
+
+            const x = e.offsetX || (e.originalEvent ? e.originalEvent.offsetX : null);
+            const y = e.offsetY || (e.originalEvent ? e.originalEvent.offsetY : null); 
+            const isZoomIn = e.deltaY < 0;
+
+            const direction = isZoomIn ? 1 : -1;
+            const factor = (1 + direction * 0.1);
+            root.scale.x *= factor;
+            root.scale.y *= factor;
+        },
+        { passive: true }
+    );
+
     renderer.backgroundColor = 0xf7f7f7;
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // Public API is begin
-    ///////////////////////////////////////////////////////////////////////////////
+    function animationLoop(now) {
+        renderer.render(root);
+        requestAnimationFrame(animationLoop);
+    }
+
     const pixiGraphics = {
-        root,
-
-        /**
-         * Allows client to start animation loop, without worrying about RAF stuff.
-         */
         run: animationLoop,
-
-        setNodesToFullScreen() {
-            root.position.x = viewWidth / 2;
-            root.position.y = viewHeight / 2;
-        },
-
-        destroy() {
-            document.removeEventListener('mousedown', this._mouseDownListener);
-
-            nodeContainer.destroy(false);
-            root.destroy(false);
-            renderer.destroy(true); // true for removing the underlying view(canvas)
-        },
 
         addNode() {
             const nodeSprite = {
@@ -72,14 +57,9 @@ export default function (options) {
     
             nodeContainer.addChild(nodeSprite);
 
-            pixiGraphics.setNodesToFullScreen();
+            root.position.x = viewWidth / 2;
+            root.position.y = viewHeight / 2;
         },
     };
-
     return pixiGraphics;
-
-    function animationLoop(now) {
-        renderer.render(root);
-        requestAnimationFrame(animationLoop);
-    }
 }
