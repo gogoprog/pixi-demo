@@ -8,7 +8,6 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "publishConfig": {
-    "registry": "http://172.30.6.10:8081/repository/npm-hosted/"
   },
   "author": "",
   "license": "ISC",
@@ -37,24 +36,13 @@
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.9",
     "webpack-dev-server": "^3.9.0",
-    "webpack-merge": "^4.2.2",
-    "worker-plugin": "^3.2.0"
+    "webpack-merge": "^4.2.2"
   },
   "dependencies": {
     "@babel/runtime": "^7.7.2",
     "core-js": "^3.4.0",
-    "d3-force": "^1.1.0",
-    "eventemitter3": "^2.0.3",
-    "lodash": "^4.17.15",
-    "moment": "^2.19.1",
-    "ngraph.events": "0.0.4",
-    "ngraph.expose": "^1.0.0",
-    "ngraph.forcelayout": "^1.0.0",
-    "ngraph.random": "^1.0.0",
-    "papaparse": "^5.1.0",
     "pixi-gl-core": "^1.1.4",
     "pixi.js": "^4.8.8",
-    "regenerator-runtime": "^0.13.3",
-    "uuid-js": "^0.7.5"
+    "regenerator-runtime": "^0.13.3"
   }
 }

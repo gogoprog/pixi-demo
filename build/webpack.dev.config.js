@@ -8,11 +8,9 @@ module.exports = merge(webpackBaseConfig, {
     mode: 'development',
     devtool: 'eval-source-map',
     devServer: {
-        // contentBase: [path.join(__dirname, '../examples/dist'), path.join(__dirname, '../static/')],
     },
     entry: {
         main: './src/main.js',
-        // graphz: './src/index.js',
         vendors: ['vue']
     },
     output: {

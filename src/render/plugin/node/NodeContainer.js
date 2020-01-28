@@ -51,7 +51,7 @@ export default class NodeContainer extends PIXI.Container {
             this.context.drawImage(image, 0, 0, 256, 256);
             this.texture.update();
         };
-        image.src = `/static/images/Person/Person.png`;
+        image.src = `/static/Person.png`;
 
         this.needRefreshOffset = true;
     }
