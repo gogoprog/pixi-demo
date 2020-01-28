@@ -13,12 +13,8 @@ export default function (options) {
     root.height = viewHeight;
 
     const nodeContainer = new NodeContainer();
-    nodeContainer.zIndex = 20;
 
     root.addChild(nodeContainer);
-
-    root.hitArea = new PIXI.Rectangle(-1000000, -1000000, 2000000, 2000000);
-    root.interactive = true; 
 
     const canvas = options.container;
     canvas.addEventListener(

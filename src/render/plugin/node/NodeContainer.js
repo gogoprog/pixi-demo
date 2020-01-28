@@ -14,16 +14,14 @@ export default class NodeContainer extends PIXI.Container {
         // big icon image
         this.canvas = document.createElement("canvas");
         this.context = this.canvas.getContext("2d");
-        this.context.canvas.width  = 128;
-        this.context.canvas.height = 128;
+        this.context.canvas.width  = 256;
+        this.context.canvas.height = 256;
         this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 
         this.texture = PIXI.Texture.fromCanvas(this.canvas);
     }
 
     _renderWebGL(renderer) {
-        // this.calculateVertices();
-
         renderer.setObjectRenderer(renderer.plugins[this.pluginName]);
         renderer.plugins[this.pluginName].render(this);
     };
@@ -50,7 +48,7 @@ export default class NodeContainer extends PIXI.Container {
 
         const image = new Image();
         image.onload = () => {
-            this.context.drawImage(image, 0, 0, 128, 128);
+            this.context.drawImage(image, 0, 0, 256, 256);
             this.texture.update();
         };
         image.src = `/static/images/${child.iconUrl}`;
