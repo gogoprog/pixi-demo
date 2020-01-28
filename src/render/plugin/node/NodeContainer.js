@@ -42,16 +42,16 @@ export default class NodeContainer extends PIXI.Container {
         this._renderWebGL(renderer);
     }
 
-    addChild(child)
+    addChild()
     {
-        this.offSetArray.set([child.x, child.y] , 0);
+        this.offSetArray.set([0, 0] , 0);
 
         const image = new Image();
         image.onload = () => {
             this.context.drawImage(image, 0, 0, 256, 256);
             this.texture.update();
         };
-        image.src = `/static/images/${child.iconUrl}`;
+        image.src = `/static/images/Person/Person.png`;
 
         this.needRefreshOffset = true;
     }

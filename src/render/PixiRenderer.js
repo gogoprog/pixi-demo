@@ -44,14 +44,8 @@ export default function (options) {
     const pixiGraphics = {
         run: animationLoop,
 
-        addNode() {
-            const nodeSprite = {
-                iconUrl: "/Person/Person.png",
-                x: 0,
-                y: 0,
-            };
-    
-            nodeContainer.addChild(nodeSprite);
+        addNode() {    
+            nodeContainer.addChild();
 
             root.position.x = viewWidth / 2;
             root.position.y = viewHeight / 2;
