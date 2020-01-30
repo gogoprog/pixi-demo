@@ -12,7 +12,7 @@ export default function (options) {
     root.width = viewWidth;
     root.height = viewHeight;
 
-    const nodeContainer = new NodeContainer();
+    const nodeContainer = new NodeContainer(renderer);
 
     root.addChild(nodeContainer);
 

@@ -1,7 +1,7 @@
 import NodeRenderer from './NodeRenderer';
 
 export default class NodeContainer extends PIXI.Container {
-    constructor() {
+    constructor(renderer) {
         super();
 
         this.zIndex = 20;
@@ -19,6 +19,10 @@ export default class NodeContainer extends PIXI.Container {
         this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 
         this.texture = PIXI.Texture.fromCanvas(this.canvas);
+
+        this.renderer = renderer;
+
+
     }
 
     _renderWebGL(renderer) {
@@ -50,6 +54,9 @@ export default class NodeContainer extends PIXI.Container {
         image.onload = () => {
             this.context.drawImage(image, 0, 0, 256, 256);
             this.texture.update();
+            var gl = this.renderer.gl;
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         };
         image.src = `/static/Person.png`;
 
