@@ -1,13 +1,5 @@
 <template>
-    <div class="main">
-        <div class="title">GraphZ Test</div>
-        <div class="example-container">
-            <div class="canvas-container">
-              <div class="action-container"></div>
-              <div id="renderArea" class="render-area"></div>
-            </div>
-        </div>
-    </div>
+  <div id="renderArea" class="render-area"></div>
 </template>
 
 <script>
@@ -33,48 +25,17 @@ export default {
 };
 </script>
 
-<style lang="scss">
-    html, body {
-        width: 100%;
-        height: 100%;
-        margin: 0;
-        padding: 0;
-    }
-
-    .main {
-        width: 100%;
-        height: 100%;
-
-        .title {
-            height: 50px;
-            line-height: 50px;
-            font-size: 20px;
-            font-weight: bold;
-        }
-    }
-
-    .example-container {
-        height: calc(100% - 100px);
-
-        display: flex;
-        flex-direction: row;
-    }
-
-    .canvas-container {
-      position: relative;
+<style lang="css">
+  html, body {
       width: 100%;
       height: 100%;
+      margin: 0;
+      padding: 0;
+  }
 
-      .render-area {
-        width: 100%;
-        height: 100%;
-      }
-    }
-
-    .action-container {
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
+  .render-area {
+      width: 100%;
+      height: 100%;
+  }
     
 </style>

@@ -19,7 +19,6 @@ module.exports = merge(webpackBaseConfig, {
     },
     resolve: {
         alias: {
-            'graphz': path.resolve(__dirname, '../src/'),
             'vue$': 'vue/dist/vue.esm.js',
         }
     },
