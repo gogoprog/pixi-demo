@@ -69,7 +69,7 @@ export default class NodeRenderer extends PIXI.ObjectRenderer
 
         this.shader.uniforms.uSampler = renderer.bindTexture(container.texture);
 
-        this.extension.drawArraysInstancedANGLE(this.renderer.gl.TRIANGLES, 0, 12, 1);
+        this.extension.drawArraysInstancedANGLE(this.renderer.gl.TRIANGLES, 0, 6, 1);
     }
 }
 
